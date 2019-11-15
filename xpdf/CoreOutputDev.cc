@@ -6,15 +6,15 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
-#include "Object.h"
-#include "TextOutputDev.h"
-#include "CoreOutputDev.h"
+#include <xpdf/Object.hh>
+#include <xpdf/TextOutputDev.hh>
+#include <xpdf/CoreOutputDev.hh>
 
 //------------------------------------------------------------------------
 // CoreOutputDev

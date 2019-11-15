@@ -6,15 +6,15 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
-#include "SplashMath.h"
-#include "SplashScreen.h"
-#include "SplashPattern.h"
+#include <splash/SplashMath.hh>
+#include <splash/SplashScreen.hh>
+#include <splash/SplashPattern.hh>
 
 //------------------------------------------------------------------------
 // SplashPattern

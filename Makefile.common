@@ -1,0 +1,20 @@
+# -*- mode: makefile; -*-
+
+BOOST_LIBS =                                    \
+	$(BOOST_FILESYSTEM_LIBS)                    \
+	$(BOOST_IOSTREAM_LIBS)                      \
+	$(BOOST_PROGRAM_OPTIONS_LIBS)               \
+	$(BOOST_SYSTEM_LIBS)
+
+AM_CPPFLAGS = -I. -I$(top_srcdir)               \
+	$(RANGE3_CPPFLAGS) $(BOOST_CPPFLAGS)
+
+AM_LDFLAGS =                                    \
+	$(BOOST_FILESYSTEM_LDFLAGS)                 \
+	$(BOOST_IOSTREAM_LDFLAGS)                   \
+	$(BOOST_PROGRAM_OPTIONS_LDFLAGS)            \
+	$(BOOST_SYSTEM_LDFLAGS)
+
+AM_CXXFLAGS = $(OPENMP_CXXFLAGS)
+
+LIBS = $(BOOST_LIBS)

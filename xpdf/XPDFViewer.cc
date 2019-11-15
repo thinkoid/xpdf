@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -25,26 +25,26 @@
 #include <Sgm/HPanedW.h>
 #undef Object
 #endif
-#include "gmem.h"
-#include "gfile.h"
-#include "GString.h"
-#include "GList.h"
-#include "Error.h"
-#include "GlobalParams.h"
-#include "PDFDoc.h"
-#include "Link.h"
-#include "ErrorCodes.h"
-#include "Outline.h"
-#include "UnicodeMap.h"
+#include <goo/gmem.hh>
+#include <goo/gfile.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/ErrorCodes.hh>
+#include <xpdf/Outline.hh>
+#include <xpdf/UnicodeMap.hh>
 #ifndef DISABLE_OUTLINE
 #define Object XtObject
-#include "XPDFTree.h"
+#include <xpdf/XPDFTree.hh>
 #undef Object
 #endif
-#include "XPDFApp.h"
-#include "XPDFViewer.h"
-#include "PSOutputDev.h"
-#include "config.h"
+#include <xpdf/XPDFApp.hh>
+#include <xpdf/XPDFViewer.hh>
+#include <xpdf/PSOutputDev.hh>
+#include <xpdf/config.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION
@@ -129,7 +129,7 @@
 #include "print.xbm"
 #include "printDis.xbm"
 #include "about.xbm"
-#include "about-text.h"
+#include <xpdf/about-text.hh>
 
 //------------------------------------------------------------------------
 

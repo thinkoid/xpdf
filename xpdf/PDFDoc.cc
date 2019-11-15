@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -19,25 +19,25 @@
 #ifdef _WIN32
 #  include <windows.h>
 #endif
-#include "GString.h"
-#include "config.h"
-#include "GlobalParams.h"
-#include "Page.h"
-#include "Catalog.h"
-#include "Stream.h"
-#include "XRef.h"
-#include "Link.h"
-#include "OutputDev.h"
-#include "Error.h"
-#include "ErrorCodes.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "SecurityHandler.h"
+#include <goo/GString.hh>
+#include <xpdf/config.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Page.hh>
+#include <xpdf/Catalog.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/XRef.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/OutputDev.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/ErrorCodes.hh>
+#include <xpdf/Lexer.hh>
+#include <xpdf/Parser.hh>
+#include <xpdf/SecurityHandler.hh>
 #ifndef DISABLE_OUTLINE
-#include "Outline.h"
+#include <xpdf/Outline.hh>
 #endif
-#include "OptionalContent.h"
-#include "PDFDoc.h"
+#include <xpdf/OptionalContent.hh>
+#include <xpdf/PDFDoc.hh>
 
 //------------------------------------------------------------------------
 

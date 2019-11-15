@@ -6,20 +6,20 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <stddef.h>
-#include "Object.h"
-#include "Array.h"
-#include "Dict.h"
-#include "Decrypt.h"
-#include "Parser.h"
-#include "XRef.h"
-#include "Error.h"
+#include <xpdf/Object.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Decrypt.hh>
+#include <xpdf/Parser.hh>
+#include <xpdf/XRef.hh>
+#include <xpdf/Error.hh>
 
 // Max number of nested objects.  This is used to catch infinite loops
 // in the object structure.

@@ -7,8 +7,8 @@
 //========================================================================
 
 #include <stdlib.h>
-#include "CharTypes.h"
-#include "UnicodeTypeTable.h"
+#include <xpdf/CharTypes.hh>
+#include <xpdf/UnicodeTypeTable.hh>
 
 struct UnicodeMapTableEntry {
   const char *vector;

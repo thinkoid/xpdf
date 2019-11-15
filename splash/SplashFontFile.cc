@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -16,9 +16,9 @@
 #ifndef _WIN32
 #  include <unistd.h>
 #endif
-#include "GString.h"
-#include "SplashFontFile.h"
-#include "SplashFontFileID.h"
+#include <goo/GString.hh>
+#include <splash/SplashFontFile.hh>
+#include <splash/SplashFontFileID.hh>
 
 #ifdef VMS
 #if (__VMS_VER < 70000000)

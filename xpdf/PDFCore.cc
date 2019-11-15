@@ -6,27 +6,27 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <math.h>
-#include "GString.h"
-#include "GList.h"
-#include "GlobalParams.h"
-#include "Splash.h"
-#include "SplashBitmap.h"
-#include "SplashPattern.h"
-#include "SplashPath.h"
-#include "Error.h"
-#include "ErrorCodes.h"
-#include "PDFDoc.h"
-#include "Link.h"
-#include "TextOutputDev.h"
-#include "CoreOutputDev.h"
-#include "PDFCore.h"
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/GlobalParams.hh>
+#include <splash/Splash.hh>
+#include <splash/SplashBitmap.hh>
+#include <splash/SplashPattern.hh>
+#include <splash/SplashPath.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/ErrorCodes.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/TextOutputDev.hh>
+#include <xpdf/CoreOutputDev.hh>
+#include <xpdf/PDFCore.hh>
 
 //------------------------------------------------------------------------
 // PDFCorePage

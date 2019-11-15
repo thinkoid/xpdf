@@ -6,20 +6,20 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdlib.h>
 #include <stdio.h>
 #include <png.h>
-#include "parseargs.h"
-#include "gmem.h"
-#include "GString.h"
-#include "GlobalParams.h"
-#include "Object.h"
-#include "PDFDoc.h"
-#include "SplashBitmap.h"
-#include "Splash.h"
-#include "SplashOutputDev.h"
-#include "config.h"
+#include <goo/parseargs.hh>
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/PDFDoc.hh>
+#include <splash/SplashBitmap.hh>
+#include <splash/Splash.hh>
+#include <xpdf/SplashOutputDev.hh>
+#include <xpdf/config.hh>
 
 static int firstPage = 1;
 static int lastPage = 0;

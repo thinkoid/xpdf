@@ -6,20 +6,20 @@
 //
 //========================================================================
 
-#include "aconf.h"
+#include <config.hh>
 
 #ifdef ENABLE_PLUGINS
 
-#include "gmem.h"
-#include "GlobalParams.h"
-#include "Object.h"
-#include "PDFDoc.h"
+#include <goo/gmem.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/PDFDoc.hh>
 #ifdef _WIN32
 #include "WinPDFCore.h"
 #else
-#include "XPDFCore.h"
+#include <xpdf/XPDFCore.hh>
 #endif
-#include "XpdfPluginAPI.h"
+#include <xpdf/XpdfPluginAPI.hh>
 
 //------------------------------------------------------------------------
 

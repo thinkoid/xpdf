@@ -6,10 +6,10 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdlib.h>
-#include "gmem.h"
-#include "XPDFTreeP.h"
+#include <goo/gmem.hh>
+#include <xpdf/XPDFTreeP.hh>
 
 //------------------------------------------------------------------------
 

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -30,23 +30,23 @@
 #if HAVE_PAPER_H
 #include <paper.h>
 #endif
-#include "gmem.h"
-#include "GString.h"
-#include "GList.h"
-#include "GHash.h"
-#include "gfile.h"
-#include "FoFiIdentifier.h"
-#include "Error.h"
-#include "NameToCharCode.h"
-#include "CharCodeToUnicode.h"
-#include "UnicodeMap.h"
-#include "CMap.h"
-#include "BuiltinFontTables.h"
-#include "FontEncodingTables.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <goo/GHash.hh>
+#include <goo/gfile.hh>
+#include <fofi/FoFiIdentifier.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/NameToCharCode.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/UnicodeMap.hh>
+#include <xpdf/CMap.hh>
+#include <xpdf/BuiltinFontTables.hh>
+#include <xpdf/FontEncodingTables.hh>
 #ifdef ENABLE_PLUGINS
-#  include "XpdfPluginAPI.h"
+#  include <xpdf/XpdfPluginAPI.hh>
 #endif
-#include "GlobalParams.h"
+#include <xpdf/GlobalParams.hh>
 
 #ifdef _WIN32
 #  define strcasecmp stricmp
@@ -69,9 +69,9 @@
 #  define unlockCMapCache
 #endif
 
-#include "NameToUnicodeTable.h"
-#include "UnicodeMapTables.h"
-#include "UTF8.h"
+#include <xpdf/NameToUnicodeTable.hh>
+#include <xpdf/UnicodeMapTables.hh>
+#include <xpdf/UTF8.hh>
 
 #ifdef ENABLE_PLUGINS
 #  ifdef _WIN32

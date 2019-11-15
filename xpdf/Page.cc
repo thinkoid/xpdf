@@ -6,30 +6,30 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <stddef.h>
-#include "GlobalParams.h"
-#include "Object.h"
-#include "Array.h"
-#include "Dict.h"
-#include "PDFDoc.h"
-#include "XRef.h"
-#include "Link.h"
-#include "OutputDev.h"
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/XRef.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/OutputDev.hh>
 #ifndef PDF_PARSER_ONLY
-#include "Gfx.h"
-#include "GfxState.h"
-#include "Annot.h"
-#include "Form.h"
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/Annot.hh>
+#include <xpdf/Form.hh>
 #endif
-#include "Error.h"
-#include "Catalog.h"
-#include "Page.h"
+#include <xpdf/Error.hh>
+#include <xpdf/Catalog.hh>
+#include <xpdf/Page.hh>
 
 //------------------------------------------------------------------------
 // PDFRectangle

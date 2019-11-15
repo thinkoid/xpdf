@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -14,13 +14,13 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "gmem.h"
-#include "gfile.h"
-#include "GString.h"
-#include "Error.h"
-#include "GlobalParams.h"
-#include "PSTokenizer.h"
-#include "CharCodeToUnicode.h"
+#include <goo/gmem.hh>
+#include <goo/gfile.hh>
+#include <goo/GString.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/PSTokenizer.hh>
+#include <xpdf/CharCodeToUnicode.hh>
 
 //------------------------------------------------------------------------
 

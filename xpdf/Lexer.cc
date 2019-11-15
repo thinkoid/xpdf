@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -16,8 +16,8 @@
 #include <stddef.h>
 #include <string.h>
 #include <ctype.h>
-#include "Lexer.h"
-#include "Error.h"
+#include <xpdf/Lexer.hh>
+#include <xpdf/Error.hh>
 
 //------------------------------------------------------------------------
 

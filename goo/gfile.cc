@@ -8,7 +8,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef _WIN32
 #  include <time.h>
@@ -31,8 +31,8 @@
 #    include <unixlib.h>
 #  endif
 #endif // _WIN32
-#include "GString.h"
-#include "gfile.h"
+#include <goo/GString.hh>
+#include <goo/gfile.hh>
 
 // Some systems don't define this, so just make it something reasonably
 // large.

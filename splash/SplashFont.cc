@@ -6,18 +6,18 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <string.h>
-#include "gmem.h"
-#include "SplashMath.h"
-#include "SplashGlyphBitmap.h"
-#include "SplashFontFile.h"
-#include "SplashFont.h"
+#include <goo/gmem.hh>
+#include <splash/SplashMath.hh>
+#include <splash/SplashGlyphBitmap.hh>
+#include <splash/SplashFontFile.hh>
+#include <splash/SplashFont.hh>
 
 //------------------------------------------------------------------------
 

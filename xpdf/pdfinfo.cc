@@ -6,31 +6,31 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
 #include <math.h>
-#include "parseargs.h"
-#include "GString.h"
-#include "gmem.h"
-#include "gfile.h"
-#include "GlobalParams.h"
-#include "Object.h"
-#include "Stream.h"
-#include "Array.h"
-#include "Dict.h"
-#include "XRef.h"
-#include "Catalog.h"
-#include "Page.h"
-#include "PDFDoc.h"
-#include "CharTypes.h"
-#include "UnicodeMap.h"
-#include "TextString.h"
-#include "Error.h"
-#include "config.h"
+#include <goo/parseargs.hh>
+#include <goo/GString.hh>
+#include <goo/gmem.hh>
+#include <goo/gfile.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/XRef.hh>
+#include <xpdf/Catalog.hh>
+#include <xpdf/Page.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/CharTypes.hh>
+#include <xpdf/UnicodeMap.hh>
+#include <xpdf/TextString.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/config.hh>
 
 static void printInfoString(Dict *infoDict, const char *key, const char *text,
 			    UnicodeMap *uMap);

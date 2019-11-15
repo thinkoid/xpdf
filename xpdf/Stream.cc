@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -21,17 +21,17 @@
 #endif
 #include <string.h>
 #include <ctype.h>
-#include "gmem.h"
-#include "gfile.h"
-#include "config.h"
-#include "Error.h"
-#include "Object.h"
-#include "Lexer.h"
-#include "GfxState.h"
-#include "Stream.h"
-#include "JBIG2Stream.h"
-#include "JPXStream.h"
-#include "Stream-CCITT.h"
+#include <goo/gmem.hh>
+#include <goo/gfile.hh>
+#include <xpdf/config.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Lexer.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/JBIG2Stream.hh>
+#include <xpdf/JPXStream.hh>
+#include <xpdf/Stream-CCITT.hh>
 
 #ifdef __DJGPP__
 static GBool setDJSYSFLAGS = gFalse;

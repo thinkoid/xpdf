@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -14,18 +14,18 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "gmem.h"
-#include "GList.h"
-#include "Error.h"
-#include "Object.h"
-#include "Catalog.h"
-#include "Gfx.h"
-#include "GfxFont.h"
-#include "Lexer.h"
-#include "PDFDoc.h"
-#include "OptionalContent.h"
-#include "Form.h"
-#include "Annot.h"
+#include <goo/gmem.hh>
+#include <goo/GList.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Catalog.hh>
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/Lexer.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/OptionalContent.hh>
+#include <xpdf/Form.hh>
+#include <xpdf/Annot.hh>
 
 // the MSVC math.h doesn't define this
 #ifndef M_PI

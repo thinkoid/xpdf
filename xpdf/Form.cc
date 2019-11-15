@@ -6,19 +6,19 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
-#include "GlobalParams.h"
-#include "Error.h"
-#include "Object.h"
-#include "PDFDoc.h"
-#include "AcroForm.h"
-#include "XFAForm.h"
-#include "Form.h"
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/AcroForm.hh>
+#include <xpdf/XFAForm.hh>
+#include <xpdf/Form.hh>
 
 //------------------------------------------------------------------------
 // Form

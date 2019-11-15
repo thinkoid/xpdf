@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -14,9 +14,9 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include "gmem.h"
-#include "Object.h"
-#include "Array.h"
+#include <goo/gmem.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Array.hh>
 
 //------------------------------------------------------------------------
 // Array

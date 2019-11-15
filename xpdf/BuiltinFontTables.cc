@@ -6,10 +6,10 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdlib.h>
-#include "FontEncodingTables.h"
-#include "BuiltinFontTables.h"
+#include <xpdf/FontEncodingTables.hh>
+#include <xpdf/BuiltinFontTables.hh>
 
 static BuiltinFontWidth courierWidthsTab[] = {
   { "Ntilde",                            600, NULL },

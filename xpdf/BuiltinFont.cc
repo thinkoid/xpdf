@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -14,9 +14,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "gmem.h"
-#include "FontEncodingTables.h"
-#include "BuiltinFont.h"
+#include <goo/gmem.hh>
+#include <xpdf/FontEncodingTables.hh>
+#include <xpdf/BuiltinFont.hh>
 
 //------------------------------------------------------------------------
 

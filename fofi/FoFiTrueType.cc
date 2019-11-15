@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -17,12 +17,12 @@
 #if HAVE_STD_SORT
 #include <algorithm>
 #endif
-#include "gtypes.h"
-#include "gmem.h"
-#include "GString.h"
-#include "GHash.h"
-#include "FoFiType1C.h"
-#include "FoFiTrueType.h"
+#include <goo/gtypes.hh>
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GHash.hh>
+#include <fofi/FoFiType1C.hh>
+#include <fofi/FoFiTrueType.hh>
 
 //
 // Terminology

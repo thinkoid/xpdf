@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -21,20 +21,20 @@
 #if HAVE_STD_SORT
 #include <algorithm>
 #endif
-#include "gmem.h"
-#include "Error.h"
-#include "Object.h"
-#include "Dict.h"
-#include "GlobalParams.h"
-#include "CMap.h"
-#include "CharCodeToUnicode.h"
-#include "FontEncodingTables.h"
-#include "BuiltinFontTables.h"
-#include "FoFiIdentifier.h"
-#include "FoFiType1.h"
-#include "FoFiType1C.h"
-#include "FoFiTrueType.h"
-#include "GfxFont.h"
+#include <goo/gmem.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/CMap.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/FontEncodingTables.hh>
+#include <xpdf/BuiltinFontTables.hh>
+#include <fofi/FoFiIdentifier.hh>
+#include <fofi/FoFiType1.hh>
+#include <fofi/FoFiType1C.hh>
+#include <fofi/FoFiTrueType.hh>
+#include <xpdf/GfxFont.hh>
 
 //------------------------------------------------------------------------
 

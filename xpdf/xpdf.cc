@@ -6,16 +6,16 @@
 //
 //========================================================================
 
-#include <aconf.h>
-#include "gtypes.h"
-#include "GString.h"
-#include "parseargs.h"
-#include "gfile.h"
-#include "gmem.h"
-#include "GlobalParams.h"
-#include "Object.h"
-#include "XPDFApp.h"
-#include "config.h"
+#include <config.hh>
+#include <goo/gtypes.hh>
+#include <goo/GString.hh>
+#include <goo/parseargs.hh>
+#include <goo/gfile.hh>
+#include <goo/gmem.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/XPDFApp.hh>
+#include <xpdf/config.hh>
 
 //------------------------------------------------------------------------
 // command line options

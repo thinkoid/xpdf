@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -17,16 +17,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-#include "gmem.h"
-#include "gfile.h"
-#include "Object.h"
-#include "Stream.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "Dict.h"
-#include "Error.h"
-#include "ErrorCodes.h"
-#include "XRef.h"
+#include <goo/gmem.hh>
+#include <goo/gfile.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/Lexer.hh>
+#include <xpdf/Parser.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/ErrorCodes.hh>
+#include <xpdf/XRef.hh>
 
 //------------------------------------------------------------------------
 

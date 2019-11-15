@@ -6,17 +6,17 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdio.h>
-#include "gtypes.h"
-#include "gmem.h"
-#include "parseargs.h"
-#include "GlobalParams.h"
-#include "PDFDoc.h"
-#include "CharTypes.h"
-#include "UnicodeMap.h"
-#include "Error.h"
-#include "config.h"
+#include <goo/gtypes.hh>
+#include <goo/gmem.hh>
+#include <goo/parseargs.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/CharTypes.hh>
+#include <xpdf/UnicodeMap.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/config.hh>
 
 static GBool doList = gFalse;
 static int saveNum = 0;

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -16,13 +16,13 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include "gmem.h"
-#include "GList.h"
-#include "Object.h"
-#include "Dict.h"
-#include "Stream.h"
-#include "Error.h"
-#include "Function.h"
+#include <goo/gmem.hh>
+#include <goo/GList.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Function.hh>
 
 //------------------------------------------------------------------------
 

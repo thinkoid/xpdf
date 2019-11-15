@@ -8,7 +8,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #if USE_FIXEDPOINT
 
@@ -16,7 +16,7 @@
 #pragma implementation
 #endif
 
-#include "FixedPoint.h"
+#include <goo/FixedPoint.hh>
 
 #define ln2 ((FixedPoint)0.69314718)
 

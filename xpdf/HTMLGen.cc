@@ -20,7 +20,7 @@
 //~ - metadata
 //~ - PDF outline
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -28,21 +28,21 @@
 
 #include <stdlib.h>
 #include <png.h>
-#include "gmem.h"
-#include "GString.h"
-#include "GList.h"
-#include "SplashBitmap.h"
-#include "PDFDoc.h"
-#include "TextOutputDev.h"
-#include "SplashOutputDev.h"
-#include "ErrorCodes.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <splash/SplashBitmap.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/TextOutputDev.hh>
+#include <xpdf/SplashOutputDev.hh>
+#include <xpdf/ErrorCodes.hh>
 #if EVAL_MODE
-#  include "SplashMath.h"
-#  include "Splash.h"
-#  include "BuiltinFontTables.h"
-#  include "FontEncodingTables.h"
+#  include <splash/SplashMath.hh>
+#  include <splash/Splash.hh>
+#  include <xpdf/BuiltinFontTables.hh>
+#  include <xpdf/FontEncodingTables.hh>
 #endif
-#include "HTMLGen.h"
+#include <xpdf/HTMLGen.hh>
 
 #ifdef _WIN32
 #  define strcasecmp stricmp

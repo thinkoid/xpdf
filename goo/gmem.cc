@@ -6,13 +6,13 @@
  * Copyright 1996-2003 Glyph & Cog, LLC
  */
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include "gmem.h"
+#include <goo/gmem.hh>
 
 #ifdef DEBUG_MEM
 

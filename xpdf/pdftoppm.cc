@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 #include <stdio.h>
 #ifdef _WIN32
 #  include <io.h>
@@ -16,16 +16,16 @@
 #  include <fenv.h>
 #  include <fpu_control.h>
 #endif
-#include "parseargs.h"
-#include "gmem.h"
-#include "GString.h"
-#include "GlobalParams.h"
-#include "Object.h"
-#include "PDFDoc.h"
-#include "SplashBitmap.h"
-#include "Splash.h"
-#include "SplashOutputDev.h"
-#include "config.h"
+#include <goo/parseargs.hh>
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/PDFDoc.hh>
+#include <splash/SplashBitmap.hh>
+#include <splash/Splash.hh>
+#include <xpdf/SplashOutputDev.hh>
+#include <xpdf/config.hh>
 
 static int firstPage = 1;
 static int lastPage = 0;

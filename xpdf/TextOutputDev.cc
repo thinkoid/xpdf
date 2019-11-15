@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -21,17 +21,17 @@
 #include <fcntl.h> // for O_BINARY
 #include <io.h>    // for setmode
 #endif
-#include "gmem.h"
-#include "GString.h"
-#include "GList.h"
-#include "config.h"
-#include "Error.h"
-#include "GlobalParams.h"
-#include "UnicodeMap.h"
-#include "UnicodeTypeTable.h"
-#include "GfxState.h"
-#include "Link.h"
-#include "TextOutputDev.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/config.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/UnicodeMap.hh>
+#include <xpdf/UnicodeTypeTable.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/TextOutputDev.hh>
 
 //------------------------------------------------------------------------
 // parameters

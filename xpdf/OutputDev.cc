@@ -6,17 +6,17 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <stddef.h>
-#include "Object.h"
-#include "Stream.h"
-#include "GfxState.h"
-#include "OutputDev.h"
+#include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/OutputDev.hh>
 
 //------------------------------------------------------------------------
 // OutputDev

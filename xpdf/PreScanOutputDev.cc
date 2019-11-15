@@ -6,19 +6,19 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <math.h>
-#include "GlobalParams.h"
-#include "Page.h"
-#include "Gfx.h"
-#include "GfxFont.h"
-#include "Link.h"
-#include "PreScanOutputDev.h"
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Page.hh>
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/PreScanOutputDev.hh>
 
 //------------------------------------------------------------------------
 // PreScanOutputDev

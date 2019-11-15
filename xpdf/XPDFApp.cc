@@ -6,18 +6,18 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
-#include "GString.h"
-#include "GList.h"
-#include "Error.h"
-#include "XPDFViewer.h"
-#include "XPDFApp.h"
-#include "config.h"
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/XPDFViewer.hh>
+#include <xpdf/XPDFApp.hh>
+#include <xpdf/config.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION

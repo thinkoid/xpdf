@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -16,13 +16,13 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <ctype.h>
-#include "gmem.h"
-#include "config.h"
-#include "Error.h"
-#include "GfxState.h"
-#include "Object.h"
-#include "Stream.h"
-#include "ImageOutputDev.h"
+#include <goo/gmem.hh>
+#include <xpdf/config.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/ImageOutputDev.hh>
 
 ImageOutputDev::ImageOutputDev(char *fileRootA, GBool dumpJPEGA) {
   fileRoot = copyString(fileRootA);

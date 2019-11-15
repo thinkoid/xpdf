@@ -6,15 +6,15 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <string.h>
-#include "gmem.h"
-#include "Decrypt.h"
+#include <goo/gmem.hh>
+#include <xpdf/Decrypt.hh>
 
 static void aes256KeyExpansion(DecryptAES256State *s,
 			       Guchar *objKey, int objKeyLen);

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -15,22 +15,22 @@
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 #include <string.h>
-#include "gmem.h"
-#include "GString.h"
-#include "GList.h"
-#include "Error.h"
-#include "GlobalParams.h"
-#include "PDFDoc.h"
-#include "Link.h"
-#include "ErrorCodes.h"
-#include "GfxState.h"
-#include "CoreOutputDev.h"
-#include "PSOutputDev.h"
-#include "TextOutputDev.h"
-#include "SplashBitmap.h"
-#include "SplashPattern.h"
-#include "XPDFApp.h"
-#include "XPDFCore.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/ErrorCodes.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/CoreOutputDev.hh>
+#include <xpdf/PSOutputDev.hh>
+#include <xpdf/TextOutputDev.hh>
+#include <splash/SplashBitmap.hh>
+#include <splash/SplashPattern.hh>
+#include <xpdf/XPDFApp.hh>
+#include <xpdf/XPDFCore.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION

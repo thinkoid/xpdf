@@ -6,23 +6,23 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <stdlib.h>
-#include "GString.h"
-#include "GList.h"
-#include "GHash.h"
-#include "Error.h"
-#include "Object.h"
-#include "PDFDoc.h"
-#include "Gfx.h"
-#include "GfxFont.h"
-#include "Zoox.h"
-#include "XFAForm.h"
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <goo/GHash.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/Zoox.hh>
+#include <xpdf/XFAForm.hh>
 
 #ifdef _WIN32
 #  define strcasecmp stricmp

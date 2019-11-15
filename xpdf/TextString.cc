@@ -6,17 +6,17 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <string.h>
-#include "gmem.h"
-#include "GString.h"
-#include "PDFDocEncoding.h"
-#include "TextString.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <xpdf/PDFDocEncoding.hh>
+#include <xpdf/TextString.hh>
 
 //------------------------------------------------------------------------
 

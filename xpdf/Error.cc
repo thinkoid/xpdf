@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -15,9 +15,9 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
-#include "GString.h"
-#include "GlobalParams.h"
-#include "Error.h"
+#include <goo/GString.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Error.hh>
 
 static const char *errorCategoryNames[] = {
   "Syntax Warning",

@@ -6,14 +6,14 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <stdlib.h>
-#include "FoFiEncodings.h"
+#include <fofi/FoFiEncodings.hh>
 
 //------------------------------------------------------------------------
 // Type 1 and 1C font data

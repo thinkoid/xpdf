@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -15,32 +15,32 @@
 #include <string.h>
 #include <math.h>
 #include <limits.h>
-#include "gfile.h"
-#include "GlobalParams.h"
-#include "Error.h"
-#include "Object.h"
-#include "Gfx.h"
-#include "GfxFont.h"
-#include "Link.h"
-#include "CharCodeToUnicode.h"
-#include "FontEncodingTables.h"
-#include "BuiltinFont.h"
-#include "BuiltinFontTables.h"
-#include "FoFiTrueType.h"
-#include "JPXStream.h"
-#include "SplashBitmap.h"
-#include "SplashGlyphBitmap.h"
-#include "SplashPattern.h"
-#include "SplashScreen.h"
-#include "SplashPath.h"
-#include "SplashState.h"
-#include "SplashErrorCodes.h"
-#include "SplashFontEngine.h"
-#include "SplashFont.h"
-#include "SplashFontFile.h"
-#include "SplashFontFileID.h"
-#include "Splash.h"
-#include "SplashOutputDev.h"
+#include <goo/gfile.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/FontEncodingTables.hh>
+#include <xpdf/BuiltinFont.hh>
+#include <xpdf/BuiltinFontTables.hh>
+#include <fofi/FoFiTrueType.hh>
+#include <xpdf/JPXStream.hh>
+#include <splash/SplashBitmap.hh>
+#include <splash/SplashGlyphBitmap.hh>
+#include <splash/SplashPattern.hh>
+#include <splash/SplashScreen.hh>
+#include <splash/SplashPath.hh>
+#include <splash/SplashState.hh>
+#include <splash/SplashErrorCodes.hh>
+#include <splash/SplashFontEngine.hh>
+#include <splash/SplashFont.hh>
+#include <splash/SplashFontFile.hh>
+#include <splash/SplashFontFileID.hh>
+#include <splash/Splash.hh>
+#include <xpdf/SplashOutputDev.hh>
 
 #ifdef VMS
 #if (__VMS_VER < 70000000)
@@ -2338,7 +2338,7 @@ GBool SplashOutputDev::imageSrc(void *data, SplashColorPtr colorLine,
   SplashOutImageData *imgData = (SplashOutImageData *)data;
   Guchar *p;
   SplashColorPtr q, col;
-  int nComps, x;
+  int x;
 
   if (imgData->y == imgData->height ||
       !(p = imgData->imgStr->getLine())) {
@@ -2347,7 +2347,7 @@ GBool SplashOutputDev::imageSrc(void *data, SplashColorPtr colorLine,
     return gFalse;
   }
 
-  nComps = imgData->colorMap->getNumPixelComps();
+  // nComps = imgData->colorMap->getNumPixelComps();
 
   if (imgData->lookup) {
     switch (imgData->colorMode) {

@@ -6,19 +6,19 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
-#include "gmem.h"
-#include "GString.h"
-#include "GList.h"
-#include "Error.h"
-#include "Link.h"
-#include "TextString.h"
-#include "Outline.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/TextString.hh>
+#include <xpdf/Outline.hh>
 
 //------------------------------------------------------------------------
 

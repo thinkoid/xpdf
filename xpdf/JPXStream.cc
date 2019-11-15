@@ -6,17 +6,17 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <limits.h>
-#include "gmem.h"
-#include "Error.h"
-#include "JArithmeticDecoder.h"
-#include "JPXStream.h"
+#include <goo/gmem.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/JArithmeticDecoder.hh>
+#include <xpdf/JPXStream.hh>
 
 //~ to do:
 //  - precincts

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -14,13 +14,13 @@
 
 #include <stddef.h>
 #include <string.h>
-#include "gmem.h"
-#include "GString.h"
-#include "Error.h"
-#include "Object.h"
-#include "Array.h"
-#include "Dict.h"
-#include "Link.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Link.hh>
 
 //------------------------------------------------------------------------
 // LinkAction

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -15,21 +15,21 @@
 #include <string.h>
 #include <stddef.h>
 #include <limits.h>
-#include "gmem.h"
-#include "gfile.h"
-#include "GList.h"
-#include "Object.h"
-#include "CharTypes.h"
-#include "PDFDoc.h"
-#include "XRef.h"
-#include "Array.h"
-#include "Dict.h"
-#include "Page.h"
-#include "Error.h"
-#include "Link.h"
-#include "Form.h"
-#include "TextString.h"
-#include "Catalog.h"
+#include <goo/gmem.hh>
+#include <goo/gfile.hh>
+#include <goo/GList.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/CharTypes.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/XRef.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Page.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/Form.hh>
+#include <xpdf/TextString.hh>
+#include <xpdf/Catalog.hh>
 
 //------------------------------------------------------------------------
 // PageTreeNode

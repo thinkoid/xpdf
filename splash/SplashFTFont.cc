@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
 
@@ -18,14 +18,14 @@
 #include FT_OUTLINE_H
 #include FT_SIZES_H
 #include FT_GLYPH_H
-#include "gmem.h"
-#include "SplashMath.h"
-#include "SplashGlyphBitmap.h"
-#include "SplashPath.h"
-#include "SplashFontEngine.h"
-#include "SplashFTFontEngine.h"
-#include "SplashFTFontFile.h"
-#include "SplashFTFont.h"
+#include <goo/gmem.hh>
+#include <splash/SplashMath.hh>
+#include <splash/SplashGlyphBitmap.hh>
+#include <splash/SplashPath.hh>
+#include <splash/SplashFontEngine.hh>
+#include <splash/SplashFTFontEngine.hh>
+#include <splash/SplashFTFontFile.hh>
+#include <splash/SplashFTFont.hh>
 
 //------------------------------------------------------------------------
 

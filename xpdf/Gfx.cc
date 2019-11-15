@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -17,27 +17,27 @@
 #include <stddef.h>
 #include <string.h>
 #include <math.h>
-#include "gmem.h"
-#include "GString.h"
-#include "GList.h"
-#include "GlobalParams.h"
-#include "CharTypes.h"
-#include "Object.h"
-#include "PDFDoc.h"
-#include "Array.h"
-#include "Dict.h"
-#include "Stream.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "GfxFont.h"
-#include "GfxState.h"
-#include "OutputDev.h"
-#include "Page.h"
-#include "Annot.h"
-#include "OptionalContent.h"
-#include "Error.h"
-#include "TextString.h"
-#include "Gfx.h"
+#include <goo/gmem.hh>
+#include <goo/GString.hh>
+#include <goo/GList.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/CharTypes.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/Lexer.hh>
+#include <xpdf/Parser.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/OutputDev.hh>
+#include <xpdf/Page.hh>
+#include <xpdf/Annot.hh>
+#include <xpdf/OptionalContent.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/TextString.hh>
+#include <xpdf/Gfx.hh>
 
 // the MSVC math.h doesn't define this
 #ifndef M_PI

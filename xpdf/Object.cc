@@ -6,19 +6,19 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
 #include <stddef.h>
-#include "Object.h"
-#include "Array.h"
-#include "Dict.h"
-#include "Error.h"
-#include "Stream.h"
-#include "XRef.h"
+#include <xpdf/Object.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/XRef.hh>
 
 //------------------------------------------------------------------------
 // Object

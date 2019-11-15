@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -14,13 +14,13 @@
 
 #include <stdlib.h>
 #include <limits.h>
-#include "GList.h"
-#include "Error.h"
-#include "JArithmeticDecoder.h"
-#include "JBIG2Stream.h"
+#include <goo/GList.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/JArithmeticDecoder.hh>
+#include <xpdf/JBIG2Stream.hh>
 
 //~ share these tables
-#include "Stream-CCITT.h"
+#include <xpdf/Stream-CCITT.hh>
 
 //------------------------------------------------------------------------
 

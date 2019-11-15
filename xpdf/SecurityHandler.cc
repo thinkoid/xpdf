@@ -6,22 +6,22 @@
 //
 //========================================================================
 
-#include <aconf.h>
+#include <config.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
 
-#include "GString.h"
-#include "PDFDoc.h"
-#include "Decrypt.h"
-#include "Error.h"
-#include "GlobalParams.h"
-#include "PDFCore.h"
+#include <goo/GString.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Decrypt.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/PDFCore.hh>
 #ifdef ENABLE_PLUGINS
-#  include "XpdfPluginAPI.h"
+#  include <xpdf/XpdfPluginAPI.hh>
 #endif
-#include "SecurityHandler.h"
+#include <xpdf/SecurityHandler.hh>
 
 //------------------------------------------------------------------------
 // SecurityHandler
