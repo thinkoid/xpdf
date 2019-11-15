@@ -548,13 +548,7 @@ void XPDFCore::doAction(LinkAction *action) {
 	fileName->append(' ');
 	fileName->append(((LinkLaunch *)action)->getParams());
       }
-#ifdef VMS
-      fileName->insert(0, "spawn/nowait ");
-#elif defined(__EMX__)
-      fileName->insert(0, "start /min /n ");
-#else
       fileName->append(" &");
-#endif
       if (globalParams->getLaunchCommand()) {
 	fileName->insert(0, ' ');
 	fileName->insert(0, globalParams->getLaunchCommand());
@@ -688,13 +682,7 @@ void XPDFCore::runCommand(GString *cmdFmt, GString *arg) {
   } else {
     cmd = cmdFmt->copy();
   }
-#ifdef VMS
-  cmd->insert(0, "spawn/nowait ");
-#elif defined(__EMX__)
-  cmd->insert(0, "start /min /n ");
-#else
   cmd->append(" &");
-#endif
   system(cmd->getCString());
   delete cmd;
 }

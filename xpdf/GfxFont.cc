@@ -1534,12 +1534,12 @@ struct cmpWidthExcepVFunctor {
 
 #else // HAVE_STD_SORT
 
-static int CDECL cmpWidthExcep(const void *w1, const void *w2) {
+static int cmpWidthExcep(const void *w1, const void *w2) {
   return ((GfxFontCIDWidthExcep *)w1)->first -
          ((GfxFontCIDWidthExcep *)w2)->first;
 }
 
-static int CDECL cmpWidthExcepV(const void *w1, const void *w2) {
+static int cmpWidthExcepV(const void *w1, const void *w2) {
   return ((GfxFontCIDWidthExcepV *)w1)->first -
          ((GfxFontCIDWidthExcepV *)w2)->first;
 }

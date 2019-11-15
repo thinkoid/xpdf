@@ -48,11 +48,6 @@
 #endif
 #include <xpdf/PSOutputDev.hh>
 
-#ifdef MACOS
-// needed for setting type/creator of MacOS files
-#include "ICSupport.h"
-#endif
-
 // the MSVC math.h doesn't define this
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -1071,9 +1066,8 @@ PSOutputDev::PSOutputDev(char *fileName, PDFDoc *docA,
   } else if (fileName[0] == '|') {
     fileTypeA = psPipe;
 #ifdef HAVE_POPEN
-#ifndef _WIN32
     signal(SIGPIPE, (SignalFunc)SIG_IGN);
-#endif
+
     if (!(f = popen(fileName + 1, "w"))) {
       error(errIO, -1, "Couldn't run print command '{0:s}'", fileName);
       ok = gFalse;
@@ -1285,17 +1279,12 @@ PSOutputDev::~PSOutputDev() {
       }
     }
     if (fileType == psFile) {
-#ifdef MACOS
-      ICS_MapRefNumAndAssign((short)((FILE *)outputStream)->handle);
-#endif
       fclose((FILE *)outputStream);
     }
 #ifdef HAVE_POPEN
     else if (fileType == psPipe) {
       pclose((FILE *)outputStream);
-#ifndef _WIN32
       signal(SIGPIPE, (SignalFunc)SIG_DFL);
-#endif
     }
 #endif
   }

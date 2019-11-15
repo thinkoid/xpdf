@@ -1208,13 +1208,7 @@ void XPDFViewer::cmdRun(GString *args[], int nArgs,
       ++i;
     }
   }
-#ifdef VMS
-  cmd->insert(0, "spawn/nowait ");
-#elif defined(__EMX__)
-  cmd->insert(0, "start /min /n ");
-#else
   cmd->append(" &");
-#endif
   system(cmd->getCString());
   delete cmd;
 }

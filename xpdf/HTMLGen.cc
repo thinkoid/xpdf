@@ -44,11 +44,6 @@
 #endif
 #include <xpdf/HTMLGen.hh>
 
-#ifdef _WIN32
-#  define strcasecmp stricmp
-#  define strncasecmp strnicmp
-#endif
-
 //------------------------------------------------------------------------
 
 struct FontStyleTagInfo {

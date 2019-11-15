@@ -38,7 +38,7 @@ extern void setErrorCallback(void (*cbk)(void *data, ErrorCategory category,
 					 int pos, char *msg),
 			     void *data);
 
-extern void CDECL error(ErrorCategory category, GFileOffset pos,
+extern void error(ErrorCategory category, GFileOffset pos,
 			const char *msg, ...);
 
 #endif

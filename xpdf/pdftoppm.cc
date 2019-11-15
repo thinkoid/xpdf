@@ -8,17 +8,16 @@
 
 #include <config.hh>
 #include <stdio.h>
-#ifdef _WIN32
-#  include <io.h>
-#  include <fcntl.h>
-#endif
+
 #ifdef DEBUG_FP_LINUX
 #  include <fenv.h>
 #  include <fpu_control.h>
 #endif
+
 #include <goo/parseargs.hh>
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
+
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/PDFDoc.hh>
@@ -195,9 +194,6 @@ int main(int argc, char *argv[]) {
     doc->displayPage(splashOut, pg, resolution, resolution, 0,
 		     gFalse, gTrue, gFalse);
     if (!strcmp(ppmRoot, "-")) {
-#ifdef _WIN32
-      _setmode(_fileno(stdout), _O_BINARY);
-#endif
       splashOut->getBitmap()->writePNMFile(stdout);
     } else {
       ppmFile = GString::format("{0:s}-{1:06d}.{2:s}",

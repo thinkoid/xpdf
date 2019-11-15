@@ -48,23 +48,6 @@ static inline int splashFloor(SplashCoord x) {
 		   : "=m" (oldCW), "=m" (newCW), "=m" (result), "=r" (t)
 		   : "t" (x));
   return result;
-#elif defined(_WIN32) && defined(_M_IX86)
-  // floor() and (int)() are implemented separately, which results
-  // in changing the FPCW multiple times - so we optimize it with
-  // some inline assembly
-  Gushort oldCW, newCW;
-  int result;
-
-  __asm fld QWORD PTR x
-  __asm fnstcw WORD PTR oldCW
-  __asm mov ax, WORD PTR oldCW
-  __asm and ax, 0xf3ff
-  __asm or ax, 0x0400
-  __asm mov WORD PTR newCW, ax     // round down
-  __asm fldcw WORD PTR newCW
-  __asm fistp DWORD PTR result
-  __asm fldcw WORD PTR oldCW
-  return result;
 #else
   return (int)floor(x);
 #endif
@@ -92,23 +75,6 @@ static inline int splashCeil(SplashCoord x) {
 		   "fldcw  %0\n"
 		   : "=m" (oldCW), "=m" (newCW), "=m" (result), "=r" (t)
 		   : "t" (x));
-  return result;
-#elif defined(_WIN32) && defined(_M_IX86)
-  // ceil() and (int)() are implemented separately, which results
-  // in changing the FPCW multiple times - so we optimize it with
-  // some inline assembly
-  Gushort oldCW, newCW;
-  int result;
-
-  __asm fld QWORD PTR x
-  __asm fnstcw WORD PTR oldCW
-  __asm mov ax, WORD PTR oldCW
-  __asm and ax, 0xf3ff
-  __asm or ax, 0x0800
-  __asm mov WORD PTR newCW, ax     // round up
-  __asm fldcw WORD PTR newCW
-  __asm fistp DWORD PTR result
-  __asm fldcw WORD PTR oldCW
   return result;
 #else
   return (int)ceil(x);
@@ -138,24 +104,6 @@ static inline int splashRound(SplashCoord x) {
 		   "fldcw  %0\n"
 		   : "=m" (oldCW), "=m" (newCW), "=m" (result), "=r" (t)
 		   : "t" (x));
-  return result;
-#elif defined(_WIN32) && defined(_M_IX86)
-  // this could use round-to-nearest mode and avoid the "+0.5",
-  // but that produces slightly different results (because i+0.5
-  // sometimes rounds up and sometimes down using the even rule)
-  Gushort oldCW, newCW;
-  int result;
-
-  x += 0.5;
-  __asm fld QWORD PTR x
-  __asm fnstcw WORD PTR oldCW
-  __asm mov ax, WORD PTR oldCW
-  __asm and ax, 0xf3ff
-  __asm or ax, 0x0400
-  __asm mov WORD PTR newCW, ax     // round down
-  __asm fldcw WORD PTR newCW
-  __asm fistp DWORD PTR result
-  __asm fldcw WORD PTR oldCW
   return result;
 #else
   return (int)floor(x + 0.5);

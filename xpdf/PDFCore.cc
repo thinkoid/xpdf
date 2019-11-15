@@ -129,11 +129,7 @@ PDFCore::~PDFCore() {
   }
   for (i = 0; i < pdfHistorySize; ++i) {
     if (history[i].fileName) {
-#ifdef _WIN32
-      delete[] history[i].fileName;
-#else
       delete history[i].fileName;
-#endif
     }
   }
   gfree(pageY);
@@ -151,19 +147,6 @@ int PDFCore::loadFile(GString *fileName, GString *ownerPassword,
   setBusyCursor(gFalse);
   return err;
 }
-
-#ifdef _WIN32
-int PDFCore::loadFile(wchar_t *fileName, int fileNameLen,
-		      GString *ownerPassword, GString *userPassword) {
-  int err;
-
-  setBusyCursor(gTrue);
-  err = loadFile2(new PDFDoc(fileName, fileNameLen,
-			     ownerPassword, userPassword, this));
-  setBusyCursor(gFalse);
-  return err;
-}
-#endif
 
 int PDFCore::loadFile(BaseStream *stream, GString *ownerPassword,
 		      GString *userPassword) {
@@ -764,30 +747,13 @@ void PDFCore::update(int topPageA, int scrollXA, int scrollYA,
     }
     hist = &history[historyCur];
     if (hist->fileName) {
-#ifdef _WIN32
-      delete[] hist->fileName;
-#else
       delete hist->fileName;
-#endif
     }
-#ifdef _WIN32
-    if (doc->getFileNameU()) {
-      hist->fileName = (wchar_t *)gmallocn(MAX_PATH + 1, sizeof(wchar_t));
-      if (GetFullPathNameW(doc->getFileNameU(), MAX_PATH + 1,
-			   hist->fileName, NULL) == 0) {
-	delete[] hist->fileName;
-	hist->fileName = NULL;
-      }
-    } else {
-      hist->fileName = NULL;
-    }
-#else
     if (doc->getFileName()) {
       hist->fileName = doc->getFileName()->copy();
     } else {
       hist->fileName = NULL;
     }
-#endif
     hist->page = topPage;
     if (historyBLen < pdfHistorySize) {
       ++historyBLen;
@@ -1005,16 +971,6 @@ GBool PDFCore::goForward() {
   if (!history[historyCur].fileName) {
     return gFalse;
   }
-#ifdef _WIN32
-  if (!doc ||
-      !doc->getFileNameU() ||
-      wcscmp(history[historyCur].fileName, doc->getFileNameU()) != 0) {
-    if (loadFile(history[historyCur].fileName,
-		 wcslen(history[historyCur].fileName)) != errNone) {
-      return gFalse;
-    }
-  }
-#else
   if (!doc ||
       !doc->getFileName() ||
       history[historyCur].fileName->cmp(doc->getFileName()) != 0) {
@@ -1022,7 +978,6 @@ GBool PDFCore::goForward() {
       return gFalse;
     }
   }
-#endif
   pg = history[historyCur].page;
   update(pg, scrollX, continuousMode ? -1 : scrollY,
 	 zoom, rotate, gFalse, gFalse, gTrue);
@@ -1043,16 +998,6 @@ GBool PDFCore::goBackward() {
   if (!history[historyCur].fileName) {
     return gFalse;
   }
-#ifdef _WIN32
-  if (!doc ||
-      !doc->getFileNameU() ||
-      wcscmp(history[historyCur].fileName, doc->getFileNameU()) != 0) {
-    if (loadFile(history[historyCur].fileName,
-		 wcslen(history[historyCur].fileName)) != errNone) {
-      return gFalse;
-    }
-  }
-#else
   if (!doc ||
       !doc->getFileName() ||
       history[historyCur].fileName->cmp(doc->getFileName()) != 0) {
@@ -1060,7 +1005,6 @@ GBool PDFCore::goBackward() {
       return gFalse;
     }
   }
-#endif
   pg = history[historyCur].page;
   update(pg, scrollX, continuousMode ? -1 : scrollY,
 	 zoom, rotate, gFalse, gFalse, gTrue);

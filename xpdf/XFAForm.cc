@@ -24,11 +24,6 @@
 #include <xpdf/Zoox.hh>
 #include <xpdf/XFAForm.hh>
 
-#ifdef _WIN32
-#  define strcasecmp stricmp
-#  define strncasecmp strnicmp
-#endif
-
 //------------------------------------------------------------------------
 
 // 5 bars + 5 spaces -- each can be wide (1) or narrow (0)

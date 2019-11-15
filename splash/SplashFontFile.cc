@@ -13,18 +13,12 @@
 #endif
 
 #include <stdio.h>
-#ifndef _WIN32
-#  include <unistd.h>
-#endif
+#include <unistd.h>
+
 #include <goo/GString.hh>
+
 #include <splash/SplashFontFile.hh>
 #include <splash/SplashFontFileID.hh>
-
-#ifdef VMS
-#if (__VMS_VER < 70000000)
-extern "C" int unlink(char *filename);
-#endif
-#endif
 
 //------------------------------------------------------------------------
 // SplashFontFile

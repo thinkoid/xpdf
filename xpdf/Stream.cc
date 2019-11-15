@@ -16,9 +16,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <limits.h>
-#ifndef _WIN32
 #include <unistd.h>
-#endif
 #include <string.h>
 #include <ctype.h>
 #include <goo/gmem.hh>
@@ -32,18 +30,6 @@
 #include <xpdf/JBIG2Stream.hh>
 #include <xpdf/JPXStream.hh>
 #include <xpdf/Stream-CCITT.hh>
-
-#ifdef __DJGPP__
-static GBool setDJSYSFLAGS = gFalse;
-#endif
-
-#ifdef VMS
-#ifdef __GNUC__
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
-#endif
-#endif
 
 //------------------------------------------------------------------------
 // Stream (base class)

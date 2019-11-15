@@ -16,10 +16,9 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#ifdef _WIN32
-#  include <windows.h>
-#endif
+
 #include <goo/GString.hh>
+
 #include <xpdf/config.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Page.hh>
@@ -33,9 +32,11 @@
 #include <xpdf/Lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/SecurityHandler.hh>
+
 #ifndef DISABLE_OUTLINE
-#include <xpdf/Outline.hh>
+#  include <xpdf/Outline.hh>
 #endif
+
 #include <xpdf/OptionalContent.hh>
 #include <xpdf/PDFDoc.hh>
 
@@ -52,9 +53,6 @@ PDFDoc::PDFDoc(GString *fileNameA, GString *ownerPassword,
 	       GString *userPassword, PDFCore *coreA) {
   Object obj;
   GString *fileName1, *fileName2;
-#ifdef _WIN32
-  int n, i;
-#endif
 
   ok = gFalse;
   errCode = errNone;
@@ -71,26 +69,11 @@ PDFDoc::PDFDoc(GString *fileNameA, GString *ownerPassword,
   optContent = NULL;
 
   fileName = fileNameA;
-#ifdef _WIN32
-  n = fileName->getLength();
-  fileNameU = (wchar_t *)gmallocn(n + 1, sizeof(wchar_t));
-  for (i = 0; i < n; ++i) {
-    fileNameU[i] = (wchar_t)(fileName->getChar(i) & 0xff);
-  }
-  fileNameU[n] = L'\0';
-#endif
 
   fileName1 = fileName;
 
   // try to open file
   fileName2 = NULL;
-#ifdef VMS
-  if (!(file = fopen(fileName1->getCString(), "rb", "ctx=stm"))) {
-    error(errIO, -1, "Couldn't open file '{0:t}'", fileName1);
-    errCode = errOpenFile;
-    return;
-  }
-#else
   if (!(file = fopen(fileName1->getCString(), "rb"))) {
     fileName2 = fileName->copy();
     fileName2->lowerCase();
@@ -105,7 +88,6 @@ PDFDoc::PDFDoc(GString *fileNameA, GString *ownerPassword,
     }
     delete fileName2;
   }
-#endif
 
   // create stream
   obj.initNull();
@@ -113,84 +95,16 @@ PDFDoc::PDFDoc(GString *fileNameA, GString *ownerPassword,
 
   ok = setup(ownerPassword, userPassword);
 }
-
-#ifdef _WIN32
-PDFDoc::PDFDoc(wchar_t *fileNameA, int fileNameLen, GString *ownerPassword,
-	       GString *userPassword, PDFCore *coreA) {
-  OSVERSIONINFO version;
-  Object obj;
-  int i;
-
-  ok = gFalse;
-  errCode = errNone;
-
-  core = coreA;
-
-  file = NULL;
-  str = NULL;
-  xref = NULL;
-  catalog = NULL;
-#ifndef DISABLE_OUTLINE
-  outline = NULL;
-#endif
-  optContent = NULL;
-
-  // save both Unicode and 8-bit copies of the file name
-  fileName = new GString();
-  fileNameU = (wchar_t *)gmallocn(fileNameLen + 1, sizeof(wchar_t));
-  for (i = 0; i < fileNameLen; ++i) {
-    fileName->append((char)fileNameA[i]);
-    fileNameU[i] = fileNameA[i];
-  }
-  fileNameU[fileNameLen] = L'\0';
-
-  // try to open file
-  // NB: _wfopen is only available in NT
-  version.dwOSVersionInfoSize = sizeof(version);
-  GetVersionEx(&version);
-  if (version.dwPlatformId == VER_PLATFORM_WIN32_NT) {
-    file = _wfopen(fileNameU, L"rb");
-  } else {
-    file = fopen(fileName->getCString(), "rb");
-  }
-  if (!file) {
-    error(errIO, -1, "Couldn't open file '{0:t}'", fileName);
-    errCode = errOpenFile;
-    return;
-  }
-
-  // create stream
-  obj.initNull();
-  str = new FileStream(file, 0, gFalse, 0, &obj);
-
-  ok = setup(ownerPassword, userPassword);
-}
-#endif
 
 PDFDoc::PDFDoc(BaseStream *strA, GString *ownerPassword,
 	       GString *userPassword, PDFCore *coreA) {
-#ifdef _WIN32
-  int n, i;
-#endif
-
   ok = gFalse;
   errCode = errNone;
   core = coreA;
   if (strA->getFileName()) {
     fileName = strA->getFileName()->copy();
-#ifdef _WIN32
-    n = fileName->getLength();
-    fileNameU = (wchar_t *)gmallocn(n + 1, sizeof(wchar_t));
-    for (i = 0; i < n; ++i) {
-      fileNameU[i] = (wchar_t)(fileName->getChar(i) & 0xff);
-    }
-    fileNameU[n] = L'\0';
-#endif
   } else {
     fileName = NULL;
-#ifdef _WIN32
-    fileNameU = NULL;
-#endif
   }
   file = NULL;
   str = strA;
@@ -295,11 +209,6 @@ PDFDoc::~PDFDoc() {
   if (fileName) {
     delete fileName;
   }
-#ifdef _WIN32
-  if (fileNameU) {
-    gfree(fileNameU);
-  }
-#endif
 }
 
 // Check for a PDF header on this stream.  Skip past some garbage
@@ -481,40 +390,6 @@ GBool PDFDoc::saveEmbeddedFile(int idx, char *path) {
   fclose(f);
   return ret;
 }
-
-#ifdef _WIN32
-GBool PDFDoc::saveEmbeddedFile(int idx, wchar_t *path, int pathLen) {
-  FILE *f;
-  OSVERSIONINFO version;
-  wchar_t path2w[_MAX_PATH + 1];
-  char path2c[_MAX_PATH + 1];
-  int i;
-  GBool ret;
-
-  // NB: _wfopen is only available in NT
-  version.dwOSVersionInfoSize = sizeof(version);
-  GetVersionEx(&version);
-  if (version.dwPlatformId == VER_PLATFORM_WIN32_NT) {
-    for (i = 0; i < pathLen && i < _MAX_PATH; ++i) {
-      path2w[i] = path[i];
-    }
-    path2w[i] = 0;
-    f = _wfopen(path2w, L"wb");
-  } else {
-    for (i = 0; i < pathLen && i < _MAX_PATH; ++i) {
-      path2c[i] = (char)path[i];
-    }
-    path2c[i] = 0;
-    f = fopen(path2c, "wb");
-  }
-  if (!f) {
-    return gFalse;
-  }
-  ret = saveEmbeddedFile2(idx, f);
-  fclose(f);
-  return ret;
-}
-#endif
 
 GBool PDFDoc::saveEmbeddedFile2(int idx, FILE *f) {
   Object strObj;

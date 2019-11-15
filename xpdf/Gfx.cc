@@ -88,10 +88,6 @@
 // Operator table
 //------------------------------------------------------------------------
 
-#ifdef _WIN32 // this works around a bug in the VC7 compiler
-#  pragma optimize("",off)
-#endif
-
 Operator Gfx::opTab[] = {
   {"\"",  3, {tchkNum,    tchkNum,    tchkString},
           &Gfx::opMoveSetShowText},
@@ -260,10 +256,6 @@ Operator Gfx::opTab[] = {
   {"y",   4, {tchkNum,    tchkNum,    tchkNum,    tchkNum},
           &Gfx::opCurveTo2},
 };
-
-#ifdef _WIN32 // this works around a bug in the VC7 compiler
-#  pragma optimize("",on)
-#endif
 
 #define numOps (sizeof(opTab) / sizeof(Operator))
 

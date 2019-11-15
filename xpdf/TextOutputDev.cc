@@ -17,10 +17,6 @@
 #include <stddef.h>
 #include <math.h>
 #include <ctype.h>
-#ifdef _WIN32
-#include <fcntl.h> // for O_BINARY
-#include <io.h>    // for setmode
-#endif
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
@@ -4197,10 +4193,6 @@ TextOutputDev::TextOutputDev(char *fileName, TextOutputControl *controlA,
   if (fileName) {
     if (!strcmp(fileName, "-")) {
       outputStream = stdout;
-#ifdef WIN32
-      // keep DOS from munging the end-of-line characters
-      setmode(fileno(stdout), O_BINARY);
-#endif
     } else if ((outputStream = fopen(fileName, append ? "ab" : "wb"))) {
       needClose = gTrue;
     } else {

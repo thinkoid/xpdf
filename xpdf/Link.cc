@@ -141,11 +141,7 @@ GString *LinkAction::getFileSpecName(Object *fileSpecObj) {
 
   // dictionary
   } else if (fileSpecObj->isDict()) {
-#ifdef _WIN32
-    if (!fileSpecObj->dictLookup("DOS", &obj1)->isString()) {
-#else
     if (!fileSpecObj->dictLookup("Unix", &obj1)->isString()) {
-#endif
       obj1.free();
       fileSpecObj->dictLookup("F", &obj1);
     }
@@ -163,51 +159,6 @@ GString *LinkAction::getFileSpecName(Object *fileSpecObj) {
 
   // system-dependent path manipulation
   if (name) {
-#ifdef _WIN32
-    int i, j;
-
-    // "//...."             --> "\...."
-    // "/x/...."            --> "x:\...."
-    // "/server/share/...." --> "\\server\share\...."
-    // convert escaped slashes to slashes and unescaped slashes to backslashes
-    i = 0;
-    if (name->getChar(0) == '/') {
-      if (name->getLength() >= 2 && name->getChar(1) == '/') {
-	name->del(0);
-	i = 0;
-      } else if (name->getLength() >= 2 &&
-		 ((name->getChar(1) >= 'a' && name->getChar(1) <= 'z') ||
-		  (name->getChar(1) >= 'A' && name->getChar(1) <= 'Z')) &&
-		 (name->getLength() == 2 || name->getChar(2) == '/')) {
-	name->setChar(0, name->getChar(1));
-	name->setChar(1, ':');
-	i = 2;
-      } else {
-	for (j = 2; j < name->getLength(); ++j) {
-	  if (name->getChar(j-1) != '\\' &&
-	      name->getChar(j) == '/') {
-	    break;
-	  }
-	}
-	if (j < name->getLength()) {
-	  name->setChar(0, '\\');
-	  name->insert(0, '\\');
-	  i = 2;
-	}
-      }
-    }
-    for (; i < name->getLength(); ++i) {
-      if (name->getChar(i) == '/') {
-	name->setChar(i, '\\');
-      } else if (name->getChar(i) == '\\' &&
-		 i+1 < name->getLength() &&
-		 name->getChar(i+1) == '/') {
-	name->del(i);
-      }
-    }
-#else
-    // no manipulation needed for Unix
-#endif
   }
 
   return name;
@@ -541,19 +492,6 @@ LinkLaunch::LinkLaunch(Object *actionObj) {
       fileName = getFileSpecName(&obj1);
     } else {
       obj1.free();
-#ifdef _WIN32
-      if (actionObj->dictLookup("Win", &obj1)->isDict()) {
-	obj1.dictLookup("F", &obj2);
-	fileName = getFileSpecName(&obj2);
-	obj2.free();
-	if (obj1.dictLookup("P", &obj2)->isString()) {
-	  params = obj2.getString()->copy();
-	}
-	obj2.free();
-      } else {
-	error(errSyntaxWarning, -1, "Bad launch-type link action");
-      }
-#else
       //~ This hasn't been defined by Adobe yet, so assume it looks
       //~ just like the Win dictionary until they say otherwise.
       if (actionObj->dictLookup("Unix", &obj1)->isDict()) {
@@ -567,7 +505,6 @@ LinkLaunch::LinkLaunch(Object *actionObj) {
       } else {
 	error(errSyntaxWarning, -1, "Bad launch-type link action");
       }
-#endif
     }
     obj1.free();
   }

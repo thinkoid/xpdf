@@ -42,12 +42,6 @@
 #include <splash/Splash.hh>
 #include <xpdf/SplashOutputDev.hh>
 
-#ifdef VMS
-#if (__VMS_VER < 70000000)
-extern "C" int unlink(char *filename);
-#endif
-#endif
-
 //------------------------------------------------------------------------
 
 // Type 3 font cache size parameters

@@ -7,13 +7,9 @@
 #ifndef XPDFPLUGINAPI_H
 #define XPDFPLUGINAPI_H
 
-#ifdef _WIN32
-#include <windows.h>
-#else
 #define Object XtObject
 #include <X11/Intrinsic.h>
 #undef Object
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,18 +24,10 @@ extern "C" {
  */
 #define xpdfPluginAPIVersion 1
 
-#ifdef _WIN32
-#  ifdef __cplusplus
-#    define PLUGINFUNC(retType) extern "C" __declspec(dllexport) retType
-#  else
-#    define PLUGINFUNC(retType) extern __declspec(dllexport) retType
-#  endif
+#ifdef __cplusplus
+#  define PLUGINFUNC(retType) extern "C" retType
 #else
-#  ifdef __cplusplus
-#    define PLUGINFUNC(retType) extern "C" retType
-#  else
-#    define PLUGINFUNC(retType) extern retType
-#  endif
+#  define PLUGINFUNC(retType) extern retType
 #endif
 
 /*------------------------------------------------------------------------
@@ -208,23 +196,11 @@ XpdfObject (*_xpdfGetInfoDict)(XpdfDoc doc);
  */
 XpdfObject (*_xpdfGetCatalog)(XpdfDoc doc);
 
-#ifdef _WIN32
-
-/*
- * Get the handle for the viewer window associated with the specified
- * document.  [Win32 only]
- */
-HWND (*_xpdfWin32GetWindow)(XpdfDoc doc);
-
-#else
-
 /*
  * Get the Motif widget for the viewer window associated with the
  * specified document.  [X only]
  */
 Widget (*_xpdfXGetWindow)(XpdfDoc doc);
-
-#endif
 
 /*------------------------------------------------------------------------
  * Object access functions
@@ -285,30 +261,14 @@ void (*_xpdfRegisterSecurityHandler)(XpdfSecurityHandler *handler);
 
 } XpdfPluginVecTable;
 
-#ifdef _WIN32
-
-extern __declspec(dllexport) XpdfPluginVecTable xpdfPluginVecTable;
-
-#define xpdfPluginSetup \
-  extern __declspec(dllexport) \
-  XpdfPluginVecTable xpdfPluginVecTable = {xpdfPluginAPIVersion};
-
-#else
-
 extern XpdfPluginVecTable xpdfPluginVecTable;
 
 #define xpdfPluginSetup \
   XpdfPluginVecTable xpdfPluginVecTable = {xpdfPluginAPIVersion};
 
-#endif
-
 #define xpdfGetInfoDict (*xpdfPluginVecTable._xpdfGetInfoDict)
 #define xpdfGetCatalog (*xpdfPluginVecTable._xpdfGetCatalog)
-#ifdef _WIN32
-#define xpdfWin32GetWindow (*xpdfPluginVecTable._xpdfWin32GetWindow)
-#else
 #define xpdfXGetWindow (*xpdfPluginVecTable._xpdfXGetWindow)
-#endif
 #define xpdfObjIsBool (*xpdfPluginVecTable._xpdfObjIsBool)
 #define xpdfObjIsInt (*xpdfPluginVecTable._xpdfObjIsInt)
 #define xpdfObjIsReal (*xpdfPluginVecTable._xpdfObjIsReal)

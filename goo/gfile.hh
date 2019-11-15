@@ -67,14 +67,6 @@ extern GBool createDir(char *path, int mode);
 // Execute <command>.  Returns true on success.
 extern GBool executeCommand(char *cmd);
 
-#ifdef _WIN32
-// Convert a file name from Latin-1 to UTF-8.
-extern GString *fileNameToUTF8(char *path);
-
-// Convert a file name from UCS-2 to UTF-8.
-extern GString *fileNameToUTF8(wchar_t *path);
-#endif
-
 // Open a file.  On Windows, this converts the path from UTF-8 to
 // UCS-2 and calls _wfopen (if available).  On other OSes, this simply
 // calls fopen.
@@ -136,18 +128,7 @@ private:
 
   GString *path;		// directory path
   GBool doStat;			// call stat() for each entry?
-#if defined(_WIN32)
-  WIN32_FIND_DATAA ffd;
-  HANDLE hnd;
-#elif defined(ACORN)
-#elif defined(MACOS)
-#elif defined(ANDROID)
-#else
   DIR *dir;			// the DIR structure from opendir()
-#ifdef VMS
-  GBool needParent;		// need to return an entry for [-]
-#endif
-#endif
 };
 
 #endif

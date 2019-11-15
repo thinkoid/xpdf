@@ -12,30 +12,23 @@
 #pragma implementation
 #endif
 
-#ifdef _WIN32
-#  define _WIN32_WINNT 0x0500 // for GetSystemWindowsDirectory
-#  include <windows.h>
-#endif
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #ifdef ENABLE_PLUGINS
-#  ifndef _WIN32
-#    include <dlfcn.h>
-#  endif
+#  include <dlfcn.h>
 #endif
-#ifdef _WIN32
-#  include <shlobj.h>
-#endif
-#if HAVE_PAPER_H
+
 #include <paper.h>
-#endif
+
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
 #include <goo/gfile.hh>
+
 #include <fofi/FoFiIdentifier.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/NameToCharCode.hh>
 #include <xpdf/CharCodeToUnicode.hh>
@@ -43,15 +36,12 @@
 #include <xpdf/CMap.hh>
 #include <xpdf/BuiltinFontTables.hh>
 #include <xpdf/FontEncodingTables.hh>
+
 #ifdef ENABLE_PLUGINS
 #  include <xpdf/XpdfPluginAPI.hh>
 #endif
-#include <xpdf/GlobalParams.hh>
 
-#ifdef _WIN32
-#  define strcasecmp stricmp
-#  define strncasecmp strnicmp
-#endif
+#include <xpdf/GlobalParams.hh>
 
 #if MULTITHREADED
 #  define lockGlobalParams            gLockMutex(&mutex)
@@ -72,12 +62,6 @@
 #include <xpdf/NameToUnicodeTable.hh>
 #include <xpdf/UnicodeMapTables.hh>
 #include <xpdf/UTF8.hh>
-
-#ifdef ENABLE_PLUGINS
-#  ifdef _WIN32
-extern XpdfPluginVecTable xpdfPluginVecTable;
-#  endif
-#endif
 
 //------------------------------------------------------------------------
 
@@ -112,29 +96,14 @@ static struct {
   {NULL}
 };
 
-#ifdef _WIN32
-static const char *displayFontDirs[] = {
-  "c:/windows/fonts",
-  "c:/winnt/fonts",
-  NULL
-};
-#else
 static const char *displayFontDirs[] = {
   "/usr/share/ghostscript/fonts",
   "/usr/local/share/ghostscript/fonts",
   "/usr/share/fonts/default/Type1",
   "/usr/share/fonts/default/ghostscript",
   "/usr/share/fonts/type1/gsfonts",
-#if defined(__sun) && defined(__SVR4)
-  "/usr/sfw/share/ghostscript/fonts",
-#endif
   NULL
 };
-#endif
-
-#ifdef __APPLE__
-static const char *macSystemFontPath = "/System/Library/Fonts";
-#endif
 
 struct Base14FontInfo {
   Base14FontInfo(GString *fileNameA, int fontNumA, double obliqueA) {
@@ -229,17 +198,7 @@ public:
   ~SysFontList();
   SysFontInfo *find(GString *name);
 
-#ifdef _WIN32
-  void scanWindowsFonts(char *winFontDir);
-#endif
-
 private:
-
-#ifdef _WIN32
-  SysFontInfo *makeWindowsFont(char *name, int fontNum,
-			       char *path);
-#endif
-
   GList *fonts;			// [SysFontInfo]
 };
 
@@ -350,127 +309,6 @@ SysFontInfo *SysFontList::find(GString *name) {
   return fi;
 }
 
-#ifdef _WIN32
-void SysFontList::scanWindowsFonts(char *winFontDir) {
-  OSVERSIONINFO version;
-  char *path;
-  DWORD idx, valNameLen, dataLen, type;
-  HKEY regKey;
-  char valName[1024], data[1024];
-  int n, fontNum;
-  char *p0, *p1;
-  GString *fontPath;
-
-  version.dwOSVersionInfoSize = sizeof(version);
-  GetVersionEx(&version);
-  if (version.dwPlatformId == VER_PLATFORM_WIN32_NT) {
-    path = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts\\";
-  } else {
-    path = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Fonts\\";
-  }
-  if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, path, 0,
-		    KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS,
-		    &regKey) == ERROR_SUCCESS) {
-    idx = 0;
-    while (1) {
-      valNameLen = sizeof(valName) - 1;
-      dataLen = sizeof(data) - 1;
-      if (RegEnumValueA(regKey, idx, valName, &valNameLen, NULL,
-			&type, (LPBYTE)data, &dataLen) != ERROR_SUCCESS) {
-	break;
-      }
-      if (type == REG_SZ &&
-	  valNameLen > 0 && valNameLen < sizeof(valName) &&
-	  dataLen > 0 && dataLen < sizeof(data)) {
-	valName[valNameLen] = '\0';
-	data[dataLen] = '\0';
-	n = (int)strlen(data);
-	if (!strcasecmp(data + n - 4, ".ttf") ||
-	    !strcasecmp(data + n - 4, ".ttc")) {
-	  fontPath = new GString(data);
-	  if (!(dataLen >= 3 && data[1] == ':' && data[2] == '\\')) {
-	    fontPath->insert(0, '\\');
-	    fontPath->insert(0, winFontDir);
-	  }
-	  p0 = valName;
-	  fontNum = 0;
-	  while (*p0) {
-	    p1 = strstr(p0, " & ");
-	    if (p1) {
-	      *p1 = '\0';
-	      p1 = p1 + 3;
-	    } else {
-	      p1 = p0 + strlen(p0);
-	    }
-	    fonts->append(makeWindowsFont(p0, fontNum,
-					  fontPath->getCString()));
-	    p0 = p1;
-	    ++fontNum;
-	  }
-	  delete fontPath;
-	}
-      }
-      ++idx;
-    }
-    RegCloseKey(regKey);
-  }
-}
-
-SysFontInfo *SysFontList::makeWindowsFont(char *name, int fontNum,
-					  char *path) {
-  int n;
-  GBool bold, italic;
-  GString *s;
-  char c;
-  int i;
-  SysFontType type;
-
-  n = (int)strlen(name);
-  bold = italic = gFalse;
-
-  // remove trailing ' (TrueType)'
-  if (n > 11 && !strncmp(name + n - 11, " (TrueType)", 11)) {
-    n -= 11;
-  }
-
-  // remove trailing ' Italic'
-  if (n > 7 && !strncmp(name + n - 7, " Italic", 7)) {
-    n -= 7;
-    italic = gTrue;
-  }
-
-  // remove trailing ' Bold'
-  if (n > 5 && !strncmp(name + n - 5, " Bold", 5)) {
-    n -= 5;
-    bold = gTrue;
-  }
-
-  // remove trailing ' Regular'
-  if (n > 8 && !strncmp(name + n - 8, " Regular", 8)) {
-    n -= 8;
-  }
-
-  //----- normalize the font name
-  s = new GString(name, n);
-  i = 0;
-  while (i < s->getLength()) {
-    c = s->getChar(i);
-    if (c == ' ' || c == ',' || c == '-') {
-      s->del(i);
-    } else {
-      ++i;
-    }
-  }
-
-  if (!strcasecmp(path + strlen(path) - 4, ".ttc")) {
-    type = sysFontTTC;
-  } else {
-    type = sysFontTTF;
-  }
-  return new SysFontInfo(s, bold, italic, new GString(path), type, fontNum);
-}
-#endif
-
 //------------------------------------------------------------------------
 // KeyBinding
 //------------------------------------------------------------------------
@@ -516,14 +354,8 @@ public:
   ~Plugin();
 
 private:
-
-#ifdef _WIN32
-  Plugin(HMODULE libA);
-  HMODULE lib;
-#else
   Plugin(void *dlA);
   void *dl;
-#endif
 };
 
 Plugin *Plugin::load(char *type, char *name) {
@@ -531,30 +363,13 @@ Plugin *Plugin::load(char *type, char *name) {
   Plugin *plugin;
   XpdfPluginVecTable *vt;
   XpdfBool (*xpdfInitPlugin)(void);
-#ifdef _WIN32
-  HMODULE libA;
-#else
   void *dlA;
-#endif
 
   path = globalParams->getBaseDir();
   appendToPath(path, "plugins");
   appendToPath(path, type);
   appendToPath(path, name);
 
-#ifdef _WIN32
-  path->append(".dll");
-  if (!(libA = LoadLibraryA(path->getCString()))) {
-    error(errIO, -1, "Failed to load plugin '{0:t}'", path);
-    goto err1;
-  }
-  if (!(vt = (XpdfPluginVecTable *)
-	         GetProcAddress(libA, "xpdfPluginVecTable"))) {
-    error(errIO, -1, "Failed to find xpdfPluginVecTable in plugin '{0:t}'",
-	  path);
-    goto err2;
-  }
-#else
   //~ need to deal with other extensions here
   path->append(".so");
   if (!(dlA = dlopen(path->getCString(), RTLD_NOW))) {
@@ -567,7 +382,6 @@ Plugin *Plugin::load(char *type, char *name) {
 	  path);
     goto err2;
   }
-#endif
 
   if (vt->version != xpdfPluginVecTable.version) {
     error(errIO, -1, "Plugin '{0:t}' is wrong version", path);
@@ -575,71 +389,41 @@ Plugin *Plugin::load(char *type, char *name) {
   }
   memcpy(vt, &xpdfPluginVecTable, sizeof(xpdfPluginVecTable));
 
-#ifdef _WIN32
-  if (!(xpdfInitPlugin = (XpdfBool (*)(void))
-	                     GetProcAddress(libA, "xpdfInitPlugin"))) {
-    error(errIO, -1, "Failed to find xpdfInitPlugin in plugin '{0:t}'",
-	  path);
-    goto err2;
-  }
-#else
   if (!(xpdfInitPlugin = (XpdfBool (*)(void))dlsym(dlA, "xpdfInitPlugin"))) {
     error(errIO, -1, "Failed to find xpdfInitPlugin in plugin '{0:t}'",
 	  path);
     goto err2;
   }
-#endif
 
   if (!(*xpdfInitPlugin)()) {
     error(errIO, -1, "Initialization of plugin '{0:t}' failed", path);
     goto err2;
   }
 
-#ifdef _WIN32
-  plugin = new Plugin(libA);
-#else
   plugin = new Plugin(dlA);
-#endif
 
   delete path;
   return plugin;
 
  err2:
-#ifdef _WIN32
-  FreeLibrary(libA);
-#else
   dlclose(dlA);
-#endif
+
  err1:
   delete path;
   return NULL;
 }
 
-#ifdef _WIN32
-Plugin::Plugin(HMODULE libA) {
-  lib = libA;
-}
-#else
 Plugin::Plugin(void *dlA) {
   dl = dlA;
 }
-#endif
 
 Plugin::~Plugin() {
   void (*xpdfFreePlugin)(void);
 
-#ifdef _WIN32
-  if ((xpdfFreePlugin = (void (*)(void))
-                            GetProcAddress(lib, "xpdfFreePlugin"))) {
-    (*xpdfFreePlugin)();
-  }
-  FreeLibrary(lib);
-#else
   if ((xpdfFreePlugin = (void (*)(void))dlsym(dl, "xpdfFreePlugin"))) {
     (*xpdfFreePlugin)();
   }
   dlclose(dl);
-#endif
 }
 
 #endif // ENABLE_PLUGINS
@@ -671,12 +455,7 @@ GlobalParams::GlobalParams(const char *cfgFileName) {
     }
   }
 
-#ifdef _WIN32
-  // baseDir will be set by a call to setBaseDir
-  baseDir = new GString();
-#else
   baseDir = appendToPath(getHomeDir(), ".xpdf");
-#endif
   nameToUnicode = new NameToCharCode();
   cidToUnicodes = new GHash(gTrue);
   unicodeToUnicodes = new GHash(gTrue);
@@ -737,13 +516,7 @@ GlobalParams::GlobalParams(const char *cfgFileName) {
   psRasterSliceSize = 20000000;
   psAlwaysRasterize = gFalse;
   textEncoding = new GString("Latin1");
-#if defined(_WIN32)
-  textEOL = eolDOS;
-#elif defined(MACOS)
-  textEOL = eolMac;
-#else
   textEOL = eolUnix;
-#endif
   textPageBreaks = gTrue;
   textKeepTinyChars = gTrue;
   initialZoom = new GString("125");
@@ -824,18 +597,8 @@ GlobalParams::GlobalParams(const char *cfgFileName) {
     }
   }
   if (!f) {
-#ifdef _WIN32
-    char buf[512];
-    i = GetModuleFileNameA(NULL, buf, sizeof(buf));
-    if (i <= 0 || i >= sizeof(buf)) {
-      // error or path too long for buffer - just use the current dir
-      buf[0] = '\0';
-    }
-    fileName = grabPath(buf);
-    appendToPath(fileName, xpdfSysConfigFile);
-#else
     fileName = new GString(xpdfSysConfigFile);
-#endif
+
     if (!(f = fopen(fileName->getCString(), "r"))) {
       delete fileName;
     }
@@ -1938,78 +1701,15 @@ void GlobalParams::setBaseDir(char *dir) {
   baseDir = new GString(dir);
 }
 
-#ifdef _WIN32
-static void getWinFontDir(char *winFontDir) {
-  HMODULE shell32Lib;
-  BOOL (__stdcall *SHGetSpecialFolderPathFunc)(HWND hwndOwner,
-					       LPSTR lpszPath,
-					       int nFolder,
-					       BOOL fCreate);
-  char *p;
-  int i;
-
-  // SHGetSpecialFolderPath isn't available in older versions of
-  // shell32.dll (Win95 and WinNT4), so do a dynamic load
-  winFontDir[0] = '\0';
-  if ((shell32Lib = LoadLibraryA("shell32.dll"))) {
-    if ((SHGetSpecialFolderPathFunc = 
-	 (BOOL (__stdcall *)(HWND hwndOwner, LPSTR lpszPath,
-			     int nFolder, BOOL fCreate))
-	 GetProcAddress(shell32Lib, "SHGetSpecialFolderPathA"))) {
-      if (!(*SHGetSpecialFolderPathFunc)(NULL, winFontDir,
-					 CSIDL_FONTS, FALSE)) {
-	winFontDir[0] = '\0';
-      }
-      // kludge: Terminal Server changes CSIDL_FONTS to something like
-      // "C:\Users\whatever\Windows\Fonts", which doesn't actually
-      // contain any fonts -- kill that, so we hit the fallback code
-      // below.
-      for (p = winFontDir; *p; ++p) {
-	if (!strncasecmp(p, "\\Users\\", 7)) {
-	  winFontDir[0] = '\0';
-	  break;
-	}
-      }
-    }
-  }
-  // if something went wrong, or we're on a Terminal Server, try using
-  // %SYSTEMROOT%\Fonts
-  if (!winFontDir[0]) {
-    GetSystemWindowsDirectoryA(winFontDir, MAX_PATH - 6);
-    winFontDir[MAX_PATH - 7] = '\0';
-    i = (int)strlen(winFontDir);
-    if (winFontDir[i-1] != '\\') {
-      winFontDir[i++] = '\\';
-    }
-    strcpy(winFontDir + i, "Fonts");
-  }
-}
-#endif
-
 void GlobalParams::setupBaseFonts(char *dir) {
   GString *fontName;
   GString *fileName;
   int fontNum;
   const char *s;
   Base14FontInfo *base14;
-#ifdef _WIN32
-  char winFontDir[MAX_PATH];
-#endif
-#ifdef __APPLE__
-  static const char *macFontExts[3] = { "dfont", "ttc", "ttf" };
-  GList *dfontFontNames;
-  GBool found;
-  int k;
-#endif
   FILE *f;
   int i, j;
 
-#ifdef _WIN32
-  getWinFontDir(winFontDir);
-#endif
-#ifdef __APPLE__
-  dfontFontNames = NULL;
-#endif
   for (i = 0; displayFontTab[i].name; ++i) {
     if (fontFiles->lookup(displayFontTab[i].name)) {
       continue;
@@ -2026,75 +1726,12 @@ void GlobalParams::setupBaseFonts(char *dir) {
 	fileName = NULL;
       }
     }
-#ifdef _WIN32
-    if (!fileName && winFontDir[0] && displayFontTab[i].ttFileName) {
-      fileName = appendToPath(new GString(winFontDir),
-			      displayFontTab[i].ttFileName);
-      if ((f = fopen(fileName->getCString(), "rb"))) {
-	fclose(f);
-      } else {
-	delete fileName;
-	fileName = NULL;
-      }
-    }
-#endif
-#ifdef __APPLE__
-    // Check for Mac OS X system fonts.
-    s = displayFontTab[i].macFileName;
-    if (dfontFontNames && i > 0 &&
-	(!s || strcmp(s, displayFontTab[i-1].macFileName))) {
-      deleteGList(dfontFontNames, GString);
-      dfontFontNames = NULL;
-    }
-    if (!fileName && s) {
-      for (j = 0; j < 3; ++j) {
-	fileName = GString::format("{0:s}/{1:s}.{2:s}",
-				   macSystemFontPath, s, macFontExts[j]);
-	if (!(f = fopen(fileName->getCString(), "rb"))) {
-	  delete fileName;
-	  fileName = NULL;
-	} else {
-	  fclose(f);
-	  found = gFalse;
-	  // for .dfont or .ttc, we need to scan the font list
-	  if (j < 2) {
-	    if (!dfontFontNames) {
-	      dfontFontNames =
-	          FoFiIdentifier::getFontList(fileName->getCString());
-	    }
-	    if (dfontFontNames) {
-	      for (k = 0; k < dfontFontNames->getLength(); ++k) {
-		if (!((GString *)dfontFontNames->get(k))
-		                     ->cmp(displayFontTab[i].macFontName)) {
-		  fontNum = k;
-		  found = gTrue;
-		  break;
-		}
-	      }
-	    }
-	  // for .ttf, we just use the font
-	  } else {
-	    found = gTrue;
-	  }
-	  if (!found) {
-	    delete fileName;
-	    fileName = NULL;
-	  }
-	  break;
-	}
-      }
-    }
-#endif // __APPLE__
     // On Linux, this checks the "standard" ghostscript font
     // directories.  On Windows, it checks the "standard" system font
     // directories (because SHGetSpecialFolderPath(CSIDL_FONTS)
     // doesn't work on Win 2k Server or Win2003 Server, or with older
     // versions of shell32.dll).
-#ifdef _WIN32
-    s = displayFontTab[i].ttFileName;
-#else
     s = displayFontTab[i].t1FileName;
-#endif
     if (!fileName && s) {
       for (j = 0; !fileName && displayFontDirs[j]; ++j) {
 	fileName = appendToPath(new GString(displayFontDirs[j]), s);
@@ -2112,11 +1749,6 @@ void GlobalParams::setupBaseFonts(char *dir) {
     }
     base14SysFonts->add(fontName, new Base14FontInfo(fileName, fontNum, 0));
   }
-#ifdef __APPLE__
-  if (dfontFontNames) {
-    deleteGList(dfontFontNames, GString);
-  }
-#endif
   for (i = 0; displayFontTab[i].name; ++i) {
     if (!base14SysFonts->lookup(displayFontTab[i].name) &&
 	!fontFiles->lookup(displayFontTab[i].name)) {
@@ -2134,11 +1766,6 @@ void GlobalParams::setupBaseFonts(char *dir) {
       }
     }
   }
-#ifdef _WIN32
-  if (winFontDir[0]) {
-    sysFonts->scanWindowsFonts(winFontDir);
-  }
-#endif
 }
 
 //------------------------------------------------------------------------
@@ -2239,9 +1866,6 @@ FILE *GlobalParams::findToUnicodeFile(GString *name) {
 GString *GlobalParams::findFontFile(GString *fontName) {
   static const char *exts[] = { ".pfa", ".pfb", ".ttf", ".ttc" };
   GString *path, *dir;
-#ifdef _WIN32
-  GString *fontNameU;
-#endif
   const char *ext;
   FILE *f;
   int i, j;
@@ -2256,13 +1880,7 @@ GString *GlobalParams::findFontFile(GString *fontName) {
     dir = (GString *)fontDirs->get(i);
     for (j = 0; j < (int)(sizeof(exts) / sizeof(exts[0])); ++j) {
       ext = exts[j];
-#ifdef _WIN32
-      fontNameU = fileNameToUTF8(fontName->getCString());
-      path = appendToPath(dir->copy(), fontNameU->getCString());
-      delete fontNameU;
-#else
       path = appendToPath(dir->copy(), fontName->getCString());
-#endif
       path->append(ext);
       if ((f = openFile(path->getCString(), "rb"))) {
 	fclose(f);

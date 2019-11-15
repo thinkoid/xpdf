@@ -39,10 +39,6 @@ public:
 
   PDFDoc(GString *fileNameA, GString *ownerPassword = NULL,
 	 GString *userPassword = NULL, PDFCore *coreA = NULL);
-#ifdef _WIN32
-  PDFDoc(wchar_t *fileNameA, int fileNameLen, GString *ownerPassword = NULL,
-	 GString *userPassword = NULL, PDFCore *coreA = NULL);
-#endif
   PDFDoc(BaseStream *strA, GString *ownerPassword = NULL,
 	 GString *userPassword = NULL, PDFCore *coreA = NULL);
   ~PDFDoc();
@@ -55,9 +51,6 @@ public:
 
   // Get file name.
   GString *getFileName() { return fileName; }
-#ifdef _WIN32
-  wchar_t *getFileNameU() { return fileNameU; }
-#endif
 
   // Get the xref table.
   XRef *getXRef() { return xref; }
@@ -172,9 +165,6 @@ public:
   int getEmbeddedFileNameLength(int idx)
     { return catalog->getEmbeddedFileNameLength(idx); }
   GBool saveEmbeddedFile(int idx, char *path);
-#ifdef _WIN32
-  GBool saveEmbeddedFile(int idx, wchar_t *path, int pathLen);
-#endif
   char *getEmbeddedFileMem(int idx, int *size);
 
 
@@ -188,9 +178,6 @@ private:
   GBool saveEmbeddedFile2(int idx, FILE *f);
 
   GString *fileName;
-#ifdef _WIN32
-  wchar_t *fileNameU;
-#endif
   FILE *file;
   BaseStream *str;
   PDFCore *core;

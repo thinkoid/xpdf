@@ -15,9 +15,8 @@
 #endif
 
 #include <stdio.h>
-#ifndef _WIN32
-#  include <unistd.h>
-#endif
+#include <unistd.h>
+
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/gfile.hh>
@@ -25,15 +24,11 @@
 #include <fofi/FoFiType1C.hh>
 #include <splash/SplashFTFontFile.hh>
 #include <splash/SplashFTFontEngine.hh>
+
 #include FT_MODULE_H
+
 #ifdef FT_CFF_DRIVER_H
 #  include FT_CFF_DRIVER_H
-#endif
-
-#ifdef VMS
-#if (__VMS_VER < 70000000)
-extern "C" int unlink(char *filename);
-#endif
 #endif
 
 //------------------------------------------------------------------------

@@ -271,11 +271,7 @@ int main(int argc, char *argv[]) {
   }
 
   // print file size
-#ifdef VMS
-  f = fopen(fileName->getCString(), "rb", "ctx=stm");
-#else
   f = fopen(fileName->getCString(), "rb");
-#endif
   if (f) {
     gfseek(f, 0, SEEK_END);
     printf("File size:      %u bytes\n", (Guint)gftell(f));

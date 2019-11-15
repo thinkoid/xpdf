@@ -41,7 +41,7 @@ void setErrorCallback(void (*cbk)(void *data, ErrorCategory category,
   errorCbkData = data;
 }
 
-void CDECL error(ErrorCategory category, GFileOffset pos,
+void error(ErrorCategory category, GFileOffset pos,
 		 const char *msg, ...) {
   va_list args;
   GString *s, *sanitized;

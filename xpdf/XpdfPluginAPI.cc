@@ -14,11 +14,7 @@
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/PDFDoc.hh>
-#ifdef _WIN32
-#include "WinPDFCore.h"
-#else
 #include <xpdf/XPDFCore.hh>
-#endif
 #include <xpdf/XpdfPluginAPI.hh>
 
 //------------------------------------------------------------------------
@@ -46,19 +42,6 @@ XpdfObject _xpdfGetCatalog(XpdfDoc doc) {
   return (XpdfObject)((PDFDoc *)doc)->getXRef()->getCatalog(obj);
 }
 
-#ifdef _WIN32
-
-HWND _xpdfWin32GetWindow(XpdfDoc doc) {
-  WinPDFCore *core;
-
-  if (!(core = (WinPDFCore *)((PDFDoc *)doc)->getCore())) {
-    return NULL;
-  }
-  return core->getDrawFrame();
-}
-
-#else
-
 Widget _xpdfXGetWindow(XpdfDoc doc) {
   XPDFCore *core;
 
@@ -67,8 +50,6 @@ Widget _xpdfXGetWindow(XpdfDoc doc) {
   }
   return core->getWidget();
 }
-
-#endif
 
 //------------------------------------------------------------------------
 // Object access functions.
@@ -228,11 +209,7 @@ XpdfPluginVecTable xpdfPluginVecTable = {
   xpdfPluginAPIVersion,
   &_xpdfGetInfoDict,
   &_xpdfGetCatalog,
-#ifdef _WIN32
-  &_xpdfWin32GetWindow,
-#else
   &_xpdfXGetWindow,
-#endif
   &_xpdfObjIsBool,
   &_xpdfObjIsInt,
   &_xpdfObjIsReal,
