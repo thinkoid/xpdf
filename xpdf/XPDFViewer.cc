@@ -17,14 +17,7 @@
 #include <ctype.h>
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
-#ifdef HAVE_X11_XPM_H
 #include <X11/xpm.h>
-#endif
-#if defined(__sgi) && (XmVERSION <= 1)
-#define Object XtObject
-#include <Sgm/HPanedW.h>
-#undef Object
-#endif
 #include <goo/gmem.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
@@ -36,11 +29,11 @@
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/Outline.hh>
 #include <xpdf/UnicodeMap.hh>
-#ifndef DISABLE_OUTLINE
+
 #define Object XtObject
 #include <xpdf/XPDFTree.hh>
 #undef Object
-#endif
+
 #include <xpdf/XPDFApp.hh>
 #include <xpdf/XPDFViewer.hh>
 #include <xpdf/PSOutputDev.hh>
@@ -255,11 +248,10 @@ XPDFViewer::XPDFViewer(XPDFApp *appA, GString *fileName,
   win = NULL;
   core = NULL;
   ok = gFalse;
-#ifndef DISABLE_OUTLINE
+
   outlineLabels = NULL;
   outlineLabelsLength = outlineLabelsSize = 0;
   outlinePaneWidth = 175;
-#endif
 
   // do Motif-specific initialization and create the window;
   // this also creates the core object
@@ -276,13 +268,11 @@ XPDFViewer::XPDFViewer(XPDFApp *appA, GString *fileName,
   if (fileName) {
     if (loadFile(fileName, ownerPassword, userPassword)) {
       getPageAndDest(pageA, destName, &pg, &dest);
-#ifndef DISABLE_OUTLINE
       if (outlineScroll != None &&
 	  core->getDoc()->getOutline()->getItems() &&
 	  core->getDoc()->getOutline()->getItems()->getLength() > 0) {
 	XtVaSetValues(outlineScroll, XmNwidth, outlinePaneWidth, NULL);
       }
-#endif
     } else {
       return;
     }
@@ -315,11 +305,9 @@ XPDFViewer::XPDFViewer(XPDFApp *appA, PDFDoc *doc, int pageA,
   win = NULL;
   core = NULL;
   ok = gFalse;
-#ifndef DISABLE_OUTLINE
   outlineLabels = NULL;
   outlineLabelsLength = outlineLabelsSize = 0;
   outlinePaneWidth = 175;
-#endif
 
   // do Motif-specific initialization and create the window;
   // this also creates the core object
@@ -336,13 +324,11 @@ XPDFViewer::XPDFViewer(XPDFApp *appA, PDFDoc *doc, int pageA,
   if (doc) {
     core->loadDoc(doc);
     getPageAndDest(pageA, destName, &pg, &dest);
-#ifndef DISABLE_OUTLINE
     if (outlineScroll != None &&
 	core->getDoc()->getOutline()->getItems() &&
 	core->getDoc()->getOutline()->getItems()->getLength() > 0) {
       XtVaSetValues(outlineScroll, XmNwidth, outlinePaneWidth, NULL);
     }
-#endif
   }
   core->resizeToPage(pg);
 
@@ -374,11 +360,9 @@ XPDFViewer::~XPDFViewer() {
     XmFontListFree(aboutFixedFont);
   }
   closeWindow();
-#ifndef DISABLE_OUTLINE
   if (outlineLabels) {
     gfree(outlineLabels);
   }
-#endif
 }
 
 void XPDFViewer::open(GString *fileName, int pageA, GString *destName) {
@@ -432,9 +416,7 @@ void XPDFViewer::clear() {
   }
 
   // remove the old outline
-#ifndef DISABLE_OUTLINE
   setupOutline();
-#endif
 }
 
 //------------------------------------------------------------------------
@@ -788,7 +770,6 @@ void XPDFViewer::cmdAbout(GString *args[], int nArgs,
 
 void XPDFViewer::cmdCloseOutline(GString *args[], int nArgs,
 				 XEvent *event) {
-#ifndef DISABLE_OUTLINE
   Dimension w;
 
   if (outlineScroll == None) {
@@ -804,7 +785,6 @@ void XPDFViewer::cmdCloseOutline(GString *args[], int nArgs,
     XtVaSetValues(outlineScroll, XmNpaneMinimum, 1,
 		  XmNpaneMaximum, 10000, NULL);
   }
-#endif
 }
 
 void XPDFViewer::cmdCloseWindow(GString *args[], int nArgs,
@@ -1014,7 +994,6 @@ void XPDFViewer::cmdOpenInNewWin(GString *args[], int nArgs,
 
 void XPDFViewer::cmdOpenOutline(GString *args[], int nArgs,
 				XEvent *event) {
-#ifndef DISABLE_OUTLINE
   Dimension w;
 
   if (outlineScroll == None) {
@@ -1029,7 +1008,6 @@ void XPDFViewer::cmdOpenOutline(GString *args[], int nArgs,
     XtVaSetValues(outlineScroll, XmNpaneMinimum, 1,
 		  XmNpaneMaximum, 10000, NULL);
   }
-#endif
 }
 
 void XPDFViewer::cmdPageDown(GString *args[], int nArgs,
@@ -1231,7 +1209,6 @@ void XPDFViewer::cmdScrollLeft(GString *args[], int nArgs,
 
 void XPDFViewer::cmdScrollOutlineDown(GString *args[], int nArgs,
 				      XEvent *event) {
-#ifndef DISABLE_OUTLINE
   Widget sb;
   int val, inc, pageInc, m, slider;
 
@@ -1247,12 +1224,10 @@ void XPDFViewer::cmdScrollOutlineDown(GString *args[], int nArgs,
     }
     XmScrollBarSetValues(sb, val, slider, inc, pageInc, True);
   }
-#endif
 }
 
 void XPDFViewer::cmdScrollOutlineUp(GString *args[], int nArgs,
 				    XEvent *event) {
-#ifndef DISABLE_OUTLINE
   Widget sb;
   int val, inc, pageInc, m, slider;
 
@@ -1268,7 +1243,6 @@ void XPDFViewer::cmdScrollOutlineUp(GString *args[], int nArgs,
     }
     XmScrollBarSetValues(sb, val, slider, inc, pageInc, True);
   }
-#endif
 }
 
 void XPDFViewer::cmdScrollRight(GString *args[], int nArgs,
@@ -1372,7 +1346,6 @@ void XPDFViewer::cmdToggleFullScreenMode(GString *args[], int nArgs,
 
 void XPDFViewer::cmdToggleOutline(GString *args[], int nArgs,
 				  XEvent *event) {
-#ifndef DISABLE_OUTLINE
   Dimension w;
 
   if (outlineScroll == None) {
@@ -1384,7 +1357,6 @@ void XPDFViewer::cmdToggleOutline(GString *args[], int nArgs,
   } else {
     cmdOpenOutline(NULL, 0, event);
   }
-#endif
 }
 
 void XPDFViewer::cmdWindowMode(GString *args[], int nArgs,
@@ -1485,9 +1457,7 @@ void XPDFViewer::initWindow(GBool fullScreen) {
   screenNum = XScreenNumberOfScreen(XtScreen(app->getAppShell()));
 
   toolBar = None;
-#ifndef DISABLE_OUTLINE
   outlineScroll = None;
-#endif
 
   // private colormap
   if (app->getInstallCmap()) {
@@ -1536,23 +1506,6 @@ void XPDFViewer::initWindow(GBool fullScreen) {
     form = XmCreateForm(win, "form", args, n);
     XtManageChild(form);
 
-#ifdef DISABLE_OUTLINE
-    initToolbar(form);
-    n = 0;
-    XtSetArg(args[n], XmNleftAttachment, XmATTACH_FORM); ++n;
-    XtSetArg(args[n], XmNrightAttachment, XmATTACH_FORM); ++n;
-    XtSetArg(args[n], XmNbottomAttachment, XmATTACH_FORM); ++n;
-    XtSetValues(toolBar, args, n);
-
-    initCore(form, gFalse);
-    n = 0;
-    XtSetArg(args[n], XmNtopAttachment, XmATTACH_FORM); ++n;
-    XtSetArg(args[n], XmNbottomAttachment, XmATTACH_WIDGET); ++n;
-    XtSetArg(args[n], XmNbottomWidget, toolBar); ++n;
-    XtSetArg(args[n], XmNleftAttachment, XmATTACH_FORM); ++n;
-    XtSetArg(args[n], XmNrightAttachment, XmATTACH_FORM); ++n;
-    XtSetValues(core->getWidget(), args, n);
-#else
     initToolbar(form);
     n = 0;
     XtSetArg(args[n], XmNleftAttachment, XmATTACH_FORM); ++n;
@@ -1576,7 +1529,6 @@ void XPDFViewer::initWindow(GBool fullScreen) {
     XtSetArg(args[n], XmNpaneMinimum, 1); ++n;
     XtSetArg(args[n], XmNpaneMaximum, 10000); ++n;
     XtSetValues(core->getWidget(), args, n);
-#endif
   }
 
   // set the zoom menu to match the initial zoom setting
@@ -1903,7 +1855,6 @@ void XPDFViewer::initToolbar(Widget parent) {
   XmStringFree(emptyString);
 }
 
-#ifndef DISABLE_OUTLINE
 void XPDFViewer::initPanedWin(Widget parent) {
   Widget clipWin;
   Arg args[20];
@@ -1912,11 +1863,7 @@ void XPDFViewer::initPanedWin(Widget parent) {
   // paned window
   n = 0;
   XtSetArg(args[n], XmNorientation, XmHORIZONTAL); ++n;
-#if defined(__sgi) && (XmVERSION <= 1)
-  panedWin = SgCreateHorzPanedWindow(parent, "panedWin", args, n);
-#else
   panedWin = XmCreatePanedWindow(parent, "panedWin", args, n);
-#endif
   XtManageChild(panedWin);
 
   // scrolled window for outline container
@@ -1925,9 +1872,7 @@ void XPDFViewer::initPanedWin(Widget parent) {
   XtSetArg(args[n], XmNallowResize, True); ++n;
   XtSetArg(args[n], XmNpaneMinimum, 1); ++n;
   XtSetArg(args[n], XmNpaneMaximum, 10000); ++n;
-#if !(defined(__sgi) && (XmVERSION <= 1))
   XtSetArg(args[n], XmNwidth, 1); ++n;
-#endif
   XtSetArg(args[n], XmNscrollingPolicy, XmAUTOMATIC); ++n;
   outlineScroll = XmCreateScrolledWindow(panedWin, "outlineScroll", args, n);
   XtManageChild(outlineScroll);
@@ -1942,7 +1887,6 @@ void XPDFViewer::initPanedWin(Widget parent) {
   XtAddCallback(outlineTree, XPDFNselectionCallback, &outlineSelectCbk,
 		(XtPointer)this);
 }
-#endif
 
 void XPDFViewer::initCore(Widget parent, GBool fullScreen) {
   core = new XPDFCore(win, parent,
@@ -2109,9 +2053,7 @@ void XPDFViewer::addToolTip(Widget widget, char *text) {
 }
 
 void XPDFViewer::mapWindow() {
-#ifdef HAVE_X11_XPM_H
   Pixmap iconPixmap;
-#endif
   int depth;
   Pixel fg, bg, arm;
 
@@ -2120,12 +2062,10 @@ void XPDFViewer::mapWindow() {
   core->takeFocus();
 
   // create the icon
-#ifdef HAVE_X11_XPM_H
   if (XpmCreatePixmapFromData(display, XtWindow(win), xpdfIcon,
 			      &iconPixmap, NULL, NULL) == XpmSuccess) {
     XtVaSetValues(win, XmNiconPixmap, iconPixmap, NULL);
   }
-#endif
 
   // set button bitmaps (must be done after the window is mapped)
   if (toolBar != None) {
@@ -2654,9 +2594,7 @@ void XPDFViewer::updateCbk(void *data, GString *fileName,
     if (!viewer->app->getTitle()) {
       delete title;
     }
-#ifndef DISABLE_OUTLINE
     viewer->setupOutline();
-#endif
     viewer->setupPrintDialog();
   }
 
@@ -2699,8 +2637,6 @@ void XPDFViewer::updateCbk(void *data, GString *fileName,
 //------------------------------------------------------------------------
 // GUI code: outline
 //------------------------------------------------------------------------
-
-#ifndef DISABLE_OUTLINE
 
 void XPDFViewer::setupOutline() {
   GList *items;
@@ -2805,8 +2741,6 @@ void XPDFViewer::outlineSelectCbk(Widget widget, XtPointer ptr,
   }
   viewer->core->takeFocus();
 }
-
-#endif // !DISABLE_OUTLINE
 
 //------------------------------------------------------------------------
 // GUI code: "about" dialog

@@ -32,11 +32,7 @@
 #include <xpdf/Lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/SecurityHandler.hh>
-
-#ifndef DISABLE_OUTLINE
-#  include <xpdf/Outline.hh>
-#endif
-
+#include <xpdf/Outline.hh>
 #include <xpdf/OptionalContent.hh>
 #include <xpdf/PDFDoc.hh>
 
@@ -63,9 +59,7 @@ PDFDoc::PDFDoc(GString *fileNameA, GString *ownerPassword,
   str = NULL;
   xref = NULL;
   catalog = NULL;
-#ifndef DISABLE_OUTLINE
   outline = NULL;
-#endif
   optContent = NULL;
 
   fileName = fileNameA;
@@ -110,9 +104,7 @@ PDFDoc::PDFDoc(BaseStream *strA, GString *ownerPassword,
   str = strA;
   xref = NULL;
   catalog = NULL;
-#ifndef DISABLE_OUTLINE
   outline = NULL;
-#endif
   optContent = NULL;
   ok = setup(ownerPassword, userPassword);
 }
@@ -137,10 +129,8 @@ GBool PDFDoc::setup(GString *ownerPassword, GString *userPassword) {
     }
   }
 
-#ifndef DISABLE_OUTLINE
   // read outline
   outline = new Outline(catalog->getOutline(), xref);
-#endif
 
   // read the optional content info
   optContent = new OptionalContent(this);
@@ -189,11 +179,9 @@ PDFDoc::~PDFDoc() {
   if (optContent) {
     delete optContent;
   }
-#ifndef DISABLE_OUTLINE
   if (outline) {
     delete outline;
   }
-#endif
   if (catalog) {
     delete catalog;
   }

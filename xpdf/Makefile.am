@@ -114,5 +114,5 @@ LDADD =                                         \
 	$(top_srcdir)/fofi/libfofi.a                \
 	$(top_srcdir)/goo/libgoo.a                  \
 	$(top_srcdir)/splash/libsplash.a            \
-	$(LIBS) $(MOTIF_LIBS) $(XT_LIBS) $(X11_LIBS) $(LIBPNG_LIBS) $(PAPER_LIBS)
+	$(LIBS) $(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS) $(LIBPNG_LIBS) $(PAPER_LIBS)
 

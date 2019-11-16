@@ -21,10 +21,6 @@
 #include <goo/gtypes.hh>
 #include <xpdf/XPDFCore.hh>
 
-#if (XmVERSION <= 1) && !defined(__sgi)
-#define DISABLE_OUTLINE
-#endif
-
 #if (XmVERSION >= 2 && !defined(LESSTIF_VERSION))
 #  define USE_COMBO_BOX 1
 #else
