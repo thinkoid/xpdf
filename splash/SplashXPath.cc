@@ -12,12 +12,13 @@
 #pragma implementation
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-#if HAVE_STD_SORT
+#include <cstdlib>
+#include <cstring>
+
 #include <algorithm>
-#endif
+
 #include <goo/gmem.hh>
+
 #include <splash/SplashMath.hh>
 #include <splash/SplashPath.hh>
 #include <splash/SplashXPath.hh>
@@ -135,11 +136,7 @@ SplashXPath::SplashXPath(SplashPath *path, SplashCoord *matrix,
 
   gfree(pts);
 
-#if HAVE_STD_SORT
   std::sort(segs, segs + length, SplashXPathSeg::cmpY);
-#else
-  qsort(segs, length, sizeof(SplashXPathSeg), &SplashXPathSeg::cmpY);
-#endif
 
   if (length == 0) {
     xMin = yMin = xMax = yMax = 0;

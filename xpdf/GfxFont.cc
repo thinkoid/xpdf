@@ -12,15 +12,15 @@
 #pragma implementation
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-#if HAVE_STD_SORT
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
 #include <algorithm>
-#endif
+
 #include <goo/gmem.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
@@ -1516,8 +1516,6 @@ Dict *Gfx8BitFont::getResources() {
 // GfxCIDFont
 //------------------------------------------------------------------------
 
-#if HAVE_STD_SORT
-
 struct cmpWidthExcepFunctor {
   bool operator()(const GfxFontCIDWidthExcep &w1,
 		  const GfxFontCIDWidthExcep &w2) {
@@ -1531,20 +1529,6 @@ struct cmpWidthExcepVFunctor {
     return w1.first < w2.first;
   }
 };
-
-#else // HAVE_STD_SORT
-
-static int cmpWidthExcep(const void *w1, const void *w2) {
-  return ((GfxFontCIDWidthExcep *)w1)->first -
-         ((GfxFontCIDWidthExcep *)w2)->first;
-}
-
-static int cmpWidthExcepV(const void *w1, const void *w2) {
-  return ((GfxFontCIDWidthExcepV *)w1)->first -
-         ((GfxFontCIDWidthExcepV *)w2)->first;
-}
-
-#endif
 
 GfxCIDFont::GfxCIDFont(XRef *xref, char *tagA, Ref idA, GString *nameA,
 		       GfxFontType typeA, Ref embFontIDA, Dict *fontDict):
@@ -1744,13 +1728,8 @@ GfxCIDFont::GfxCIDFont(XRef *xref, char *tagA, Ref idA, GString *nameA,
       obj3.free();
       obj2.free();
     }
-#if HAVE_STD_SORT
     std::sort(widths.exceps, widths.exceps + widths.nExceps,
 	      cmpWidthExcepFunctor());
-#else
-    qsort(widths.exceps, widths.nExceps, sizeof(GfxFontCIDWidthExcep),
-	  &cmpWidthExcep);
-#endif
   }
   obj1.free();
 
@@ -1833,13 +1812,8 @@ GfxCIDFont::GfxCIDFont(XRef *xref, char *tagA, Ref idA, GString *nameA,
       obj3.free();
       obj2.free();
     }
-#if HAVE_STD_SORT
     std::sort(widths.excepsV, widths.excepsV + widths.nExcepsV,
 	      cmpWidthExcepVFunctor());
-#else
-    qsort(widths.excepsV, widths.nExcepsV, sizeof(GfxFontCIDWidthExcepV),
-	  &cmpWidthExcepV);
-#endif
   }
   obj1.free();
 

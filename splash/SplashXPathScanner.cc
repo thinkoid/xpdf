@@ -12,13 +12,14 @@
 #pragma implementation
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-#if HAVE_STD_SORT
+#include <cstdlib>
+#include <cstring>
+
 #include <algorithm>
-#endif
+
 #include <goo/gmem.hh>
 #include <goo/GList.hh>
+
 #include <splash/SplashMath.hh>
 #include <splash/SplashXPath.hh>
 #include <splash/SplashXPathScanner.hh>

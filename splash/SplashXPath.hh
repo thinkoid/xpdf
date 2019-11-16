@@ -39,20 +39,10 @@ struct SplashXPathSeg {
   //----- used by SplashXPathScanner
   SplashCoord xCur0, xCur1;	// current x values
 
-#if HAVE_STD_SORT
   static bool cmpY(const SplashXPathSeg &seg0,
 		   const SplashXPathSeg &seg1) {
     return seg0.y0 < seg1.y0;
   }
-#else
-  static int cmpY(const void *seg0, const void *seg1) {
-    SplashCoord cmp;
-
-    cmp = ((SplashXPathSeg *)seg0)->y0
-          - ((SplashXPathSeg *)seg1)->y0;
-    return (cmp > 0) ? 1 : (cmp < 0) ? -1 : 0;
-  }
-#endif
 
   static int cmpX(SplashXPathSeg *seg0, SplashXPathSeg *seg1) {
     SplashCoord cmp;

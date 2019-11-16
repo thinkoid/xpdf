@@ -12,15 +12,16 @@
 #pragma implementation
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-#if HAVE_STD_SORT
+#include <cstdlib>
+#include <cstring>
+
 #include <algorithm>
-#endif
+
 #include <goo/gtypes.hh>
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GHash.hh>
+
 #include <fofi/FoFiType1C.hh>
 #include <fofi/FoFiTrueType.hh>
 
@@ -119,8 +120,6 @@ struct TrueTypeLoca {
 #define os2Tag  0x4f532f32
 #define postTag 0x706f7374
 
-#ifdef HAVE_STD_SORT
-
 struct cmpTrueTypeLocaOffsetFunctor {
   bool operator()(const TrueTypeLoca &loca1, const TrueTypeLoca &loca2) {
     if (loca1.origOffset == loca2.origOffset) {
@@ -141,34 +140,6 @@ struct cmpTrueTypeTableTagFunctor {
     return tab1.tag < tab2.tag;
   }
 };
-
-#else // HAVE_STD_SORT
-
-static int cmpTrueTypeLocaOffset(const void *p1, const void *p2) {
-  TrueTypeLoca *loca1 = (TrueTypeLoca *)p1;
-  TrueTypeLoca *loca2 = (TrueTypeLoca *)p2;
-
-  if (loca1->origOffset == loca2->origOffset) {
-    return loca1->idx - loca2->idx;
-  }
-  return loca1->origOffset - loca2->origOffset;
-}
-
-static int cmpTrueTypeLocaIdx(const void *p1, const void *p2) {
-  TrueTypeLoca *loca1 = (TrueTypeLoca *)p1;
-  TrueTypeLoca *loca2 = (TrueTypeLoca *)p2;
-
-  return loca1->idx - loca2->idx;
-}
-
-static int cmpTrueTypeTableTag(const void *p1, const void *p2) {
-  TrueTypeTable *tab1 = (TrueTypeTable *)p1;
-  TrueTypeTable *tab2 = (TrueTypeTable *)p2;
-
-  return (int)tab1->tag - (int)tab2->tag;
-}
-
-#endif // HAVE_STD_SORT
 
 //------------------------------------------------------------------------
 
@@ -1063,23 +1034,13 @@ void FoFiTrueType::writeTTF(FoFiOutputFunc outputFunc,
   // the same pos value remain in the same order)
   glyfLen = 0; // make gcc happy
   if (unsortedLoca) {
-#if HAVE_STD_SORT
     std::sort(locaTable, locaTable + nGlyphs + 1,
 	      cmpTrueTypeLocaOffsetFunctor());
-#else
-    qsort(locaTable, nGlyphs + 1, sizeof(TrueTypeLoca),
-	  &cmpTrueTypeLocaOffset);
-#endif
     for (i = 0; i < nGlyphs; ++i) {
       locaTable[i].len = locaTable[i+1].origOffset - locaTable[i].origOffset;
     }
     locaTable[nGlyphs].len = 0;
-#if HAVE_STD_SORT
     std::sort(locaTable, locaTable + nGlyphs + 1, cmpTrueTypeLocaIdxFunctor());
-#else
-    qsort(locaTable, nGlyphs + 1, sizeof(TrueTypeLoca),
-	  &cmpTrueTypeLocaIdx);
-#endif
     // if the last entry in the loca is not the max offset (size of
     // the glyf table), something is wrong -- work around the problem
     // by forcing the last sorted entry to have a zero length
@@ -1367,12 +1328,7 @@ void FoFiTrueType::writeTTF(FoFiOutputFunc outputFunc,
     newTables[j].len = sizeof(os2Tab);
     ++j;
   }
-#if HAVE_STD_SORT
   std::sort(newTables, newTables + nNewTables, cmpTrueTypeTableTagFunctor());
-#else
-  qsort(newTables, nNewTables, sizeof(TrueTypeTable),
-	&cmpTrueTypeTableTag);
-#endif
   pos = 12 + nNewTables * 16;
   for (i = 0; i < nNewTables; ++i) {
     newTables[i].offset = pos;
@@ -1685,23 +1641,13 @@ void FoFiTrueType::cvtSfnts(FoFiOutputFunc outputFunc,
       locaTable[i].origOffset = glyfTableLen;
     }
   }
-#if HAVE_STD_SORT
   std::sort(locaTable, locaTable + nGlyphs + 1,
 	    cmpTrueTypeLocaOffsetFunctor());
-#else
-  qsort(locaTable, nGlyphs + 1, sizeof(TrueTypeLoca),
-	&cmpTrueTypeLocaOffset);
-#endif
   for (i = 0; i < nGlyphs; ++i) {
     locaTable[i].len = locaTable[i+1].origOffset - locaTable[i].origOffset;
   }
   locaTable[nGlyphs].len = 0;
-#if HAVE_STD_SORT
   std::sort(locaTable, locaTable + nGlyphs + 1, cmpTrueTypeLocaIdxFunctor());
-#else
-  qsort(locaTable, nGlyphs + 1, sizeof(TrueTypeLoca),
-	&cmpTrueTypeLocaIdx);
-#endif
   pos = 0;
   *maxUsedGlyph = -1;
   for (i = 0; i <= nGlyphs; ++i) {
