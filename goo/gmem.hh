@@ -21,13 +21,13 @@ extern "C" {
  * Same as malloc, but prints error message and exits if malloc()
  * returns NULL.
  */
-extern void *gmalloc(int size);
+extern void* gmalloc (int size);
 
 /*
  * Same as realloc, but prints error message and exits if realloc()
  * returns NULL.  If <p> is NULL, calls malloc instead of realloc().
  */
-extern void *grealloc(void *p, int size);
+extern void* grealloc (void* p, int size);
 
 /*
  * These are similar to gmalloc and grealloc, but take an object count
@@ -35,24 +35,24 @@ extern void *grealloc(void *p, int size);
  * bytes, but there is an additional error check that the total size
  * doesn't overflow an int.
  */
-extern void *gmallocn(int nObjs, int objSize);
-extern void *greallocn(void *p, int nObjs, int objSize);
+extern void* gmallocn (int nObjs, int objSize);
+extern void* greallocn (void* p, int nObjs, int objSize);
 
 /*
  * Same as free, but checks for and ignores NULL pointers.
  */
-extern void gfree(void *p);
+extern void gfree (void* p);
 
 /*
  * Report a memory error.
  */
-extern void gMemError(const char *msg);
+extern void gMemError (const char* msg);
 
 #ifdef DEBUG_MEM
 /*
  * Report on unfreed memory.
  */
-extern void gMemReport(FILE *f);
+extern void gMemReport (FILE* f);
 #else
 #define gMemReport(f)
 #endif
@@ -60,7 +60,7 @@ extern void gMemReport(FILE *f);
 /*
  * Allocate memory and copy a string into it.
  */
-extern char *copyString(const char *s);
+extern char* copyString (const char* s);
 
 #ifdef __cplusplus
 }

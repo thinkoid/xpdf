@@ -11,13 +11,13 @@
 
 #include <xpdf/BuiltinFont.hh>
 
-#define nBuiltinFonts      14
+#define nBuiltinFonts 14
 #define nBuiltinFontSubsts 12
 
 extern BuiltinFont builtinFonts[nBuiltinFonts];
-extern BuiltinFont *builtinFontSubst[nBuiltinFontSubsts];
+extern BuiltinFont* builtinFontSubst[nBuiltinFontSubsts];
 
-extern void initBuiltinFontTables();
-extern void freeBuiltinFontTables();
+extern void initBuiltinFontTables ();
+extern void freeBuiltinFontTables ();
 
 #endif

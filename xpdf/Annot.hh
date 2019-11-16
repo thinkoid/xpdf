@@ -22,51 +22,51 @@ class PDFDoc;
 //------------------------------------------------------------------------
 
 enum AnnotBorderType {
-  annotBorderSolid,
-  annotBorderDashed,
-  annotBorderBeveled,
-  annotBorderInset,
-  annotBorderUnderlined
+    annotBorderSolid,
+    annotBorderDashed,
+    annotBorderBeveled,
+    annotBorderInset,
+    annotBorderUnderlined
 };
 
 class AnnotBorderStyle {
 public:
+    AnnotBorderStyle (
+        AnnotBorderType typeA, double widthA, double* dashA, int dashLengthA,
+        double* colorA, int nColorCompsA);
+    ~AnnotBorderStyle ();
 
-  AnnotBorderStyle(AnnotBorderType typeA, double widthA,
-		   double *dashA, int dashLengthA,
-		   double *colorA, int nColorCompsA);
-  ~AnnotBorderStyle();
-
-  AnnotBorderType getType() { return type; }
-  double getWidth() { return width; }
-  void getDash(double **dashA, int *dashLengthA)
-    { *dashA = dash; *dashLengthA = dashLength; }
-  int getNumColorComps() { return nColorComps; }
-  double *getColor() { return color; }
+    AnnotBorderType getType () { return type; }
+    double getWidth () { return width; }
+    void getDash (double** dashA, int* dashLengthA) {
+        *dashA = dash;
+        *dashLengthA = dashLength;
+    }
+    int getNumColorComps () { return nColorComps; }
+    double* getColor () { return color; }
 
 private:
-
-  AnnotBorderType type;
-  double width;
-  double *dash;
-  int dashLength;
-  double color[4];
-  int nColorComps;
+    AnnotBorderType type;
+    double width;
+    double* dash;
+    int dashLength;
+    double color[4];
+    int nColorComps;
 };
 
 //------------------------------------------------------------------------
 
 enum AnnotLineEndType {
-  annotLineEndNone,
-  annotLineEndSquare,
-  annotLineEndCircle,
-  annotLineEndDiamond,
-  annotLineEndOpenArrow,
-  annotLineEndClosedArrow,
-  annotLineEndButt,
-  annotLineEndROpenArrow,
-  annotLineEndRClosedArrow,
-  annotLineEndSlash
+    annotLineEndNone,
+    annotLineEndSquare,
+    annotLineEndCircle,
+    annotLineEndDiamond,
+    annotLineEndOpenArrow,
+    annotLineEndClosedArrow,
+    annotLineEndButt,
+    annotLineEndROpenArrow,
+    annotLineEndRClosedArrow,
+    annotLineEndSlash
 };
 
 //------------------------------------------------------------------------
@@ -75,63 +75,62 @@ enum AnnotLineEndType {
 
 class Annot {
 public:
+    Annot (PDFDoc* docA, Dict* dict, Ref* refA);
+    ~Annot ();
+    GBool isOk () { return ok; }
 
-  Annot(PDFDoc *docA, Dict *dict, Ref *refA);
-  ~Annot();
-  GBool isOk() { return ok; }
+    void draw (Gfx* gfx, GBool printing);
 
-  void draw(Gfx *gfx, GBool printing);
+    GString* getType () { return type; }
+    double getXMin () { return xMin; }
+    double getYMin () { return yMin; }
+    double getXMax () { return xMax; }
+    double getYMax () { return yMax; }
+    Object* getObject (Object* obj);
 
-  GString *getType() { return type; }
-  double getXMin() { return xMin; }
-  double getYMin() { return yMin; }
-  double getXMax() { return xMax; }
-  double getYMax() { return yMax; }
-  Object *getObject(Object *obj);
+    // Get appearance object.
+    Object* getAppearance (Object* obj) { return appearance.fetch (xref, obj); }
 
-  // Get appearance object.
-  Object *getAppearance(Object *obj) { return appearance.fetch(xref, obj); }
+    AnnotBorderStyle* getBorderStyle () { return borderStyle; }
 
-  AnnotBorderStyle *getBorderStyle() { return borderStyle; }
+    GBool match (Ref* refA) {
+        return ref.num == refA->num && ref.gen == refA->gen;
+    }
 
-  GBool match(Ref *refA)
-    { return ref.num == refA->num && ref.gen == refA->gen; }
-
-  void generateAnnotAppearance();
+    void generateAnnotAppearance ();
 
 private:
- 
-  void generateLineAppearance();
-  void generatePolyLineAppearance();
-  void generatePolygonAppearance();
-  void setLineStyle(AnnotBorderStyle *bs, double *lineWidth);
-  void setStrokeColor(double *color, int nComps);
-  GBool setFillColor(Object *colorObj);
-  AnnotLineEndType parseLineEndType(Object *obj);
-  void adjustLineEndpoint(AnnotLineEndType lineEnd,
-			  double x, double y, double dx, double dy,
-			  double w, double *tx, double *ty);
-  void drawLineArrow(AnnotLineEndType lineEnd,
-		     double x, double y, double dx, double dy,
-		     double w, GBool fill);
-  void drawCircle(double cx, double cy, double r, const char *cmd);
-  void drawCircleTopLeft(double cx, double cy, double r);
-  void drawCircleBottomRight(double cx, double cy, double r);
+    void generateLineAppearance ();
+    void generatePolyLineAppearance ();
+    void generatePolygonAppearance ();
+    void setLineStyle (AnnotBorderStyle* bs, double* lineWidth);
+    void setStrokeColor (double* color, int nComps);
+    GBool setFillColor (Object* colorObj);
+    AnnotLineEndType parseLineEndType (Object* obj);
+    void adjustLineEndpoint (
+        AnnotLineEndType lineEnd, double x, double y, double dx, double dy,
+        double w, double* tx, double* ty);
+    void drawLineArrow (
+        AnnotLineEndType lineEnd, double x, double y, double dx, double dy,
+        double w, GBool fill);
+    void drawCircle (double cx, double cy, double r, const char* cmd);
+    void drawCircleTopLeft (double cx, double cy, double r);
+    void drawCircleBottomRight (double cx, double cy, double r);
 
-  PDFDoc *doc;
-  XRef *xref;			// the xref table for this PDF file
-  Ref ref;			// object ref identifying this annotation
-  GString *type;		// annotation type
-  GString *appearanceState;	// appearance state name
-  Object appearance;		// a reference to the Form XObject stream
-				//   for the normal appearance
-  GString *appearBuf;
-  double xMin, yMin,		// annotation rectangle
-         xMax, yMax;
-  Guint flags;
-  AnnotBorderStyle *borderStyle;
-  Object ocObj;			// optional content entry
-  GBool ok;
+    PDFDoc* doc;
+    XRef* xref;               // the xref table for this PDF file
+    Ref ref;                  // object ref identifying this annotation
+    GString* type;            // annotation type
+    GString* appearanceState; // appearance state name
+    Object appearance;        // a reference to the Form XObject stream
+                              //   for the normal appearance
+    GString* appearBuf;
+    double xMin, yMin, // annotation rectangle
+        xMax, yMax;
+    Guint flags;
+    AnnotBorderStyle* borderStyle;
+    Object ocObj; // optional content entry
+    GBool ok;
 };
 
 //------------------------------------------------------------------------
@@ -140,29 +139,27 @@ private:
 
 class Annots {
 public:
+    // Build a list of Annot objects.
+    Annots (PDFDoc* docA, Object* annotsObj);
 
-  // Build a list of Annot objects.
-  Annots(PDFDoc *docA, Object *annotsObj);
+    ~Annots ();
 
-  ~Annots();
+    // Iterate through list of annotations.
+    int getNumAnnots () { return nAnnots; }
+    Annot* getAnnot (int i) { return annots[i]; }
 
-  // Iterate through list of annotations.
-  int getNumAnnots() { return nAnnots; }
-  Annot *getAnnot(int i) { return annots[i]; }
-
-  // Generate an appearance stream for any non-form-field annotation
-  // that is missing it.
-  void generateAnnotAppearances();
+    // Generate an appearance stream for any non-form-field annotation
+    // that is missing it.
+    void generateAnnotAppearances ();
 
 private:
+    void
+    scanFieldAppearances (Dict* node, Ref* ref, Dict* parent, Dict* acroForm);
+    Annot* findAnnot (Ref* ref);
 
-  void scanFieldAppearances(Dict *node, Ref *ref, Dict *parent,
-			    Dict *acroForm);
-  Annot *findAnnot(Ref *ref);
-
-  PDFDoc *doc;
-  Annot **annots;
-  int nAnnots;
+    PDFDoc* doc;
+    Annot** annots;
+    int nAnnots;
 };
 
 #endif

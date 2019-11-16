@@ -25,67 +25,70 @@ class SplashFontFileID;
 
 class SplashFTFontEngine {
 public:
+    static SplashFTFontEngine* init (GBool aaA, Guint flagsA);
 
-  static SplashFTFontEngine *init(GBool aaA, Guint flagsA);
+    ~SplashFTFontEngine ();
 
-  ~SplashFTFontEngine();
-
-  // Load fonts.
-  SplashFontFile *loadType1Font(SplashFontFileID *idA,
+    // Load fonts.
+    SplashFontFile* loadType1Font (
+        SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-				GString *fontBuf,
+        GString* fontBuf,
 #else
-				char *fileName, GBool deleteFile,
+        char* fileName, GBool deleteFile,
 #endif
-				const char **enc);
-  SplashFontFile *loadType1CFont(SplashFontFileID *idA,
+        const char** enc);
+    SplashFontFile* loadType1CFont (
+        SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-				 GString *fontBuf,
+        GString* fontBuf,
 #else
-				 char *fileName, GBool deleteFile,
+        char* fileName, GBool deleteFile,
 #endif
-				 const char **enc);
-  SplashFontFile *loadOpenTypeT1CFont(SplashFontFileID *idA,
+        const char** enc);
+    SplashFontFile* loadOpenTypeT1CFont (
+        SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-				      GString *fontBuf,
+        GString* fontBuf,
 #else
-				      char *fileName, GBool deleteFile,
+        char* fileName, GBool deleteFile,
 #endif
-				      const char **enc);
-  SplashFontFile *loadCIDFont(SplashFontFileID *idA,
+        const char** enc);
+    SplashFontFile* loadCIDFont (
+        SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-			      GString *fontBuf
+        GString* fontBuf
 #else
-			      char *fileName, GBool deleteFile
+        char* fileName, GBool deleteFile
 #endif
-			      );
-  SplashFontFile *loadOpenTypeCFFFont(SplashFontFileID *idA,
+    );
+    SplashFontFile* loadOpenTypeCFFFont (
+        SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-				      GString *fontBuf,
+        GString* fontBuf,
 #else
-				      char *fileName, GBool deleteFile,
+        char* fileName, GBool deleteFile,
 #endif
-				      int *codeToGID, int codeToGIDLen);
-  SplashFontFile *loadTrueTypeFont(SplashFontFileID *idA,
+        int* codeToGID, int codeToGIDLen);
+    SplashFontFile* loadTrueTypeFont (
+        SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-				   GString *fontBuf,
+        GString* fontBuf,
 #else
-				   char *fileName, GBool deleteFile,
+        char* fileName, GBool deleteFile,
 #endif
-				   int fontNum,
-				   int *codeToGID, int codeToGIDLen);
+        int fontNum, int* codeToGID, int codeToGIDLen);
 
 private:
+    SplashFTFontEngine (GBool aaA, Guint flagsA, FT_Library libA);
 
-  SplashFTFontEngine(GBool aaA, Guint flagsA, FT_Library libA);
+    GBool aa;
+    Guint flags;
+    FT_Library lib;
+    GBool useCIDs;
 
-  GBool aa;
-  Guint flags;
-  FT_Library lib;
-  GBool useCIDs;
-
-  friend class SplashFTFontFile;
-  friend class SplashFTFont;
+    friend class SplashFTFontFile;
+    friend class SplashFTFont;
 };
 
 #endif

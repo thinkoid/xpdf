@@ -11,16 +11,16 @@
 
 #include <goo/gtypes.hh>
 
-extern GBool unicodeTypeL(Unicode c);
+extern GBool unicodeTypeL (Unicode c);
 
-extern GBool unicodeTypeR(Unicode c);
+extern GBool unicodeTypeR (Unicode c);
 
-extern GBool unicodeTypeNum(Unicode c);
+extern GBool unicodeTypeNum (Unicode c);
 
-extern GBool unicodeTypeAlphaNum(Unicode c);
+extern GBool unicodeTypeAlphaNum (Unicode c);
 
-extern GBool unicodeTypeWord(Unicode c);
+extern GBool unicodeTypeWord (Unicode c);
 
-extern Unicode unicodeToUpper(Unicode c);
+extern Unicode unicodeToUpper (Unicode c);
 
 #endif

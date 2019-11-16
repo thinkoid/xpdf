@@ -18,11 +18,11 @@
 
 // default paper size (in points) for PostScript output
 #ifdef A4_PAPER
-#  define XPDF_PAPER_WIDTH  595    // ISO A4 (210x297 mm)
-#  define XPDF_PAPER_HEIGHT 842
+#define XPDF_PAPER_WIDTH 595 // ISO A4 (210x297 mm)
+#define XPDF_PAPER_HEIGHT 842
 #else
-#  define XPDF_PAPER_WIDTH  612    // American letter (8.5x11")
-#  define XPDF_PAPER_HEIGHT 792
+#define XPDF_PAPER_WIDTH 612 // American letter (8.5x11")
+#define XPDF_PAPER_HEIGHT 792
 #endif
 
 //------------------------------------------------------------------------

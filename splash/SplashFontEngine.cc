@@ -26,302 +26,292 @@
 // SplashFontEngine
 //------------------------------------------------------------------------
 
-SplashFontEngine::SplashFontEngine(
-                   GBool enableFreeType,
-				   Guint freeTypeFlags,
-                   GBool aa) {
-  int i;
+SplashFontEngine::SplashFontEngine (
+    GBool enableFreeType, Guint freeTypeFlags, GBool aa) {
+    int i;
 
-  for (i = 0; i < splashFontCacheSize; ++i) {
-    fontCache[i] = NULL;
-  }
+    for (i = 0; i < splashFontCacheSize; ++i) { fontCache[i] = NULL; }
 
-  if (enableFreeType) {
-    ftEngine = SplashFTFontEngine::init(aa, freeTypeFlags);
-  } else {
-    ftEngine = NULL;
-  }
-}
-
-SplashFontEngine::~SplashFontEngine() {
-  int i;
-
-  for (i = 0; i < splashFontCacheSize; ++i) {
-    if (fontCache[i]) {
-      delete fontCache[i];
+    if (enableFreeType) {
+        ftEngine = SplashFTFontEngine::init (aa, freeTypeFlags);
     }
-  }
-
-  if (ftEngine) {
-    delete ftEngine;
-  }
-}
-
-SplashFontFile *SplashFontEngine::getFontFile(SplashFontFileID *id) {
-  SplashFontFile *fontFile;
-  int i;
-
-  for (i = 0; i < splashFontCacheSize; ++i) {
-    if (fontCache[i]) {
-      fontFile = fontCache[i]->getFontFile();
-      if (fontFile && fontFile->getID()->matches(id)) {
-	return fontFile;
-      }
+    else {
+        ftEngine = NULL;
     }
-  }
-  return NULL;
 }
 
-SplashFontFile *SplashFontEngine::loadType1Font(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-						GString *fontBuf,
-#else
-						char *fileName,
-						GBool deleteFile,
-#endif
-						const char **enc) {
-  SplashFontFile *fontFile;
+SplashFontEngine::~SplashFontEngine () {
+    int i;
 
-  fontFile = NULL;
-  if (!fontFile && ftEngine) {
-    fontFile = ftEngine->loadType1Font(idA,
+    for (i = 0; i < splashFontCacheSize; ++i) {
+        if (fontCache[i]) { delete fontCache[i]; }
+    }
+
+    if (ftEngine) { delete ftEngine; }
+}
+
+SplashFontFile* SplashFontEngine::getFontFile (SplashFontFileID* id) {
+    SplashFontFile* fontFile;
+    int i;
+
+    for (i = 0; i < splashFontCacheSize; ++i) {
+        if (fontCache[i]) {
+            fontFile = fontCache[i]->getFontFile ();
+            if (fontFile && fontFile->getID ()->matches (id)) {
+                return fontFile;
+            }
+        }
+    }
+    return NULL;
+}
+
+SplashFontFile* SplashFontEngine::loadType1Font (
+    SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-				       fontBuf,
+    GString* fontBuf,
 #else
-				       fileName, deleteFile,
+    char* fileName, GBool deleteFile,
 #endif
-				       enc);
-  }
+    const char** enc) {
+    SplashFontFile* fontFile;
+
+    fontFile = NULL;
+    if (!fontFile && ftEngine) {
+        fontFile = ftEngine->loadType1Font (
+            idA,
+#if LOAD_FONTS_FROM_MEM
+            fontBuf,
+#else
+            fileName, deleteFile,
+#endif
+            enc);
+    }
 
 #if !LOAD_FONTS_FROM_MEM
-  // delete the (temporary) font file -- with Unix hard link
-  // semantics, this will remove the last link; otherwise it will
-  // return an error, leaving the file to be deleted later (if
-  // loadXYZFont failed, the file will always be deleted)
-  if (deleteFile) {
-    unlink(fontFile ? fontFile->fileName->getCString() : fileName);
-  }
+    // delete the (temporary) font file -- with Unix hard link
+    // semantics, this will remove the last link; otherwise it will
+    // return an error, leaving the file to be deleted later (if
+    // loadXYZFont failed, the file will always be deleted)
+    if (deleteFile) {
+        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+    }
 #endif
 
-  return fontFile;
+    return fontFile;
 }
 
-SplashFontFile *SplashFontEngine::loadType1CFont(SplashFontFileID *idA,
+SplashFontFile* SplashFontEngine::loadType1CFont (
+    SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-						 GString *fontBuf,
+    GString* fontBuf,
 #else
-						 char *fileName,
-						 GBool deleteFile,
+    char* fileName, GBool deleteFile,
 #endif
-						 const char **enc) {
-  SplashFontFile *fontFile;
+    const char** enc) {
+    SplashFontFile* fontFile;
 
-  fontFile = NULL;
-  if (!fontFile && ftEngine) {
-    fontFile = ftEngine->loadType1CFont(idA,
+    fontFile = NULL;
+    if (!fontFile && ftEngine) {
+        fontFile = ftEngine->loadType1CFont (
+            idA,
 #if LOAD_FONTS_FROM_MEM
-					fontBuf,
+            fontBuf,
 #else
-					fileName, deleteFile,
+            fileName, deleteFile,
 #endif
-					enc);
-  }
+            enc);
+    }
 
 #if !LOAD_FONTS_FROM_MEM
-  // delete the (temporary) font file -- with Unix hard link
-  // semantics, this will remove the last link; otherwise it will
-  // return an error, leaving the file to be deleted later (if
-  // loadXYZFont failed, the file will always be deleted)
-  if (deleteFile) {
-    unlink(fontFile ? fontFile->fileName->getCString() : fileName);
-  }
+    // delete the (temporary) font file -- with Unix hard link
+    // semantics, this will remove the last link; otherwise it will
+    // return an error, leaving the file to be deleted later (if
+    // loadXYZFont failed, the file will always be deleted)
+    if (deleteFile) {
+        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+    }
 #endif
 
-  return fontFile;
+    return fontFile;
 }
 
-SplashFontFile *SplashFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
+SplashFontFile* SplashFontEngine::loadOpenTypeT1CFont (
+    SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-						      GString *fontBuf,
+    GString* fontBuf,
 #else
-						      char *fileName,
-						      GBool deleteFile,
+    char* fileName, GBool deleteFile,
 #endif
-						      const char **enc) {
-  SplashFontFile *fontFile;
+    const char** enc) {
+    SplashFontFile* fontFile;
 
-  fontFile = NULL;
-  if (!fontFile && ftEngine) {
-    fontFile = ftEngine->loadOpenTypeT1CFont(idA,
+    fontFile = NULL;
+    if (!fontFile && ftEngine) {
+        fontFile = ftEngine->loadOpenTypeT1CFont (
+            idA,
 #if LOAD_FONTS_FROM_MEM
-					     fontBuf,
+            fontBuf,
 #else
-					     fileName, deleteFile,
+            fileName, deleteFile,
 #endif
-					     enc);
-  }
+            enc);
+    }
 
 #if !LOAD_FONTS_FROM_MEM
-  // delete the (temporary) font file -- with Unix hard link
-  // semantics, this will remove the last link; otherwise it will
-  // return an error, leaving the file to be deleted later (if
-  // loadXYZFont failed, the file will always be deleted)
-  if (deleteFile) {
-    unlink(fontFile ? fontFile->fileName->getCString() : fileName);
-  }
+    // delete the (temporary) font file -- with Unix hard link
+    // semantics, this will remove the last link; otherwise it will
+    // return an error, leaving the file to be deleted later (if
+    // loadXYZFont failed, the file will always be deleted)
+    if (deleteFile) {
+        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+    }
 #endif
 
-  return fontFile;
+    return fontFile;
 }
 
-SplashFontFile *SplashFontEngine::loadCIDFont(SplashFontFileID *idA,
+SplashFontFile* SplashFontEngine::loadCIDFont (
+    SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-                          GString *fontBuf
+    GString* fontBuf
 #else
-                          char *fileName,
-                          GBool deleteFile
+    char* fileName, GBool deleteFile
 #endif
-                          ) {
-  SplashFontFile *fontFile;
+) {
+    SplashFontFile* fontFile;
 
-  fontFile = NULL;
-  if (!fontFile && ftEngine) {
-    fontFile = ftEngine->loadCIDFont(idA,
+    fontFile = NULL;
+    if (!fontFile && ftEngine) {
+        fontFile = ftEngine->loadCIDFont (
+            idA,
 #if LOAD_FONTS_FROM_MEM
-                     fontBuf
+            fontBuf
 #else
-                     fileName, deleteFile
+            fileName, deleteFile
 #endif
-                     );
-  }
+        );
+    }
 
 #if !LOAD_FONTS_FROM_MEM
-  // delete the (temporary) font file -- with Unix hard link
-  // semantics, this will remove the last link; otherwise it will
-  // return an error, leaving the file to be deleted later (if
-  // loadXYZFont failed, the file will always be deleted)
-  if (deleteFile) {
-    unlink(fontFile ? fontFile->fileName->getCString() : fileName);
-  }
+    // delete the (temporary) font file -- with Unix hard link
+    // semantics, this will remove the last link; otherwise it will
+    // return an error, leaving the file to be deleted later (if
+    // loadXYZFont failed, the file will always be deleted)
+    if (deleteFile) {
+        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+    }
 #endif
 
-  return fontFile;
+    return fontFile;
 }
 
-SplashFontFile *SplashFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
+SplashFontFile* SplashFontEngine::loadOpenTypeCFFFont (
+    SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-                              GString *fontBuf,
+    GString* fontBuf,
 #else
-                              char *fileName,
-                              GBool deleteFile,
+    char* fileName, GBool deleteFile,
 #endif
-                              int *codeToGID,
-                              int codeToGIDLen) {
-  SplashFontFile *fontFile;
+    int* codeToGID, int codeToGIDLen) {
+    SplashFontFile* fontFile;
 
-  fontFile = NULL;
-  if (!fontFile && ftEngine) {
-    fontFile = ftEngine->loadOpenTypeCFFFont(idA,
+    fontFile = NULL;
+    if (!fontFile && ftEngine) {
+        fontFile = ftEngine->loadOpenTypeCFFFont (
+            idA,
 #if LOAD_FONTS_FROM_MEM
-                         fontBuf,
+            fontBuf,
 #else
-                         fileName, deleteFile,
+            fileName, deleteFile,
 #endif
-                         codeToGID, codeToGIDLen);
-  }
+            codeToGID, codeToGIDLen);
+    }
 
 #if !LOAD_FONTS_FROM_MEM
-  // delete the (temporary) font file -- with Unix hard link
-  // semantics, this will remove the last link; otherwise it will
-  // return an error, leaving the file to be deleted later (if
-  // loadXYZFont failed, the file will always be deleted)
-  if (deleteFile) {
-    unlink(fontFile ? fontFile->fileName->getCString() : fileName);
-  }
+    // delete the (temporary) font file -- with Unix hard link
+    // semantics, this will remove the last link; otherwise it will
+    // return an error, leaving the file to be deleted later (if
+    // loadXYZFont failed, the file will always be deleted)
+    if (deleteFile) {
+        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+    }
 #endif
 
-  return fontFile;
+    return fontFile;
 }
 
-SplashFontFile *SplashFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
+SplashFontFile* SplashFontEngine::loadTrueTypeFont (
+    SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
-                           GString *fontBuf,
+    GString* fontBuf,
 #else
-                           char *fileName,
-                           GBool deleteFile,
+    char* fileName, GBool deleteFile,
 #endif
-                           int fontNum,
-                           int *codeToGID,
-                           int codeToGIDLen,
-                           char *fontName) {
-  SplashFontFile *fontFile;
+    int fontNum, int* codeToGID, int codeToGIDLen, char* fontName) {
+    SplashFontFile* fontFile;
 
-  fontFile = NULL;
-  if (!fontFile && ftEngine) {
-    fontFile = ftEngine->loadTrueTypeFont(idA,
+    fontFile = NULL;
+    if (!fontFile && ftEngine) {
+        fontFile = ftEngine->loadTrueTypeFont (
+            idA,
 #if LOAD_FONTS_FROM_MEM
-                      fontBuf,
+            fontBuf,
 #else
-                      fileName, deleteFile,
+            fileName, deleteFile,
 #endif
-                      fontNum, codeToGID, codeToGIDLen);
-  }
+            fontNum, codeToGID, codeToGIDLen);
+    }
 
-  if (!fontFile) {
-    gfree(codeToGID);
-  }
+    if (!fontFile) { gfree (codeToGID); }
 
 #if !LOAD_FONTS_FROM_MEM
-  // delete the (temporary) font file -- with Unix hard link
-  // semantics, this will remove the last link; otherwise it will
-  // return an error, leaving the file to be deleted later (if
-  // loadXYZFont failed, the file will always be deleted)
-  if (deleteFile) {
-    unlink(fontFile ? fontFile->fileName->getCString() : fileName);
-  }
+    // delete the (temporary) font file -- with Unix hard link
+    // semantics, this will remove the last link; otherwise it will
+    // return an error, leaving the file to be deleted later (if
+    // loadXYZFont failed, the file will always be deleted)
+    if (deleteFile) {
+        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+    }
 #endif
 
-  return fontFile;
+    return fontFile;
 }
 
-SplashFont *SplashFontEngine::getFont(SplashFontFile *fontFile,
-				      SplashCoord *textMat,
-				      SplashCoord *ctm) {
-  SplashCoord mat[4];
-  SplashFont *font;
-  int i, j;
+SplashFont* SplashFontEngine::getFont (
+    SplashFontFile* fontFile, SplashCoord* textMat, SplashCoord* ctm) {
+    SplashCoord mat[4];
+    SplashFont* font;
+    int i, j;
 
-  mat[0] = textMat[0] * ctm[0] + textMat[1] * ctm[2];
-  mat[1] = -(textMat[0] * ctm[1] + textMat[1] * ctm[3]);
-  mat[2] = textMat[2] * ctm[0] + textMat[3] * ctm[2];
-  mat[3] = -(textMat[2] * ctm[1] + textMat[3] * ctm[3]);
-  if (!splashCheckDet(mat[0], mat[1], mat[2], mat[3], 0.01)) {
-    // avoid a singular (or close-to-singular) matrix
-    mat[0] = 0.01;  mat[1] = 0;
-    mat[2] = 0;     mat[3] = 0.01;
-  }
+    mat[0] = textMat[0] * ctm[0] + textMat[1] * ctm[2];
+    mat[1] = -(textMat[0] * ctm[1] + textMat[1] * ctm[3]);
+    mat[2] = textMat[2] * ctm[0] + textMat[3] * ctm[2];
+    mat[3] = -(textMat[2] * ctm[1] + textMat[3] * ctm[3]);
+    if (!splashCheckDet (mat[0], mat[1], mat[2], mat[3], 0.01)) {
+        // avoid a singular (or close-to-singular) matrix
+        mat[0] = 0.01;
+        mat[1] = 0;
+        mat[2] = 0;
+        mat[3] = 0.01;
+    }
 
-  font = fontCache[0];
-  if (font && font->matches(fontFile, mat, textMat)) {
+    font = fontCache[0];
+    if (font && font->matches (fontFile, mat, textMat)) { return font; }
+    for (i = 1; i < splashFontCacheSize; ++i) {
+        font = fontCache[i];
+        if (font && font->matches (fontFile, mat, textMat)) {
+            for (j = i; j > 0; --j) { fontCache[j] = fontCache[j - 1]; }
+            fontCache[0] = font;
+            return font;
+        }
+    }
+    font = fontFile->makeFont (mat, textMat);
+    if (fontCache[splashFontCacheSize - 1]) {
+        delete fontCache[splashFontCacheSize - 1];
+    }
+    for (j = splashFontCacheSize - 1; j > 0; --j) {
+        fontCache[j] = fontCache[j - 1];
+    }
+    fontCache[0] = font;
     return font;
-  }
-  for (i = 1; i < splashFontCacheSize; ++i) {
-    font = fontCache[i];
-    if (font && font->matches(fontFile, mat, textMat)) {
-      for (j = i; j > 0; --j) {
-	fontCache[j] = fontCache[j-1];
-      }
-      fontCache[0] = font;
-      return font;
-    }
-  }
-  font = fontFile->makeFont(mat, textMat);
-  if (fontCache[splashFontCacheSize - 1]) {
-    delete fontCache[splashFontCacheSize - 1];
-  }
-  for (j = splashFontCacheSize - 1; j > 0; --j) {
-    fontCache[j] = fontCache[j-1];
-  }
-  fontCache[0] = font;
-  return font;
 }

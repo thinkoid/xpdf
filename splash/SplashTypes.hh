@@ -29,18 +29,18 @@ typedef double SplashCoord;
 //------------------------------------------------------------------------
 
 enum SplashColorMode {
-  splashModeMono1,		// 1 bit per component, 8 pixels per byte,
-				//   MSbit is on the left
-  splashModeMono8,		// 1 byte per component, 1 byte per pixel
-  splashModeRGB8,		// 1 byte per component, 3 bytes per pixel:
-				//   RGBRGB...
-  splashModeBGR8		// 1 byte per component, 3 bytes per pixel:
-				//   BGRBGR...
+    splashModeMono1, // 1 bit per component, 8 pixels per byte,
+                     //   MSbit is on the left
+    splashModeMono8, // 1 byte per component, 1 byte per pixel
+    splashModeRGB8,  // 1 byte per component, 3 bytes per pixel:
+                     //   RGBRGB...
+    splashModeBGR8   // 1 byte per component, 3 bytes per pixel:
+    //   BGRBGR...
 
 #if SPLASH_CMYK
-  ,
-  splashModeCMYK8		// 1 byte per component, 4 bytes per pixel:
-				//   CMYKCMYK...
+    ,
+    splashModeCMYK8 // 1 byte per component, 4 bytes per pixel:
+    //   CMYKCMYK...
 #endif
 };
 
@@ -51,46 +51,46 @@ extern int splashColorModeNComps[];
 // max number of components in any SplashColor
 #define splashMaxColorComps 3
 #if SPLASH_CMYK
-#  undef splashMaxColorComps
-#  define splashMaxColorComps 4
+#undef splashMaxColorComps
+#define splashMaxColorComps 4
 #endif
 
 typedef Guchar SplashColor[splashMaxColorComps];
-typedef Guchar *SplashColorPtr;
+typedef Guchar* SplashColorPtr;
 
 // RGB8
-static inline Guchar splashRGB8R(SplashColorPtr rgb8) { return rgb8[0]; }
-static inline Guchar splashRGB8G(SplashColorPtr rgb8) { return rgb8[1]; }
-static inline Guchar splashRGB8B(SplashColorPtr rgb8) { return rgb8[2]; }
+static inline Guchar splashRGB8R (SplashColorPtr rgb8) { return rgb8[0]; }
+static inline Guchar splashRGB8G (SplashColorPtr rgb8) { return rgb8[1]; }
+static inline Guchar splashRGB8B (SplashColorPtr rgb8) { return rgb8[2]; }
 
 // BGR8
-static inline Guchar splashBGR8R(SplashColorPtr bgr8) { return bgr8[2]; }
-static inline Guchar splashBGR8G(SplashColorPtr bgr8) { return bgr8[1]; }
-static inline Guchar splashBGR8B(SplashColorPtr bgr8) { return bgr8[0]; }
+static inline Guchar splashBGR8R (SplashColorPtr bgr8) { return bgr8[2]; }
+static inline Guchar splashBGR8G (SplashColorPtr bgr8) { return bgr8[1]; }
+static inline Guchar splashBGR8B (SplashColorPtr bgr8) { return bgr8[0]; }
 
 #if SPLASH_CMYK
 // CMYK8
-static inline Guchar splashCMYK8C(SplashColorPtr cmyk8) { return cmyk8[0]; }
-static inline Guchar splashCMYK8M(SplashColorPtr cmyk8) { return cmyk8[1]; }
-static inline Guchar splashCMYK8Y(SplashColorPtr cmyk8) { return cmyk8[2]; }
-static inline Guchar splashCMYK8K(SplashColorPtr cmyk8) { return cmyk8[3]; }
+static inline Guchar splashCMYK8C (SplashColorPtr cmyk8) { return cmyk8[0]; }
+static inline Guchar splashCMYK8M (SplashColorPtr cmyk8) { return cmyk8[1]; }
+static inline Guchar splashCMYK8Y (SplashColorPtr cmyk8) { return cmyk8[2]; }
+static inline Guchar splashCMYK8K (SplashColorPtr cmyk8) { return cmyk8[3]; }
 #endif
 
-static inline void splashColorCopy(SplashColorPtr dest, SplashColorPtr src) {
-  dest[0] = src[0];
-  dest[1] = src[1];
-  dest[2] = src[2];
+static inline void splashColorCopy (SplashColorPtr dest, SplashColorPtr src) {
+    dest[0] = src[0];
+    dest[1] = src[1];
+    dest[2] = src[2];
 #if SPLASH_CMYK
-  dest[3] = src[3];
+    dest[3] = src[3];
 #endif
 }
 
-static inline void splashColorXor(SplashColorPtr dest, SplashColorPtr src) {
-  dest[0] ^= src[0];
-  dest[1] ^= src[1];
-  dest[2] ^= src[2];
+static inline void splashColorXor (SplashColorPtr dest, SplashColorPtr src) {
+    dest[0] ^= src[0];
+    dest[1] ^= src[1];
+    dest[2] ^= src[2];
 #if SPLASH_CMYK
-  dest[3] ^= src[3];
+    dest[3] ^= src[3];
 #endif
 }
 
@@ -98,26 +98,27 @@ static inline void splashColorXor(SplashColorPtr dest, SplashColorPtr src) {
 // blend functions
 //------------------------------------------------------------------------
 
-typedef void (*SplashBlendFunc)(SplashColorPtr src, SplashColorPtr dest,
-				SplashColorPtr blend, SplashColorMode cm);
+typedef void (*SplashBlendFunc) (
+    SplashColorPtr src, SplashColorPtr dest, SplashColorPtr blend,
+    SplashColorMode cm);
 
 //------------------------------------------------------------------------
 // screen parameters
 //------------------------------------------------------------------------
 
 enum SplashScreenType {
-  splashScreenDispersed,
-  splashScreenClustered,
-  splashScreenStochasticClustered
+    splashScreenDispersed,
+    splashScreenClustered,
+    splashScreenStochasticClustered
 };
 
 struct SplashScreenParams {
-  SplashScreenType type;
-  int size;
-  int dotRadius;
-  SplashCoord gamma;
-  SplashCoord blackThreshold;
-  SplashCoord whiteThreshold;
+    SplashScreenType type;
+    int size;
+    int dotRadius;
+    SplashCoord gamma;
+    SplashCoord blackThreshold;
+    SplashCoord whiteThreshold;
 };
 
 //------------------------------------------------------------------------

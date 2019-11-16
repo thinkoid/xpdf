@@ -19,20 +19,18 @@ struct NameToCharCodeEntry;
 
 class NameToCharCode {
 public:
+    NameToCharCode ();
+    ~NameToCharCode ();
 
-  NameToCharCode();
-  ~NameToCharCode();
-
-  void add(const char *name, CharCode c);
-  CharCode lookup(const char *name);
+    void add (const char* name, CharCode c);
+    CharCode lookup (const char* name);
 
 private:
+    int hash (const char* name);
 
-  int hash(const char *name);
-
-  NameToCharCodeEntry *tab;
-  int size;
-  int len;
+    NameToCharCodeEntry* tab;
+    int size;
+    int len;
 };
 
 #endif

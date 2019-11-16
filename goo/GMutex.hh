@@ -26,9 +26,9 @@
 
 typedef pthread_mutex_t GMutex;
 
-#define gInitMutex(m)    pthread_mutex_init(m, NULL)
-#define gDestroyMutex(m) pthread_mutex_destroy(m)
-#define gLockMutex(m)    pthread_mutex_lock(m)
-#define gUnlockMutex(m)  pthread_mutex_unlock(m)
+#define gInitMutex(m) pthread_mutex_init (m, NULL)
+#define gDestroyMutex(m) pthread_mutex_destroy (m)
+#define gLockMutex(m) pthread_mutex_lock (m)
+#define gUnlockMutex(m) pthread_mutex_unlock (m)
 
 #endif
