@@ -48,7 +48,7 @@ static int gMaxMemInUse = 0;
 
 #endif /* DEBUG_MEM */
 
-void *gmalloc(int size) GMEM_EXCEP {
+void *gmalloc(int size){
 #ifdef DEBUG_MEM
   int size1;
   char *mem;
@@ -106,7 +106,7 @@ void *gmalloc(int size) GMEM_EXCEP {
 #endif
 }
 
-void *grealloc(void *p, int size) GMEM_EXCEP {
+void *grealloc(void *p, int size){
 #ifdef DEBUG_MEM
   GMemHdr *hdr;
   void *q;
@@ -155,7 +155,7 @@ void *grealloc(void *p, int size) GMEM_EXCEP {
 #endif
 }
 
-void *gmallocn(int nObjs, int objSize) GMEM_EXCEP {
+void *gmallocn(int nObjs, int objSize){
   int n;
 
   if (nObjs == 0) {
@@ -168,7 +168,7 @@ void *gmallocn(int nObjs, int objSize) GMEM_EXCEP {
   return gmalloc(n);
 }
 
-void *greallocn(void *p, int nObjs, int objSize) GMEM_EXCEP {
+void *greallocn(void *p, int nObjs, int objSize){
   int n;
 
   if (nObjs == 0) {
@@ -193,28 +193,28 @@ void gfree(void *p) {
   if (p) {
     hdr = (GMemHdr *)((char *)p - gMemHdrSize);
     if (hdr->magic == gMemMagic &&
-	((hdr->prev == NULL) == (hdr == gMemHead)) &&
-	((hdr->next == NULL) == (hdr == gMemTail))) {
+    ((hdr->prev == NULL) == (hdr == gMemHead)) &&
+    ((hdr->next == NULL) == (hdr == gMemTail))) {
       if (hdr->prev) {
-	hdr->prev->next = hdr->next;
+    hdr->prev->next = hdr->next;
       } else {
-	gMemHead = hdr->next;
+    gMemHead = hdr->next;
       }
       if (hdr->next) {
-	hdr->next->prev = hdr->prev;
+    hdr->next->prev = hdr->prev;
       } else {
-	gMemTail = hdr->prev;
+    gMemTail = hdr->prev;
       }
       --gMemAlloc;
       gMemInUse -= hdr->size;
       size = gMemDataSize(hdr->size);
       trl = (unsigned long *)((char *)hdr + gMemHdrSize + size);
       if (*trl != gMemDeadVal) {
-	fprintf(stderr, "Overwrite past end of block %d at address %p\n",
-		hdr->index, p);
+    fprintf(stderr, "Overwrite past end of block %d at address %p\n",
+        hdr->index, p);
       }
       for (clr = (unsigned long *)hdr; clr <= trl; ++clr) {
-	*clr = gMemDeadVal;
+    *clr = gMemDeadVal;
       }
       free(hdr);
     } else {
@@ -228,13 +228,9 @@ void gfree(void *p) {
 #endif
 }
 
-void gMemError(const char *msg) GMEM_EXCEP {
-#if USE_EXCEPTIONS
-  throw GMemException();
-#else
+void gMemError(const char *msg) {
   fprintf(stderr, "%s\n", msg);
   exit(1);
-#endif
 }
 
 #ifdef DEBUG_MEM

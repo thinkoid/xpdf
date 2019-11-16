@@ -14,10 +14,6 @@
 #include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>
 
-#if MULTITHREADED
-#include <goo/GMutex.hh>
-#endif
-
 class GString;
 class Object;
 class Stream;
@@ -81,9 +77,6 @@ private:
   CMapVectorEntry *vector;	// vector for first byte (NULL for
 				//   identity CMap)
   int refCnt;
-#if MULTITHREADED
-  GMutex mutex;
-#endif
 };
 
 //------------------------------------------------------------------------

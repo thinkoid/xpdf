@@ -15,10 +15,6 @@
 
 #include <xpdf/CharTypes.hh>
 
-#if MULTITHREADED
-#include <goo/GMutex.hh>
-#endif
-
 struct CharCodeToUnicodeString;
 
 //------------------------------------------------------------------------
@@ -89,9 +85,6 @@ private:
   CharCodeToUnicodeString *sMap;
   int sMapLen, sMapSize;
   int refCnt;
-#if MULTITHREADED
-  GMutex mutex;
-#endif
 };
 
 //------------------------------------------------------------------------

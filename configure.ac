@@ -54,26 +54,6 @@ AS_IF([test "x$enable_opi" = "xyes"],[
   AC_DEFINE([OPI_SUPPORT], [1], [Enable support for OPI comments])
 ])
 
-AC_ARG_ENABLE([multithreaded],
-  AS_HELP_STRING([--enable-multithreaded],[enable multithreading support]))
-
-AS_IF([test "x$enable_multithreaded" = "xyes"],[
-  AC_DEFINE([MULTITHREADED], [1], [Enable multithreading support])])
-
-AC_ARG_ENABLE([exceptions],
-  AS_HELP_STRING([--enable-exceptions],[use C++ exceptions]))
-
-AS_IF([test "x$enable_exceptions" = "xyes"],[
-  AC_DEFINE([USE_EXCEPTIONS], [1], [Use C++ exceptions])
-])
-
-AC_ARG_ENABLE([fixedpoint],
-  AS_HELP_STRING([--enable-fixedpoint],[use fixed point arithmetic]))
-
-AS_IF([test "x$enable_fixedpoint" = "xyes"],[
-  AC_DEFINE([USE_FIXEDPOINT], [1], [Use fixed-point arithmetic])
-])
-
 AC_ARG_ENABLE([cmyk],
   AS_HELP_STRING([--enable-cmyk],[enable support for CMYK rasterization]))
 

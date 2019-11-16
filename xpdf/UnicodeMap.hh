@@ -16,10 +16,6 @@
 #include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>
 
-#if MULTITHREADED
-#include <goo/GMutex.hh>
-#endif
-
 class GString;
 
 //------------------------------------------------------------------------
@@ -91,9 +87,6 @@ private:
   UnicodeMapExt *eMaps;		// (user)
   int eMapsLen;			// (user)
   int refCnt;
-#if MULTITHREADED
-  GMutex mutex;
-#endif
 };
 
 //------------------------------------------------------------------------

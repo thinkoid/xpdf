@@ -3745,9 +3745,6 @@ void Gfx::opXObject(Object args[], int numArgs) {
     obj1.free();
     return;
   }
-#if USE_EXCEPTIONS
-  try {
-#endif
 #if OPI_SUPPORT
     obj1.streamGetDict()->lookup("OPI", &opiDict);
     if (opiDict.isDict()) {
@@ -3786,12 +3783,6 @@ void Gfx::opXObject(Object args[], int numArgs) {
       out->opiEnd(state, opiDict.getDict());
     }
     opiDict.free();
-#endif
-#if USE_EXCEPTIONS
-  } catch (GMemException e) {
-    obj1.free();
-    throw;
-  }
 #endif
   obj1.free();
 }

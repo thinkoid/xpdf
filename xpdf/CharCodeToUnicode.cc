@@ -429,9 +429,6 @@ CharCodeToUnicode::CharCodeToUnicode() {
   sMap = NULL;
   sMapLen = sMapSize = 0;
   refCnt = 1;
-#if MULTITHREADED
-  gInitMutex(&mutex);
-#endif
 }
 
 CharCodeToUnicode::CharCodeToUnicode(GString *tagA) {
@@ -446,9 +443,6 @@ CharCodeToUnicode::CharCodeToUnicode(GString *tagA) {
   sMap = NULL;
   sMapLen = sMapSize = 0;
   refCnt = 1;
-#if MULTITHREADED
-  gInitMutex(&mutex);
-#endif
 }
 
 CharCodeToUnicode::CharCodeToUnicode(GString *tagA, Unicode *mapA,
@@ -467,9 +461,6 @@ CharCodeToUnicode::CharCodeToUnicode(GString *tagA, Unicode *mapA,
   sMapLen = sMapLenA;
   sMapSize = sMapSizeA;
   refCnt = 1;
-#if MULTITHREADED
-  gInitMutex(&mutex);
-#endif
 }
 
 CharCodeToUnicode::~CharCodeToUnicode() {
@@ -478,31 +469,15 @@ CharCodeToUnicode::~CharCodeToUnicode() {
   }
   gfree(map);
   gfree(sMap);
-#if MULTITHREADED
-  gDestroyMutex(&mutex);
-#endif
 }
 
 void CharCodeToUnicode::incRefCnt() {
-#if MULTITHREADED
-  gLockMutex(&mutex);
-#endif
   ++refCnt;
-#if MULTITHREADED
-  gUnlockMutex(&mutex);
-#endif
 }
 
 void CharCodeToUnicode::decRefCnt() {
-  GBool done;
+  GBool done = --refCnt == 0;
 
-#if MULTITHREADED
-  gLockMutex(&mutex);
-#endif
-  done = --refCnt == 0;
-#if MULTITHREADED
-  gUnlockMutex(&mutex);
-#endif
   if (done) {
     delete this;
   }

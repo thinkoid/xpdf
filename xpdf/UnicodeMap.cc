@@ -115,9 +115,6 @@ UnicodeMap::UnicodeMap(GString *encodingNameA) {
   eMaps = NULL;
   eMapsLen = 0;
   refCnt = 1;
-#if MULTITHREADED
-  gInitMutex(&mutex);
-#endif
 }
 
 UnicodeMap::UnicodeMap(const char *encodingNameA, GBool unicodeOutA,
@@ -130,9 +127,6 @@ UnicodeMap::UnicodeMap(const char *encodingNameA, GBool unicodeOutA,
   eMaps = NULL;
   eMapsLen = 0;
   refCnt = 1;
-#if MULTITHREADED
-  gInitMutex(&mutex);
-#endif
 }
 
 UnicodeMap::UnicodeMap(const char *encodingNameA, GBool unicodeOutA,
@@ -144,9 +138,6 @@ UnicodeMap::UnicodeMap(const char *encodingNameA, GBool unicodeOutA,
   eMaps = NULL;
   eMapsLen = 0;
   refCnt = 1;
-#if MULTITHREADED
-  gInitMutex(&mutex);
-#endif
 }
 
 UnicodeMap::~UnicodeMap() {
@@ -157,31 +148,15 @@ UnicodeMap::~UnicodeMap() {
   if (eMaps) {
     gfree(eMaps);
   }
-#if MULTITHREADED
-  gDestroyMutex(&mutex);
-#endif
 }
 
 void UnicodeMap::incRefCnt() {
-#if MULTITHREADED
-  gLockMutex(&mutex);
-#endif
   ++refCnt;
-#if MULTITHREADED
-  gUnlockMutex(&mutex);
-#endif
 }
 
 void UnicodeMap::decRefCnt() {
-  GBool done;
+  GBool done = --refCnt == 0;
 
-#if MULTITHREADED
-  gLockMutex(&mutex);
-#endif
-  done = --refCnt == 0;
-#if MULTITHREADED
-  gUnlockMutex(&mutex);
-#endif
   if (done) {
     delete this;
   }

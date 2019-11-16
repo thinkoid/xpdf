@@ -408,7 +408,6 @@ void XPDFCore::copySelection() {
     return;
   }
   if (getSelection(&pg, &ulx, &uly, &lrx, &lry)) {
-    //~ for multithreading: need a mutex here
     if (currentSelection) {
       delete currentSelection;
     }
@@ -439,7 +438,6 @@ Boolean XPDFCore::convertSelectionCbk(Widget widget, Atom *selection,
 
   // send the selected text
   } else if (*target == XA_STRING) {
-    //~ for multithreading: need a mutex here
     *value = XtNewString(currentSelection->getCString());
     *length = currentSelection->getLength();
     *type = XA_STRING;

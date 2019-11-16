@@ -15,10 +15,6 @@
 #include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>
 
-#if MULTITHREADED
-#include <goo/GMutex.hh>
-#endif
-
 class GString;
 class GList;
 class GHash;
@@ -473,12 +469,6 @@ private:
   GList *plugins;		// list of plugins [Plugin]
   GList *securityHandlers;	// list of loaded security handlers
 				//   [XpdfSecurityHandler]
-#endif
-
-#if MULTITHREADED
-  GMutex mutex;
-  GMutex unicodeMapCacheMutex;
-  GMutex cMapCacheMutex;
 #endif
 };
 
