@@ -13,9 +13,20 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <math.h>
+
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
+
+#include <fofi/FoFiType1C.hh>
+#include <fofi/FoFiTrueType.hh>
+
+#include <splash/Splash.hh>
+#include <splash/SplashBitmap.hh>
+
+#include <splash/Splash.hh>
+#include <splash/SplashBitmap.hh>
+
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Error.hh>
@@ -24,8 +35,6 @@
 #include <xpdf/GfxState.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/UnicodeMap.hh>
-#include <fofi/FoFiType1C.hh>
-#include <fofi/FoFiTrueType.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/Stream.hh>
@@ -36,17 +45,8 @@
 #include <xpdf/CharCodeToUnicode.hh>
 #include <xpdf/Form.hh>
 #include <xpdf/TextString.hh>
-#if HAVE_SPLASH
-#  include <splash/Splash.hh>
-#  include <splash/SplashBitmap.hh>
-#  include <xpdf/SplashOutputDev.hh>
-#endif
 #include <xpdf/PSOutputDev.hh>
-
-// the MSVC math.h doesn't define this
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#include <xpdf/SplashOutputDev.hh>
 
 //------------------------------------------------------------------------
 // PostScript prolog and setup
@@ -3233,7 +3233,6 @@ GBool PSOutputDev::checkPageSlice(Page *page, double hDPI, double vDPI,
 				  void *abortCheckCbkData) {
   PreScanOutputDev *scan;
   GBool rasterize;
-#if HAVE_SPLASH
   GBool mono;
   GBool useLZW;
   double dpi;
@@ -3251,7 +3250,6 @@ GBool PSOutputDev::checkPageSlice(Page *page, double hDPI, double vDPI,
   double m0, m1, m2, m3, m4, m5;
   int nStripes, stripeH, stripeY;
   int w, h, x, y, comp, i, n;
-#endif
 
   if (globalParams->getPSAlwaysRasterize()) {
     rasterize = gTrue;
@@ -3267,7 +3265,6 @@ GBool PSOutputDev::checkPageSlice(Page *page, double hDPI, double vDPI,
     return gTrue;
   }
 
-#if HAVE_SPLASH
   // get the rasterization parameters
   dpi = globalParams->getPSRasterResolution();
   mono = globalParams->getPSRasterMono();
@@ -3467,14 +3464,6 @@ GBool PSOutputDev::checkPageSlice(Page *page, double hDPI, double vDPI,
   endPage();
 
   return gFalse;
-
-#else // HAVE_SPLASH
-
-  error(errSyntaxWarning, -1,
-	"PDF page uses transparency and PSOutputDev was built without"
-	" the Splash rasterizer - output may not be correct");
-  return gTrue;
-#endif // HAVE_SPLASH
 }
 
 void PSOutputDev::startPage(int pageNum, GfxState *state) {

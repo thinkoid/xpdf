@@ -215,9 +215,7 @@ int main(int argc, char *argv[]) {
 
   // read config file
   globalParams = new GlobalParams(cfgFileName);
-#if HAVE_SPLASH
   globalParams->setupBaseFonts(NULL);
-#endif
   if (paperSize[0]) {
     if (!globalParams->setPSPaperSize(paperSize)) {
       fprintf(stderr, "Invalid paper size\n");
