@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <stddef.h>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>

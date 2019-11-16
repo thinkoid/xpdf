@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <splash/SplashFTFontEngine.hh>

@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>

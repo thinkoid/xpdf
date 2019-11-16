@@ -12,10 +12,6 @@
 
 #if USE_FIXEDPOINT
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <goo/FixedPoint.hh>
 
 #define ln2 ((FixedPoint)0.69314718)

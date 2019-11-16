@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 #include <string.h>

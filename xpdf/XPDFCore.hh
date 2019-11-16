@@ -11,10 +11,6 @@
 
 #include <config.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma interface
-#endif
-
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object

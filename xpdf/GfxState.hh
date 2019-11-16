@@ -11,10 +11,6 @@
 
 #include <config.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma interface
-#endif
-
 #include <goo/gtypes.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Function.hh>

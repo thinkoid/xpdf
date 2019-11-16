@@ -9,10 +9,6 @@
 #ifndef COREOUTPUTDEV_H
 #define COREOUTPUTDEV_H
 
-#ifdef USE_GCC_PRAGMAS
-#pragma interface
-#endif
-
 #include <splash/SplashTypes.hh>
 #include <xpdf/SplashOutputDev.hh>
 

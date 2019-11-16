@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <math.h>
 #include <goo/GString.hh>
 #include <goo/GList.hh>

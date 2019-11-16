@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <goo/GString.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Decrypt.hh>

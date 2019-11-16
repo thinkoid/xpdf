@@ -8,10 +8,6 @@
 
 #include <defs.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma implementation
-#endif
-
 #include <splash/SplashMath.hh>
 #include <splash/SplashScreen.hh>
 #include <splash/SplashPattern.hh>

@@ -11,10 +11,6 @@
 
 #include <config.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma interface
-#endif
-
 #include <stddef.h>
 #include <config.hh>
 #include <xpdf/Object.hh>

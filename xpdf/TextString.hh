@@ -15,10 +15,6 @@
 
 #include <config.hh>
 
-#ifdef USE_GCC_PRAGMAS
-#pragma interface
-#endif
-
 #include <xpdf/CharTypes.hh>
 
 class GString;
