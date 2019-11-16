@@ -1060,7 +1060,6 @@ PSOutputDev::PSOutputDev(char *fileName, PDFDoc *docA,
     f = stdout;
   } else if (fileName[0] == '|') {
     fileTypeA = psPipe;
-#ifdef HAVE_POPEN
     signal(SIGPIPE, (SignalFunc)SIG_IGN);
 
     if (!(f = popen(fileName + 1, "w"))) {
@@ -1068,11 +1067,6 @@ PSOutputDev::PSOutputDev(char *fileName, PDFDoc *docA,
       ok = gFalse;
       return;
     }
-#else
-    error(errIO, -1, "Print commands are not supported ('{0:s}')", fileName);
-    ok = gFalse;
-    return;
-#endif
   } else {
     fileTypeA = psFile;
     if (!(f = fopen(fileName, "w"))) {
@@ -1276,12 +1270,10 @@ PSOutputDev::~PSOutputDev() {
     if (fileType == psFile) {
       fclose((FILE *)outputStream);
     }
-#ifdef HAVE_POPEN
     else if (fileType == psPipe) {
       pclose((FILE *)outputStream);
       signal(SIGPIPE, (SignalFunc)SIG_DFL);
     }
-#endif
   }
   if (paperSizes) {
     deleteGList(paperSizes, PSOutPaperSize);

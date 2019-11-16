@@ -52,10 +52,8 @@ static ArgDesc argDesc[] = {
    "generate a monochrome PBM file"},
   {"-gray",   argFlag,     &gray,          0,
    "generate a grayscale PGM file"},
-#if HAVE_FREETYPE_FREETYPE_H | HAVE_FREETYPE_H
   {"-freetype",   argString,      enableFreeTypeStr, sizeof(enableFreeTypeStr),
    "enable FreeType font rasterizer: yes, no"},
-#endif
   {"-aa",         argString,      antialiasStr,   sizeof(antialiasStr),
    "enable font anti-aliasing: yes, no"},
   {"-aaVector",   argString,      vectorAntialiasStr, sizeof(vectorAntialiasStr),

@@ -321,11 +321,7 @@ void XPDFApp::quit() {
   while (viewers->getLength() > 0) {
     delete (XPDFViewer *)viewers->del(0);
   }
-#if HAVE_XTAPPSETEXITFLAG
   XtAppSetExitFlag(appContext);
-#else
-  exit(0);
-#endif
 }
 
 void XPDFApp::run() {

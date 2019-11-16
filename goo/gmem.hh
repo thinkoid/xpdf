@@ -9,8 +9,9 @@
 #ifndef GMEM_H
 #define GMEM_H
 
-#include <stdio.h>
-#include <config.hh>
+#include <defs.hh>
+
+#include <cstdio>
 
 #if USE_EXCEPTIONS
 
