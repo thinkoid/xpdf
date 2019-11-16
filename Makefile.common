@@ -15,6 +15,4 @@ AM_LDFLAGS =                                    \
 	$(BOOST_PROGRAM_OPTIONS_LDFLAGS)            \
 	$(BOOST_SYSTEM_LDFLAGS)
 
-AM_CXXFLAGS = $(OPENMP_CXXFLAGS)
-
 LIBS = $(BOOST_LIBS)

@@ -65,10 +65,8 @@ static ArgDesc argDesc[] = {
    "initial zoom level (percent, 'page', 'width')"},
   {"-cont",       argFlag,        &contView,      0,
    "start in continuous view mode" },
-#if HAVE_FREETYPE_FREETYPE_H | HAVE_FREETYPE_H
   {"-freetype",   argString,      enableFreeTypeStr, sizeof(enableFreeTypeStr),
    "enable FreeType font rasterizer: yes, no"},
-#endif
   {"-aa",         argString,      antialiasStr,   sizeof(antialiasStr),
    "enable font anti-aliasing: yes, no"},
   {"-aaVector",   argString,      vectorAntialiasStr, sizeof(vectorAntialiasStr),

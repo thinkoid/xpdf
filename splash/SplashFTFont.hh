@@ -11,8 +11,6 @@
 
 #include <config.hh>
 
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
-
 #ifdef USE_GCC_PRAGMAS
 #pragma interface
 #endif
@@ -54,7 +52,5 @@ private:
   FT_Matrix textMatrix;
   SplashCoord textScale;
 };
-
-#endif // HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
 
 #endif

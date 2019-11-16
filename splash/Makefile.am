@@ -23,3 +23,5 @@ libsplash_a_SOURCES =                           \
 	SplashState.cc                              \
 	SplashXPath.cc                              \
 	SplashXPathScanner.cc
+
+libsplash_a_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE2_CPPFLAGS)

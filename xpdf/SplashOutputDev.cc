@@ -706,12 +706,10 @@ void SplashOutputDev::startDoc(XRef *xrefA) {
     delete fontEngine;
   }
   fontEngine = new SplashFontEngine(
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
-				    globalParams->getEnableFreeType(),
+                    globalParams->getEnableFreeType(),
 				    globalParams->getDisableFreeTypeHinting()
 				      ? splashFTNoHinting : 0,
-#endif
-				    allowAntialias &&
+                    allowAntialias &&
 				      globalParams->getAntialias() &&
 				      colorMode != splashModeMono1);
   for (i = 0; i < nT3Fonts; ++i) {

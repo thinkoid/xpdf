@@ -11,8 +11,6 @@
 
 #include <config.hh>
 
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
-
 #ifdef USE_GCC_PRAGMAS
 #pragma interface
 #endif
@@ -89,7 +87,5 @@ private:
 
   friend class SplashFTFont;
 };
-
-#endif // HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
 
 #endif

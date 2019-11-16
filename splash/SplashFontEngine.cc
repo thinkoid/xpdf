@@ -31,24 +31,20 @@
 //------------------------------------------------------------------------
 
 SplashFontEngine::SplashFontEngine(
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
-				   GBool enableFreeType,
+                   GBool enableFreeType,
 				   Guint freeTypeFlags,
-#endif
-				   GBool aa) {
+                   GBool aa) {
   int i;
 
   for (i = 0; i < splashFontCacheSize; ++i) {
     fontCache[i] = NULL;
   }
 
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (enableFreeType) {
     ftEngine = SplashFTFontEngine::init(aa, freeTypeFlags);
   } else {
     ftEngine = NULL;
   }
-#endif
 }
 
 SplashFontEngine::~SplashFontEngine() {
@@ -60,11 +56,9 @@ SplashFontEngine::~SplashFontEngine() {
     }
   }
 
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (ftEngine) {
     delete ftEngine;
   }
-#endif
 }
 
 SplashFontFile *SplashFontEngine::getFontFile(SplashFontFileID *id) {
@@ -93,7 +87,6 @@ SplashFontFile *SplashFontEngine::loadType1Font(SplashFontFileID *idA,
   SplashFontFile *fontFile;
 
   fontFile = NULL;
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (!fontFile && ftEngine) {
     fontFile = ftEngine->loadType1Font(idA,
 #if LOAD_FONTS_FROM_MEM
@@ -103,7 +96,6 @@ SplashFontFile *SplashFontEngine::loadType1Font(SplashFontFileID *idA,
 #endif
 				       enc);
   }
-#endif
 
 #if !LOAD_FONTS_FROM_MEM
   // delete the (temporary) font file -- with Unix hard link
@@ -129,7 +121,6 @@ SplashFontFile *SplashFontEngine::loadType1CFont(SplashFontFileID *idA,
   SplashFontFile *fontFile;
 
   fontFile = NULL;
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (!fontFile && ftEngine) {
     fontFile = ftEngine->loadType1CFont(idA,
 #if LOAD_FONTS_FROM_MEM
@@ -139,7 +130,6 @@ SplashFontFile *SplashFontEngine::loadType1CFont(SplashFontFileID *idA,
 #endif
 					enc);
   }
-#endif
 
 #if !LOAD_FONTS_FROM_MEM
   // delete the (temporary) font file -- with Unix hard link
@@ -165,7 +155,6 @@ SplashFontFile *SplashFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
   SplashFontFile *fontFile;
 
   fontFile = NULL;
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (!fontFile && ftEngine) {
     fontFile = ftEngine->loadOpenTypeT1CFont(idA,
 #if LOAD_FONTS_FROM_MEM
@@ -175,7 +164,6 @@ SplashFontFile *SplashFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
 #endif
 					     enc);
   }
-#endif
 
 #if !LOAD_FONTS_FROM_MEM
   // delete the (temporary) font file -- with Unix hard link
@@ -201,7 +189,6 @@ SplashFontFile *SplashFontEngine::loadCIDFont(SplashFontFileID *idA,
   SplashFontFile *fontFile;
 
   fontFile = NULL;
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (!fontFile && ftEngine) {
     fontFile = ftEngine->loadCIDFont(idA,
 #if LOAD_FONTS_FROM_MEM
@@ -211,7 +198,6 @@ SplashFontFile *SplashFontEngine::loadCIDFont(SplashFontFileID *idA,
 #endif
                      );
   }
-#endif
 
 #if !LOAD_FONTS_FROM_MEM
   // delete the (temporary) font file -- with Unix hard link
@@ -238,7 +224,6 @@ SplashFontFile *SplashFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
   SplashFontFile *fontFile;
 
   fontFile = NULL;
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (!fontFile && ftEngine) {
     fontFile = ftEngine->loadOpenTypeCFFFont(idA,
 #if LOAD_FONTS_FROM_MEM
@@ -248,7 +233,6 @@ SplashFontFile *SplashFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
 #endif
                          codeToGID, codeToGIDLen);
   }
-#endif
 
 #if !LOAD_FONTS_FROM_MEM
   // delete the (temporary) font file -- with Unix hard link
@@ -277,7 +261,6 @@ SplashFontFile *SplashFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
   SplashFontFile *fontFile;
 
   fontFile = NULL;
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
   if (!fontFile && ftEngine) {
     fontFile = ftEngine->loadTrueTypeFont(idA,
 #if LOAD_FONTS_FROM_MEM
@@ -287,7 +270,6 @@ SplashFontFile *SplashFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
 #endif
                       fontNum, codeToGID, codeToGIDLen);
   }
-#endif
 
   if (!fontFile) {
     gfree(codeToGID);

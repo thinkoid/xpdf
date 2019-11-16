@@ -105,14 +105,18 @@ pdfimages_SOURCES = $(SRCS)                     \
 	pdfimages.cc                                \
 	ImageOutputDev.cc
 
-pdftotext_SOURCES = $(SRCS)						\
-	pdftotext.cc								\
-	TextOutputDev.cc							\
+pdftotext_SOURCES = $(SRCS)                     \
+	pdftotext.cc                                \
+	TextOutputDev.cc                            \
 	UnicodeTypeTable.cc
 
-LDADD =                                         \
-	$(top_srcdir)/fofi/libfofi.a                \
-	$(top_srcdir)/goo/libgoo.a                  \
-	$(top_srcdir)/splash/libsplash.a            \
-	$(LIBS) $(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS) $(LIBPNG_LIBS) $(PAPER_LIBS)
+AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
+
+LDADD =                                                 \
+	$(top_srcdir)/fofi/libfofi.a                        \
+	$(top_srcdir)/goo/libgoo.a                          \
+	$(top_srcdir)/splash/libsplash.a                    \
+	$(LIBS) $(FREETYPE2_LIBS)                           \
+	$(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS)    \
+	$(LIBPNG_LIBS) $(PAPER_LIBS)
 

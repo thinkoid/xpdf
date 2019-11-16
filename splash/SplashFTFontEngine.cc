@@ -8,8 +8,6 @@
 
 #include <defs.hh>
 
-#if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
-
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
 #endif
@@ -376,5 +374,3 @@ SplashFontFile *SplashFTFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
 #endif
   return ret;
 }
-
-#endif // HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
