@@ -50,7 +50,7 @@ else
 fi
 
 AC_SUBST(PAPER_LDFLAGS,[$ac_ldflags_Var])
-AC_SUBST(PAPER_LIBS,[-lXm])
+AC_SUBST(PAPER_LIBS,[-lpaper])
 
 AC_MSG_RESULT([done])
 

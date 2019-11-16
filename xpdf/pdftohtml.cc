@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <goo/parseargs.hh>
@@ -18,7 +18,7 @@
 #include <xpdf/HTMLGen.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 //------------------------------------------------------------------------
 
@@ -89,8 +89,8 @@ int main(int argc, char *argv[]) {
   // parse args
   ok = parseArgs(argDesc, &argc, argv);
   if (!ok || argc != 3 || printVersion || printHelp) {
-    fprintf(stderr, "pdftohtml version %s\n", xpdfVersion);
-    fprintf(stderr, "%s\n", xpdfCopyright);
+    fprintf(stderr, "pdftohtml version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "%s\n", XPDF_COPYRIGHT);
     if (!printVersion) {
       printUsage("pdftohtml", "<PDF-file> <html-dir>", argDesc);
     }

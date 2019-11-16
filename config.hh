@@ -5,20 +5,38 @@
 
 #include <_config.hh>
 
-#define XPDF_PACKAGE           PACKAGE
-#define XPDF_PACKAGE_BUGREPORT PACKAGE_BUGREPORT
-#define XPDF_PACKAGE_NAME      PACKAGE_NAME
-#define XPDF_PACKAGE_STRING    PACKAGE_STRING
-#define XPDF_PACKAGE_TARNAME   PACKAGE_TARNAME
-#define XPDF_PACKAGE_VERSION   PACKAGE_VERSION
-#define XPDF_VERSION           VERSION
+#define XPDF_PDF_VERSION 1.7
 
-#undef PACKAGE
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef VERSION
+#define XPDF_PDF_MAJOR_VERSION 1
+#define XPDF_PDF_MINOR_VERSION 7
 
-#endif // XPDF_DETAIL_CONFIG_HH
+#define XPDF_COPYRIGHT "Copyright 1996-2014 Glyph & Cog, LLC"
+
+//------------------------------------------------------------------------
+// paper size
+//------------------------------------------------------------------------
+
+// default paper size (in points) for PostScript output
+#ifdef A4_PAPER
+#  define XPDF_PAPER_WIDTH  595    // ISO A4 (210x297 mm)
+#  define XPDF_PAPER_HEIGHT 842
+#else
+#  define XPDF_PAPER_WIDTH  612    // American letter (8.5x11")
+#  define XPDF_PAPER_HEIGHT 792
+#endif
+
+//------------------------------------------------------------------------
+// config file (xpdfrc) path
+//------------------------------------------------------------------------
+
+// user config file name, relative to the user's home directory
+#define XPDF_XPDFRC ".xpdfrc"
+
+//------------------------------------------------------------------------
+// X-related constants
+//------------------------------------------------------------------------
+
+// default maximum size of color cube to allocate
+#define XPDF_RGBCUBE_MAX 5
+
+#endif // XPDF_CONFIG_HH

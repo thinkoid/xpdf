@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -25,7 +25,7 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/ImageOutputDev.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 static int firstPage = 1;
 static int lastPage = 0;
@@ -79,8 +79,8 @@ int main(int argc, char *argv[]) {
   // parse args
   ok = parseArgs(argDesc, &argc, argv);
   if (!ok || argc != 3 || printVersion || printHelp) {
-    fprintf(stderr, "pdfimages version %s\n", xpdfVersion);
-    fprintf(stderr, "%s\n", xpdfCopyright);
+    fprintf(stderr, "pdfimages version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "%s\n", XPDF_COPYRIGHT);
     if (!printVersion) {
       printUsage("pdfimages", "<PDF-file> <image-root>", argDesc);
     }

@@ -17,7 +17,7 @@
 
 #include <goo/gtypes.hh>
 #include <splash/SplashTypes.hh>
-#include <xpdf/config.hh>
+#include <config.hh>
 #include <xpdf/OutputDev.hh>
 #include <xpdf/GfxState.hh>
 

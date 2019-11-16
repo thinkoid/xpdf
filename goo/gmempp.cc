@@ -8,7 +8,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <goo/gmem.hh>
 
 #ifdef DEBUG_MEM

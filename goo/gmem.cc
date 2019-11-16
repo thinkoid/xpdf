@@ -6,7 +6,7 @@
  * Copyright 1996-2003 Glyph & Cog, LLC
  */
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>

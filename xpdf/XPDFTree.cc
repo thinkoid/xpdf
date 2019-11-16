@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdlib.h>
 #include <goo/gmem.hh>
 #include <xpdf/XPDFTreeP.hh>

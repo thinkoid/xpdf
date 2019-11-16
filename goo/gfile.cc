@@ -8,7 +8,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <fcntl.h>
 #include <limits.h>

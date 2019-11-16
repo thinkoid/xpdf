@@ -16,7 +16,7 @@
 #endif
 
 #include <stdio.h>
-#include <xpdf/config.hh>
+#include <config.hh>
 #include <goo/gfile.hh>
 
 enum ErrorCategory {

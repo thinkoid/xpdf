@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -44,7 +44,7 @@
 #include <xpdf/XPDFApp.hh>
 #include <xpdf/XPDFViewer.hh>
 #include <xpdf/PSOutputDev.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION
@@ -129,6 +129,7 @@
 #include "print.xbm"
 #include "printDis.xbm"
 #include "about.xbm"
+
 #include <xpdf/about-text.hh>
 
 //------------------------------------------------------------------------
@@ -2873,14 +2874,14 @@ void XPDFViewer::initAboutDialog() {
   XmStringFree(s);
   XtManageChild(label);
   n = 0;
-  s = XmStringCreateLocalized("Version " xpdfVersion);
+  s = XmStringCreateLocalized("Version " PACKAGE_VERSION);
   XtSetArg(args[n], XmNlabelString, s); ++n;
   XtSetArg(args[n], XmNfontList, aboutVersionFont); ++n;
   label = XmCreateLabel(col, "h1", args, n);
   XmStringFree(s);
   XtManageChild(label);
   n = 0;
-  s = XmStringCreateLocalized(xpdfCopyright);
+  s = XmStringCreateLocalized(XPDF_COPYRIGHT);
   XtSetArg(args[n], XmNlabelString, s); ++n;
   XtSetArg(args[n], XmNfontList, aboutVersionFont); ++n;
   label = XmCreateLabel(col, "h2", args, n);

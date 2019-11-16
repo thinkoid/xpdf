@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -468,7 +468,7 @@ GlobalParams::GlobalParams(const char *cfgFileName) {
   ccFontFiles = new GHash(gTrue);
   base14SysFonts = new GHash(gTrue);
   sysFonts = new SysFontList();
-#if HAVE_PAPER_H
+
   char *paperName;
   const struct paper *paperType;
   paperinit();
@@ -478,14 +478,12 @@ GlobalParams::GlobalParams(const char *cfgFileName) {
     psPaperHeight = (int)paperpsheight(paperType);
   } else {
     error(errConfig, -1, "No paper information available - using defaults");
-    psPaperWidth = defPaperWidth;
-    psPaperHeight = defPaperHeight;
+
+    psPaperWidth  = XPDF_PAPER_WIDTH;
+    psPaperHeight = XPDF_PAPER_HEIGHT;
   }
   paperdone();
-#else
-  psPaperWidth = defPaperWidth;
-  psPaperHeight = defPaperHeight;
-#endif
+
   psImageableLLX = psImageableLLY = 0;
   psImageableURX = psPaperWidth;
   psImageableURY = psPaperHeight;
@@ -591,13 +589,13 @@ GlobalParams::GlobalParams(const char *cfgFileName) {
     }
   }
   if (!f) {
-    fileName = appendToPath(getHomeDir(), xpdfUserConfigFile);
+    fileName = appendToPath(getHomeDir(), XPDF_SYSTEM_XPDFRC);
     if (!(f = fopen(fileName->getCString(), "r"))) {
       delete fileName;
     }
   }
   if (!f) {
-    fileName = new GString(xpdfSysConfigFile);
+    fileName = new GString(XPDF_SYSTEM_XPDFRC);
 
     if (!(f = fopen(fileName->getCString(), "r"))) {
       delete fileName;

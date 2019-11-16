@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -30,7 +30,7 @@
 #include <xpdf/UnicodeMap.hh>
 #include <xpdf/TextString.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 static void printInfoString(Dict *infoDict, const char *key, const char *text,
 			    UnicodeMap *uMap);
@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
   // parse args
   ok = parseArgs(argDesc, &argc, argv);
   if (!ok || argc != 2 || printVersion || printHelp) {
-    fprintf(stderr, "pdfinfo version %s\n", xpdfVersion);
-    fprintf(stderr, "%s\n", xpdfCopyright);
+    fprintf(stderr, "pdfinfo version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "%s\n", XPDF_COPYRIGHT);
     if (!printVersion) {
       printUsage("pdfinfo", "<PDF-file>", argDesc);
     }

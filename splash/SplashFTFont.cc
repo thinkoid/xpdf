@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #if HAVE_FREETYPE_FREETYPE_H || HAVE_FREETYPE_H
 

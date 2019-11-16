@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -32,7 +32,7 @@
 #include <xpdf/UnicodeMap.hh>
 #include <xpdf/TextString.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 static int firstPage = 1;
 static int lastPage = 0;
@@ -132,8 +132,8 @@ int main(int argc, char *argv[]) {
   // parse args
   ok = parseArgs(argDesc, &argc, argv);
   if (!ok || argc < 2 || argc > 3 || printVersion || printHelp) {
-    fprintf(stderr, "pdftotext version %s\n", xpdfVersion);
-    fprintf(stderr, "%s\n", xpdfCopyright);
+    fprintf(stderr, "pdftotext version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "%s\n", XPDF_COPYRIGHT);
     if (!printVersion) {
       printUsage("pdftotext", "<PDF-file> [<text-file>]", argDesc);
     }

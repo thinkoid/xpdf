@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdlib.h>
 #include <stdio.h>
 #include <png.h>
@@ -19,7 +19,7 @@
 #include <splash/SplashBitmap.hh>
 #include <splash/Splash.hh>
 #include <xpdf/SplashOutputDev.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 static int firstPage = 1;
 static int lastPage = 0;
@@ -105,8 +105,8 @@ int main(int argc, char *argv[]) {
     ok = gFalse;
   }
   if (!ok || argc != 3 || printVersion || printHelp) {
-    fprintf(stderr, "pdftopng version %s\n", xpdfVersion);
-    fprintf(stderr, "%s\n", xpdfCopyright);
+    fprintf(stderr, "pdftopng version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "%s\n", XPDF_COPYRIGHT);
     if (!printVersion) {
       printUsage("pdftopng", "<PDF-file> <PNG-root>", argDesc);
     }

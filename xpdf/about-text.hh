@@ -13,7 +13,7 @@ static const char *aboutWinText[] = {
   "Licensed under the GNU General Public License (GPL) v2 or v3.",
   "See the 'README' file for details.",
   " ",
-  "Supports PDF version " supportedPDFVersionStr ".",
+  "Supports PDF version " TO_S(XPDF_PDF_VERSION) ".",
   " ",
   "The PDF data structures, operators, and specification",
   "are copyright 1985-2006 Adobe Systems Inc.",

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 #include <stdio.h>
 #include <goo/gtypes.hh>
 #include <goo/gmem.hh>
@@ -16,7 +16,7 @@
 #include <xpdf/CharTypes.hh>
 #include <xpdf/UnicodeMap.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 static GBool doList = gFalse;
 static int saveNum = 0;
@@ -82,8 +82,8 @@ int main(int argc, char *argv[]) {
     ok = gFalse;
   }
   if (!ok || argc != 2 || printVersion || printHelp) {
-    fprintf(stderr, "pdfdetach version %s\n", xpdfVersion);
-    fprintf(stderr, "%s\n", xpdfCopyright);
+    fprintf(stderr, "pdfdetach version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "%s\n", XPDF_COPYRIGHT);
     if (!printVersion) {
       printUsage("pdfdetach", "<PDF-file>", argDesc);
     }

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -20,7 +20,7 @@
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/UnicodeMap.hh>

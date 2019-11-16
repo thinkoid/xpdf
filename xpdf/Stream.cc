@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <goo/gmem.hh>
 #include <goo/gfile.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Lexer.hh>

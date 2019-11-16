@@ -18,6 +18,21 @@ AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET(gmake)
 AM_PROG_AS
 
+dnl
+dnl Path to xpdfrc set here because sysconfdir path is needed because autoconf
+dnl doesn't actually set the prefix variable until later.
+dnl
+AS_IF([test "$sysconfdir" = "${prefix}/etc"],[
+  AS_IF([test x"$prefix" = xNONE],[
+    system_xpdfrc="$ac_default_prefix/etc/xpdfrc"
+  ],[
+    system_xpdfrc="$prefix/etc/xpdfrc"
+  ])
+],[
+  system_xpdfrc="$sysconfdir/xpdfrc"
+])
+AC_DEFINE_UNQUOTED([XPDF_SYSTEM_XPDFRC], ["$system_xpdfrc"], [System xpdfrc location])
+
 AC_ARG_ENABLE([a4-paper],
   AS_HELP_STRING([--enable-a4-paper], [Use A4 size for PS output]))
 

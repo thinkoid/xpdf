@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -19,7 +19,7 @@
 
 #include <goo/GString.hh>
 
-#include <xpdf/config.hh>
+#include <defs.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/Catalog.hh>
@@ -237,10 +237,10 @@ void PDFDoc::checkHeader() {
   }
   pdfVersion = atof(p);
   if (!(hdrBuf[i+5] >= '0' && hdrBuf[i+5] <= '9') ||
-      pdfVersion > supportedPDFVersionNum + 0.0001) {
+      pdfVersion > XPDF_PDF_VERSION + 0.0001) {
     error(errSyntaxWarning, -1,
 	  "PDF version {0:s} -- xpdf supports version {1:s} (continuing anyway)",
-	  p, supportedPDFVersionStr);
+          p, TO_S (XPDF_PDF_VERSION));
   }
 }
 

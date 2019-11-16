@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -20,7 +20,6 @@
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
-#include <xpdf/config.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Error.hh>
@@ -1338,7 +1337,7 @@ void PSOutputDev::writeHeader(int firstPage, int lastPage,
     break;
   }
 
-  writePSFmt("%XpdfVersion: {0:s}\n", xpdfVersion);
+  writePSFmt("%XpdfVersion: {0:s}\n", PACKAGE_VERSION);
   xref->getDocInfo(&info);
   if (info.isDict() && info.dictLookup("Creator", &obj1)->isString()) {
     writePS("%%Creator: ");
@@ -1424,8 +1423,8 @@ void PSOutputDev::writeXpdfProcset() {
   const char *q;
   double w;
 
-  writePSFmt("%%BeginResource: procset xpdf {0:s} 0\n", xpdfVersion);
-  writePSFmt("%%Copyright: {0:s}\n", xpdfCopyright);
+  writePSFmt("%%BeginResource: procset xpdf {0:s} 0\n", PACKAGE_VERSION);
+  writePSFmt("%%Copyright: {0:s}\n", XPDF_COPYRIGHT);
   lev1 = lev2 = lev3 = sep = nonSep = gTrue;
   for (p = prolog; *p; ++p) {
     if ((*p)[0] == '~') {

@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <config.hh>
+#include <defs.hh>
 
 #ifdef USE_GCC_PRAGMAS
 #pragma implementation
@@ -17,7 +17,7 @@
 #include <xpdf/Error.hh>
 #include <xpdf/XPDFViewer.hh>
 #include <xpdf/XPDFApp.hh>
-#include <xpdf/config.hh>
+#include <defs.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION
@@ -90,7 +90,7 @@ struct XPDFAppResources {
 };
 
 static Bool defInstallCmap = False;
-static int defRGBCubeSize = defaultRGBCube;
+static int defRGBCubeSize = XPDF_RGBCUBE_MAX;
 static Bool defReverseVideo = False;
 
 static XtResource xResources[] = {
