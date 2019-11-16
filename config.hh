@@ -29,8 +29,8 @@
 // config file (xpdfrc) path
 //------------------------------------------------------------------------
 
-// user config file name, relative to the user's home directory
 #define XPDF_XPDFRC ".xpdfrc"
+#define XPDF_SYSTEM_XPDFRC "/etc/xpdfrc"
 
 //------------------------------------------------------------------------
 // X-related constants

@@ -552,20 +552,28 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
     // look for a user config file, then a system-wide config file
     f = NULL;
     fileName = NULL;
+
     if (cfgFileName && cfgFileName[0]) {
         fileName = new GString (cfgFileName);
         if (!(f = fopen (fileName->getCString (), "r"))) { delete fileName; }
     }
+
     if (!f) {
-        fileName = appendToPath (getHomeDir (), XPDF_SYSTEM_XPDFRC);
-        if (!(f = fopen (fileName->getCString (), "r"))) { delete fileName; }
+        fileName = appendToPath (getHomeDir (), XPDF_XPDFRC);
+
+        if (!(f = fopen (fileName->getCString (), "r"))) {
+            delete fileName;
+        }
     }
+
     if (!f) {
         fileName = new GString (XPDF_SYSTEM_XPDFRC);
 
         if (!(f = fopen (fileName->getCString (), "r"))) { delete fileName; }
     }
+
     if (f) {
+        printf (" --> %s\n", fileName->getCString ());
         parseFile (fileName, f);
         delete fileName;
         fclose (f);
