@@ -11,7 +11,6 @@ libgoo_a_SOURCES =                              \
 	gmempp.cc                                   \
 	gfile.cc                                    \
 	parseargs.cc                                \
-	FixedPoint.cc                               \
 	GHash.cc                                    \
 	GList.cc                                    \
 	GString.cc

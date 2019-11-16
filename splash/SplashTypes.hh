@@ -16,12 +16,7 @@
 // coordinates
 //------------------------------------------------------------------------
 
-#if USE_FIXEDPOINT
-#include <goo/FixedPoint.hh>
-typedef FixedPoint SplashCoord;
-#else
 typedef double SplashCoord;
-#endif
 
 //------------------------------------------------------------------------
 // antialiasing
