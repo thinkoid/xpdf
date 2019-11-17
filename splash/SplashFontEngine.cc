@@ -70,7 +70,7 @@ SplashFontFile* SplashFontEngine::loadType1Font (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    char* fileName, GBool deleteFile,
+    const char* fileName, GBool deleteFile,
 #endif
     const char** enc) {
     SplashFontFile* fontFile;
@@ -93,7 +93,7 @@ SplashFontFile* SplashFontEngine::loadType1Font (
     // return an error, leaving the file to be deleted later (if
     // loadXYZFont failed, the file will always be deleted)
     if (deleteFile) {
-        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+        unlink (fontFile ? fontFile->fileName->c_str () : fileName);
     }
 #endif
 
@@ -105,7 +105,7 @@ SplashFontFile* SplashFontEngine::loadType1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    char* fileName, GBool deleteFile,
+    const char* fileName, GBool deleteFile,
 #endif
     const char** enc) {
     SplashFontFile* fontFile;
@@ -128,7 +128,7 @@ SplashFontFile* SplashFontEngine::loadType1CFont (
     // return an error, leaving the file to be deleted later (if
     // loadXYZFont failed, the file will always be deleted)
     if (deleteFile) {
-        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+        unlink (fontFile ? fontFile->fileName->c_str () : fileName);
     }
 #endif
 
@@ -140,7 +140,7 @@ SplashFontFile* SplashFontEngine::loadOpenTypeT1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    char* fileName, GBool deleteFile,
+    const char* fileName, GBool deleteFile,
 #endif
     const char** enc) {
     SplashFontFile* fontFile;
@@ -163,7 +163,7 @@ SplashFontFile* SplashFontEngine::loadOpenTypeT1CFont (
     // return an error, leaving the file to be deleted later (if
     // loadXYZFont failed, the file will always be deleted)
     if (deleteFile) {
-        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+        unlink (fontFile ? fontFile->fileName->c_str () : fileName);
     }
 #endif
 
@@ -175,7 +175,7 @@ SplashFontFile* SplashFontEngine::loadCIDFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf
 #else
-    char* fileName, GBool deleteFile
+    const char* fileName, GBool deleteFile
 #endif
 ) {
     SplashFontFile* fontFile;
@@ -198,7 +198,7 @@ SplashFontFile* SplashFontEngine::loadCIDFont (
     // return an error, leaving the file to be deleted later (if
     // loadXYZFont failed, the file will always be deleted)
     if (deleteFile) {
-        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+        unlink (fontFile ? fontFile->fileName->c_str () : fileName);
     }
 #endif
 
@@ -210,7 +210,7 @@ SplashFontFile* SplashFontEngine::loadOpenTypeCFFFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    char* fileName, GBool deleteFile,
+    const char* fileName, GBool deleteFile,
 #endif
     int* codeToGID, int codeToGIDLen) {
     SplashFontFile* fontFile;
@@ -233,7 +233,7 @@ SplashFontFile* SplashFontEngine::loadOpenTypeCFFFont (
     // return an error, leaving the file to be deleted later (if
     // loadXYZFont failed, the file will always be deleted)
     if (deleteFile) {
-        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+        unlink (fontFile ? fontFile->fileName->c_str () : fileName);
     }
 #endif
 
@@ -245,9 +245,10 @@ SplashFontFile* SplashFontEngine::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    char* fileName, GBool deleteFile,
+    const char* fileName, GBool deleteFile,
 #endif
-    int fontNum, int* codeToGID, int codeToGIDLen, char* fontName) {
+    int fontNum, int* codeToGID, int codeToGIDLen,
+    const char* fontName) {
     SplashFontFile* fontFile;
 
     fontFile = NULL;
@@ -270,7 +271,7 @@ SplashFontFile* SplashFontEngine::loadTrueTypeFont (
     // return an error, leaving the file to be deleted later (if
     // loadXYZFont failed, the file will always be deleted)
     if (deleteFile) {
-        unlink (fontFile ? fontFile->fileName->getCString () : fileName);
+        unlink (fontFile ? fontFile->fileName->c_str () : fileName);
     }
 #endif
 

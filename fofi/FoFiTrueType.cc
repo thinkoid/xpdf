@@ -439,7 +439,7 @@ FoFiTrueType* FoFiTrueType::make (
 }
 
 FoFiTrueType*
-FoFiTrueType::load (char* fileName, int fontNum, GBool allowHeadlessCFF) {
+FoFiTrueType::load (const char* fileName, int fontNum, GBool allowHeadlessCFF) {
     FoFiTrueType* ff;
     char* fileA;
     int lenA, n;
@@ -626,7 +626,7 @@ void FoFiTrueType::getFontMatrix (double* mat) {
 }
 
 void FoFiTrueType::convertToType42 (
-    char* psName, char** encoding, int* codeToGID, FoFiOutputFunc outputFunc,
+    const char* psName, char** encoding, int* codeToGID, FoFiOutputFunc outputFunc,
     void* outputStream) {
     GString* buf;
     int maxUsedGlyph;
@@ -638,7 +638,7 @@ void FoFiTrueType::convertToType42 (
     ok = gTrue;
     buf = GString::format (
         "%!PS-TrueTypeFont-{0:2g}\n", (double)getS32BE (0, &ok) / 65536.0);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
 
     // begin the font dictionary
@@ -651,7 +651,7 @@ void FoFiTrueType::convertToType42 (
     buf = GString::format (
         "/FontBBox [{0:d} {1:d} {2:d} {3:d}] def\n", bbox[0], bbox[1], bbox[2],
         bbox[3]);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "/PaintType 0 def\n", 17);
 
@@ -666,7 +666,7 @@ void FoFiTrueType::convertToType42 (
 }
 
 void FoFiTrueType::convertToType1 (
-    char* psName, const char** newEncoding, GBool ascii,
+    const char* psName, const char** newEncoding, GBool ascii,
     FoFiOutputFunc outputFunc, void* outputStream) {
     char* start;
     int length;
@@ -679,7 +679,7 @@ void FoFiTrueType::convertToType1 (
 }
 
 void FoFiTrueType::convertToCIDType2 (
-    char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
+    const char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
     FoFiOutputFunc outputFunc, void* outputStream) {
     GString* buf;
     int cid, maxUsedGlyph;
@@ -692,7 +692,7 @@ void FoFiTrueType::convertToCIDType2 (
     ok = gTrue;
     buf = GString::format (
         "%!PS-TrueTypeFont-{0:2g}\n", (double)getS32BE (0, &ok) / 65536.0);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
 
     // begin the font dictionary
@@ -710,7 +710,7 @@ void FoFiTrueType::convertToCIDType2 (
     (*outputFunc) (outputStream, "/GDBytes 2 def\n", 15);
     if (cidMap) {
         buf = GString::format ("/CIDCount {0:d} def\n", nCIDs);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         if (nCIDs > 32767) {
             (*outputFunc) (outputStream, "/CIDMap [", 9);
@@ -723,7 +723,7 @@ void FoFiTrueType::convertToCIDType2 (
                         buf = GString::format (
                             "{0:02x}{1:02x}", (cid >> 8) & 0xff, cid & 0xff);
                         (*outputFunc) (
-                            outputStream, buf->getCString (),
+                            outputStream, buf->c_str (),
                             buf->getLength ());
                         delete buf;
                     }
@@ -743,7 +743,7 @@ void FoFiTrueType::convertToCIDType2 (
                     buf = GString::format (
                         "{0:02x}{1:02x}", (cid >> 8) & 0xff, cid & 0xff);
                     (*outputFunc) (
-                        outputStream, buf->getCString (), buf->getLength ());
+                        outputStream, buf->c_str (), buf->getLength ());
                     delete buf;
                 }
                 (*outputFunc) (outputStream, "\n", 1);
@@ -754,7 +754,7 @@ void FoFiTrueType::convertToCIDType2 (
     else {
         // direct mapping - just fill the string(s) with s[i]=i
         buf = GString::format ("/CIDCount {0:d} def\n", nGlyphs);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         if (nGlyphs > 32767) {
             (*outputFunc) (outputStream, "/CIDMap [\n", 10);
@@ -763,19 +763,19 @@ void FoFiTrueType::convertToCIDType2 (
                 buf = GString::format (
                     "  {0:d} string 0 1 {1:d} {{\n", 2 * j, j - 1);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
                 buf = GString::format (
                     "    2 copy dup 2 mul exch {0:d} add -8 bitshift put\n", i);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
                 buf = GString::format (
                     "    1 index exch dup 2 mul 1 add exch {0:d} add"
                     " 255 and put\n",
                     i);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
                 (*outputFunc) (outputStream, "  } for\n", 8);
             }
@@ -783,10 +783,10 @@ void FoFiTrueType::convertToCIDType2 (
         }
         else {
             buf = GString::format ("/CIDMap {0:d} string\n", 2 * nGlyphs);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
             buf = GString::format ("  0 1 {0:d} {{\n", nGlyphs - 1);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
             (*outputFunc) (
                 outputStream, "    2 copy dup 2 mul exch -8 bitshift put\n",
@@ -802,7 +802,7 @@ void FoFiTrueType::convertToCIDType2 (
     buf = GString::format (
         "/FontBBox [{0:d} {1:d} {2:d} {3:d}] def\n", bbox[0], bbox[1], bbox[2],
         bbox[3]);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "/PaintType 0 def\n", 17);
     (*outputFunc) (outputStream, "/Encoding [] readonly def\n", 26);
@@ -821,7 +821,7 @@ void FoFiTrueType::convertToCIDType2 (
 }
 
 void FoFiTrueType::convertToCIDType0 (
-    char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
+    const char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
     void* outputStream) {
     char* start;
     int length;
@@ -834,7 +834,7 @@ void FoFiTrueType::convertToCIDType0 (
 }
 
 void FoFiTrueType::convertToType0 (
-    char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
+    const char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
     FoFiOutputFunc outputFunc, void* outputStream) {
     GString* buf;
     GString* sfntsName;
@@ -875,14 +875,14 @@ void FoFiTrueType::convertToType0 (
         (*outputFunc) (outputStream, "/FontName /", 11);
         (*outputFunc) (outputStream, psName, (int)strlen (psName));
         buf = GString::format ("_{0:02x} def\n", i >> 8);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         (*outputFunc) (outputStream, "/FontType 42 def\n", 17);
         (*outputFunc) (outputStream, "/FontMatrix [1 0 0 1 0 0] def\n", 30);
         buf = GString::format (
             "/FontBBox [{0:d} {1:d} {2:d} {3:d}] def\n", bbox[0], bbox[1],
             bbox[2], bbox[3]);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         (*outputFunc) (outputStream, "/PaintType 0 def\n", 17);
         (*outputFunc) (outputStream, "/sfnts ", 7);
@@ -891,7 +891,7 @@ void FoFiTrueType::convertToType0 (
         (*outputFunc) (outputStream, "/Encoding 256 array\n", 20);
         for (j = 0; j < 256 && i + j < n; ++j) {
             buf = GString::format ("dup {0:d} /c{1:02x} put\n", j, j);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         (*outputFunc) (outputStream, "readonly def\n", 13);
@@ -900,7 +900,7 @@ void FoFiTrueType::convertToType0 (
         for (j = 0; j < 256 && i + j < n; ++j) {
             buf = GString::format (
                 "/c{0:02x} {1:d} def\n", j, cidMap ? cidMap[i + j] : i + j);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         (*outputFunc) (outputStream, "end readonly def\n", 17);
@@ -919,7 +919,7 @@ void FoFiTrueType::convertToType0 (
     (*outputFunc) (outputStream, "/Encoding [\n", 12);
     for (i = 0; i < n; i += 256) {
         buf = GString::format ("{0:d}\n", i >> 8);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
     (*outputFunc) (outputStream, "] def\n", 6);
@@ -928,7 +928,7 @@ void FoFiTrueType::convertToType0 (
         (*outputFunc) (outputStream, "/", 1);
         (*outputFunc) (outputStream, psName, (int)strlen (psName));
         buf = GString::format ("_{0:02x} findfont\n", i >> 8);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
     (*outputFunc) (outputStream, "] def\n", 6);
@@ -937,7 +937,7 @@ void FoFiTrueType::convertToType0 (
 }
 
 void FoFiTrueType::convertToType0 (
-    char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
+    const char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
     void* outputStream) {
     char* start;
     int length;
@@ -1640,7 +1640,7 @@ void FoFiTrueType::cvtEncoding (
         for (i = 0; i < 256; ++i) {
             if (!(name = encoding[i])) { name = ".notdef"; }
             buf = GString::format ("dup {0:d} /", i);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
             (*outputFunc) (outputStream, name, (int)strlen (name));
             (*outputFunc) (outputStream, " put\n", 5);
@@ -1649,7 +1649,7 @@ void FoFiTrueType::cvtEncoding (
     else {
         for (i = 0; i < 256; ++i) {
             buf = GString::format ("dup {0:d} /c{1:02x} put\n", i, i);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
     }
@@ -1695,7 +1695,7 @@ void FoFiTrueType::cvtCharStrings (
                 (*outputFunc) (outputStream, name, (int)strlen (name));
                 buf = GString::format (" {0:d} def\n", k);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
         }
@@ -1968,7 +1968,7 @@ void FoFiTrueType::cvtSfnts (
     // start the sfnts array
     if (name) {
         (*outputFunc) (outputStream, "/", 1);
-        (*outputFunc) (outputStream, name->getCString (), name->getLength ());
+        (*outputFunc) (outputStream, name->c_str (), name->getLength ());
         (*outputFunc) (outputStream, " [\n", 3);
     }
     else {
@@ -2037,7 +2037,7 @@ void FoFiTrueType::dumpString (
     for (i = 0; i < length; i += 32) {
         for (j = 0; j < 32 && i + j < length; ++j) {
             buf = GString::format ("{0:02x}", s[i + j] & 0xff);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (i % (65536 - 32) == 65536 - 64) {

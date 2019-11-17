@@ -165,7 +165,7 @@ int main (int argc, char* argv[]) {
             if (!strcmp (pngRoot, "-")) { f = stdout; }
             else {
                 pngFile = GString::format ("{0:s}-{1:06d}.png", pngRoot, pg);
-                if (!(f = fopen (pngFile->getCString (), "wb"))) { exit (2); }
+                if (!(f = fopen (pngFile->c_str (), "wb"))) { exit (2); }
                 delete pngFile;
             }
             setupPNG (
@@ -179,7 +179,7 @@ int main (int argc, char* argv[]) {
             if (!strcmp (pngRoot, "-")) { f = stdout; }
             else {
                 pngFile = GString::format ("{0:s}-{1:06d}.png", pngRoot, pg);
-                if (!(f = fopen (pngFile->getCString (), "wb"))) { exit (2); }
+                if (!(f = fopen (pngFile->c_str (), "wb"))) { exit (2); }
                 delete pngFile;
             }
             setupPNG (
@@ -193,7 +193,7 @@ int main (int argc, char* argv[]) {
             if (!strcmp (pngRoot, "-")) { f = stdout; }
             else {
                 pngFile = GString::format ("{0:s}-{1:06d}.png", pngRoot, pg);
-                if (!(f = fopen (pngFile->getCString (), "wb"))) { exit (2); }
+                if (!(f = fopen (pngFile->c_str (), "wb"))) { exit (2); }
                 delete pngFile;
             }
             setupPNG (

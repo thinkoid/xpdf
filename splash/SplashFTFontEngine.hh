@@ -35,7 +35,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        char* fileName, GBool deleteFile,
+        const char* fileName, GBool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadType1CFont (
@@ -43,7 +43,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        char* fileName, GBool deleteFile,
+        const char* fileName, GBool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadOpenTypeT1CFont (
@@ -51,7 +51,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        char* fileName, GBool deleteFile,
+        const char* fileName, GBool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadCIDFont (
@@ -59,7 +59,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf
 #else
-        char* fileName, GBool deleteFile
+        const char* fileName, GBool deleteFile
 #endif
     );
     SplashFontFile* loadOpenTypeCFFFont (
@@ -67,7 +67,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        char* fileName, GBool deleteFile,
+        const char* fileName, GBool deleteFile,
 #endif
         int* codeToGID, int codeToGIDLen);
     SplashFontFile* loadTrueTypeFont (
@@ -75,7 +75,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        char* fileName, GBool deleteFile,
+        const char* fileName, GBool deleteFile,
 #endif
         int fontNum, int* codeToGID, int codeToGIDLen);
 

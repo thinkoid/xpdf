@@ -853,7 +853,7 @@ void AcroFormField::drawNewAppearance (
         if (flags & acroFormFlagRadio) {
             //~ Acrobat doesn't draw a caption if there is no AP dict (?)
             if (fieldLookup ("V", &obj1)
-                    ->isName (appearanceState->getCString ())) {
+                    ->isName (appearanceState->c_str ())) {
                 if (caption) {
                     drawText (
                         caption, da, fontDict, gFalse, 0, acroFormQuadCenter,
@@ -1037,7 +1037,7 @@ void AcroFormField::drawNewAppearance (
 
     // build the appearance stream
     appearStream = new MemStream (
-        appearBuf->getCString (), 0, appearBuf->getLength (), &appearDict);
+        appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.initStream (appearStream);
 
     // draw it
@@ -1176,7 +1176,7 @@ void AcroFormField::drawText (
         tok = (GString*)daToks->get (tfPos);
         if (tok->getLength () >= 1 && tok->getChar (0) == '/') {
             if (!fontDict ||
-                !(font = fontDict->lookup (tok->getCString () + 1))) {
+                !(font = fontDict->lookup (tok->c_str () + 1))) {
                 error (errSyntaxError, -1, "Unknown font in field's DA string");
             }
         }
@@ -1186,7 +1186,7 @@ void AcroFormField::drawText (
                 "Invalid font name in 'Tf' operator in field's DA string");
         }
         tok = (GString*)daToks->get (tfPos + 1);
-        fontSize = atof (tok->getCString ());
+        fontSize = atof (tok->c_str ());
     }
     else {
         error (
@@ -1526,7 +1526,7 @@ void AcroFormField::drawListBox (
         tok = (GString*)daToks->get (tfPos);
         if (tok->getLength () >= 1 && tok->getChar (0) == '/') {
             if (!fontDict ||
-                !(font = fontDict->lookup (tok->getCString () + 1))) {
+                !(font = fontDict->lookup (tok->c_str () + 1))) {
                 error (errSyntaxError, -1, "Unknown font in field's DA string");
             }
         }
@@ -1536,7 +1536,7 @@ void AcroFormField::drawListBox (
                 "Invalid font name in 'Tf' operator in field's DA string");
         }
         tok = (GString*)daToks->get (tfPos + 1);
-        fontSize = atof (tok->getCString ());
+        fontSize = atof (tok->c_str ());
     }
     else {
         error (

@@ -78,7 +78,7 @@ SplashBitmap::~SplashBitmap () {
     gfree (alpha);
 }
 
-SplashError SplashBitmap::writePNMFile (char* fileName) {
+SplashError SplashBitmap::writePNMFile (const char* fileName) {
     FILE* f;
     SplashError err;
 

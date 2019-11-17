@@ -566,7 +566,7 @@ LinkURI::LinkURI (Object* uriObj, GString* baseURI) {
     uri = NULL;
     if (uriObj->isString ()) {
         uri2 = uriObj->getString ();
-        n = (int)strcspn (uri2->getCString (), "/:");
+        n = (int)strcspn (uri2->c_str (), "/:");
         if (n < uri2->getLength () && uri2->getChar (n) == ':') {
             // "http:..." etc.
             uri = uri2->copy ();
@@ -584,7 +584,7 @@ LinkURI::LinkURI (Object* uriObj, GString* baseURI) {
                 if (c != '/' && c != '?') { uri->append ('/'); }
                 if (uri2->getChar (0) == '/') {
                     uri->append (
-                        uri2->getCString () + 1, uri2->getLength () - 1);
+                        uri2->c_str () + 1, uri2->getLength () - 1);
                 }
                 else {
                     uri->append (uri2);

@@ -1257,7 +1257,7 @@ void TextPage::writeReadingOrder (
                     !line->hyphenated) {
                     s->append (space, spaceLen);
                 }
-                (*outputFunc) (outputStream, s->getCString (), s->getLength ());
+                (*outputFunc) (outputStream, s->c_str (), s->getLength ());
                 delete s;
             }
             (*outputFunc) (outputStream, eol, eolLen);
@@ -1356,7 +1356,7 @@ void TextPage::writePhysLayout (
     for (i = 0; i < ph; ++i) {
         if (out[i]) {
             (*outputFunc) (
-                outputStream, out[i]->getCString (), out[i]->getLength ());
+                outputStream, out[i]->c_str (), out[i]->getLength ());
             delete out[i];
         }
         (*outputFunc) (outputStream, eol, eolLen);
@@ -1484,7 +1484,7 @@ void TextPage::writeLinePrinter (
             x += (uMap->isUnicode () ? 1 : n) * pitch;
         }
         s->append (eol, eolLen);
-        (*outputFunc) (outputStream, s->getCString (), s->getLength ());
+        (*outputFunc) (outputStream, s->c_str (), s->getLength ());
         delete s;
         delete line;
     }
@@ -1575,13 +1575,13 @@ void TextPage::writeRaw (
         }
 
         if (s->getLength () > 1000) {
-            (*outputFunc) (outputStream, s->getCString (), s->getLength ());
+            (*outputFunc) (outputStream, s->c_str (), s->getLength ());
             s->clear ();
         }
     }
 
     if (s->getLength () > 0) {
-        (*outputFunc) (outputStream, s->getCString (), s->getLength ());
+        (*outputFunc) (outputStream, s->c_str (), s->getLength ());
     }
     delete s;
 }
@@ -4012,7 +4012,7 @@ static void outputToFile (void* stream, const char* text, int len) {
 }
 
 TextOutputDev::TextOutputDev (
-    char* fileName, TextOutputControl* controlA, GBool append) {
+    const char* fileName, TextOutputControl* controlA, GBool append) {
     text = NULL;
     control = *controlA;
     ok = gTrue;

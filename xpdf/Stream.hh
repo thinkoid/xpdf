@@ -316,7 +316,7 @@ private:
 
 class MemStream : public BaseStream {
 public:
-    MemStream (char* bufA, Guint startA, Guint lengthA, Object* dictA);
+    MemStream (const char* bufA, Guint startA, Guint lengthA, Object* dictA);
     virtual ~MemStream ();
     virtual Stream* makeSubStream (
         GFileOffset start, GBool limited, GFileOffset lengthA, Object* dictA);
@@ -336,11 +336,11 @@ public:
     virtual void moveStart (int delta);
 
 private:
-    char* buf;
+    const char* buf;
     Guint start;
     Guint length;
-    char* bufEnd;
-    char* bufPtr;
+    const char* bufEnd;
+    const char* bufPtr;
     GBool needFree;
 };
 

@@ -377,8 +377,8 @@ void* ExternalSecurityHandler::makeAuthData (
     char *opw, *upw;
     void* authData;
 
-    opw = ownerPassword ? ownerPassword->getCString () : (char*)NULL;
-    upw = userPassword ? userPassword->getCString () : (char*)NULL;
+    opw = ownerPassword ? ownerPassword->c_str () : (char*)NULL;
+    upw = userPassword ? userPassword->c_str () : (char*)NULL;
     if (!(*xsh->makeAuthData) (
             xsh->handlerData, docData, opw, upw, &authData)) {
         return NULL;

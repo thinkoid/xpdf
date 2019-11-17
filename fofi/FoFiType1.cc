@@ -54,8 +54,11 @@ FoFiType1::~FoFiType1 () {
     }
 }
 
-char* FoFiType1::getName () {
-    if (!parsed) { parse (); }
+const char* FoFiType1::getName () {
+    if (!parsed) {
+        parse ();
+    }
+
     return name;
 }
 

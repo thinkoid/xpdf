@@ -962,7 +962,6 @@ void PostScriptFunction::transform (double* in, double* out) {
 
 GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
     GString* tok;
-    char* p;
     int a, b, mid, cmp;
     int codePtr0, codePtr1;
 
@@ -973,10 +972,12 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
                 "Unexpected end of PostScript function stream");
             return gFalse;
         }
+
         tok = (GString*)tokens->get ((*tokPtr)++);
-        p = tok->getCString ();
+        const char* p = tok->c_str ();
+
         if (isdigit (*p) || *p == '.' || *p == '-') {
-            addCodeD (codePtr, psOpPush, atof (tok->getCString ()));
+            addCodeD (codePtr, psOpPush, atof (tok->c_str ()));
         }
         else if (!tok->cmp ("{")) {
             codePtr0 = *codePtr;

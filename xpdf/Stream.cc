@@ -679,19 +679,16 @@ void FileStream::moveStart (int delta) {
 // MemStream
 //------------------------------------------------------------------------
 
-MemStream::MemStream (char* bufA, Guint startA, Guint lengthA, Object* dictA)
+MemStream::MemStream (const char* bufA, Guint startA, Guint lengthA, Object* dictA)
     : BaseStream (dictA) {
     buf = bufA;
     start = startA;
     length = lengthA;
     bufEnd = buf + start + length;
     bufPtr = buf + start;
-    needFree = gFalse;
 }
 
-MemStream::~MemStream () {
-    if (needFree) { gfree (buf); }
-}
+/* virtual */ MemStream::~MemStream () { }
 
 Stream* MemStream::makeSubStream (
     GFileOffset startA, GBool limited, GFileOffset lengthA, Object* dictA) {

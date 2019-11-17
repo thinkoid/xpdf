@@ -1123,7 +1123,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
         if (!(fontLoc = gfxFont->locateFont (xref, gFalse))) {
             error (
                 errSyntaxError, -1, "Couldn't find a font for '{0:s}'",
-                gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                     : "(unnamed)");
             goto err2;
         }
@@ -1180,7 +1180,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
         }
         else { // gfxFontLocExternal
 #if LOAD_FONTS_FROM_MEM
-            if (!(extFontFile = fopen (fontLoc->path->getCString (), "rb"))) {
+            if (!(extFontFile = fopen (fontLoc->path->c_str (), "rb"))) {
                 error (
                     errSyntaxError, -1,
                     "Couldn't open external font file '{0:t}'", fontLoc->path);
@@ -1208,12 +1208,12 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf,
 #else
-                      fileName->getCString (), fileName == tmpFileName,
+                      fileName->c_str (), fileName == tmpFileName,
 #endif
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1225,12 +1225,12 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf,
 #else
-                      fileName->getCString (), fileName == tmpFileName,
+                      fileName->c_str (), fileName == tmpFileName,
 #endif
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1242,12 +1242,12 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf,
 #else
-                      fileName->getCString (), fileName == tmpFileName,
+                      fileName->c_str (), fileName == tmpFileName,
 #endif
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1257,9 +1257,9 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
         case fontTrueTypeOT:
 #if LOAD_FONTS_FROM_MEM
             if ((ff = FoFiTrueType::make (
-                     fontBuf->getCString (), fontBuf->getLength (), fontNum))) {
+                     fontBuf->c_str (), fontBuf->getLength (), fontNum))) {
 #else
-            if ((ff = FoFiTrueType::load (fileName->getCString (), fontNum))) {
+            if ((ff = FoFiTrueType::load (fileName->c_str (), fontNum))) {
 #endif
                 codeToGID = ((Gfx8BitFont*)gfxFont)->getCodeToGIDMap (ff);
                 n = 256;
@@ -1283,15 +1283,15 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf,
 #else
-                      fileName->getCString (), fileName == tmpFileName,
+                      fileName->c_str (), fileName == tmpFileName,
 #endif
                       fontNum, codeToGID, n,
                       gfxFont->getEmbeddedFontName ()
-                          ? gfxFont->getEmbeddedFontName ()->getCString ()
+                          ? gfxFont->getEmbeddedFontName ()->c_str ()
                           : (char*)NULL))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1304,13 +1304,13 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf
 #else
-                      fileName->getCString (), fileName == tmpFileName
+                      fileName->c_str (), fileName == tmpFileName
 #endif
                       ))) {
 
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1333,12 +1333,12 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf,
 #else
-                      fileName->getCString (), fileName == tmpFileName,
+                      fileName->c_str (), fileName == tmpFileName,
 #endif
                       codeToGID, n))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1366,11 +1366,11 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 if ((ctu = ((GfxCIDFont*)gfxFont)->getToUnicode ())) {
 #if LOAD_FONTS_FROM_MEM
                     if ((ff = FoFiTrueType::make (
-                             fontBuf->getCString (), fontBuf->getLength (),
+                             fontBuf->c_str (), fontBuf->getLength (),
                              fontNum))) {
 #else
                     if ((ff = FoFiTrueType::load (
-                             fileName->getCString (), fontNum))) {
+                             fileName->c_str (), fontNum))) {
 #endif
                         // look for a Unicode cmap
                         for (cmap = 0; cmap < ff->getNumCmaps (); ++cmap) {
@@ -1405,7 +1405,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                     error (
                         errSyntaxError, -1,
                         "Couldn't find a mapping to Unicode for font '{0:s}'",
-                        gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                        gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                             : "(unnamed)");
                 }
             }
@@ -1414,15 +1414,15 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
                       fontBuf,
 #else
-                      fileName->getCString (), fileName == tmpFileName,
+                      fileName->c_str (), fileName == tmpFileName,
 #endif
                       fontNum, codeToGID, n,
                       gfxFont->getEmbeddedFontName ()
-                          ? gfxFont->getEmbeddedFontName ()->getCString ()
+                          ? gfxFont->getEmbeddedFontName ()->c_str ()
                           : (char*)NULL))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->getCString ()
+                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1507,7 +1507,7 @@ err1:
     if (fontBuf) { delete fontBuf; }
 #else
     if (tmpFileName) {
-        unlink (tmpFileName->getCString ());
+        unlink (tmpFileName->c_str ());
         delete tmpFileName;
     }
 #endif
@@ -3381,7 +3381,7 @@ SplashFont* SplashOutputDev::getFont (GString* name, SplashCoord* textMatA) {
         fontBuf = NULL;
         if (fontLoc->fontType == fontType1 ||
             fontLoc->fontType == fontTrueType) {
-            if (!(extFontFile = fopen (fontLoc->path->getCString (), "rb"))) {
+            if (!(extFontFile = fopen (fontLoc->path->c_str (), "rb"))) {
                 delete fontLoc;
                 delete id;
                 return NULL;
@@ -3399,18 +3399,18 @@ SplashFont* SplashOutputDev::getFont (GString* name, SplashCoord* textMatA) {
 #if LOAD_FONTS_FROM_MEM
                 fontBuf,
 #else
-                fontLoc->path->getCString (), gFalse,
+                fontLoc->path->c_str (), gFalse,
 #endif
                 winAnsiEncoding);
         }
         else if (fontLoc->fontType == fontTrueType) {
 #if LOAD_FONTS_FROM_MEM
             if (!(ff = FoFiTrueType::make (
-                      fontBuf->getCString (), fontBuf->getLength (),
+                      fontBuf->c_str (), fontBuf->getLength (),
                       fontLoc->fontNum))) {
 #else
             if (!(ff = FoFiTrueType::load (
-                      fontLoc->path->getCString (), fontLoc->fontNum))) {
+                      fontLoc->path->c_str (), fontLoc->fontNum))) {
 #endif
                 delete fontLoc;
                 delete id;
@@ -3443,7 +3443,7 @@ SplashFont* SplashOutputDev::getFont (GString* name, SplashCoord* textMatA) {
 #if LOAD_FONTS_FROM_MEM
                 fontBuf,
 #else
-                fontLoc->path->getCString (), gFalse,
+                fontLoc->path->c_str (), gFalse,
 #endif
                 fontLoc->fontNum, codeToGID, 256, NULL);
         }

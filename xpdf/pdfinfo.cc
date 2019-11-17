@@ -259,7 +259,7 @@ int main (int argc, char* argv[]) {
     }
 
     // print file size
-    f = fopen (fileName->getCString (), "rb");
+    f = fopen (fileName->c_str (), "rb");
     if (f) {
         gfseek (f, 0, SEEK_END);
         printf ("File size:      %u bytes\n", (Guint)gftell (f));
@@ -275,7 +275,7 @@ int main (int argc, char* argv[]) {
     // print the metadata
     if (printMetadata && (metadata = doc->readMetadata ())) {
         fputs ("Metadata:\n", stdout);
-        fputs (metadata->getCString (), stdout);
+        fputs (metadata->c_str (), stdout);
         fputc ('\n', stdout);
         delete metadata;
     }
@@ -321,14 +321,14 @@ static void printInfoString (
 
 static void printInfoDate (Dict* infoDict, const char* key, const char* text) {
     Object obj;
-    char* s;
+    const char* s;
     int year, mon, day, hour, min, sec, n;
     struct tm tmStruct;
     char buf[256];
 
     if (infoDict->lookup (key, &obj)->isString ()) {
         fputs (text, stdout);
-        s = obj.getString ()->getCString ();
+        s = obj.getString ()->c_str ();
         if (s[0] == 'D' && s[1] == ':') { s += 2; }
         if ((n = sscanf (
                  s, "%4d%2d%2d%2d%2d%2d", &year, &mon, &day, &hour, &min,

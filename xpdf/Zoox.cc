@@ -437,7 +437,7 @@ void ZxDoc::parseContent (ZxElement* par) {
     endType = (new GString ("</"))->append (par->getType ());
 
     while (parsePtr < parseEnd) {
-        if (match (endType->getCString ())) {
+        if (match (endType->c_str ())) {
             parsePtr += endType->getLength ();
             parseSpace ();
             if (match (">")) { ++parsePtr; }

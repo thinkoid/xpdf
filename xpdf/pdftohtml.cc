@@ -150,13 +150,13 @@ int main (int argc, char* argv[]) {
     for (pg = firstPage; pg <= lastPage; ++pg) {
         htmlFileName = GString::format ("{0:s}/page{1:d}.html", htmlDir, pg);
         pngFileName = GString::format ("{0:s}/page{1:d}.png", htmlDir, pg);
-        if (!(htmlFile = fopen (htmlFileName->getCString (), "wb"))) {
+        if (!(htmlFile = fopen (htmlFileName->c_str (), "wb"))) {
             error (errIO, -1, "Couldn't open HTML file '{0:t}'", htmlFileName);
             delete htmlFileName;
             delete pngFileName;
             goto err2;
         }
-        if (!(pngFile = fopen (pngFileName->getCString (), "wb"))) {
+        if (!(pngFile = fopen (pngFileName->c_str (), "wb"))) {
             error (errIO, -1, "Couldn't open PNG file '{0:t}'", pngFileName);
             fclose (htmlFile);
             delete htmlFileName;
@@ -165,7 +165,7 @@ int main (int argc, char* argv[]) {
         }
         pngURL = GString::format ("page{0:d}.png", pg);
         err = htmlGen->convertPage (
-            pg, pngURL->getCString (), &writeToFile, htmlFile, &writeToFile,
+            pg, pngURL->c_str (), &writeToFile, htmlFile, &writeToFile,
             pngFile);
         delete pngURL;
         fclose (htmlFile);
@@ -208,7 +208,7 @@ static GBool createIndex (char* htmlDir) {
     int pg;
 
     htmlFileName = GString::format ("{0:s}/index.html", htmlDir);
-    html = fopen (htmlFileName->getCString (), "w");
+    html = fopen (htmlFileName->c_str (), "w");
     delete htmlFileName;
     if (!html) {
         error (errIO, -1, "Couldn't open HTML file '{0:t}'", htmlFileName);

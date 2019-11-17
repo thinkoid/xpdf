@@ -113,7 +113,7 @@ void Object::print (FILE* f) {
     case objReal: fprintf (f, "%g", real); break;
     case objString:
         fprintf (f, "(");
-        fwrite (string->getCString (), 1, string->getLength (), f);
+        fwrite (string->c_str (), 1, string->getLength (), f);
         fprintf (f, ")");
         break;
     case objName: fprintf (f, "/%s", name); break;

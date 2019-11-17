@@ -37,7 +37,7 @@ public:
     // table are permitted -- this is useful when calling the convert*
     // functions.
     static FoFiTrueType*
-    load (char* fileName, int fontNum, GBool allowHeadlessCFF = gFalse);
+    load (const char* fileName, int fontNum, GBool allowHeadlessCFF = gFalse);
 
     virtual ~FoFiTrueType ();
 
@@ -98,7 +98,7 @@ public:
     // <codeToGID> array specifies the mapping from char codes to GIDs.
     // (Not useful for OpenType CFF fonts.)
     void convertToType42 (
-        char* psName, char** encoding, int* codeToGID,
+        const char* psName, char** encoding, int* codeToGID,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 1 font, suitable for embedding in a PostScript
@@ -109,7 +109,7 @@ public:
     // non-NULL, it will be used as the PostScript font name.  (Only
     // useful for OpenType CFF fonts.)
     void convertToType1 (
-        char* psName, const char** newEncoding, GBool ascii,
+        const char* psName, const char** newEncoding, GBool ascii,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 2 CIDFont, suitable for embedding in a
@@ -118,14 +118,14 @@ public:
     // font).  The <cidMap> array maps CIDs to GIDs; it has <nCIDs>
     // entries.  (Not useful for OpenType CFF fonts.)
     void convertToCIDType2 (
-        char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
+        const char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 0 CIDFont, suitable for embedding in a
     // PostScript file.  <psName> will be used as the PostScript font
     // name.  (Only useful for OpenType CFF fonts.)
     void convertToCIDType0 (
-        char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
+        const char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
         void* outputStream);
 
     // Convert to a Type 0 (but non-CID) composite font, suitable for
@@ -134,14 +134,14 @@ public:
     // table in the font).  The <cidMap> array maps CIDs to GIDs; it has
     // <nCIDs> entries.  (Not useful for OpenType CFF fonts.)
     void convertToType0 (
-        char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
+        const char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 0 (but non-CID) composite font, suitable for
     // embedding in a PostScript file.  <psName> will be used as the
     // PostScript font name.  (Only useful for OpenType CFF fonts.)
     void convertToType0 (
-        char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
+        const char* psName, int* cidMap, int nCIDs, FoFiOutputFunc outputFunc,
         void* outputStream);
 
     // Write a clean TTF file, filling in missing tables and correcting

@@ -340,7 +340,7 @@ Object* Lexer::getObj (Object* obj) {
             obj->initName (tokBuf);
         }
         else {
-            obj->initName (s->getCString ());
+            obj->initName (s->c_str ());
             delete s;
         }
         break;

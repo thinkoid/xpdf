@@ -246,7 +246,7 @@ pf (int (*writeFunc) (void* stream, const char* data, int size), void* stream,
     va_start (args, fmt);
     s = GString::formatv (fmt, args);
     va_end (args);
-    ret = writeFunc (stream, s->getCString (), s->getLength ());
+    ret = writeFunc (stream, s->c_str (), s->getLength ());
     delete s;
     return ret;
 }
@@ -486,7 +486,7 @@ int HTMLGen::convertPage (
 
 GString* HTMLGen::getFontDefn (TextFontInfo* font, double* scale) {
     GString* fontName;
-    char* fontName2;
+    const char* fontName2;
     FontStyleTagInfo* fst;
     StandardFontInfo* sf;
     GBool fixedWidth, serif, bold, italic;
@@ -496,7 +496,7 @@ GString* HTMLGen::getFontDefn (TextFontInfo* font, double* scale) {
     // get the font name, remove any subset tag
     fontName = font->getFontName ();
     if (fontName) {
-        fontName2 = fontName->getCString ();
+        fontName2 = fontName->c_str ();
         n = fontName->getLength ();
         for (i = 0; i < n && i < 7; ++i) {
             if (fontName2[i] < 'A' || fontName2[i] > 'Z') { break; }

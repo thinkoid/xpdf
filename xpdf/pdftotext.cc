@@ -97,7 +97,7 @@ int main (int argc, char* argv[]) {
     UnicodeMap* uMap;
     Object info;
     GBool ok;
-    char* p;
+    const char* p;
     int exitCode;
 
 #ifdef DEBUG_FP_LINUX
@@ -176,10 +176,10 @@ int main (int argc, char* argv[]) {
     // construct text file name
     if (argc == 3) { textFileName = new GString (argv[2]); }
     else {
-        p = fileName->getCString () + fileName->getLength () - 4;
+        p = fileName->c_str () + fileName->getLength () - 4;
         if (!strcmp (p, ".pdf") || !strcmp (p, ".PDF")) {
             textFileName = new GString (
-                fileName->getCString (), fileName->getLength () - 4);
+                fileName->c_str (), fileName->getLength () - 4);
         }
         else {
             textFileName = fileName->copy ();
@@ -215,7 +215,7 @@ int main (int argc, char* argv[]) {
     }
     textOutControl.clipText = clipText;
     textOut = new TextOutputDev (
-        textFileName->getCString (), &textOutControl, gFalse);
+        textFileName->c_str (), &textOutControl, gFalse);
     if (textOut->isOk ()) {
         doc->displayPages (
             textOut, firstPage, lastPage, 72, 72, 0, gFalse, gTrue, gFalse);

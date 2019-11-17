@@ -127,7 +127,7 @@ int main (int argc, char* argv[]) {
     GString *ownerPW, *userPW;
     PSOutputDev* psOut;
     GBool ok;
-    char* p;
+    const char* p;
     int exitCode;
 
 #ifdef DEBUG_FP_LINUX
@@ -255,10 +255,10 @@ int main (int argc, char* argv[]) {
     // construct PostScript file name
     if (argc == 3) { psFileName = new GString (argv[2]); }
     else {
-        p = fileName->getCString () + fileName->getLength () - 4;
+        p = fileName->c_str () + fileName->getLength () - 4;
         if (!strcmp (p, ".pdf") || !strcmp (p, ".PDF")) {
             psFileName = new GString (
-                fileName->getCString (), fileName->getLength () - 4);
+                fileName->c_str (), fileName->getLength () - 4);
         }
         else {
             psFileName = fileName->copy ();
@@ -282,7 +282,7 @@ int main (int argc, char* argv[]) {
 
     // write PostScript file
     psOut = new PSOutputDev (
-        psFileName->getCString (), doc, firstPage, lastPage, mode);
+        psFileName->c_str (), doc, firstPage, lastPage, mode);
     if (psOut->isOk ()) {
         doc->displayPages (
             psOut, firstPage, lastPage, 72, 72, 0,

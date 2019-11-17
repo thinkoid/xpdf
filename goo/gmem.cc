@@ -195,7 +195,9 @@ void gfree (void* p) {
         }
     }
 #else
-    if (p) { free (p); }
+    if (p) {
+        free (p);
+    }
 #endif
 }
 

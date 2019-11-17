@@ -79,7 +79,7 @@ private:
         GfxFontDict* fontDict, double w, double h, int rot, GString* appearBuf);
     static double getMeasurement (ZxAttr* attr, double defaultVal);
     GString* getFieldValue (const char* valueChildType);
-    ZxElement* findFieldData (ZxElement* elem, char* partName);
+    ZxElement* findFieldData (ZxElement* elem, const char* partName);
     void transform (
         int rot, double w, double h, double* wNew, double* hNew,
         GString* appearBuf);

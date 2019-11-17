@@ -8,10 +8,15 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
+
+#include <sstream>
+
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/PDFDoc.hh>
@@ -205,7 +210,7 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
         return NULL;
     }
 
-    xmlA = ZxDoc::loadMem (data->getCString (), data->getLength ());
+    xmlA = ZxDoc::loadMem (data->c_str (), data->getLength ());
     delete data;
     if (!xmlA) {
         error (errSyntaxError, -1, "Invalid XML in XFA form");
@@ -552,7 +557,7 @@ void XFAFormField::draw (
     w = getMeasurement (xml->findAttr ("w"), 0);
     h = getMeasurement (xml->findAttr ("h"), 0);
     if ((attr = xml->findAttr ("rotate"))) {
-        rot = atoi (attr->getValue ()->getCString ());
+        rot = atoi (attr->getValue ()->c_str ());
         if ((rot %= 360) < 0) { rot += 360; }
     }
     else {
@@ -704,7 +709,7 @@ void XFAFormField::draw (
             copyString ("Resources"), xfaForm->resourceDict.copy (&obj1));
     }
     appearStream = new MemStream (
-        appearBuf->getCString (), 0, appearBuf->getLength (), &appearDict);
+        appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.initStream (appearStream);
     gfx->drawAnnot (&appearance, NULL, x3, y3, x3 + w3, y3 + h3);
     appearance.free ();
@@ -729,7 +734,7 @@ void XFAFormField::drawTextEdit (
     if ((valueElem = xml->findFirstChildElement ("value")) &&
         (textElem = valueElem->findFirstChildElement ("text")) &&
         (attr = textElem->findAttr ("maxChars"))) {
-        maxChars = atoi (attr->getValue ()->getCString ());
+        maxChars = atoi (attr->getValue ()->c_str ());
     }
 
     multiLine = gFalse;
@@ -742,7 +747,7 @@ void XFAFormField::drawTextEdit (
         }
         if ((combElem = textEditElem->findFirstChildElement ("comb"))) {
             if ((attr = combElem->findAttr ("numberOfCells"))) {
-                combCells = atoi (attr->getValue ()->getCString ());
+                combCells = atoi (attr->getValue ()->c_str ());
             }
             else {
                 combCells = maxChars;
@@ -805,14 +810,13 @@ void XFAFormField::drawBarCode (
     GfxFontDict* fontDict, double w, double h, int rot, GString* appearBuf) {
     ZxElement *uiElem, *barcodeElem, *fontElem;
     ZxAttr* attr;
-    GString *value, *value2, *barcodeType, *textLocation, *fontName, *s1, *s2;
+    GString *value, *value2, *barcodeType, *textLocation, *fontName;
     XFAVertAlign textAlign;
     double wideNarrowRatio, fontSize;
     double yText, wText, yBarcode, hBarcode, wNarrow, xx;
     GBool doText;
     int dataLength;
     GBool bold, italic;
-    char* p;
     int i, j, c;
 
     //--- get field value
@@ -829,20 +833,30 @@ void XFAFormField::drawBarCode (
             barcodeType = attr->getValue ();
         }
         if ((attr = barcodeElem->findAttr ("wideNarrowRatio"))) {
-            s1 = attr->getValue ();
-            if ((p = strchr (s1->getCString (), ':'))) {
-                s2 = new GString (s1, 0, p - s1->getCString ());
-                wideNarrowRatio = atof (p + 1);
-                if (wideNarrowRatio == 0) { wideNarrowRatio = 1; }
-                wideNarrowRatio = atof (s2->getCString ()) / wideNarrowRatio;
-                delete s2;
+            const auto pstr = attr->getValue ();
+            assert (pstr);
+
+            const std::string s{ pstr->c_str () };
+            std::stringstream ss{ s };
+
+            char delimiter;
+            float a, b;
+
+            ss >> a >> delimiter >> b;
+
+            if (ss && ss.eof ()) {
+                if (0 == b) {
+                    b = 1;
+                }
+
+                wideNarrowRatio = a / b;
             }
             else {
-                wideNarrowRatio = atof (s1->getCString ());
+                wideNarrowRatio = std::stof (s);
             }
         }
         if ((attr = barcodeElem->findAttr ("dataLength"))) {
-            dataLength = atoi (attr->getValue ()->getCString ());
+            dataLength = atoi (attr->getValue ()->c_str ());
         }
         if ((attr = barcodeElem->findAttr ("textLocation"))) {
             textLocation = attr->getValue ();
@@ -1030,7 +1044,6 @@ double XFAFormField::getMeasurement (ZxAttr* attr, double defaultVal) {
 
 GString* XFAFormField::getFieldValue (const char* valueChildType) {
     ZxElement *valueElem, *datasets, *data, *elem;
-    char* p;
 
     // check the <value> element within the field
     if ((valueElem = xml->findFirstChildElement ("value")) &&
@@ -1049,11 +1062,16 @@ GString* XFAFormField::getFieldValue (const char* valueChildType) {
         !(data = datasets->findFirstChildElement ("xfa:data"))) {
         return NULL;
     }
-    p = name->getCString ();
-    if (!strncmp (p, "form.", 5)) { p += 5; }
-    else {
-        return NULL;
+
+    const char* p = name->c_str ();
+
+    if (!strncmp (p, "form.", 5)) {
+        p += 5;
     }
+    else {
+        return 0;
+    }
+
     elem = findFieldData (data, p);
     if (elem && elem->getFirstChild () &&
         elem->getFirstChild ()->isCharData () &&
@@ -1064,7 +1082,7 @@ GString* XFAFormField::getFieldValue (const char* valueChildType) {
     return NULL;
 }
 
-ZxElement* XFAFormField::findFieldData (ZxElement* elem, char* partName) {
+ZxElement* XFAFormField::findFieldData (ZxElement* elem, const char* partName) {
     ZxNode* node;
     GString* nodeName;
     int curIdx, idx, n;
@@ -1074,7 +1092,7 @@ ZxElement* XFAFormField::findFieldData (ZxElement* elem, char* partName) {
         if (node->isElement ()) {
             nodeName = ((ZxElement*)node)->getType ();
             n = nodeName->getLength ();
-            if (!strncmp (partName, nodeName->getCString (), n)) {
+            if (!strncmp (partName, nodeName->c_str (), n)) {
                 if (partName[n] == '[') {
                     idx = atoi (partName + n + 1);
                     if (idx == curIdx) {
@@ -1333,7 +1351,6 @@ GfxFont* XFAFormField::findFont (
     GString *reqName, *testName;
     GfxFont* font;
     GBool foundName, foundBold, foundItalic;
-    char* p;
     char c;
     int i, j;
 
@@ -1354,9 +1371,9 @@ GfxFont* XFAFormField::findFont (
             if (c != ' ') { testName->append (c); }
         }
         foundName = foundBold = foundItalic = gFalse;
-        for (p = testName->getCString (); *p; ++p) {
+        for (const char* p = testName->c_str (); *p; ++p) {
             if (!strncasecmp (
-                    p, reqName->getCString (), reqName->getLength ())) {
+                    p, reqName->c_str (), reqName->getLength ())) {
                 foundName = gTrue;
             }
             if (!strncasecmp (p, "bold", 4)) { foundBold = gTrue; }

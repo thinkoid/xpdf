@@ -21,12 +21,13 @@ static const char* errorCategoryNames[] = {
     "Unimplemented Feature", "Internal Error"
 };
 
-static void (*errorCbk) (
-    void* data, ErrorCategory category, int pos, char* msg) = NULL;
-static void* errorCbkData = NULL;
+static void
+(*errorCbk) (void* data, ErrorCategory category, int pos, const char* msg) = 0;
+
+static void* errorCbkData = 0;
 
 void setErrorCallback (
-    void (*cbk) (void* data, ErrorCategory category, int pos, char* msg),
+    void (*cbk) (void* data, ErrorCategory category, int pos, const char* msg),
     void* data) {
     errorCbk = cbk;
     errorCbkData = data;
@@ -56,19 +57,18 @@ void error (ErrorCategory category, GFileOffset pos, const char* msg, ...) {
     }
 
     if (errorCbk) {
-        (*errorCbk) (
-            errorCbkData, category, (int)pos, sanitized->getCString ());
+        (*errorCbk) (errorCbkData, category, (int)pos, sanitized->c_str ());
     }
     else {
         if (pos >= 0) {
             fprintf (
                 stderr, "%s (%d): %s\n", errorCategoryNames[category], (int)pos,
-                sanitized->getCString ());
+                sanitized->c_str ());
         }
         else {
             fprintf (
                 stderr, "%s: %s\n", errorCategoryNames[category],
-                sanitized->getCString ());
+                sanitized->c_str ());
         }
         fflush (stderr);
     }

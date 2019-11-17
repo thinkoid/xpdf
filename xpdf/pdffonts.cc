@@ -360,7 +360,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
 
     // print the font info
     printf (
-        "%-36s %-17s %-3s %-3s %-3s", name ? name->getCString () : "[none]",
+        "%-36s %-17s %-3s %-3s %-3s", name ? name->c_str () : "[none]",
         fontTypeNames[font->getType ()], emb ? "yes" : "no",
         subset ? "yes" : "no", hasToUnicode ? "yes" : "no");
     if (fontRef.gen >= 100000) { printf (" [none]"); }
@@ -377,7 +377,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
                 }
                 else if (loc->locType == gfxFontLocExternal) {
                     if (loc->path) {
-                        printf (" external: %s", loc->path->getCString ());
+                        printf (" external: %s", loc->path->c_str ());
                     }
                     else {
                         printf (" unavailable");
@@ -385,7 +385,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
                 }
                 else if (loc->locType == gfxFontLocResident) {
                     if (loc->path) {
-                        printf (" resident: %s", loc->path->getCString ());
+                        printf (" resident: %s", loc->path->c_str ());
                     }
                     else {
                         printf (" unavailable");

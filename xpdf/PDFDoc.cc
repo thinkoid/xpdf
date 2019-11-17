@@ -65,12 +65,12 @@ PDFDoc::PDFDoc (
 
     // try to open file
     fileName2 = NULL;
-    if (!(file = fopen (fileName1->getCString (), "rb"))) {
+    if (!(file = fopen (fileName1->c_str (), "rb"))) {
         fileName2 = fileName->copy ();
         fileName2->lowerCase ();
-        if (!(file = fopen (fileName2->getCString (), "rb"))) {
+        if (!(file = fopen (fileName2->c_str (), "rb"))) {
             fileName2->upperCase ();
-            if (!(file = fopen (fileName2->getCString (), "rb"))) {
+            if (!(file = fopen (fileName2->c_str (), "rb"))) {
                 error (errIO, -1, "Couldn't open file '{0:t}'", fileName);
                 delete fileName2;
                 errCode = errOpenFile;
@@ -339,7 +339,7 @@ GBool PDFDoc::saveAs (GString* name) {
     char buf[4096];
     int n;
 
-    if (!(f = fopen (name->getCString (), "wb"))) {
+    if (!(f = fopen (name->c_str (), "wb"))) {
         error (errIO, -1, "Couldn't open file '{0:t}'", name);
         return gFalse;
     }

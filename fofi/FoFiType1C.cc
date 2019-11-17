@@ -35,7 +35,7 @@ FoFiType1C* FoFiType1C::make (char* fileA, int lenA) {
     return ff;
 }
 
-FoFiType1C* FoFiType1C::load (char* fileName) {
+FoFiType1C* FoFiType1C::load (const char* fileName) {
     FoFiType1C* ff;
     char* fileA;
     int lenA;
@@ -76,8 +76,8 @@ FoFiType1C::~FoFiType1C () {
     }
 }
 
-char* FoFiType1C::getName () {
-    return name ? name->getCString () : (char*)NULL;
+const char* FoFiType1C::getName () {
+    return name ? name->c_str () : (char*)NULL;
 }
 
 char** FoFiType1C::getEncoding () { return encoding; }
@@ -144,7 +144,7 @@ void FoFiType1C::getFontMatrix (double* mat) {
 }
 
 void FoFiType1C::convertToType1 (
-    char* psName, const char** newEncoding, GBool ascii,
+    const char* psName, const char** newEncoding, GBool ascii,
     FoFiOutputFunc outputFunc, void* outputStream) {
     int psNameLen;
     Type1CEexecBuf eb;
@@ -158,7 +158,7 @@ void FoFiType1C::convertToType1 (
 
     if (psName) { psNameLen = (int)strlen (psName); }
     else {
-        psName = name->getCString ();
+        psName = name->c_str ();
         psNameLen = name->getLength ();
     }
 
@@ -218,22 +218,22 @@ void FoFiType1C::convertToType1 (
         (*outputFunc) (outputStream, "/isFixedPitch false def\n", 24);
     }
     buf = GString::format ("/ItalicAngle {0:.4g} def\n", topDict.italicAngle);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     buf = GString::format (
         "/UnderlinePosition {0:.4g} def\n", topDict.underlinePosition);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     buf = GString::format (
         "/UnderlineThickness {0:.4g} def\n", topDict.underlineThickness);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "end readonly def\n", 17);
     (*outputFunc) (outputStream, "/FontName /", 11);
     (*outputFunc) (outputStream, psName, psNameLen);
     (*outputFunc) (outputStream, " def\n", 5);
     buf = GString::format ("/PaintType {0:d} def\n", topDict.paintType);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "/FontType 1 def\n", 16);
     buf = GString::format (
@@ -241,20 +241,20 @@ void FoFiType1C::convertToType1 (
         "readonly def\n",
         topDict.fontMatrix[0], topDict.fontMatrix[1], topDict.fontMatrix[2],
         topDict.fontMatrix[3], topDict.fontMatrix[4], topDict.fontMatrix[5]);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     buf = GString::format (
         "/FontBBox [{0:.4g} {1:.4g} {2:.4g} {3:.4g}] readonly def\n",
         topDict.fontBBox[0], topDict.fontBBox[1], topDict.fontBBox[2],
         topDict.fontBBox[3]);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     buf = GString::format ("/StrokeWidth {0:.4g} def\n", topDict.strokeWidth);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     if (topDict.uniqueID != 0) {
         buf = GString::format ("/UniqueID {0:d} def\n", topDict.uniqueID);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
 
@@ -272,7 +272,7 @@ void FoFiType1C::convertToType1 (
             if (enc[i]) {
                 buf = GString::format ("dup {0:d} /{1:s} put\n", i, enc[i]);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
         }
@@ -304,7 +304,7 @@ void FoFiType1C::convertToType1 (
         for (i = 0; i < privateDicts[0].nBlueValues; ++i) {
             buf = GString::format (
                 "{0:s}{1:d}", i > 0 ? " " : "", privateDicts[0].blueValues[i]);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         eexecWrite (&eb, "] def\n");
@@ -314,7 +314,7 @@ void FoFiType1C::convertToType1 (
         for (i = 0; i < privateDicts[0].nOtherBlues; ++i) {
             buf = GString::format (
                 "{0:s}{1:d}", i > 0 ? " " : "", privateDicts[0].otherBlues[i]);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         eexecWrite (&eb, "] def\n");
@@ -324,7 +324,7 @@ void FoFiType1C::convertToType1 (
         for (i = 0; i < privateDicts[0].nFamilyBlues; ++i) {
             buf = GString::format (
                 "{0:s}{1:d}", i > 0 ? " " : "", privateDicts[0].familyBlues[i]);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         eexecWrite (&eb, "] def\n");
@@ -335,7 +335,7 @@ void FoFiType1C::convertToType1 (
             buf = GString::format (
                 "{0:s}{1:d}", i > 0 ? " " : "",
                 privateDicts[0].familyOtherBlues[i]);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         eexecWrite (&eb, "] def\n");
@@ -343,29 +343,29 @@ void FoFiType1C::convertToType1 (
     if (privateDicts[0].blueScale != 0.039625) {
         buf = GString::format (
             "/BlueScale {0:.4g} def\n", privateDicts[0].blueScale);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].blueShift != 7) {
         buf = GString::format (
             "/BlueShift {0:d} def\n", privateDicts[0].blueShift);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].blueFuzz != 1) {
         buf =
             GString::format ("/BlueFuzz {0:d} def\n", privateDicts[0].blueFuzz);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].hasStdHW) {
         buf = GString::format ("/StdHW [{0:.4g}] def\n", privateDicts[0].stdHW);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].hasStdVW) {
         buf = GString::format ("/StdVW [{0:.4g}] def\n", privateDicts[0].stdVW);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].nStemSnapH) {
@@ -383,7 +383,7 @@ void FoFiType1C::convertToType1 (
                 buf = GString::format (
                     "{0:s}{1:.4g}", i > 0 ? " " : "",
                     privateDicts[0].stemSnapH[i]);
-                eexecWrite (&eb, buf->getCString ());
+                eexecWrite (&eb, buf->c_str ());
                 delete buf;
             }
             eexecWrite (&eb, "] def\n");
@@ -404,7 +404,7 @@ void FoFiType1C::convertToType1 (
                 buf = GString::format (
                     "{0:s}{1:.4g}", i > 0 ? " " : "",
                     privateDicts[0].stemSnapV[i]);
-                eexecWrite (&eb, buf->getCString ());
+                eexecWrite (&eb, buf->c_str ());
                 delete buf;
             }
             eexecWrite (&eb, "] def\n");
@@ -414,26 +414,26 @@ void FoFiType1C::convertToType1 (
         buf = GString::format (
             "/ForceBold {0:s} def\n",
             privateDicts[0].forceBold ? "true" : "false");
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].forceBoldThreshold != 0) {
         buf = GString::format (
             "/ForceBoldThreshold {0:.4g} def\n",
             privateDicts[0].forceBoldThreshold);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].languageGroup != 0) {
         buf = GString::format (
             "/LanguageGroup {0:d} def\n", privateDicts[0].languageGroup);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
     if (privateDicts[0].expansionFactor != 0.06) {
         buf = GString::format (
             "/ExpansionFactor {0:.4g} def\n", privateDicts[0].expansionFactor);
-        eexecWrite (&eb, buf->getCString ());
+        eexecWrite (&eb, buf->c_str ());
         delete buf;
     }
 
@@ -445,7 +445,7 @@ void FoFiType1C::convertToType1 (
     // write the CharStrings
     buf = GString::format (
         "2 index /CharStrings {0:d} dict dup begin\n", nGlyphs);
-    eexecWrite (&eb, buf->getCString ());
+    eexecWrite (&eb, buf->c_str ());
     delete buf;
     for (i = 0; i < nGlyphs; ++i) {
         ok = gTrue;
@@ -478,7 +478,7 @@ void FoFiType1C::convertToType1 (
 }
 
 void FoFiType1C::convertToCIDType0 (
-    char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
+    const char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
     void* outputStream) {
     int* cidMap;
     GString* charStrings;
@@ -585,7 +585,7 @@ void FoFiType1C::convertToCIDType0 (
         (*outputFunc) (outputStream, "  /Ordering (Identity) def\n", 27);
     }
     buf = GString::format ("  /Supplement {0:d} def\n", topDict.supplement);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "end def\n", 8);
     if (topDict.hasFontMatrix) {
@@ -595,7 +595,7 @@ void FoFiType1C::convertToCIDType0 (
             topDict.fontMatrix[0], topDict.fontMatrix[1], topDict.fontMatrix[2],
             topDict.fontMatrix[3], topDict.fontMatrix[4],
             topDict.fontMatrix[5]);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
     else if (privateDicts[0].hasFontMatrix) {
@@ -609,7 +609,7 @@ void FoFiType1C::convertToCIDType0 (
         "/FontBBox [{0:.4g} {1:.4g} {2:.4g} {3:.4g}] def\n",
         topDict.fontBBox[0], topDict.fontBBox[1], topDict.fontBBox[2],
         topDict.fontBBox[3]);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "/FontInfo 1 dict dup begin\n", 27);
     (*outputFunc) (outputStream, "  /FSType 8 def\n", 16);
@@ -617,30 +617,30 @@ void FoFiType1C::convertToCIDType0 (
 
     // CIDFont-specific entries
     buf = GString::format ("/CIDCount {0:d} def\n", nCIDs);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "/FDBytes 1 def\n", 15);
     buf = GString::format ("/GDBytes {0:d} def\n", gdBytes);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     (*outputFunc) (outputStream, "/CIDMapOffset 0 def\n", 20);
     if (topDict.paintType != 0) {
         buf = GString::format ("/PaintType {0:d} def\n", topDict.paintType);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         buf =
             GString::format ("/StrokeWidth {0:.4g} def\n", topDict.strokeWidth);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
 
     // FDArray entry
     buf = GString::format ("/FDArray {0:d} array\n", nFDs);
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
     for (i = 0; i < nFDs; ++i) {
         buf = GString::format ("dup {0:d} 10 dict begin\n", i);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         (*outputFunc) (outputStream, "/FontType 1 def\n", 16);
         if (privateDicts[i].hasFontMatrix) {
@@ -650,14 +650,14 @@ void FoFiType1C::convertToCIDType0 (
                 privateDicts[i].fontMatrix[0], privateDicts[i].fontMatrix[1],
                 privateDicts[i].fontMatrix[2], privateDicts[i].fontMatrix[3],
                 privateDicts[i].fontMatrix[4], privateDicts[i].fontMatrix[5]);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         else {
             (*outputFunc) (outputStream, "/FontMatrix [1 0 0 1 0 0] def\n", 30);
         }
         buf = GString::format ("/PaintType {0:d} def\n", topDict.paintType);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         (*outputFunc) (outputStream, "/Private 32 dict begin\n", 23);
         if (privateDicts[i].nBlueValues) {
@@ -667,7 +667,7 @@ void FoFiType1C::convertToCIDType0 (
                     "{0:s}{1:d}", j > 0 ? " " : "",
                     privateDicts[i].blueValues[j]);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
             (*outputFunc) (outputStream, "] def\n", 6);
@@ -679,7 +679,7 @@ void FoFiType1C::convertToCIDType0 (
                     "{0:s}{1:d}", j > 0 ? " " : "",
                     privateDicts[i].otherBlues[j]);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
             (*outputFunc) (outputStream, "] def\n", 6);
@@ -691,7 +691,7 @@ void FoFiType1C::convertToCIDType0 (
                     "{0:s}{1:d}", j > 0 ? " " : "",
                     privateDicts[i].familyBlues[j]);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
             (*outputFunc) (outputStream, "] def\n", 6);
@@ -703,7 +703,7 @@ void FoFiType1C::convertToCIDType0 (
                     "{0:s}{1:d}", j > 0 ? " " : "",
                     privateDicts[i].familyOtherBlues[j]);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
             (*outputFunc) (outputStream, "] def\n", 6);
@@ -711,31 +711,31 @@ void FoFiType1C::convertToCIDType0 (
         if (privateDicts[i].blueScale != 0.039625) {
             buf = GString::format (
                 "/BlueScale {0:.4g} def\n", privateDicts[i].blueScale);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].blueShift != 7) {
             buf = GString::format (
                 "/BlueShift {0:d} def\n", privateDicts[i].blueShift);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].blueFuzz != 1) {
             buf = GString::format (
                 "/BlueFuzz {0:d} def\n", privateDicts[i].blueFuzz);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].hasStdHW) {
             buf = GString::format (
                 "/StdHW [{0:.4g}] def\n", privateDicts[i].stdHW);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].hasStdVW) {
             buf = GString::format (
                 "/StdVW [{0:.4g}] def\n", privateDicts[i].stdVW);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].nStemSnapH) {
@@ -754,7 +754,7 @@ void FoFiType1C::convertToCIDType0 (
                         "{0:s}{1:.4g}", j > 0 ? " " : "",
                         privateDicts[i].stemSnapH[j]);
                     (*outputFunc) (
-                        outputStream, buf->getCString (), buf->getLength ());
+                        outputStream, buf->c_str (), buf->getLength ());
                     delete buf;
                 }
                 (*outputFunc) (outputStream, "] def\n", 6);
@@ -776,7 +776,7 @@ void FoFiType1C::convertToCIDType0 (
                         "{0:s}{1:.4g}", j > 0 ? " " : "",
                         privateDicts[i].stemSnapV[j]);
                     (*outputFunc) (
-                        outputStream, buf->getCString (), buf->getLength ());
+                        outputStream, buf->c_str (), buf->getLength ());
                     delete buf;
                 }
                 (*outputFunc) (outputStream, "] def\n", 6);
@@ -786,27 +786,27 @@ void FoFiType1C::convertToCIDType0 (
             buf = GString::format (
                 "/ForceBold {0:s} def\n",
                 privateDicts[i].forceBold ? "true" : "false");
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].forceBoldThreshold != 0) {
             buf = GString::format (
                 "/ForceBoldThreshold {0:.4g} def\n",
                 privateDicts[i].forceBoldThreshold);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].languageGroup != 0) {
             buf = GString::format (
                 "/LanguageGroup {0:d} def\n", privateDicts[i].languageGroup);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (privateDicts[i].expansionFactor != 0.06) {
             buf = GString::format (
                 "/ExpansionFactor {0:.4g} def\n",
                 privateDicts[i].expansionFactor);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         (*outputFunc) (outputStream, "currentdict end def\n", 20);
@@ -818,7 +818,7 @@ void FoFiType1C::convertToCIDType0 (
     offset = (nCIDs + 1) * (1 + gdBytes);
     buf = GString::format (
         "(Hex) {0:d} StartData\n", offset + charStrings->getLength ());
-    (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+    (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
     delete buf;
 
     // write the charstring offset (CIDMap) table
@@ -838,7 +838,7 @@ void FoFiType1C::convertToCIDType0 (
             for (k = 0; k <= gdBytes; ++k) {
                 buf = GString::format ("{0:02x}", buf2[k] & 0xff);
                 (*outputFunc) (
-                    outputStream, buf->getCString (), buf->getLength ());
+                    outputStream, buf->c_str (), buf->getLength ());
                 delete buf;
             }
         }
@@ -851,7 +851,7 @@ void FoFiType1C::convertToCIDType0 (
         for (j = 0; j < 32 && i + j < n; ++j) {
             buf = GString::format (
                 "{0:02x}", charStrings->getChar (i + j) & 0xff);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (i + 32 >= n) { (*outputFunc) (outputStream, ">", 1); }
@@ -864,7 +864,7 @@ void FoFiType1C::convertToCIDType0 (
 }
 
 void FoFiType1C::convertToType0 (
-    char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
+    const char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
     void* outputStream) {
     int* cidMap;
     Type1CIndex subrIdx;
@@ -924,7 +924,7 @@ void FoFiType1C::convertToType0 (
         (*outputFunc) (outputStream, "/FontName /", 11);
         (*outputFunc) (outputStream, psName, (int)strlen (psName));
         buf = GString::format ("_{0:02x} def\n", i >> 8);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         (*outputFunc) (outputStream, "/FontType 1 def\n", 16);
         if (privateDicts[fd].hasFontMatrix) {
@@ -934,7 +934,7 @@ void FoFiType1C::convertToType0 (
                 privateDicts[fd].fontMatrix[0], privateDicts[fd].fontMatrix[1],
                 privateDicts[fd].fontMatrix[2], privateDicts[fd].fontMatrix[3],
                 privateDicts[fd].fontMatrix[4], privateDicts[fd].fontMatrix[5]);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         else if (topDict.hasFontMatrix) {
@@ -948,27 +948,27 @@ void FoFiType1C::convertToType0 (
             "/FontBBox [{0:.4g} {1:.4g} {2:.4g} {3:.4g}] def\n",
             topDict.fontBBox[0], topDict.fontBBox[1], topDict.fontBBox[2],
             topDict.fontBBox[3]);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         buf = GString::format ("/PaintType {0:d} def\n", topDict.paintType);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
         if (topDict.paintType != 0) {
             buf = GString::format (
                 "/StrokeWidth {0:.4g} def\n", topDict.strokeWidth);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         (*outputFunc) (outputStream, "/Encoding 256 array\n", 20);
         for (j = 0; j < 256 && i + j < nCIDs; ++j) {
             buf = GString::format ("dup {0:d} /c{1:02x} put\n", j, j);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         if (j < 256) {
             buf = GString::format (
                 "{0:d} 1 255 {{ 1 index exch /.notdef put }} for\n", j);
-            (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
             delete buf;
         }
         (*outputFunc) (outputStream, "readonly def\n", 13);
@@ -999,7 +999,7 @@ void FoFiType1C::convertToType0 (
                 buf = GString::format (
                     "{0:s}{1:d}", k > 0 ? " " : "",
                     privateDicts[fd].blueValues[k]);
-                eexecWrite (&eb, buf->getCString ());
+                eexecWrite (&eb, buf->c_str ());
                 delete buf;
             }
             eexecWrite (&eb, "] def\n");
@@ -1010,7 +1010,7 @@ void FoFiType1C::convertToType0 (
                 buf = GString::format (
                     "{0:s}{1:d}", k > 0 ? " " : "",
                     privateDicts[fd].otherBlues[k]);
-                eexecWrite (&eb, buf->getCString ());
+                eexecWrite (&eb, buf->c_str ());
                 delete buf;
             }
             eexecWrite (&eb, "] def\n");
@@ -1021,7 +1021,7 @@ void FoFiType1C::convertToType0 (
                 buf = GString::format (
                     "{0:s}{1:d}", k > 0 ? " " : "",
                     privateDicts[fd].familyBlues[k]);
-                eexecWrite (&eb, buf->getCString ());
+                eexecWrite (&eb, buf->c_str ());
                 delete buf;
             }
             eexecWrite (&eb, "] def\n");
@@ -1032,7 +1032,7 @@ void FoFiType1C::convertToType0 (
                 buf = GString::format (
                     "{0:s}{1:d}", k > 0 ? " " : "",
                     privateDicts[fd].familyOtherBlues[k]);
-                eexecWrite (&eb, buf->getCString ());
+                eexecWrite (&eb, buf->c_str ());
                 delete buf;
             }
             eexecWrite (&eb, "] def\n");
@@ -1040,31 +1040,31 @@ void FoFiType1C::convertToType0 (
         if (privateDicts[fd].blueScale != 0.039625) {
             buf = GString::format (
                 "/BlueScale {0:.4g} def\n", privateDicts[fd].blueScale);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].blueShift != 7) {
             buf = GString::format (
                 "/BlueShift {0:d} def\n", privateDicts[fd].blueShift);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].blueFuzz != 1) {
             buf = GString::format (
                 "/BlueFuzz {0:d} def\n", privateDicts[fd].blueFuzz);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].hasStdHW) {
             buf = GString::format (
                 "/StdHW [{0:.4g}] def\n", privateDicts[fd].stdHW);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].hasStdVW) {
             buf = GString::format (
                 "/StdVW [{0:.4g}] def\n", privateDicts[fd].stdVW);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].nStemSnapH) {
@@ -1082,7 +1082,7 @@ void FoFiType1C::convertToType0 (
                     buf = GString::format (
                         "{0:s}{1:.4g}", k > 0 ? " " : "",
                         privateDicts[fd].stemSnapH[k]);
-                    eexecWrite (&eb, buf->getCString ());
+                    eexecWrite (&eb, buf->c_str ());
                     delete buf;
                 }
                 eexecWrite (&eb, "] def\n");
@@ -1103,7 +1103,7 @@ void FoFiType1C::convertToType0 (
                     buf = GString::format (
                         "{0:s}{1:.4g}", k > 0 ? " " : "",
                         privateDicts[fd].stemSnapV[k]);
-                    eexecWrite (&eb, buf->getCString ());
+                    eexecWrite (&eb, buf->c_str ());
                     delete buf;
                 }
                 eexecWrite (&eb, "] def\n");
@@ -1113,27 +1113,27 @@ void FoFiType1C::convertToType0 (
             buf = GString::format (
                 "/ForceBold {0:s} def\n",
                 privateDicts[fd].forceBold ? "true" : "false");
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].forceBoldThreshold != 0) {
             buf = GString::format (
                 "/ForceBoldThreshold {0:.4g} def\n",
                 privateDicts[fd].forceBoldThreshold);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].languageGroup != 0) {
             buf = GString::format (
                 "/LanguageGroup {0:d} def\n", privateDicts[fd].languageGroup);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
         if (privateDicts[fd].expansionFactor != 0.06) {
             buf = GString::format (
                 "/ExpansionFactor {0:.4g} def\n",
                 privateDicts[fd].expansionFactor);
-            eexecWrite (&eb, buf->getCString ());
+            eexecWrite (&eb, buf->c_str ());
             delete buf;
         }
 
@@ -1161,7 +1161,7 @@ void FoFiType1C::convertToType0 (
                 if (ok) {
                     buf = GString::format ("c{0:02x}", j);
                     eexecCvtGlyph (
-                        &eb, buf->getCString (), val.pos, val.len, &subrIdx,
+                        &eb, buf->c_str (), val.pos, val.len, &subrIdx,
                         &privateDicts[fd]);
                     delete buf;
                 }
@@ -1199,7 +1199,7 @@ void FoFiType1C::convertToType0 (
             topDict.fontMatrix[0], topDict.fontMatrix[1], topDict.fontMatrix[2],
             topDict.fontMatrix[3], topDict.fontMatrix[4],
             topDict.fontMatrix[5]);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
     else {
@@ -1209,7 +1209,7 @@ void FoFiType1C::convertToType0 (
     (*outputFunc) (outputStream, "/Encoding [\n", 12);
     for (i = 0; i < nCIDs; i += 256) {
         buf = GString::format ("{0:d}\n", i >> 8);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
     (*outputFunc) (outputStream, "] def\n", 6);
@@ -1218,7 +1218,7 @@ void FoFiType1C::convertToType0 (
         (*outputFunc) (outputStream, "/", 1);
         (*outputFunc) (outputStream, psName, (int)strlen (psName));
         buf = GString::format ("_{0:02x} findfont\n", i >> 8);
-        (*outputFunc) (outputStream, buf->getCString (), buf->getLength ());
+        (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
         delete buf;
     }
     (*outputFunc) (outputStream, "] def\n", 6);
@@ -1240,10 +1240,10 @@ void FoFiType1C::eexecCvtGlyph (
 
     buf =
         GString::format ("/{0:s} {1:d} RD ", glyphName, charBuf->getLength ());
-    eexecWrite (eb, buf->getCString ());
+    eexecWrite (eb, buf->c_str ());
     delete buf;
     eexecWriteCharstring (
-        eb, (Guchar*)charBuf->getCString (), charBuf->getLength ());
+        eb, (Guchar*)charBuf->c_str (), charBuf->getLength ());
     eexecWrite (eb, " ND\n");
 
     delete charBuf;

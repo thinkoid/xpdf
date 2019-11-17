@@ -97,7 +97,7 @@ CharCodeToUnicode::parseCIDToUnicode (GString* fileName, GString* collection) {
     Unicode u;
     CharCodeToUnicode* ctu;
 
-    if (!(f = openFile (fileName->getCString (), "r"))) {
+    if (!(f = openFile (fileName->c_str (), "r"))) {
         error (
             errSyntaxError, -1, "Couldn't open cidToUnicode file '{0:t}'",
             fileName);
@@ -144,7 +144,7 @@ CharCodeToUnicode::parseUnicodeToUnicode (GString* fileName) {
     CharCodeToUnicode* ctu;
     int line, n, i;
 
-    if (!(f = openFile (fileName->getCString (), "r"))) {
+    if (!(f = openFile (fileName->c_str (), "r"))) {
         error (
             errSyntaxError, -1, "Couldn't open unicodeToUnicode file '{0:t}'",
             fileName);
@@ -222,19 +222,16 @@ CharCodeToUnicode* CharCodeToUnicode::make8BitToUnicode (Unicode* toUnicode) {
 }
 
 CharCodeToUnicode* CharCodeToUnicode::parseCMap (GString* buf, int nBits) {
-    CharCodeToUnicode* ctu;
-    char* p;
+    CharCodeToUnicode* ctu = new CharCodeToUnicode (NULL);
 
-    ctu = new CharCodeToUnicode (NULL);
-    p = buf->getCString ();
+    const char* p = buf->c_str ();
     ctu->parseCMap1 (&getCharFromString, &p, nBits);
+
     return ctu;
 }
 
 void CharCodeToUnicode::mergeCMap (GString* buf, int nBits) {
-    char* p;
-
-    p = buf->getCString ();
+    const char* p = buf->c_str ();
     parseCMap1 (&getCharFromString, &p, nBits);
 }
 

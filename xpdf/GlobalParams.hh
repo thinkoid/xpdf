@@ -254,7 +254,7 @@ public:
 
     void addFontFile (GString* fontName, GString* path);
     void setPSFile (char* file);
-    GBool setPSPaperSize (char* size);
+    GBool setPSPaperSize (const char* size);
     void setPSPaperWidth (int width);
     void setPSPaperHeight (int height);
     void setPSImageableArea (int llx, int lly, int urx, int ury);
@@ -277,7 +277,7 @@ public:
     GBool setTextEOL (char* s);
     void setTextPageBreaks (GBool pageBreaks);
     void setTextKeepTinyChars (GBool keep);
-    void setInitialZoom (char* s);
+    void setInitialZoom (const char* s);
     void setContinuousView (GBool cont);
     GBool setEnableFreeType (char* s);
     GBool setAntialias (char* s);
@@ -335,7 +335,7 @@ private:
     void parseYesNo (
         const char* cmdName, GBool* flag, GList* tokens, GString* fileName,
         int line);
-    GBool parseYesNo2 (char* token, GBool* flag);
+    GBool parseYesNo2 (const char* token, GBool* flag);
     void parseInteger (
         const char* cmdName, int* val, GList* tokens, GString* fileName,
         int line);

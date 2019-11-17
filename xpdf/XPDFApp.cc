@@ -366,7 +366,7 @@ void XPDFApp::remoteExec (char* cmd) {
 void XPDFApp::remoteOpen (GString* fileName, int page, GBool raise) {
     char cmd[remoteCmdSize];
 
-    sprintf (cmd, "openFileAtPage(%.200s,%d)\n", fileName->getCString (), page);
+    sprintf (cmd, "openFileAtPage(%.200s,%d)\n", fileName->c_str (), page);
     if (raise) { strcat (cmd, "raise\n"); }
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
@@ -378,8 +378,8 @@ void XPDFApp::remoteOpenAtDest (GString* fileName, GString* dest, GBool raise) {
     char cmd[remoteCmdSize];
 
     sprintf (
-        cmd, "openFileAtDest(%.200s,%.256s)\n", fileName->getCString (),
-        dest->getCString ());
+        cmd, "openFileAtDest(%.200s,%.256s)\n", fileName->c_str (),
+        dest->c_str ());
     if (raise) { strcat (cmd, "raise\n"); }
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,

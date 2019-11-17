@@ -3163,8 +3163,8 @@ void Gfx::doSetFont (GfxFont* font, double size) {
     }
     if (printCommands) {
         printf (
-            "  font: tag=%s name='%s' %g\n", font->getTag ()->getCString (),
-            font->getName () ? font->getName ()->getCString () : "???", size);
+            "  font: tag=%s name='%s' %g\n", font->getTag ()->c_str (),
+            font->getName () ? font->getName ()->c_str () : "???", size);
         fflush (stdout);
     }
     state->setFont (font, size);
@@ -3386,7 +3386,6 @@ void Gfx::doShowText (GString* s) {
     Dict* resDict;
     Parser* oldParser;
     GfxState* savedState;
-    char* p;
     int render;
     GBool patternFill;
     int len, n, uLen, nChars, nSpaces, i;
@@ -3440,7 +3439,7 @@ void Gfx::doShowText (GString* s) {
         curX = state->getCurX ();
         curY = state->getCurY ();
         oldParser = parser;
-        p = s->getCString ();
+        const char* p = s->c_str ();
         len = s->getLength ();
         while (len > 0) {
             n = font->getNextChar (
@@ -3486,7 +3485,7 @@ void Gfx::doShowText (GString* s) {
         parser = oldParser;
     }
     else if (out->useDrawChar ()) {
-        p = s->getCString ();
+        const char* p = s->c_str ();
         len = s->getLength ();
         while (len > 0) {
             n = font->getNextChar (
@@ -3517,7 +3516,7 @@ void Gfx::doShowText (GString* s) {
     }
     else {
         dx = dy = 0;
-        p = s->getCString ();
+        const char* p = s->c_str ();
         len = s->getLength ();
         nChars = nSpaces = 0;
         while (len > 0) {

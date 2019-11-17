@@ -54,7 +54,7 @@ class PSOutputDev : public OutputDev {
 public:
     // Open a PostScript output file, and write the prolog.
     PSOutputDev (
-        char* fileName, PDFDoc* docA, int firstPage, int lastPage,
+        const char* fileName, PDFDoc* docA, int firstPage, int lastPage,
         PSOutMode modeA, int imgLLXA = 0, int imgLLYA = 0, int imgURXA = 0,
         int imgURYA = 0, GBool manualCtrlA = gFalse,
         PSOutCustomCodeCbk customCodeCbkA = NULL,

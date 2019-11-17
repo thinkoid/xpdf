@@ -35,7 +35,7 @@ class FoFiIdentifier {
 public:
     // Identify a font file.
     static FoFiIdentifierType identifyMem (char* file, int len);
-    static FoFiIdentifierType identifyFile (char* fileName);
+    static FoFiIdentifierType identifyFile (const char* fileName);
     static FoFiIdentifierType
     identifyStream (int (*getChar) (void* data), void* data);
 

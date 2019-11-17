@@ -36,7 +36,7 @@ typedef void (*XPDFUpdateCbk) (
     void* data, GString* fileName, int pageNum, int numPages,
     const char* linkLabel);
 
-typedef void (*XPDFActionCbk) (void* data, char* action);
+typedef void (*XPDFActionCbk) (void* data, const char* action);
 
 typedef void (*XPDFKeyPressCbk) (
     void* data, KeySym key, Guint modifiers, XEvent* event);

@@ -29,7 +29,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, GBool deleteFileA,
 #endif
         const char** encA, GBool useLightHintingA);
     static SplashFontFile* loadCIDFont (
@@ -37,7 +37,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, GBool deleteFileA,
 #endif
         int* codeToGIDA, int codeToGIDLenA);
     static SplashFontFile* loadTrueTypeFont (
@@ -45,7 +45,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, GBool deleteFileA,
 #endif
         int fontNum, int* codeToGIDA, int codeToGIDLenA);
 
@@ -61,7 +61,7 @@ private:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, GBool deleteFileA,
 #endif
         FT_Face faceA, int* codeToGIDA, int codeToGIDLenA, GBool trueTypeA,
         GBool useLightHintingA);

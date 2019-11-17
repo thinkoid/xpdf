@@ -10,16 +10,22 @@
 
 #include <defs.hh>
 
+#include <ctime>
+#include <climits>
+#include <cstring>
+
 #include <fcntl.h>
-#include <limits.h>
 #include <pwd.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
 
 #include <goo/GString.hh>
 #include <goo/gfile.hh>
+
+#include <string>
+
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 
 // Some systems don't define this, so just make it something reasonably
 // large.
@@ -88,21 +94,18 @@ GString* appendToPath (GString* path, const char* fileName) {
     return path;
 }
 
-GString* grabPath (char* fileName) {
-    char* p;
-
-    if ((p = strrchr (fileName, '/')))
-        return new GString (fileName, p - fileName);
-    return new GString ();
+GString* grabPath (const char* fileName) {
+    return new GString (fs::path (fileName).parent_path ().native ());
 }
 
-GBool isAbsolutePath (char* path) { return path[0] == '/'; }
+GBool isAbsolutePath (const char* path) {
+    return path [0] == '/';
+}
 
 GString* makePathAbsolute (GString* path) {
     struct passwd* pw;
     char buf[PATH_MAX + 1];
     GString* s;
-    char *p1, *p2;
     int n;
 
     if (path->getChar (0) == '~') {
@@ -113,19 +116,22 @@ GString* makePathAbsolute (GString* path) {
             delete s;
         }
         else {
-            p1 = path->getCString () + 1;
-            for (p2 = p1; *p2 && *p2 != '/'; ++p2)
-                ;
-            if ((n = p2 - p1) > PATH_MAX) n = PATH_MAX;
+            const char* p1 = path->c_str () + 1, *p2;
+            for (p2 = p1; *p2 && *p2 != '/'; ++p2) ;
+
+            if ((n = p2 - p1) > PATH_MAX)
+                n = PATH_MAX;
+
             strncpy (buf, p1, n);
             buf[n] = '\0';
+
             if ((pw = getpwnam (buf))) {
                 path->del (0, p2 - p1 + 1);
                 path->insert (0, pw->pw_dir);
             }
         }
     }
-    else if (!isAbsolutePath (path->getCString ())) {
+    else if (!isAbsolutePath (path->c_str ())) {
         if (getcwd (buf, sizeof (buf))) {
             path->insert (0, '/');
             path->insert (0, buf);
@@ -134,7 +140,7 @@ GString* makePathAbsolute (GString* path) {
     return path;
 }
 
-time_t getModTime (char* fileName) {
+time_t getModTime (const char* fileName) {
     struct stat statBuf;
 
     if (stat (fileName, &statBuf)) { return 0; }
@@ -143,30 +149,29 @@ time_t getModTime (char* fileName) {
 
 GBool openTempFile (
     GString** name, FILE** f, const char* mode, const char* ext) {
-    char* s;
-    int fd;
+    assert (0 == f [0]);
+    assert (0 == name [0]);
 
-    if (ext) {
-        if ((s = getenv ("TMPDIR"))) { *name = new GString (s); }
-        else {
-            *name = new GString ("/tmp");
+    auto p = fs::temp_directory_path () / fs::unique_path ();
+
+    if (ext && ext [0]) {
+        p += ext;
+    }
+
+    if (FILE* pf = fopen (p.native ().c_str (), mode)) {
+        try {
+            name [0] = new GString (p.native ());
+            f [0] = pf;
         }
-        (*name)->append ("/XXXXXX")->append (ext);
-        fd = mkstemps ((*name)->getCString (), strlen (ext));
-    }
-    else {
-        if ((s = getenv ("TMPDIR"))) { *name = new GString (s); }
-        else {
-            *name = new GString ("/tmp");
+        catch (...) {
+            if (pf) {
+                fclose (pf);
+            }
+
+            return gFalse;
         }
-        (*name)->append ("/XXXXXX");
-        fd = mkstemp ((*name)->getCString ());
     }
-    if (fd < 0 || !(*f = fdopen (fd, mode))) {
-        delete *name;
-        *name = NULL;
-        return gFalse;
-    }
+
     return gTrue;
 }
 
@@ -210,7 +215,7 @@ GFileOffset gftell (FILE* f) { return ftell (f); }
 // GDir and GDirEntry
 //------------------------------------------------------------------------
 
-GDirEntry::GDirEntry (char* dirPath, char* nameA, GBool doStat) {
+GDirEntry::GDirEntry (const char* dirPath, char* nameA, GBool doStat) {
     struct stat st;
     GString* s;
 
@@ -220,7 +225,7 @@ GDirEntry::GDirEntry (char* dirPath, char* nameA, GBool doStat) {
     if (doStat) {
         s = new GString (dirPath);
         appendToPath (s, nameA);
-        if (stat (s->getCString (), &st) == 0) dir = S_ISDIR (st.st_mode);
+        if (stat (s->c_str (), &st) == 0) dir = S_ISDIR (st.st_mode);
         delete s;
     }
 }
@@ -249,7 +254,7 @@ GDirEntry* GDir::getNextEntry () {
             ent = (struct dirent*)readdir (dir);
         }
         if (ent) {
-            e = new GDirEntry (path->getCString (), ent->d_name, doStat);
+            e = new GDirEntry (path->c_str (), ent->d_name, doStat);
         }
     }
 

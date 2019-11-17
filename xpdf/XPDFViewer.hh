@@ -83,7 +83,7 @@ private:
 
     //----- hyperlinks / actions
     void doLink (int wx, int wy, GBool onlyIfNoSelection, GBool newWin);
-    static void actionCbk (void* data, char* action);
+    static void actionCbk (void* data, const char* action);
 
     //----- keyboard/mouse input
     static void

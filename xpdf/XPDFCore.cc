@@ -8,12 +8,18 @@
 
 #include <defs.hh>
 
+#include <cstring>
+
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
-#include <string.h>
+
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
+
+#include <splash/SplashBitmap.hh>
+#include <splash/SplashPattern.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/PDFDoc.hh>
@@ -23,18 +29,16 @@
 #include <xpdf/CoreOutputDev.hh>
 #include <xpdf/PSOutputDev.hh>
 #include <xpdf/TextOutputDev.hh>
-#include <splash/SplashBitmap.hh>
-#include <splash/SplashPattern.hh>
 #include <xpdf/XPDFApp.hh>
 #include <xpdf/XPDFCore.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION
-#undef XtDisplay
-#undef XtScreen
-#undef XtWindow
-#undef XtParent
-#undef XtIsRealized
+#  undef XtDisplay
+#  undef XtScreen
+#  undef XtWindow
+#  undef XtParent
+#  undef XtIsRealized
 #endif
 
 //------------------------------------------------------------------------
@@ -112,7 +116,7 @@ XPDFCore::XPDFCore (
             zoom = zoomWidth;
         }
         else {
-            zoom = atoi (initialZoom->getCString ());
+            zoom = atoi (initialZoom->c_str ());
             if (zoom <= 0) { zoom = defZoom; }
         }
         delete initialZoom;
@@ -160,7 +164,7 @@ int XPDFCore::loadFile (
     err = PDFCore::loadFile (fileName, ownerPassword, userPassword);
     if (err == errNone) {
         // save the modification time
-        modTime = getModTime (doc->getFileName ()->getCString ());
+        modTime = getModTime (doc->getFileName ()->c_str ());
 
         // update the parent window
         if (updateCbk) {
@@ -196,7 +200,7 @@ void XPDFCore::loadDoc (PDFDoc* docA) {
 
     // save the modification time
     if (doc->getFileName ()) {
-        modTime = getModTime (doc->getFileName ()->getCString ());
+        modTime = getModTime (doc->getFileName ()->c_str ());
     }
 
     // update the parent window
@@ -278,7 +282,7 @@ GBool XPDFCore::checkForNewFile () {
     time_t newModTime;
 
     if (doc->getFileName ()) {
-        newModTime = getModTime (doc->getFileName ()->getCString ());
+        newModTime = getModTime (doc->getFileName ()->c_str ());
         if (newModTime != modTime) {
             modTime = newModTime;
             return gTrue;
@@ -415,7 +419,7 @@ Boolean XPDFCore::convertSelectionCbk (
         // send the selected text
     }
     else if (*target == XA_STRING) {
-        *value = XtNewString (currentSelection->getCString ());
+        *value = XtNewString (currentSelection->c_str ());
         *length = currentSelection->getLength ();
         *type = XA_STRING;
         *format = 8; // 8-bit elements
@@ -433,7 +437,7 @@ void XPDFCore::doAction (LinkAction* action) {
     LinkActionKind kind;
     LinkDest* dest;
     GString* namedDest;
-    char* s;
+    const char* s;
     GString *fileName, *fileName2;
     GString* cmd;
     GString* actionName;
@@ -464,14 +468,14 @@ void XPDFCore::doAction (LinkAction* action) {
             else if ((namedDest = ((LinkGoToR*)action)->getNamedDest ())) {
                 namedDest = namedDest->copy ();
             }
-            s = ((LinkGoToR*)action)->getFileName ()->getCString ();
+            s = ((LinkGoToR*)action)->getFileName ()->c_str ();
             //~ translate path name for VMS (deal with '/')
             if (isAbsolutePath (s) || !doc->getFileName ()) {
                 fileName = new GString (s);
             }
             else {
                 fileName = appendToPath (
-                    grabPath (doc->getFileName ()->getCString ()), s);
+                    grabPath (doc->getFileName ()->c_str ()), s);
             }
             if (loadFile (fileName) != errNone) {
                 if (dest) { delete dest; }
@@ -499,7 +503,7 @@ void XPDFCore::doAction (LinkAction* action) {
     // Launch action
     case actionLaunch:
         fileName = ((LinkLaunch*)action)->getFileName ();
-        s = fileName->getCString ();
+        s = fileName->c_str ();
         if (!strcmp (s + fileName->getLength () - 4, ".pdf") ||
             !strcmp (s + fileName->getLength () - 4, ".PDF")) {
             //~ translate path name for VMS (deal with '/')
@@ -508,7 +512,7 @@ void XPDFCore::doAction (LinkAction* action) {
             }
             else {
                 fileName = appendToPath (
-                    grabPath (doc->getFileName ()->getCString ()), s);
+                    grabPath (doc->getFileName ()->c_str ()), s);
             }
             if (loadFile (fileName) != errNone) {
                 delete fileName;
@@ -527,13 +531,13 @@ void XPDFCore::doAction (LinkAction* action) {
             if (globalParams->getLaunchCommand ()) {
                 fileName->insert (0, ' ');
                 fileName->insert (0, globalParams->getLaunchCommand ());
-                system (fileName->getCString ());
+                system (fileName->c_str ());
             }
             else {
                 msg = new GString ("About to execute the command:\n");
                 msg->append (fileName);
                 if (doQuestionDialog ("Launching external application", msg)) {
-                    system (fileName->getCString ());
+                    system (fileName->c_str ());
                 }
                 delete msg;
             }
@@ -573,7 +577,7 @@ void XPDFCore::doAction (LinkAction* action) {
         }
         else if (!actionName->cmp ("Quit")) {
             if (actionCbk) {
-                (*actionCbk) (actionCbkData, actionName->getCString ());
+                (*actionCbk) (actionCbkData, actionName->c_str ());
             }
         }
         else {
@@ -616,11 +620,11 @@ void XPDFCore::doAction (LinkAction* action) {
             if (movieAnnot.dictLookup ("Movie", &obj1)->isDict ()) {
                 if (obj1.dictLookup ("F", &obj2)) {
                     if ((fileName = LinkAction::getFileSpecName (&obj2))) {
-                        if (!isAbsolutePath (fileName->getCString ()) &&
+                        if (!isAbsolutePath (fileName->c_str ()) &&
                             doc->getFileName ()) {
                             fileName2 = appendToPath (
-                                grabPath (doc->getFileName ()->getCString ()),
-                                fileName->getCString ());
+                                grabPath (doc->getFileName ()->c_str ()),
+                                fileName->c_str ());
                             delete fileName;
                             fileName = fileName2;
                         }
@@ -655,18 +659,18 @@ void XPDFCore::doAction (LinkAction* action) {
 // <arg> string to insert in place of the '%s'.
 void XPDFCore::runCommand (GString* cmdFmt, GString* arg) {
     GString* cmd;
-    char* s;
+    const char* s;
 
-    if ((s = strstr (cmdFmt->getCString (), "%s"))) {
+    if ((s = std::strstr (cmdFmt->c_str (), "%s"))) {
         cmd = mungeURL (arg);
-        cmd->insert (0, cmdFmt->getCString (), s - cmdFmt->getCString ());
+        cmd->insert (0, cmdFmt->c_str (), s - cmdFmt->c_str ());
         cmd->append (s + 2);
     }
     else {
         cmd = cmdFmt->copy ();
     }
     cmd->append (" &");
-    system (cmd->getCString ());
+    system (cmd->c_str ());
     delete cmd;
 }
 
@@ -1117,22 +1121,22 @@ void XPDFCore::inputCbk (Widget widget, XtPointer ptr, XtPointer callData) {
                             case actionGoToR:
                                 s = ((LinkGoToR*)action)
                                         ->getFileName ()
-                                        ->getCString ();
+                                        ->c_str ();
                                 break;
                             case actionLaunch:
                                 s = ((LinkLaunch*)action)
                                         ->getFileName ()
-                                        ->getCString ();
+                                        ->c_str ();
                                 break;
                             case actionURI:
                                 s = ((LinkURI*)action)
                                         ->getURI ()
-                                        ->getCString ();
+                                        ->c_str ();
                                 break;
                             case actionNamed:
                                 s = ((LinkNamed*)action)
                                         ->getName ()
-                                        ->getCString ();
+                                        ->c_str ();
                                 break;
                             case actionMovie: s = "[movie]"; break;
                             case actionJavaScript:
@@ -1482,7 +1486,7 @@ GBool XPDFCore::doDialog (
     ++n;
     s2 = NULL; // make gcc happy
     if (msg->getLength () <= 80) {
-        s2 = XmStringCreateLocalized (msg->getCString ());
+        s2 = XmStringCreateLocalized ((char*)msg->c_str ());
         XtSetArg (args[n], XmNmessageString, s2);
         ++n;
     }
@@ -1504,7 +1508,7 @@ GBool XPDFCore::doDialog (
         ++n;
         XtSetArg (args[n], XmNeditMode, XmMULTI_LINE_EDIT);
         ++n;
-        XtSetArg (args[n], XmNvalue, msg->getCString ());
+        XtSetArg (args[n], XmNvalue, msg->c_str ());
         ++n;
         XtSetArg (args[n], XmNshadowThickness, 0);
         ++n;

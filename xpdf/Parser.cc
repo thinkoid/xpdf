@@ -133,7 +133,7 @@ Object* Parser::getObj (
         s2 = new GString ();
         obj2.initNull ();
         decrypt = new DecryptStream (
-            new MemStream (s->getCString (), 0, s->getLength (), &obj2),
+            new MemStream (s->c_str (), 0, s->getLength (), &obj2),
             fileKey, encAlgorithm, keyLength, objNum, objGen);
         decrypt->reset ();
         while ((c = decrypt->getChar ()) != EOF) { s2->append ((char)c); }

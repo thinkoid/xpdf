@@ -123,7 +123,7 @@ GBool MemReader::cmp (int pos, const char* s) {
 
 class FileReader : public Reader {
 public:
-    static FileReader* make (char* fileName);
+    static FileReader* make (const char* fileName);
     virtual ~FileReader ();
     virtual int getByte (int pos);
     virtual GBool getU16BE (int pos, int* val);
@@ -141,7 +141,7 @@ private:
     int bufPos, bufLen;
 };
 
-FileReader* FileReader::make (char* fileName) {
+FileReader* FileReader::make (const char* fileName) {
     FILE* fA;
 
     if (!(fA = fopen (fileName, "rb"))) { return NULL; }
@@ -357,7 +357,7 @@ FoFiIdentifierType FoFiIdentifier::identifyMem (char* file, int len) {
     return type;
 }
 
-FoFiIdentifierType FoFiIdentifier::identifyFile (char* fileName) {
+FoFiIdentifierType FoFiIdentifier::identifyFile (const char* fileName) {
     FileReader* reader;
     FoFiIdentifierType type;
     int n;

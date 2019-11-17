@@ -23,7 +23,7 @@ SplashFontFile* SplashFTFontFile::loadType1Font (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, GBool deleteFileA,
 #endif
     const char** encA, GBool useLightHintingA) {
     FT_Face faceA;
@@ -33,7 +33,7 @@ SplashFontFile* SplashFTFontFile::loadType1Font (
 
 #if LOAD_FONTS_FROM_MEM
     if (FT_New_Memory_Face (
-            engineA->lib, (FT_Byte*)fontBufA->getCString (),
+            engineA->lib, (FT_Byte*)fontBufA->c_str (),
             fontBufA->getLength (), 0, &faceA)) {
 #else
     if (FT_New_Face (engineA->lib, fileNameA, 0, &faceA)) {
@@ -63,14 +63,14 @@ SplashFontFile* SplashFTFontFile::loadCIDFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, GBool deleteFileA,
 #endif
     int* codeToGIDA, int codeToGIDLenA) {
     FT_Face faceA;
 
 #if LOAD_FONTS_FROM_MEM
     if (FT_New_Memory_Face (
-            engineA->lib, (FT_Byte*)fontBufA->getCString (),
+            engineA->lib, (FT_Byte*)fontBufA->c_str (),
             fontBufA->getLength (), 0, &faceA)) {
 #else
     if (FT_New_Face (engineA->lib, fileNameA, 0, &faceA)) {
@@ -93,14 +93,14 @@ SplashFontFile* SplashFTFontFile::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, GBool deleteFileA,
 #endif
     int fontNum, int* codeToGIDA, int codeToGIDLenA) {
     FT_Face faceA;
 
 #if LOAD_FONTS_FROM_MEM
     if (FT_New_Memory_Face (
-            engineA->lib, (FT_Byte*)fontBufA->getCString (),
+            engineA->lib, (FT_Byte*)fontBufA->c_str (),
             fontBufA->getLength (), fontNum, &faceA)) {
 #else
     if (FT_New_Face (engineA->lib, fileNameA, fontNum, &faceA)) {
@@ -123,7 +123,7 @@ SplashFTFontFile::SplashFTFontFile (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, GBool deleteFileA,
 #endif
     FT_Face faceA, int* codeToGIDA, int codeToGIDLenA, GBool trueTypeA,
     GBool useLightHintingA)

@@ -179,7 +179,7 @@ int main (int argc, char* argv[]) {
             ppmFile = GString::format (
                 "{0:s}-{1:06d}.{2:s}", ppmRoot, pg,
                 mono ? "pbm" : gray ? "pgm" : "ppm");
-            splashOut->getBitmap ()->writePNMFile (ppmFile->getCString ());
+            splashOut->getBitmap ()->writePNMFile (ppmFile->c_str ());
             delete ppmFile;
         }
     }

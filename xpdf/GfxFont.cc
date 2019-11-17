@@ -721,7 +721,7 @@ GfxFontLoc* GfxFont::getExternalFont (
     GfxFontType fontType;
     GfxFontLoc* fontLoc;
 
-    fft = FoFiIdentifier::identifyFile (path->getCString ());
+    fft = FoFiIdentifier::identifyFile (path->c_str ());
     switch (fft) {
     case fofiIdType1PFA:
     case fofiIdType1PFB: fontType = fontType1; break;
@@ -1291,7 +1291,7 @@ Gfx8BitFont::~Gfx8BitFont () {
 }
 
 int Gfx8BitFont::getNextChar (
-    char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
+    const char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
     double* dx, double* dy, double* ox, double* oy) {
     CharCode c;
 
@@ -1829,7 +1829,7 @@ GfxCIDFont::~GfxCIDFont () {
 }
 
 int GfxCIDFont::getNextChar (
-    char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
+    const char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
     double* dx, double* dy, double* ox, double* oy) {
     CID cid;
     CharCode c;
@@ -1969,7 +1969,7 @@ GfxFontDict::~GfxFontDict () {
     gfree (fonts);
 }
 
-GfxFont* GfxFontDict::lookup (char* tag) {
+GfxFont* GfxFontDict::lookup (const char* tag) {
     int i;
 
     for (i = 0; i < numFonts; ++i) {

@@ -38,7 +38,7 @@ public:
     SplashColorPtr getDataPtr () { return data; }
     Guchar* getAlphaPtr () { return alpha; }
 
-    SplashError writePNMFile (char* fileName);
+    SplashError writePNMFile (const char* fileName);
     SplashError writePNMFile (FILE* f);
     SplashError writeAlphaPGMFile (char* fileName);
 

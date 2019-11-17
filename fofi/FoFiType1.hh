@@ -29,7 +29,7 @@ public:
     virtual ~FoFiType1 ();
 
     // Return the font name.
-    char* getName ();
+    const char* getName ();
 
     // Return the encoding, as an array of 256 names (any of which may
     // be NULL).

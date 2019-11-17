@@ -25,7 +25,7 @@ SplashFontFile::SplashFontFile (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA
 #else
-    char* fileNameA, GBool deleteFileA
+    const char* fileNameA, GBool deleteFileA
 #endif
 ) {
     id = idA;
@@ -42,7 +42,7 @@ SplashFontFile::~SplashFontFile () {
 #if LOAD_FONTS_FROM_MEM
     delete fontBuf;
 #else
-    if (deleteFile) { unlink (fileName->getCString ()); }
+    if (deleteFile) { unlink (fileName->c_str ()); }
     delete fileName;
 #endif
     delete id;

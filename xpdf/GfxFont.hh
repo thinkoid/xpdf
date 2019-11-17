@@ -138,7 +138,7 @@ public:
     Ref* getID () { return &id; }
 
     // Does this font match the tag?
-    GBool matches (char* tagA) { return !tag->cmp (tagA); }
+    GBool matches (const char* tagA) { return !tag->cmp (tagA); }
 
     // Get the original font name (ignornig any munging that might have
     // been done to map to a canonical Base-14 font name).
@@ -197,7 +197,7 @@ public:
     // the number actually used.  Returns the number of bytes used by
     // the char code.
     virtual int getNextChar (
-        char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
+        const char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
         double* dx, double* dy, double* ox, double* oy) = 0;
 
 protected:
@@ -236,7 +236,7 @@ public:
     virtual ~Gfx8BitFont ();
 
     virtual int getNextChar (
-        char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
+        const char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
         double* dx, double* dy, double* ox, double* oy);
 
     // Return the encoding.
@@ -301,7 +301,7 @@ public:
     virtual GBool isCIDFont () { return gTrue; }
 
     virtual int getNextChar (
-        char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
+        const char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
         double* dx, double* dy, double* ox, double* oy);
 
     // Return the writing mode (0=horizontal, 1=vertical).
@@ -343,7 +343,7 @@ public:
     ~GfxFontDict ();
 
     // Get the specified font.
-    GfxFont* lookup (char* tag);
+    GfxFont* lookup (const char* tag);
     GfxFont* lookupByRef (Ref ref);
 
     // Iterative access.

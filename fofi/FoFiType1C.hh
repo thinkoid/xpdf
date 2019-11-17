@@ -133,12 +133,12 @@ public:
     static FoFiType1C* make (char* fileA, int lenA);
 
     // Create a FoFiType1C object from a file on disk.
-    static FoFiType1C* load (char* fileName);
+    static FoFiType1C* load (const char* fileName);
 
     virtual ~FoFiType1C ();
 
     // Return the font name.
-    char* getName ();
+    const char* getName ();
 
     // Return the encoding, as an array of 256 names (any of which may
     // be NULL).  This is only useful with 8-bit fonts.
@@ -162,7 +162,7 @@ public:
     // otherwise it will be left as binary data.  If <psName> is non-NULL,
     // it will be used as the PostScript font name.
     void convertToType1 (
-        char* psName, const char** newEncoding, GBool ascii,
+        const char* psName, const char** newEncoding, GBool ascii,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 0 CIDFont, suitable for embedding in a
@@ -174,7 +174,7 @@ public:
     // (3) is <codeMap> is NULL and this is an 8-bit CFF font, then
     //     the identity CID-to-GID mapping is used
     void convertToCIDType0 (
-        char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
+        const char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
         void* outputStream);
 
     // Convert to a Type 0 (but non-CID) composite font, suitable for
@@ -187,7 +187,7 @@ public:
     // (3) is <codeMap> is NULL and this is an 8-bit CFF font, then
     //     the identity CID-to-GID mapping is used
     void convertToType0 (
-        char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
+        const char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
         void* outputStream);
 
 private:

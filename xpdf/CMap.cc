@@ -336,7 +336,7 @@ GBool CMap::match (GString* collectionA, GString* cMapNameA) {
     return !collection->cmp (collectionA) && !cMapName->cmp (cMapNameA);
 }
 
-CID CMap::getCID (char* s, int len, CharCode* c, int* nUsed) {
+CID CMap::getCID (const char* s, int len, CharCode* c, int* nUsed) {
     CMapVectorEntry* vec;
     CharCode cc;
     int n, i;

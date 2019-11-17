@@ -390,21 +390,20 @@ void XPDFViewer::open (GString* fileName, int pageA, GString* destName) {
 }
 
 void XPDFViewer::clear () {
-    char* title;
-    XmString s;
-
     core->clear ();
 
     // set up title
-    title =
-        app->getTitle () ? app->getTitle ()->getCString () : (char*)xpdfAppName;
+    const char* title = app->getTitle ()
+        ? app->getTitle ()->c_str () : xpdfAppName;
+
     XtVaSetValues (win, XmNtitle, title, XmNiconName, title, NULL);
 
     if (toolBar != None) {
         // set up number-of-pages display
-        s = XmStringCreateLocalized ("");
+        XmString s = XmStringCreateLocalized ("");
         XtVaSetValues (pageNumText, XmNlabelString, s, NULL);
         XmStringFree (s);
+
         s = XmStringCreateLocalized (" of 0");
         XtVaSetValues (pageCountLabel, XmNlabelString, s, NULL);
         XmStringFree (s);
@@ -505,10 +504,12 @@ void XPDFViewer::doLink (
     }
 }
 
-void XPDFViewer::actionCbk (void* data, char* action) {
+void XPDFViewer::actionCbk (void* data, const char* action) {
     XPDFViewer* viewer = (XPDFViewer*)data;
 
-    if (!strcmp (action, "Quit")) { viewer->app->quit (); }
+    if (!strcmp (action, "Quit")) {
+        viewer->app->quit ();
+    }
 }
 
 //------------------------------------------------------------------------
@@ -645,7 +646,7 @@ int XPDFViewer::getContext (Guint modifiers) {
 void XPDFViewer::execCmd (GString* cmd, XEvent* event) {
     GString* name;
     GString* args[cmdMaxArgs];
-    char *p0, *p1;
+    const char *p0, *p1;
     int nArgs, i;
     int a, b, m, cmp;
 
@@ -653,7 +654,7 @@ void XPDFViewer::execCmd (GString* cmd, XEvent* event) {
     name = NULL;
     nArgs = 0;
     for (i = 0; i < cmdMaxArgs; ++i) { args[i] = NULL; }
-    p0 = cmd->getCString ();
+    p0 = cmd->c_str ();
     for (p1 = p0; *p1 && isalnum (*p1); ++p1)
         ;
     if (p1 == p0) { goto err1; }
@@ -677,7 +678,7 @@ void XPDFViewer::execCmd (GString* cmd, XEvent* event) {
     // invariant: cmdTab[a].name < name < cmdTab[b].name
     while (b - a > 1) {
         m = (a + b) / 2;
-        cmp = strcmp (cmdTab[m].name, name->getCString ());
+        cmp = strcmp (cmdTab[m].name, name->c_str ());
         if (cmp < 0) { a = m; }
         else if (cmp > 0) {
             b = m;
@@ -875,7 +876,7 @@ void XPDFViewer::cmdGotoLastPageNoScroll (
 void XPDFViewer::cmdGotoPage (GString* args[], int nArgs, XEvent* event) {
     int pg;
 
-    pg = atoi (args[0]->getCString ());
+    pg = atoi (args[0]->c_str ());
     if (pg < 1 || pg > core->getDoc ()->getNumPages ()) { return; }
     displayPage (pg, core->getZoom (), core->getRotate (), gTrue, gTrue);
 }
@@ -884,7 +885,7 @@ void XPDFViewer::cmdGotoPageNoScroll (
     GString* args[], int nArgs, XEvent* event) {
     int pg;
 
-    pg = atoi (args[0]->getCString ());
+    pg = atoi (args[0]->c_str ());
     if (pg < 1 || pg > core->getDoc ()->getNumPages ()) { return; }
     displayPage (pg, core->getZoom (), core->getRotate (), gFalse, gTrue);
 }
@@ -916,12 +917,12 @@ void XPDFViewer::cmdOpenFileAtDestInNewWin (
 }
 
 void XPDFViewer::cmdOpenFileAtPage (GString* args[], int nArgs, XEvent* event) {
-    open (args[0], atoi (args[1]->getCString ()), NULL);
+    open (args[0], atoi (args[1]->c_str ()), NULL);
 }
 
 void XPDFViewer::cmdOpenFileAtPageInNewWin (
     GString* args[], int nArgs, XEvent* event) {
-    app->open (args[0], atoi (args[1]->getCString ()));
+    app->open (args[0], atoi (args[1]->c_str ()));
 }
 
 void XPDFViewer::cmdOpenFileInNewWin (
@@ -1024,7 +1025,7 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
     int selPage, mousePage;
     GBool gotSel, gotMouse;
     char buf[64];
-    char* p;
+    const char* p;
     char c0, c1;
     int i;
 
@@ -1044,8 +1045,8 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
                 break;
             case 'b':
                 if (core->getDoc () && (s = core->getDoc ()->getFileName ())) {
-                    if ((p = strrchr (s->getCString (), '.'))) {
-                        cmd->append (s->getCString (), p - s->getCString ());
+                    if ((p = strrchr (s->c_str (), '.'))) {
+                        cmd->append (s->c_str (), p - s->c_str ());
                     }
                     else {
                         cmd->append (s);
@@ -1122,21 +1123,21 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
         }
     }
     cmd->append (" &");
-    system (cmd->getCString ());
+    system (cmd->c_str ());
     delete cmd;
 }
 
 void XPDFViewer::cmdScrollDown (GString* args[], int nArgs, XEvent* event) {
-    core->scrollDown (atoi (args[0]->getCString ()));
+    core->scrollDown (atoi (args[0]->c_str ()));
 }
 
 void XPDFViewer::cmdScrollDownNextPage (
     GString* args[], int nArgs, XEvent* event) {
-    core->scrollDownNextPage (atoi (args[0]->getCString ()));
+    core->scrollDownNextPage (atoi (args[0]->c_str ()));
 }
 
 void XPDFViewer::cmdScrollLeft (GString* args[], int nArgs, XEvent* event) {
-    core->scrollLeft (atoi (args[0]->getCString ()));
+    core->scrollLeft (atoi (args[0]->c_str ()));
 }
 
 void XPDFViewer::cmdScrollOutlineDown (
@@ -1149,7 +1150,7 @@ void XPDFViewer::cmdScrollOutlineDown (
         XtVaGetValues (
             sb, XmNvalue, &val, XmNincrement, &inc, XmNpageIncrement, &pageInc,
             XmNmaximum, &m, XmNsliderSize, &slider, NULL);
-        if ((val += inc * atoi (args[0]->getCString ())) > m - slider) {
+        if ((val += inc * atoi (args[0]->c_str ())) > m - slider) {
             val = m - slider;
         }
         XmScrollBarSetValues (sb, val, slider, inc, pageInc, True);
@@ -1166,13 +1167,13 @@ void XPDFViewer::cmdScrollOutlineUp (
         XtVaGetValues (
             sb, XmNvalue, &val, XmNincrement, &inc, XmNpageIncrement, &pageInc,
             XmNminimum, &m, XmNsliderSize, &slider, NULL);
-        if ((val -= inc * atoi (args[0]->getCString ())) < m) { val = m; }
+        if ((val -= inc * atoi (args[0]->c_str ())) < m) { val = m; }
         XmScrollBarSetValues (sb, val, slider, inc, pageInc, True);
     }
 }
 
 void XPDFViewer::cmdScrollRight (GString* args[], int nArgs, XEvent* event) {
-    core->scrollRight (atoi (args[0]->getCString ()));
+    core->scrollRight (atoi (args[0]->c_str ()));
 }
 
 void XPDFViewer::cmdScrollToBottomEdge (
@@ -1206,24 +1207,24 @@ void XPDFViewer::cmdScrollToTopLeft (
 }
 
 void XPDFViewer::cmdScrollUp (GString* args[], int nArgs, XEvent* event) {
-    core->scrollUp (atoi (args[0]->getCString ()));
+    core->scrollUp (atoi (args[0]->c_str ()));
 }
 
 void XPDFViewer::cmdScrollUpPrevPage (
     GString* args[], int nArgs, XEvent* event) {
-    core->scrollUpPrevPage (atoi (args[0]->getCString ()));
+    core->scrollUpPrevPage (atoi (args[0]->c_str ()));
 }
 
 void XPDFViewer::cmdSetSelection (GString* args[], int nArgs, XEvent* event) {
     int pg, ulx, uly, lrx, lry;
 
-    pg = atoi (args[0]->getCString ());
+    pg = atoi (args[0]->c_str ());
     core->cvtUserToDev (
-        core->getPageNum (), atof (args[1]->getCString ()),
-        atof (args[2]->getCString ()), &ulx, &uly);
+        core->getPageNum (), atof (args[1]->c_str ()),
+        atof (args[2]->c_str ()), &ulx, &uly);
     core->cvtUserToDev (
-        core->getPageNum (), atof (args[3]->getCString ()),
-        atof (args[4]->getCString ()), &lrx, &lry);
+        core->getPageNum (), atof (args[3]->c_str ()),
+        atof (args[4]->c_str ()), &lrx, &lry);
     core->setSelection (pg, ulx, uly, lrx, lry);
 }
 
@@ -1333,7 +1334,7 @@ void XPDFViewer::cmdZoomOut (GString* args[], int nArgs, XEvent* event) {
 void XPDFViewer::cmdZoomPercent (GString* args[], int nArgs, XEvent* event) {
     double z;
 
-    z = atof (args[0]->getCString ());
+    z = atof (args[0]->c_str ());
     setZoomVal (z);
     displayPage (core->getPageNum (), z, core->getRotate (), gTrue, gFalse);
 }
@@ -1358,7 +1359,7 @@ void XPDFViewer::initWindow (GBool fullScreen) {
     Atom state, val;
     Arg args[20];
     int n;
-    char* title;
+    const char* title;
 
     display = XtDisplay (app->getAppShell ());
     screenNum = XScreenNumberOfScreen (XtScreen (app->getAppShell ()));
@@ -1380,8 +1381,7 @@ void XPDFViewer::initWindow (GBool fullScreen) {
 
     // top-level window
     n = 0;
-    title =
-        app->getTitle () ? app->getTitle ()->getCString () : (char*)xpdfAppName;
+    title = app->getTitle () ? app->getTitle ()->c_str () : (char*)xpdfAppName;
     XtSetArg (args[n], XmNtitle, title);
     ++n;
     XtSetArg (args[n], XmNiconName, title);
@@ -1414,7 +1414,7 @@ void XPDFViewer::initWindow (GBool fullScreen) {
     else {
         if (app->getGeometry ()) {
             n = 0;
-            XtSetArg (args[n], XmNgeometry, app->getGeometry ()->getCString ());
+            XtSetArg (args[n], XmNgeometry, app->getGeometry ()->c_str ());
             ++n;
             XtSetValues (win, args, n);
         }
@@ -2570,8 +2570,8 @@ void XPDFViewer::updateCbk (
                 (new GString (xpdfAppName))->append (": ")->append (fileName);
         }
         XtVaSetValues (
-            viewer->win, XmNtitle, title->getCString (), XmNiconName,
-            title->getCString (), NULL);
+            viewer->win, XmNtitle, title->c_str (), XmNiconName,
+            title->c_str (), NULL);
         if (!viewer->app->getTitle ()) { delete title; }
         viewer->setupOutline ();
         viewer->setupPrintDialog ();
@@ -2683,7 +2683,7 @@ void XPDFViewer::setupOutlineItems (
         }
         XtSetArg (args[n], XPDFNentryExpanded, item->isOpen ());
         ++n;
-        s = XmStringCreateLocalized (title->getCString ());
+        s = XmStringCreateLocalized ((char*)title->c_str ());
         delete title;
         XtSetArg (args[n], XmNlabelString, s);
         ++n;
@@ -2907,8 +2907,8 @@ void XPDFViewer::initOpenDialog () {
 
     if (core->getDoc () && core->getDoc ()->getFileName ()) {
         dir = makePathAbsolute (
-            grabPath (core->getDoc ()->getFileName ()->getCString ()));
-        s1 = XmStringCreateLocalized (dir->getCString ());
+            grabPath (core->getDoc ()->getFileName ()->c_str ()));
+        s1 = XmStringCreateLocalized ((char*)dir->c_str ());
         XtVaSetValues (openDialog, XmNdirectory, s1, NULL);
         XmStringFree (s1);
         delete dir;
@@ -3228,8 +3228,8 @@ void XPDFViewer::initSaveAsDialog () {
 
     if (core->getDoc () && core->getDoc ()->getFileName ()) {
         dir = makePathAbsolute (
-            grabPath (core->getDoc ()->getFileName ()->getCString ()));
-        s1 = XmStringCreateLocalized (dir->getCString ());
+            grabPath (core->getDoc ()->getFileName ()->c_str ()));
+        s1 = XmStringCreateLocalized ((char*)dir->c_str ());
         XtVaSetValues (saveAsDialog, XmNdirectory, s1, NULL);
         XmStringFree (s1);
         delete dir;
@@ -3504,10 +3504,10 @@ void XPDFViewer::initPrintDialog () {
     //----- initial values
     if ((psFileName = globalParams->getPSFile ())) {
         if (psFileName->getChar (0) == '|') {
-            XmTextFieldSetString (printCmdText, psFileName->getCString () + 1);
+            XmTextFieldSetString (printCmdText, (char*)psFileName->c_str () + 1);
         }
         else {
-            XmTextFieldSetString (printFileText, psFileName->getCString ());
+            XmTextFieldSetString (printFileText, (char*)psFileName->c_str ());
         }
         delete psFileName;
     }
@@ -3517,22 +3517,22 @@ void XPDFViewer::setupPrintDialog () {
     PDFDoc* doc;
     char buf[20];
     GString *pdfFileName, *psFileName, *psFileName2;
-    char* p;
+    const char* p;
 
     doc = core->getDoc ();
     psFileName = globalParams->getPSFile ();
     if (!psFileName || psFileName->getChar (0) == '|') {
         if ((pdfFileName = doc->getFileName ())) {
-            p = pdfFileName->getCString () + pdfFileName->getLength () - 4;
+            p = pdfFileName->c_str () + pdfFileName->getLength () - 4;
             if (!strcmp (p, ".pdf") || !strcmp (p, ".PDF")) {
                 psFileName2 = new GString (
-                    pdfFileName->getCString (), pdfFileName->getLength () - 4);
+                    pdfFileName->c_str (), pdfFileName->getLength () - 4);
             }
             else {
                 psFileName2 = pdfFileName->copy ();
             }
             psFileName2->append (".ps");
-            XmTextFieldSetString (printFileText, psFileName2->getCString ());
+            XmTextFieldSetString (printFileText, (char*)psFileName2->c_str ());
             delete psFileName2;
         }
     }
@@ -3621,7 +3621,7 @@ void XPDFViewer::printPrintCbk (
     }
 
     psOut = new PSOutputDev (
-        psFileName->getCString (), doc, firstPage, lastPage, psModePS);
+        psFileName->c_str (), doc, firstPage, lastPage, psModePS);
     if (psOut->isOk ()) {
         doc->displayPages (
             psOut, firstPage, lastPage, 72, 72, 0, gTrue,

@@ -259,7 +259,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         apObj.dictLookup ("N", &obj1);
         apObj.dictLookupNF ("N", &obj2);
         if (obj1.isDict ()) {
-            if (obj1.dictLookupNF (appearanceState->getCString (), &obj3)
+            if (obj1.dictLookupNF (appearanceState->c_str (), &obj3)
                     ->isRef ()) {
                 obj3.copy (&appearance);
             }
@@ -488,7 +488,7 @@ void Annot::generateLineAppearance () {
 
     //----- build the appearance stream
     appearStream = new MemStream (
-        appearBuf->getCString (), 0, appearBuf->getLength (), &appearDict);
+        appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.free ();
     appearance.initStream (appearStream);
 
@@ -580,7 +580,7 @@ void Annot::generatePolyLineAppearance () {
 
     //----- build the appearance stream
     appearStream = new MemStream (
-        appearBuf->getCString (), 0, appearBuf->getLength (), &appearDict);
+        appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.free ();
     appearance.initStream (appearStream);
 
@@ -668,7 +668,7 @@ void Annot::generatePolygonAppearance () {
 
     //----- build the appearance stream
     appearStream = new MemStream (
-        appearBuf->getCString (), 0, appearBuf->getLength (), &appearDict);
+        appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.free ();
     appearance.initStream (appearStream);
 

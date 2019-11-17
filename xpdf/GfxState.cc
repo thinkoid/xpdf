@@ -1015,7 +1015,9 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
             cs->indexHigh = indexHighA =
                 obj1.getString ()->getLength () / n - 1;
         }
-        s = obj1.getString ()->getCString ();
+
+        const char* s = obj1.getString ()->c_str ();
+
         for (i = 0; i <= indexHighA; ++i) {
             for (j = 0; j < n; ++j) { cs->lookup[i * n + j] = (Guchar)*s++; }
         }

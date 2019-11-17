@@ -438,14 +438,13 @@ public:
     // <physLayoutA> is true, the original physical layout of the text
     // is maintained.  If <rawOrder> is true, the text is kept in
     // content stream order.
-    TextOutputDev (char* fileName, TextOutputControl* controlA, GBool append);
+    TextOutputDev (const char*, TextOutputControl*, GBool);
 
     // Create a TextOutputDev which will write to a generic stream.  If
     // <physLayoutA> is true, the original physical layout of the text
     // is maintained.  If <rawOrder> is true, the text is kept in
     // content stream order.
-    TextOutputDev (
-        TextOutputFunc func, void* stream, TextOutputControl* controlA);
+    TextOutputDev (TextOutputFunc, void*, TextOutputControl*);
 
     // Destructor.
     virtual ~TextOutputDev ();

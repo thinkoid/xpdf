@@ -27,7 +27,7 @@ FoFiBase::~FoFiBase () {
     if (freeFileData) { gfree (fileData); }
 }
 
-char* FoFiBase::readFile (char* fileName, int* fileLen) {
+char* FoFiBase::readFile (const char* fileName, int* fileLen) {
     FILE* f;
     char* buf;
     int n;

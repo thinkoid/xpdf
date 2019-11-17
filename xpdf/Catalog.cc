@@ -130,8 +130,7 @@ Catalog::Catalog (PDFDoc* docA) {
     if (!baseURI || baseURI->getLength () == 0) {
         if (baseURI) { delete baseURI; }
         if (doc->getFileName ()) {
-            baseURI = makePathAbsolute (
-                grabPath (doc->getFileName ()->getCString ()));
+            baseURI = makePathAbsolute (grabPath (doc->getFileName ()->c_str ()));
             if (baseURI->getChar (0) == '/') {
                 baseURI->insert (0, "file://localhost");
             }
@@ -256,7 +255,7 @@ LinkDest* Catalog::findDest (GString* name) {
     // try named destination dictionary then name tree
     found = gFalse;
     if (dests.isDict ()) {
-        if (!dests.dictLookup (name->getCString (), &obj1)->isNull ())
+        if (!dests.dictLookup (name->c_str (), &obj1)->isNull ())
             found = gTrue;
         else
             obj1.free ();

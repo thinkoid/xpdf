@@ -47,7 +47,7 @@ protected:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA
 #else
-        char* fileNameA, GBool deleteFileA
+        const char* fileNameA, GBool deleteFileA
 #endif
     );
 

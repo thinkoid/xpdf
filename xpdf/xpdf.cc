@@ -175,7 +175,7 @@ int main (int argc, char* argv[]) {
     // the initialZoom parameter can be set in either the config file or
     // as an X resource (or command line arg)
     if (app->getInitialZoom ()) {
-        globalParams->setInitialZoom (app->getInitialZoom ()->getCString ());
+        globalParams->setInitialZoom (app->getInitialZoom ()->c_str ());
     }
 
     // check command line

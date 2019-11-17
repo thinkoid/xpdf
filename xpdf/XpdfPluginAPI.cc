@@ -121,7 +121,7 @@ int _xpdfStringLength (XpdfObject obj) {
 
 char* _xpdfStringValue (XpdfObject obj) {
     if (!((Object*)obj)->isString ()) { return 0; }
-    return ((Object*)obj)->getString ()->getCString ();
+    return ((Object*)obj)->getString ()->c_str ();
 }
 
 char* _xpdfNameValue (XpdfObject obj) {

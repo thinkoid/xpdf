@@ -306,7 +306,7 @@ int GHash::hash (GString* key) {
     int i;
 
     h = 0;
-    for (p = key->getCString (), i = 0; i < key->getLength (); ++p, ++i) {
+    for (p = key->c_str (), i = 0; i < key->getLength (); ++p, ++i) {
         h = 17 * h + (int)(*p & 0xff);
     }
     return (int)(h % size);

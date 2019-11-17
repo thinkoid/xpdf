@@ -51,33 +51,33 @@ GBool Decrypt::makeFileKey (
             //~ this is supposed to convert the password to UTF-8 using "SASLprep"
             len = ownerPassword->getLength ();
             if (len > 127) { len = 127; }
-            memcpy (test, ownerPassword->getCString (), len);
-            memcpy (test + len, ownerKey->getCString () + 32, 8);
-            memcpy (test + len + 8, userKey->getCString (), 48);
+            memcpy (test, ownerPassword->c_str (), len);
+            memcpy (test + len, ownerKey->c_str () + 32, 8);
+            memcpy (test + len + 8, userKey->c_str (), 48);
             sha256 (test, len + 56, test);
             if (encRevision == 6) {
                 r6Hash (
-                    test, 32, ownerPassword->getCString (), len,
-                    userKey->getCString ());
+                    test, 32, ownerPassword->c_str (), len,
+                    userKey->c_str ());
             }
-            if (!memcmp (test, ownerKey->getCString (), 32)) {
+            if (!memcmp (test, ownerKey->c_str (), 32)) {
                 // compute the file key from the owner password
-                memcpy (test, ownerPassword->getCString (), len);
-                memcpy (test + len, ownerKey->getCString () + 40, 8);
-                memcpy (test + len + 8, userKey->getCString (), 48);
+                memcpy (test, ownerPassword->c_str (), len);
+                memcpy (test + len, ownerKey->c_str () + 40, 8);
+                memcpy (test + len + 8, userKey->c_str (), 48);
                 sha256 (test, len + 56, test);
                 if (encRevision == 6) {
                     r6Hash (
-                        test, 32, ownerPassword->getCString (), len,
-                        userKey->getCString ());
+                        test, 32, ownerPassword->c_str (), len,
+                        userKey->c_str ());
                 }
                 aes256KeyExpansion (&state, test, 32);
                 for (i = 0; i < 16; ++i) { state.cbc[i] = 0; }
                 aes256DecryptBlock (
-                    &state, (Guchar*)ownerEnc->getCString (), gFalse);
+                    &state, (Guchar*)ownerEnc->c_str (), gFalse);
                 memcpy (fileKey, state.buf, 16);
                 aes256DecryptBlock (
-                    &state, (Guchar*)ownerEnc->getCString () + 16, gFalse);
+                    &state, (Guchar*)ownerEnc->c_str () + 16, gFalse);
                 memcpy (fileKey + 16, state.buf, 16);
 
                 *ownerPasswordOk = gTrue;
@@ -88,7 +88,7 @@ GBool Decrypt::makeFileKey (
         // check the user password
         if (userPassword) {
             //~ this is supposed to convert the password to UTF-8 using "SASLprep"
-            userPW = userPassword->getCString ();
+            userPW = userPassword->c_str ();
             len = userPassword->getLength ();
             if (len > 127) { len = 127; }
         }
@@ -97,22 +97,22 @@ GBool Decrypt::makeFileKey (
             len = 0;
         }
         memcpy (test, userPW, len);
-        memcpy (test + len, userKey->getCString () + 32, 8);
+        memcpy (test + len, userKey->c_str () + 32, 8);
         sha256 (test, len + 8, test);
         if (encRevision == 6) { r6Hash (test, 32, userPW, len, NULL); }
-        if (!memcmp (test, userKey->getCString (), 32)) {
+        if (!memcmp (test, userKey->c_str (), 32)) {
             // compute the file key from the user password
             memcpy (test, userPW, len);
-            memcpy (test + len, userKey->getCString () + 40, 8);
+            memcpy (test + len, userKey->c_str () + 40, 8);
             sha256 (test, len + 8, test);
             if (encRevision == 6) { r6Hash (test, 32, userPW, len, NULL); }
             aes256KeyExpansion (&state, test, 32);
             for (i = 0; i < 16; ++i) { state.cbc[i] = 0; }
             aes256DecryptBlock (
-                &state, (Guchar*)userEnc->getCString (), gFalse);
+                &state, (Guchar*)userEnc->c_str (), gFalse);
             memcpy (fileKey, state.buf, 16);
             aes256DecryptBlock (
-                &state, (Guchar*)userEnc->getCString () + 16, gFalse);
+                &state, (Guchar*)userEnc->c_str () + 16, gFalse);
             memcpy (fileKey + 16, state.buf, 16);
 
             return gTrue;
@@ -125,11 +125,11 @@ GBool Decrypt::makeFileKey (
         if (ownerPassword) {
             len = ownerPassword->getLength ();
             if (len < 32) {
-                memcpy (test, ownerPassword->getCString (), len);
+                memcpy (test, ownerPassword->c_str (), len);
                 memcpy (test + len, passwordPad, 32 - len);
             }
             else {
-                memcpy (test, ownerPassword->getCString (), 32);
+                memcpy (test, ownerPassword->c_str (), 32);
             }
             md5 (test, 32, test);
             if (encRevision == 3) {
@@ -144,7 +144,7 @@ GBool Decrypt::makeFileKey (
                 }
             }
             else {
-                memcpy (test2, ownerKey->getCString (), 32);
+                memcpy (test2, ownerKey->c_str (), 32);
                 for (i = 19; i >= 0; --i) {
                     for (j = 0; j < keyLength; ++j) { tmpKey[j] = test[j] ^ i; }
                     rc4InitKey (tmpKey, keyLength, fState);
@@ -174,7 +174,7 @@ GBool Decrypt::makeFileKey (
 }
 
 void Decrypt::r6Hash (
-    Guchar* key, int keyLen, const char* pwd, int pwdLen, char* userKey) {
+    Guchar* key, int keyLen, const char* pwd, int pwdLen, const char* userKey) {
     Guchar key1[64 * (127 + 64 + 48)];
     DecryptAESState state128;
     int n, i, j, k;
@@ -237,22 +237,22 @@ GBool Decrypt::makeFileKey2 (
     if (userPassword) {
         len = userPassword->getLength ();
         if (len < 32) {
-            memcpy (buf, userPassword->getCString (), len);
+            memcpy (buf, userPassword->c_str (), len);
             memcpy (buf + len, passwordPad, 32 - len);
         }
         else {
-            memcpy (buf, userPassword->getCString (), 32);
+            memcpy (buf, userPassword->c_str (), 32);
         }
     }
     else {
         memcpy (buf, passwordPad, 32);
     }
-    memcpy (buf + 32, ownerKey->getCString (), 32);
+    memcpy (buf + 32, ownerKey->c_str (), 32);
     buf[64] = permissions & 0xff;
     buf[65] = (permissions >> 8) & 0xff;
     buf[66] = (permissions >> 16) & 0xff;
     buf[67] = (permissions >> 24) & 0xff;
-    memcpy (buf + 68, fileID->getCString (), fileID->getLength ());
+    memcpy (buf + 68, fileID->c_str (), fileID->getLength ());
     len = 68 + fileID->getLength ();
     if (!encryptMetadata) {
         buf[len++] = 0xff;
@@ -275,7 +275,7 @@ GBool Decrypt::makeFileKey2 (
         ok = memcmp (test, passwordPad, 32) == 0;
     }
     else if (encRevision == 3) {
-        memcpy (test, userKey->getCString (), 32);
+        memcpy (test, userKey->c_str (), 32);
         for (i = 19; i >= 0; --i) {
             for (j = 0; j < keyLength; ++j) { tmpKey[j] = fileKey[j] ^ i; }
             rc4InitKey (tmpKey, keyLength, fState);
@@ -285,7 +285,7 @@ GBool Decrypt::makeFileKey2 (
             }
         }
         memcpy (buf, passwordPad, 32);
-        memcpy (buf + 32, fileID->getCString (), fileID->getLength ());
+        memcpy (buf + 32, fileID->c_str (), fileID->getLength ());
         md5 (buf, 32 + fileID->getLength (), buf);
         ok = memcmp (test, buf, 16) == 0;
     }

@@ -166,12 +166,12 @@ SysFontInfo::~SysFontInfo () {
 }
 
 GBool SysFontInfo::match (SysFontInfo* fi) {
-    return !strcasecmp (name->getCString (), fi->name->getCString ()) &&
+    return !strcasecmp (name->c_str (), fi->name->c_str ()) &&
            bold == fi->bold && italic == fi->italic;
 }
 
 GBool SysFontInfo::match (GString* nameA, GBool boldA, GBool italicA) {
-    return !strcasecmp (name->getCString (), nameA->getCString ()) &&
+    return !strcasecmp (name->c_str (), nameA->c_str ()) &&
            bold == boldA && italic == italicA;
 }
 
@@ -218,26 +218,26 @@ SysFontInfo* SysFontList::find (GString* name) {
     bold = italic = gFalse;
     for (i = 0; i < 2; ++i) {
         // remove trailing "MT" (Foo-MT, Foo-BoldMT, etc.)
-        if (n > 2 && !strcmp (name2->getCString () + n - 2, "MT")) {
+        if (n > 2 && !strcmp (name2->c_str () + n - 2, "MT")) {
             name2->del (n - 2, 2);
             n -= 2;
         }
 
         // look for "Regular"
-        if (n > 7 && !strcmp (name2->getCString () + n - 7, "Regular")) {
+        if (n > 7 && !strcmp (name2->c_str () + n - 7, "Regular")) {
             name2->del (n - 7, 7);
             n -= 7;
         }
 
         // look for "Italic"
-        if (n > 6 && !strcmp (name2->getCString () + n - 6, "Italic")) {
+        if (n > 6 && !strcmp (name2->c_str () + n - 6, "Italic")) {
             name2->del (n - 6, 6);
             italic = gTrue;
             n -= 6;
         }
 
         // look for "Bold"
-        if (n > 4 && !strcmp (name2->getCString () + n - 4, "Bold")) {
+        if (n > 4 && !strcmp (name2->c_str () + n - 4, "Bold")) {
             name2->del (n - 4, 4);
             bold = gTrue;
             n -= 4;
@@ -245,13 +245,13 @@ SysFontInfo* SysFontList::find (GString* name) {
     }
 
     // remove trailing "PS"
-    if (n > 2 && !strcmp (name2->getCString () + n - 2, "PS")) {
+    if (n > 2 && !strcmp (name2->c_str () + n - 2, "PS")) {
         name2->del (n - 2, 2);
         n -= 2;
     }
 
     // remove trailing "IdentityH"
-    if (n > 9 && !strcmp (name2->getCString () + n - 9, "IdentityH")) {
+    if (n > 9 && !strcmp (name2->c_str () + n - 9, "IdentityH")) {
         name2->del (n - 9, 9);
         n -= 9;
     }
@@ -344,7 +344,7 @@ Plugin* Plugin::load (char* type, char* name) {
 
     //~ need to deal with other extensions here
     path->append (".so");
-    if (!(dlA = dlopen (path->getCString (), RTLD_NOW))) {
+    if (!(dlA = dlopen (path->c_str (), RTLD_NOW))) {
         error (
             errIO, -1, "Failed to load plugin '{0:t}': {1:s}", path,
             dlerror ());
@@ -555,13 +555,13 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
 
     if (cfgFileName && cfgFileName[0]) {
         fileName = new GString (cfgFileName);
-        if (!(f = fopen (fileName->getCString (), "r"))) { delete fileName; }
+        if (!(f = fopen (fileName->c_str (), "r"))) { delete fileName; }
     }
 
     if (!f) {
         fileName = appendToPath (getHomeDir (), XPDF_XPDFRC);
 
-        if (!(f = fopen (fileName->getCString (), "r"))) {
+        if (!(f = fopen (fileName->c_str (), "r"))) {
             delete fileName;
         }
     }
@@ -569,11 +569,11 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
     if (!f) {
         fileName = new GString (XPDF_SYSTEM_XPDFRC);
 
-        if (!(f = fopen (fileName->getCString (), "r"))) { delete fileName; }
+        if (!(f = fopen (fileName->c_str (), "r"))) { delete fileName; }
     }
 
     if (f) {
-        printf (" --> %s\n", fileName->getCString ());
+        printf (" --> %s\n", fileName->c_str ());
         parseFile (fileName, f);
         delete fileName;
         fclose (f);
@@ -747,7 +747,7 @@ void GlobalParams::parseLine (char* buf, GString* fileName, int line) {
         if (!cmd->cmp ("include")) {
             if (tokens->getLength () == 2) {
                 incFile = (GString*)tokens->get (1);
-                if ((f2 = openFile (incFile->getCString (), "r"))) {
+                if ((f2 = openFile (incFile->c_str (), "r"))) {
                     parseFile (incFile, f2);
                     fclose (f2);
                 }
@@ -1068,7 +1068,7 @@ void GlobalParams::parseNameToUnicode (
         return;
     }
     name = (GString*)tokens->get (1);
-    if (!(f = openFile (name->getCString (), "r"))) {
+    if (!(f = openFile (name->c_str (), "r"))) {
         error (
             errConfig, -1, "Couldn't open 'nameToUnicode' file '{0:t}'", name);
         return;
@@ -1224,7 +1224,7 @@ void GlobalParams::parsePSPaperSize (
 
     if (tokens->getLength () == 2) {
         tok = (GString*)tokens->get (1);
-        if (!setPSPaperSize (tok->getCString ())) {
+        if (!setPSPaperSize (tok->c_str ())) {
             error (
                 errConfig, -1,
                 "Bad 'psPaperSize' config file command ({0:s}:{1:d})", fileName,
@@ -1233,9 +1233,9 @@ void GlobalParams::parsePSPaperSize (
     }
     else if (tokens->getLength () == 3) {
         tok = (GString*)tokens->get (1);
-        psPaperWidth = atoi (tok->getCString ());
+        psPaperWidth = atoi (tok->c_str ());
         tok = (GString*)tokens->get (2);
-        psPaperHeight = atoi (tok->getCString ());
+        psPaperHeight = atoi (tok->c_str ());
         psImageableLLX = psImageableLLY = 0;
         psImageableURX = psPaperWidth;
         psImageableURY = psPaperHeight;
@@ -1257,10 +1257,10 @@ void GlobalParams::parsePSImageableArea (
             line);
         return;
     }
-    psImageableLLX = atoi (((GString*)tokens->get (1))->getCString ());
-    psImageableLLY = atoi (((GString*)tokens->get (2))->getCString ());
-    psImageableURX = atoi (((GString*)tokens->get (3))->getCString ());
-    psImageableURY = atoi (((GString*)tokens->get (4))->getCString ());
+    psImageableLLX = atoi (((GString*)tokens->get (1))->c_str ());
+    psImageableLLY = atoi (((GString*)tokens->get (2))->c_str ());
+    psImageableURX = atoi (((GString*)tokens->get (3))->c_str ());
+    psImageableURY = atoi (((GString*)tokens->get (4))->c_str ());
 }
 
 void GlobalParams::parsePSLevel (GList* tokens, GString* fileName, int line) {
@@ -1508,11 +1508,11 @@ void GlobalParams::parseUnbind (GList* tokens, GString* fileName, int line) {
 GBool GlobalParams::parseKey (
     GString* modKeyStr, GString* contextStr, int* code, int* mods, int* context,
     const char* cmdName, GList* tokens, GString* fileName, int line) {
-    char* p0;
     int btn;
 
     *mods = xpdfKeyModNone;
-    p0 = modKeyStr->getCString ();
+    const char* p0 = modKeyStr->c_str ();
+
     while (1) {
         if (!strncmp (p0, "shift-", 6)) {
             *mods |= xpdfKeyModShift;
@@ -1607,7 +1607,7 @@ GBool GlobalParams::parseKey (
         return gFalse;
     }
 
-    p0 = contextStr->getCString ();
+    p0 = contextStr->c_str ();
     if (!strcmp (p0, "any")) { *context = xpdfKeyContextAny; }
     else {
         *context = xpdfKeyContextAny;
@@ -1699,14 +1699,14 @@ void GlobalParams::parseYesNo (
         return;
     }
     tok = (GString*)tokens->get (1);
-    if (!parseYesNo2 (tok->getCString (), flag)) {
+    if (!parseYesNo2 (tok->c_str (), flag)) {
         error (
             errConfig, -1, "Bad '{0:s}' config file command ({1:t}:{2:d})",
             cmdName, fileName, line);
     }
 }
 
-GBool GlobalParams::parseYesNo2 (char* token, GBool* flag) {
+GBool GlobalParams::parseYesNo2 (const char* token, GBool* flag) {
     if (!strcmp (token, "yes")) { *flag = gTrue; }
     else if (!strcmp (token, "no")) {
         *flag = gFalse;
@@ -1747,7 +1747,7 @@ void GlobalParams::parseInteger (
             return;
         }
     }
-    *val = atoi (tok->getCString ());
+    *val = atoi (tok->c_str ());
 }
 
 void GlobalParams::parseFloat (
@@ -1782,7 +1782,7 @@ void GlobalParams::parseFloat (
             return;
         }
     }
-    *val = atof (tok->getCString ());
+    *val = atof (tok->c_str ());
 }
 
 GlobalParams::~GlobalParams () {
@@ -1858,7 +1858,7 @@ void GlobalParams::setupBaseFonts (char* dir) {
         if (dir) {
             fileName =
                 appendToPath (new GString (dir), displayFontTab[i].t1FileName);
-            if ((f = fopen (fileName->getCString (), "rb"))) { fclose (f); }
+            if ((f = fopen (fileName->c_str (), "rb"))) { fclose (f); }
             else {
                 delete fileName;
                 fileName = NULL;
@@ -1873,7 +1873,7 @@ void GlobalParams::setupBaseFonts (char* dir) {
         if (!fileName && s) {
             for (j = 0; !fileName && displayFontDirs[j]; ++j) {
                 fileName = appendToPath (new GString (displayFontDirs[j]), s);
-                if ((f = fopen (fileName->getCString (), "rb"))) { fclose (f); }
+                if ((f = fopen (fileName->c_str (), "rb"))) { fclose (f); }
                 else {
                     delete fileName;
                     fileName = NULL;
@@ -1942,7 +1942,7 @@ FILE* GlobalParams::getUnicodeMapFile (GString* encodingName) {
     FILE* f;
 
     if ((fileName = (GString*)unicodeMaps->lookup (encodingName))) {
-        f = openFile (fileName->getCString (), "r");
+        f = openFile (fileName->c_str (), "r");
     }
     else {
         f = NULL;
@@ -1960,8 +1960,8 @@ FILE* GlobalParams::findCMapFile (GString* collection, GString* cMapName) {
     if (!(list = (GList*)cMapDirs->lookup (collection))) { return NULL; }
     for (i = 0; i < list->getLength (); ++i) {
         dir = (GString*)list->get (i);
-        fileName = appendToPath (dir->copy (), cMapName->getCString ());
-        f = openFile (fileName->getCString (), "r");
+        fileName = appendToPath (dir->copy (), cMapName->c_str ());
+        f = openFile (fileName->c_str (), "r");
         delete fileName;
         if (f) { return f; }
     }
@@ -1975,8 +1975,8 @@ FILE* GlobalParams::findToUnicodeFile (GString* name) {
 
     for (i = 0; i < toUnicodeDirs->getLength (); ++i) {
         dir = (GString*)toUnicodeDirs->get (i);
-        fileName = appendToPath (dir->copy (), name->getCString ());
-        f = openFile (fileName->getCString (), "r");
+        fileName = appendToPath (dir->copy (), name->c_str ());
+        f = openFile (fileName->c_str (), "r");
         delete fileName;
         if (f) { return f; }
     }
@@ -1998,9 +1998,9 @@ GString* GlobalParams::findFontFile (GString* fontName) {
         dir = (GString*)fontDirs->get (i);
         for (j = 0; j < (int)(sizeof (exts) / sizeof (exts[0])); ++j) {
             ext = exts[j];
-            path = appendToPath (dir->copy (), fontName->getCString ());
+            path = appendToPath (dir->copy (), fontName->c_str ());
             path->append (ext);
-            if ((f = openFile (path->getCString (), "rb"))) {
+            if ((f = openFile (path->c_str (), "rb"))) {
                 fclose (f);
                 return path;
             }
@@ -2510,7 +2510,7 @@ CharCodeToUnicode* GlobalParams::getUnicodeToUnicode (GString* fontName) {
     unicodeToUnicodes->startIter (&iter);
     while (
         unicodeToUnicodes->getNext (&iter, &fontPattern, (void**)&fileName)) {
-        if (strstr (fontName->getCString (), fontPattern->getCString ())) {
+        if (strstr (fontName->c_str (), fontPattern->c_str ())) {
             unicodeToUnicodes->killIter (&iter);
             break;
         }
@@ -2566,7 +2566,7 @@ void GlobalParams::setPSFile (char* file) {
     psFile = new GString (file);
 }
 
-GBool GlobalParams::setPSPaperSize (char* size) {
+GBool GlobalParams::setPSPaperSize (const char* size) {
     if (!strcmp (size, "match")) { psPaperWidth = psPaperHeight = -1; }
     else if (!strcmp (size, "letter")) {
         psPaperWidth = 612;
@@ -2679,7 +2679,7 @@ void GlobalParams::setTextKeepTinyChars (GBool keep) {
     textKeepTinyChars = keep;
 }
 
-void GlobalParams::setInitialZoom (char* s) {
+void GlobalParams::setInitialZoom (const char* s) {
     delete initialZoom;
     initialZoom = new GString (s);
 }
