@@ -9,7 +9,7 @@
 #ifndef GFXFONT_H
 #define GFXFONT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <goo/GString.hh>

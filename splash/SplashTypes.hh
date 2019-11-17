@@ -9,7 +9,7 @@
 #ifndef SPLASHTYPES_H
 #define SPLASHTYPES_H
 
-#include <config.hh>
+#include <defs.hh>
 #include <goo/gtypes.hh>
 
 //------------------------------------------------------------------------

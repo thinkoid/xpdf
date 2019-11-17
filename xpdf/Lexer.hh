@@ -9,7 +9,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>

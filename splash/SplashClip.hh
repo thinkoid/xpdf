@@ -9,7 +9,7 @@
 #ifndef SPLASHCLIP_H
 #define SPLASHCLIP_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <splash/SplashTypes.hh>
 #include <splash/SplashMath.hh>

@@ -9,7 +9,7 @@
 #ifndef GFXSTATE_H
 #define GFXSTATE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/Object.hh>

@@ -9,10 +9,10 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
-#include <config.hh>
+#include <defs.hh>
 #include <goo/gfile.hh>
 
 enum ErrorCategory {

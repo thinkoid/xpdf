@@ -9,7 +9,7 @@
 #ifndef XPDFVIEWER_H
 #define XPDFVIEWER_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #define Object XtObject
 #include <Xm/XmAll.h>

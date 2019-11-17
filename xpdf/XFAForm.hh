@@ -9,7 +9,7 @@
 #ifndef XFAFORM_H
 #define XFAFORM_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/Form.hh>
 

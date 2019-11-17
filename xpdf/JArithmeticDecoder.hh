@@ -11,7 +11,7 @@
 #ifndef JARITHMETICDECODER_H
 #define JARITHMETICDECODER_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

@@ -9,7 +9,7 @@
 #ifndef CMAP_H
 #define CMAP_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>

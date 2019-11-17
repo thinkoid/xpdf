@@ -9,7 +9,7 @@
 #ifndef SPLASHGLYPHBITMAP_H
 #define SPLASHGLYPHBITMAP_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

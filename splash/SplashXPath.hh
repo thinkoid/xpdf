@@ -9,7 +9,7 @@
 #ifndef SPLASHXPATH_H
 #define SPLASHXPATH_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <splash/SplashTypes.hh>
 

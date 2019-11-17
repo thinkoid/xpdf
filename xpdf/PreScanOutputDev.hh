@@ -9,7 +9,7 @@
 #ifndef PRESCANOUTPUTDEV_H
 #define PRESCANOUTPUTDEV_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/GfxState.hh>

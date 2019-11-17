@@ -9,7 +9,7 @@
 #ifndef OPTIONALCONTENT_H
 #define OPTIONALCONTENT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/Object.hh>

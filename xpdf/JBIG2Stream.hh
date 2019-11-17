@@ -9,7 +9,7 @@
 #ifndef JBIG2STREAM_H
 #define JBIG2STREAM_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/Object.hh>

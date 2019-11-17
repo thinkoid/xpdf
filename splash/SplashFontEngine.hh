@@ -9,7 +9,7 @@
 #ifndef SPLASHFONTENGINE_H
 #define SPLASHFONTENGINE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 class GString;

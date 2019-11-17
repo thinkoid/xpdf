@@ -9,7 +9,7 @@
 #ifndef DICT_H
 #define DICT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/Object.hh>
 

@@ -11,7 +11,7 @@
 #ifndef CHARCODETOUNICODE_H
 #define CHARCODETOUNICODE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
 

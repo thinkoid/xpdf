@@ -9,7 +9,7 @@
 #ifndef SPLASHBITMAP_H
 #define SPLASHBITMAP_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <splash/SplashTypes.hh>

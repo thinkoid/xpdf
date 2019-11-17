@@ -9,7 +9,7 @@
 #ifndef PSTOKENIZER_H
 #define PSTOKENIZER_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

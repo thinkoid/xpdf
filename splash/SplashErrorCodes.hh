@@ -9,7 +9,7 @@
 #ifndef SPLASHERRORCODES_H
 #define SPLASHERRORCODES_H
 
-#include <config.hh>
+#include <defs.hh>
 
 //------------------------------------------------------------------------
 

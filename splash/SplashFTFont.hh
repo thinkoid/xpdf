@@ -9,7 +9,7 @@
 #ifndef SPLASHFTFONT_H
 #define SPLASHFTFONT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

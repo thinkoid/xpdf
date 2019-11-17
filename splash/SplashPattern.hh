@@ -9,7 +9,7 @@
 #ifndef SPLASHPATTERN_H
 #define SPLASHPATTERN_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <splash/SplashTypes.hh>
 

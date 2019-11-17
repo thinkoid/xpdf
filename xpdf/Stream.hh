@@ -9,7 +9,7 @@
 #ifndef STREAM_H
 #define STREAM_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <goo/gtypes.hh>

@@ -11,7 +11,7 @@
 #ifndef GSTRING_H
 #define GSTRING_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <limits.h> // for LLONG_MAX and ULLONG_MAX
 #include <stdarg.h>

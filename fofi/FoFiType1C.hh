@@ -9,7 +9,7 @@
 #ifndef FOFITYPE1C_H
 #define FOFITYPE1C_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <fofi/FoFiBase.hh>

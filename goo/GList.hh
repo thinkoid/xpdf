@@ -9,7 +9,7 @@
 #ifndef GLIST_H
 #define GLIST_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

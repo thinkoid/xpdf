@@ -9,7 +9,7 @@
 #ifndef NAMETOCHARCODE_H
 #define NAMETOCHARCODE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
 

@@ -9,7 +9,7 @@
 #ifndef FOFIIDENTIFIER_H
 #define FOFIIDENTIFIER_H
 
-#include <config.hh>
+#include <defs.hh>
 
 class GList;
 

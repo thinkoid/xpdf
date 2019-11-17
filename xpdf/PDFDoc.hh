@@ -9,7 +9,7 @@
 #ifndef PDFDOC_H
 #define PDFDOC_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <xpdf/XRef.hh>

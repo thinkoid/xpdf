@@ -9,7 +9,7 @@
 #ifndef CATALOG_H
 #define CATALOG_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
 

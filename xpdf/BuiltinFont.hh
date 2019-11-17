@@ -9,7 +9,7 @@
 #ifndef BUILTINFONT_H
 #define BUILTINFONT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

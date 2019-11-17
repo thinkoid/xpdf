@@ -9,7 +9,7 @@
 #ifndef GHASH_H
 #define GHASH_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

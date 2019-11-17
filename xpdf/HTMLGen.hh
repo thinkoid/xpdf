@@ -9,7 +9,7 @@
 #ifndef HTMLGEN_H
 #define HTMLGEN_H
 
-#include <config.hh>
+#include <defs.hh>
 
 class GString;
 class PDFDoc;

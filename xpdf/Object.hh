@@ -9,7 +9,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <string.h>

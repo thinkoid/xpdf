@@ -9,10 +9,10 @@
 #ifndef PSOUTPUTDEV_H
 #define PSOUTPUTDEV_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stddef.h>
-#include <config.hh>
+#include <defs.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/OutputDev.hh>

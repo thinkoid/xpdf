@@ -9,7 +9,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/Lexer.hh>
 

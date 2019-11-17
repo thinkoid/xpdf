@@ -11,7 +11,7 @@
 #ifndef UNICODEMAP_H
 #define UNICODEMAP_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>

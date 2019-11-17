@@ -9,7 +9,7 @@
 #ifndef FOFIBASE_H
 #define FOFIBASE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

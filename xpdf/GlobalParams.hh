@@ -9,7 +9,7 @@
 #ifndef GLOBALPARAMS_H
 #define GLOBALPARAMS_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <goo/gtypes.hh>

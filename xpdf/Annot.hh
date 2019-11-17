@@ -9,7 +9,7 @@
 #ifndef ANNOT_H
 #define ANNOT_H
 
-#include <config.hh>
+#include <defs.hh>
 
 class XRef;
 class Catalog;

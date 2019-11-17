@@ -9,7 +9,7 @@
 #ifndef SPLASHMATH_H
 #define SPLASHMATH_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #if USE_FIXEDPONT
 #include <goo/FixedPoint.hh>

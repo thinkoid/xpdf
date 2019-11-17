@@ -7,7 +7,7 @@
 #ifndef ZOOX_H
 #define ZOOX_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

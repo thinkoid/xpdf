@@ -9,7 +9,7 @@
 #ifndef IMAGEOUTPUTDEV_H
 #define IMAGEOUTPUTDEV_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <goo/gtypes.hh>

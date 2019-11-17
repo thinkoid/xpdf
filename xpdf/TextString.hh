@@ -13,7 +13,7 @@
 #ifndef TEXTSTRING_H
 #define TEXTSTRING_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
 

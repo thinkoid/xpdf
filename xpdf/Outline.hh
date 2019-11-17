@@ -9,7 +9,7 @@
 #ifndef OUTLINE_H
 #define OUTLINE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/Object.hh>
 #include <xpdf/CharTypes.hh>

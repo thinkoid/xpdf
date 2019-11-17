@@ -9,11 +9,11 @@
 #ifndef SPLASHOUTPUTDEV_H
 #define SPLASHOUTPUTDEV_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <splash/SplashTypes.hh>
-#include <config.hh>
+#include <defs.hh>
 #include <xpdf/OutputDev.hh>
 #include <xpdf/GfxState.hh>
 

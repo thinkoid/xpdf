@@ -9,7 +9,7 @@
 #ifndef OUTPUTDEV_H
 #define OUTPUTDEV_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>

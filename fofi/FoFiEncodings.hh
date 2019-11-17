@@ -9,7 +9,7 @@
 #ifndef FOFIENCODINGS_H
 #define FOFIENCODINGS_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

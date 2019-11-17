@@ -9,7 +9,7 @@
 #ifndef ACROFORM_H
 #define ACROFORM_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <xpdf/Form.hh>
 

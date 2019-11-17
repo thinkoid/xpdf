@@ -9,7 +9,7 @@
 #ifndef XPDFAPP_H
 #define XPDFAPP_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #define Object XtObject
 #include <Xm/XmAll.h>

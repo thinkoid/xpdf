@@ -9,7 +9,7 @@
 #ifndef FOFITRUETYPE_H
 #define FOFITRUETYPE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 #include <fofi/FoFiBase.hh>

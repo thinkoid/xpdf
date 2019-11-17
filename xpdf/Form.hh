@@ -9,7 +9,7 @@
 #ifndef FORM_H
 #define FORM_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 

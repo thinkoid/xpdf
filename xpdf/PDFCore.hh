@@ -9,7 +9,7 @@
 #ifndef PDFCORE_H
 #define PDFCORE_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdlib.h>
 #include <splash/SplashTypes.hh>

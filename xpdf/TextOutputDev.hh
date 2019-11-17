@@ -9,7 +9,7 @@
 #ifndef TEXTOUTPUTDEV_H
 #define TEXTOUTPUTDEV_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <stdio.h>
 #include <goo/gtypes.hh>

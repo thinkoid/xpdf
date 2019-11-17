@@ -9,7 +9,7 @@
 #ifndef SPLASHFONTFILEID_H
 #define SPLASHFONTFILEID_H
 
-#include <config.hh>
+#include <defs.hh>
 
 #include <goo/gtypes.hh>
 
