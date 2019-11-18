@@ -146,11 +146,6 @@ GBool SplashFTFont::makeGlyph (
         gid = (FT_UInt)c;
     }
 
-    if (ff->trueType) {
-        // skip the TrueType notdef glyph
-        return gFalse;
-    }
-
     // Set up the load flags:
     // * disable bitmaps because they look ugly when scaled, rotated,
     //   etc.
@@ -225,22 +220,24 @@ SplashPath* SplashFTFont::getGlyphPath (int c) {
     };
     SplashFTFontFile* ff;
     SplashFTFontPath path;
+
     FT_GlyphSlot slot;
     FT_UInt gid;
     FT_Glyph glyph;
 
     ff = (SplashFTFontFile*)fontFile;
     ff->face->size = sizeObj;
+
     FT_Set_Transform (ff->face, &textMatrix, NULL);
     slot = ff->face->glyph;
-    if (ff->codeToGID && c < ff->codeToGIDLen) { gid = ff->codeToGID[c]; }
+
+    if (ff->codeToGID && c < ff->codeToGIDLen) {
+        gid = ff->codeToGID[c];
+    }
     else {
         gid = (FT_UInt)c;
     }
-    if (ff->trueType) {
-        // skip the TrueType notdef glyph
-        return NULL;
-    }
+
     if (FT_Load_Glyph (ff->face, gid, FT_LOAD_NO_BITMAP)) { return NULL; }
     if (FT_Get_Glyph (slot, &glyph)) { return NULL; }
     path.path = new SplashPath ();
