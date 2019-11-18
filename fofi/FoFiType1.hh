@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <fofi/FoFiBase.hh>
 
 //------------------------------------------------------------------------
@@ -44,7 +43,7 @@ public:
         void* outputStream);
 
 private:
-    FoFiType1 (char* fileA, int lenA, GBool freeFileDataA);
+    FoFiType1 (char* fileA, int lenA, bool freeFileDataA);
 
     char* getNextLine (char* line);
     void parse ();
@@ -53,7 +52,7 @@ private:
     char* name;
     char** encoding;
     double fontMatrix[6];
-    GBool parsed;
+    bool parsed;
 };
 
 #endif

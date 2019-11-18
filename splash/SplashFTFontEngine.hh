@@ -13,7 +13,6 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <goo/gtypes.hh>
 class GString;
 
 class SplashFontFile;
@@ -25,7 +24,7 @@ class SplashFontFileID;
 
 class SplashFTFontEngine {
 public:
-    static SplashFTFontEngine* init (GBool aaA, Guint flagsA);
+    static SplashFTFontEngine* init (bool aaA, unsigned flagsA);
 
     ~SplashFTFontEngine ();
 
@@ -35,7 +34,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadType1CFont (
@@ -43,7 +42,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadOpenTypeT1CFont (
@@ -51,7 +50,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadCIDFont (
@@ -59,7 +58,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf
 #else
-        const char* fileName, GBool deleteFile
+        const char* fileName, bool deleteFile
 #endif
     );
     SplashFontFile* loadOpenTypeCFFFont (
@@ -67,7 +66,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         int* codeToGID, int codeToGIDLen);
     SplashFontFile* loadTrueTypeFont (
@@ -75,17 +74,17 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         int fontNum, int* codeToGID, int codeToGIDLen);
 
 private:
-    SplashFTFontEngine (GBool aaA, Guint flagsA, FT_Library libA);
+    SplashFTFontEngine (bool aaA, unsigned flagsA, FT_Library libA);
 
-    GBool aa;
-    Guint flags;
+    bool aa;
+    unsigned flags;
     FT_Library lib;
-    GBool useCIDs;
+    bool useCIDs;
 
     friend class SplashFTFontFile;
     friend class SplashFTFont;

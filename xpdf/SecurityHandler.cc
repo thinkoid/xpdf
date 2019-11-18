@@ -64,10 +64,10 @@ SecurityHandler::SecurityHandler (PDFDoc* docA) { doc = docA; }
 
 SecurityHandler::~SecurityHandler () {}
 
-GBool SecurityHandler::checkEncryption (
+bool SecurityHandler::checkEncryption (
     GString* ownerPassword, GString* userPassword) {
     void* authData;
-    GBool ok;
+    bool ok;
     int i;
 
     if (ownerPassword || userPassword) {
@@ -117,7 +117,7 @@ StandardSecurityHandler::StandardSecurityHandler (
     Object cryptFilterObj, cfmObj, cfLengthObj;
     Object encryptMetadataObj;
 
-    ok = gFalse;
+    ok = false;
     fileID = NULL;
     ownerKey = NULL;
     userKey = NULL;
@@ -155,7 +155,7 @@ StandardSecurityHandler::StandardSecurityHandler (
             else {
                 fileKeyLength = lengthObj.getInt () / 8;
             }
-            encryptMetadata = gTrue;
+            encryptMetadata = true;
             //~ this currently only handles a subset of crypt filter functionality
             //~ (in particular, it ignores the EFF entry in encryptDictA, and
             //~ doesn't handle the case where StmF, StrF, and EFF are not all the
@@ -252,7 +252,7 @@ StandardSecurityHandler::StandardSecurityHandler (
                 if (fileKeyLength > 16 || fileKeyLength <= 0) {
                     fileKeyLength = 16;
                 }
-                ok = gTrue;
+                ok = true;
             }
             else if (
                 encVersion == 5 && (encRevision == 5 || encRevision == 6)) {
@@ -262,7 +262,7 @@ StandardSecurityHandler::StandardSecurityHandler (
                 if (fileKeyLength > 32 || fileKeyLength <= 0) {
                     fileKeyLength = 32;
                 }
-                ok = gTrue;
+                ok = true;
             }
             else if (!(encVersion == -1 && encRevision == -1)) {
                 error (
@@ -298,7 +298,7 @@ StandardSecurityHandler::~StandardSecurityHandler () {
     if (userEnc) { delete userEnc; }
 }
 
-GBool StandardSecurityHandler::isUnencrypted () {
+bool StandardSecurityHandler::isUnencrypted () {
     return encVersion == -1 && encRevision == -1;
 }
 
@@ -323,10 +323,10 @@ void StandardSecurityHandler::freeAuthData (void* authData) {
     delete (StandardAuthData*)authData;
 }
 
-GBool StandardSecurityHandler::authorize (void* authData) {
+bool StandardSecurityHandler::authorize (void* authData) {
     GString *ownerPassword, *userPassword;
 
-    if (!ok) { return gFalse; }
+    if (!ok) { return false; }
     if (authData) {
         ownerPassword = ((StandardAuthData*)authData)->ownerPassword;
         userPassword = ((StandardAuthData*)authData)->userPassword;
@@ -339,9 +339,9 @@ GBool StandardSecurityHandler::authorize (void* authData) {
             encVersion, encRevision, fileKeyLength, ownerKey, userKey, ownerEnc,
             userEnc, permFlags, fileID, ownerPassword, userPassword, fileKey,
             encryptMetadata, &ownerPasswordOk)) {
-        return gFalse;
+        return false;
     }
-    return gTrue;
+    return true;
 }
 
 #ifdef ENABLE_PLUGINS
@@ -356,7 +356,7 @@ ExternalSecurityHandler::ExternalSecurityHandler (
     encryptDictA->copy (&encryptDict);
     xsh = xshA;
     encAlgorithm = cryptRC4; //~ this should be obtained via getKey
-    ok = gFalse;
+    ok = false;
 
     if (!(*xsh->newDoc) (
             xsh->handlerData, (XpdfDoc)docA, (XpdfObject)encryptDictA,
@@ -364,7 +364,7 @@ ExternalSecurityHandler::ExternalSecurityHandler (
         return;
     }
 
-    ok = gTrue;
+    ok = true;
 }
 
 ExternalSecurityHandler::~ExternalSecurityHandler () {
@@ -399,21 +399,21 @@ void ExternalSecurityHandler::freeAuthData (void* authData) {
     (*xsh->freeAuthData) (xsh->handlerData, docData, authData);
 }
 
-GBool ExternalSecurityHandler::authorize (void* authData) {
+bool ExternalSecurityHandler::authorize (void* authData) {
     char* key;
     int length;
 
-    if (!ok) { return gFalse; }
+    if (!ok) { return false; }
     permFlags = (*xsh->authorize) (xsh->handlerData, docData, authData);
-    if (!(permFlags & xpdfPermissionOpen)) { return gFalse; }
+    if (!(permFlags & xpdfPermissionOpen)) { return false; }
     if (!(*xsh->getKey) (
             xsh->handlerData, docData, &key, &length, &encVersion)) {
-        return gFalse;
+        return false;
     }
     if ((fileKeyLength = length) > 16) { fileKeyLength = 16; }
     memcpy (fileKey, key, fileKeyLength);
     (*xsh->freeKey) (xsh->handlerData, docData, key, length);
-    return gTrue;
+    return true;
 }
 
 #endif // ENABLE_PLUGINS

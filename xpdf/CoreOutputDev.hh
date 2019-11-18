@@ -17,7 +17,7 @@ class TextPage;
 //------------------------------------------------------------------------
 
 typedef void (*CoreOutRedrawCbk) (
-    void* data, int x0, int y0, int x1, int y1, GBool composited);
+    void* data, int x0, int y0, int x1, int y1, bool composited);
 
 //------------------------------------------------------------------------
 // CoreOutputDev
@@ -26,8 +26,8 @@ typedef void (*CoreOutRedrawCbk) (
 class CoreOutputDev : public SplashOutputDev {
 public:
     CoreOutputDev (
-        SplashColorMode colorModeA, int bitmapRowPadA, GBool reverseVideoA,
-        SplashColorPtr paperColorA, GBool incrementalUpdateA,
+        SplashColorMode colorModeA, int bitmapRowPadA, bool reverseVideoA,
+        SplashColorPtr paperColorA, bool incrementalUpdateA,
         CoreOutRedrawCbk redrawCbkA, void* redrawCbkDataA);
 
     virtual ~CoreOutputDev ();
@@ -46,7 +46,7 @@ public:
     void clear ();
 
 private:
-    GBool incrementalUpdate; // incrementally update the display?
+    bool incrementalUpdate; // incrementally update the display?
     CoreOutRedrawCbk redrawCbk;
     void* redrawCbkData;
 };

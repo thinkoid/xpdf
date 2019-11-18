@@ -43,10 +43,10 @@ class SplashState {
 public:
     // Create a new state object, initialized with default settings.
     SplashState (
-        int width, int height, GBool vectorAntialias,
+        int width, int height, bool vectorAntialias,
         SplashScreenParams* screenParams);
     SplashState (
-        int width, int height, GBool vectorAntialias, SplashScreen* screenA);
+        int width, int height, bool vectorAntialias, SplashScreen* screenA);
 
     // Copy a state object.
     SplashState* copy () { return new SplashState (this); }
@@ -71,13 +71,13 @@ public:
         SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1);
     SplashError
     clipToRect (SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1);
-    SplashError clipToPath (SplashPath* path, GBool eo);
+    SplashError clipToPath (SplashPath* path, bool eo);
 
     // Set the soft mask bitmap.
     void setSoftMask (SplashBitmap* softMaskA);
 
     // Set the transfer function.
-    void setTransfer (Guchar* red, Guchar* green, Guchar* blue, Guchar* gray);
+    void setTransfer (unsigned char* red, unsigned char* green, unsigned char* blue, unsigned char* gray);
 
 private:
     SplashState (SplashState* state);
@@ -97,18 +97,18 @@ private:
     SplashCoord* lineDash;
     int lineDashLength;
     SplashCoord lineDashPhase;
-    GBool strokeAdjust;
+    bool strokeAdjust;
     SplashClip* clip;
-    GBool clipIsShared;
+    bool clipIsShared;
     SplashBitmap* softMask;
-    GBool deleteSoftMask;
-    GBool inNonIsolatedGroup;
-    GBool inKnockoutGroup;
-    Guchar rgbTransferR[256], rgbTransferG[256], rgbTransferB[256];
-    Guchar grayTransfer[256];
-    Guchar cmykTransferC[256], cmykTransferM[256], cmykTransferY[256],
+    bool deleteSoftMask;
+    bool inNonIsolatedGroup;
+    bool inKnockoutGroup;
+    unsigned char rgbTransferR[256], rgbTransferG[256], rgbTransferB[256];
+    unsigned char grayTransfer[256];
+    unsigned char cmykTransferC[256], cmykTransferM[256], cmykTransferY[256],
         cmykTransferK[256];
-    Guint overprintMask;
+    unsigned overprintMask;
 
     SplashState* next; // used by Splash class
 

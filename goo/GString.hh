@@ -18,7 +18,6 @@
 
 #include <string>
 
-#include <goo/gtypes.hh>
 
 class GString : private std::string {
 public:

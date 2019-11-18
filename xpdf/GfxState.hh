@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Function.hh>
 
@@ -60,7 +59,7 @@ static inline double colToDbl (GfxColorComp x) {
     return (double)x / (double)gfxColorComp1;
 }
 
-static inline GfxColorComp byteToCol (Guchar x) {
+static inline GfxColorComp byteToCol (unsigned char x) {
     // (x / 255) << 16  =  (0.0000000100000001... * x) << 16
     //                  =  ((x << 8) + (x) + (x >> 8) + ...) << 16
     //                  =  (x << 8) + (x) + (x >> 7)
@@ -68,9 +67,9 @@ static inline GfxColorComp byteToCol (Guchar x) {
     return (GfxColorComp) ((x << 8) + x + (x >> 7));
 }
 
-static inline Guchar colToByte (GfxColorComp x) {
+static inline unsigned char colToByte (GfxColorComp x) {
     // 255 * x + 0.5  =  256 * x - x + 0x8000
-    return (Guchar) (((x << 8) - x + 0x8000) >> 16);
+    return (unsigned char) (((x << 8) - x + 0x8000) >> 16);
 }
 
 //------------------------------------------------------------------------
@@ -157,10 +156,10 @@ public:
 
     // Returns true if painting operations in this color space never
     // mark the page (e.g., the "None" colorant).
-    virtual GBool isNonMarking () { return gFalse; }
+    virtual bool isNonMarking () { return false; }
 
     // Return the color space's overprint mask.
-    Guint getOverprintMask () { return overprintMask; }
+    unsigned getOverprintMask () { return overprintMask; }
 
     // Return the number of color space modes
     static int getNumColorSpaceModes ();
@@ -169,7 +168,7 @@ public:
     static const char* getColorSpaceModeName (int idx);
 
 protected:
-    Guint overprintMask;
+    unsigned overprintMask;
 };
 
 //------------------------------------------------------------------------
@@ -417,13 +416,13 @@ public:
     // Indexed-specific access.
     GfxColorSpace* getBase () { return base; }
     int getIndexHigh () { return indexHigh; }
-    Guchar* getLookup () { return lookup; }
+    unsigned char* getLookup () { return lookup; }
     GfxColor* mapColorToBase (GfxColor* color, GfxColor* baseColor);
 
 private:
     GfxColorSpace* base; // base color space
     int indexHigh;       // max pixel value
-    Guchar* lookup;      // lookup table
+    unsigned char* lookup;      // lookup table
 };
 
 //------------------------------------------------------------------------
@@ -448,7 +447,7 @@ public:
     virtual int getNComps () { return 1; }
     virtual void getDefaultColor (GfxColor* color);
 
-    virtual GBool isNonMarking () { return nonMarking; }
+    virtual bool isNonMarking () { return nonMarking; }
 
     // Separation-specific access.
     GString* getName () { return name; }
@@ -457,13 +456,13 @@ public:
 
 private:
     GfxSeparationColorSpace (
-        GString* nameA, GfxColorSpace* altA, Function* funcA, GBool nonMarkingA,
-        Guint overprintMaskA);
+        GString* nameA, GfxColorSpace* altA, Function* funcA, bool nonMarkingA,
+        unsigned overprintMaskA);
 
     GString* name;      // colorant name
     GfxColorSpace* alt; // alternate color space
     Function* func;     // tint transform (into alternate color space)
-    GBool nonMarking;
+    bool nonMarking;
 };
 
 //------------------------------------------------------------------------
@@ -488,7 +487,7 @@ public:
     virtual int getNComps () { return nComps; }
     virtual void getDefaultColor (GfxColor* color);
 
-    virtual GBool isNonMarking () { return nonMarking; }
+    virtual bool isNonMarking () { return nonMarking; }
 
     // DeviceN-specific access.
     GString* getColorantName (int i) { return names[i]; }
@@ -498,14 +497,14 @@ public:
 private:
     GfxDeviceNColorSpace (
         int nCompsA, GString** namesA, GfxColorSpace* alt, Function* func,
-        GBool nonMarkingA, Guint overprintMaskA);
+        bool nonMarkingA, unsigned overprintMaskA);
 
     int nComps; // number of components
     GString     // colorant names
         * names[gfxColorMaxComps];
     GfxColorSpace* alt; // alternate color space
     Function* func;     // tint transform (into alternate color space)
-    GBool nonMarking;
+    bool nonMarking;
 };
 
 //------------------------------------------------------------------------
@@ -631,24 +630,24 @@ public:
     int getType () { return type; }
     GfxColorSpace* getColorSpace () { return colorSpace; }
     GfxColor* getBackground () { return &background; }
-    GBool getHasBackground () { return hasBackground; }
+    bool getHasBackground () { return hasBackground; }
     void getBBox (double* xMinA, double* yMinA, double* xMaxA, double* yMaxA) {
         *xMinA = xMin;
         *yMinA = yMin;
         *xMaxA = xMax;
         *yMaxA = yMax;
     }
-    GBool getHasBBox () { return hasBBox; }
+    bool getHasBBox () { return hasBBox; }
 
 protected:
-    GBool init (Dict* dict);
+    bool init (Dict* dict);
 
     int type;
     GfxColorSpace* colorSpace;
     GfxColor background;
-    GBool hasBackground;
+    bool hasBackground;
     double xMin, yMin, xMax, yMax;
-    GBool hasBBox;
+    bool hasBBox;
 };
 
 //------------------------------------------------------------------------
@@ -693,7 +692,7 @@ class GfxAxialShading : public GfxShading {
 public:
     GfxAxialShading (
         double x0A, double y0A, double x1A, double y1A, double t0A, double t1A,
-        Function** funcsA, int nFuncsA, GBool extend0A, GBool extend1A);
+        Function** funcsA, int nFuncsA, bool extend0A, bool extend1A);
     GfxAxialShading (GfxAxialShading* shading);
     virtual ~GfxAxialShading ();
 
@@ -709,8 +708,8 @@ public:
     }
     double getDomain0 () { return t0; }
     double getDomain1 () { return t1; }
-    GBool getExtend0 () { return extend0; }
-    GBool getExtend1 () { return extend1; }
+    bool getExtend0 () { return extend0; }
+    bool getExtend1 () { return extend1; }
     int getNFuncs () { return nFuncs; }
     Function* getFunc (int i) { return funcs[i]; }
     void getColor (double t, GfxColor* color);
@@ -720,7 +719,7 @@ private:
     double t0, t1;
     Function* funcs[gfxColorMaxComps];
     int nFuncs;
-    GBool extend0, extend1;
+    bool extend0, extend1;
 };
 
 //------------------------------------------------------------------------
@@ -731,8 +730,8 @@ class GfxRadialShading : public GfxShading {
 public:
     GfxRadialShading (
         double x0A, double y0A, double r0A, double x1A, double y1A, double r1A,
-        double t0A, double t1A, Function** funcsA, int nFuncsA, GBool extend0A,
-        GBool extend1A);
+        double t0A, double t1A, Function** funcsA, int nFuncsA, bool extend0A,
+        bool extend1A);
     GfxRadialShading (GfxRadialShading* shading);
     virtual ~GfxRadialShading ();
 
@@ -752,8 +751,8 @@ public:
     }
     double getDomain0 () { return t0; }
     double getDomain1 () { return t1; }
-    GBool getExtend0 () { return extend0; }
-    GBool getExtend1 () { return extend1; }
+    bool getExtend0 () { return extend0; }
+    bool getExtend1 () { return extend1; }
     int getNFuncs () { return nFuncs; }
     Function* getFunc (int i) { return funcs[i]; }
     void getColor (double t, GfxColor* color);
@@ -763,7 +762,7 @@ private:
     double t0, t1;
     Function* funcs[gfxColorMaxComps];
     int nFuncs;
-    GBool extend0, extend1;
+    bool extend0, extend1;
 };
 
 //------------------------------------------------------------------------
@@ -857,7 +856,7 @@ public:
     GfxImageColorMap* copy () { return new GfxImageColorMap (this); }
 
     // Is color map valid?
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Get the color space.
     GfxColorSpace* getColorSpace () { return colorSpace; }
@@ -871,15 +870,15 @@ public:
     double getDecodeHigh (int i) { return decodeLow[i] + decodeRange[i]; }
 
     // Convert an image pixel to a color.
-    void getGray (Guchar* x, GfxGray* gray);
-    void getRGB (Guchar* x, GfxRGB* rgb);
-    void getCMYK (Guchar* x, GfxCMYK* cmyk);
-    void getColor (Guchar* x, GfxColor* color);
+    void getGray (unsigned char* x, GfxGray* gray);
+    void getRGB (unsigned char* x, GfxRGB* rgb);
+    void getCMYK (unsigned char* x, GfxCMYK* cmyk);
+    void getColor (unsigned char* x, GfxColor* color);
 
     // Convert a line of <n> pixels to 8-bit colors.
-    void getGrayByteLine (Guchar* in, Guchar* out, int n);
-    void getRGBByteLine (Guchar* in, Guchar* out, int n);
-    void getCMYKByteLine (Guchar* in, Guchar* out, int n);
+    void getGrayByteLine (unsigned char* in, unsigned char* out, int n);
+    void getRGBByteLine (unsigned char* in, unsigned char* out, int n);
+    void getCMYKByteLine (unsigned char* in, unsigned char* out, int n);
 
 private:
     GfxImageColorMap (GfxImageColorMap* colorMap);
@@ -897,7 +896,7 @@ private:
         decodeLow[gfxColorMaxComps];
     double // max - min value for each component
         decodeRange[gfxColorMaxComps];
-    GBool ok;
+    bool ok;
 };
 
 //------------------------------------------------------------------------
@@ -919,7 +918,7 @@ public:
     int getNumPoints () { return n; }
     double getX (int i) { return x[i]; }
     double getY (int i) { return y[i]; }
-    GBool getCurve (int i) { return curve[i]; }
+    bool getCurve (int i) { return curve[i]; }
 
     // Get last point.
     double getLastX () { return x[n - 1]; }
@@ -934,18 +933,18 @@ public:
 
     // Close the subpath.
     void close ();
-    GBool isClosed () { return closed; }
+    bool isClosed () { return closed; }
 
     // Add (<dx>, <dy>) to each point in the subpath.
     void offset (double dx, double dy);
 
 private:
     double *x, *y; // points
-    GBool* curve;  // curve[i] => point i is a control point
+    bool* curve;  // curve[i] => point i is a control point
                    //   for a Bezier curve
     int n;         // number of points
     int size;      // size of x/y arrays
-    GBool closed;  // set if path is closed
+    bool closed;  // set if path is closed
 
     GfxSubpath (GfxSubpath* subpath);
 };
@@ -964,10 +963,10 @@ public:
     }
 
     // Is there a current point?
-    GBool isCurPt () { return n > 0 || justMoved; }
+    bool isCurPt () { return n > 0 || justMoved; }
 
     // Is the path non-empty, i.e., is there at least one segment?
-    GBool isPath () { return n > 0; }
+    bool isPath () { return n > 0; }
 
     // Get subpaths.
     int getNumSubpaths () { return n; }
@@ -997,14 +996,14 @@ public:
     void offset (double dx, double dy);
 
 private:
-    GBool justMoved;       // set if a new subpath was just started
+    bool justMoved;       // set if a new subpath was just started
     double firstX, firstY; // first point in new subpath
     GfxSubpath** subpaths; // subpaths
     int n;                 // number of subpaths
     int size;              // size of subpaths array
 
     GfxPath (
-        GBool justMoved1, double firstX1, double firstY1,
+        bool justMoved1, double firstX1, double firstY1,
         GfxSubpath** subpaths1, int n1, int size1);
 };
 
@@ -1019,13 +1018,13 @@ public:
     // coordinate system specified by <upsideDown>.
     GfxState (
         double hDPIA, double vDPIA, PDFRectangle* pageBox, int rotateA,
-        GBool upsideDown);
+        bool upsideDown);
 
     // Destructor.
     ~GfxState ();
 
     // Copy.
-    GfxState* copy (GBool copyPath = gFalse) {
+    GfxState* copy (bool copyPath = false) {
         return new GfxState (this, copyPath);
     }
 
@@ -1065,8 +1064,8 @@ public:
     GfxBlendMode getBlendMode () { return blendMode; }
     double getFillOpacity () { return fillOpacity; }
     double getStrokeOpacity () { return strokeOpacity; }
-    GBool getFillOverprint () { return fillOverprint; }
-    GBool getStrokeOverprint () { return strokeOverprint; }
+    bool getFillOverprint () { return fillOverprint; }
+    bool getStrokeOverprint () { return strokeOverprint; }
     int getOverprintMode () { return overprintMode; }
     Function** getTransfer () { return transfer; }
     double getLineWidth () { return lineWidth; }
@@ -1079,7 +1078,7 @@ public:
     int getLineJoin () { return lineJoin; }
     int getLineCap () { return lineCap; }
     double getMiterLimit () { return miterLimit; }
-    GBool getStrokeAdjust () { return strokeAdjust; }
+    bool getStrokeAdjust () { return strokeAdjust; }
     GfxFont* getFont () { return font; }
     double getFontSize () { return fontSize; }
     double* getTextMat () { return textMat; }
@@ -1105,8 +1104,8 @@ public:
     double getLineY () { return lineY; }
 
     // Is there a current point/path?
-    GBool isCurPt () { return path->isCurPt (); }
-    GBool isPath () { return path->isPath (); }
+    bool isCurPt () { return path->isCurPt (); }
+    bool isPath () { return path->isPath (); }
 
     // Transforms.
     void transform (double x1, double y1, double* x2, double* y2) {
@@ -1143,8 +1142,8 @@ public:
     void setBlendMode (GfxBlendMode mode) { blendMode = mode; }
     void setFillOpacity (double opac) { fillOpacity = opac; }
     void setStrokeOpacity (double opac) { strokeOpacity = opac; }
-    void setFillOverprint (GBool op) { fillOverprint = op; }
-    void setStrokeOverprint (GBool op) { strokeOverprint = op; }
+    void setFillOverprint (bool op) { fillOverprint = op; }
+    void setStrokeOverprint (bool op) { strokeOverprint = op; }
     void setOverprintMode (int opm) { overprintMode = opm; }
     void setTransfer (Function** funcs);
     void setLineWidth (double width) { lineWidth = width; }
@@ -1153,7 +1152,7 @@ public:
     void setLineJoin (int lineJoin1) { lineJoin = lineJoin1; }
     void setLineCap (int lineCap1) { lineCap = lineCap1; }
     void setMiterLimit (double limit) { miterLimit = limit; }
-    void setStrokeAdjust (GBool sa) { strokeAdjust = sa; }
+    void setStrokeAdjust (bool sa) { strokeAdjust = sa; }
     void setFont (GfxFont* fontA, double fontSizeA) {
         font = fontA;
         fontSize = fontSizeA;
@@ -1209,10 +1208,10 @@ public:
     // Push/pop GfxState on/off stack.
     GfxState* save ();
     GfxState* restore ();
-    GBool hasSaves () { return saved != NULL; }
+    bool hasSaves () { return saved != NULL; }
 
     // Misc
-    GBool parseBlendMode (Object* obj, GfxBlendMode* mode);
+    bool parseBlendMode (Object* obj, GfxBlendMode* mode);
 
 private:
     double hDPI, vDPI;            // resolution
@@ -1230,8 +1229,8 @@ private:
     GfxBlendMode blendMode;          // transparency blend mode
     double fillOpacity;              // fill opacity
     double strokeOpacity;            // stroke opacity
-    GBool fillOverprint;             // fill overprint
-    GBool strokeOverprint;           // stroke overprint
+    bool fillOverprint;             // fill overprint
+    bool strokeOverprint;           // stroke overprint
     int overprintMode;               // overprint mode ("OPM")
     Function* transfer[4];           // transfer function (entries may be: all
                                      //   NULL = identity; last three NULL =
@@ -1246,7 +1245,7 @@ private:
     int lineJoin;       // line join style
     int lineCap;        // line cap style
     double miterLimit;  // line miter limit
-    GBool strokeAdjust; // stroke adjustment
+    bool strokeAdjust; // stroke adjustment
 
     GfxFont* font;       // font
     double fontSize;     // font size
@@ -1267,7 +1266,7 @@ private:
 
     GfxState* saved; // next GfxState on stack
 
-    GfxState (GfxState* state, GBool copyPath);
+    GfxState (GfxState* state, bool copyPath);
 };
 
 #endif

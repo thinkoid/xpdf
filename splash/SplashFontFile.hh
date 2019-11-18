@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <splash/SplashTypes.hh>
 
 class GString;
@@ -47,7 +46,7 @@ protected:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA
 #else
-        const char* fileNameA, GBool deleteFileA
+        const char* fileNameA, bool deleteFileA
 #endif
     );
 
@@ -56,7 +55,7 @@ protected:
     GString* fontBuf;
 #else
     GString* fileName;
-    GBool deleteFile;
+    bool deleteFile;
 #endif
     int refCnt;
 

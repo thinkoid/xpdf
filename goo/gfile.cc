@@ -98,7 +98,7 @@ GString* grabPath (const char* fileName) {
     return new GString (fs::path (fileName).parent_path ().native ());
 }
 
-GBool isAbsolutePath (const char* path) {
+bool isAbsolutePath (const char* path) {
     return path [0] == '/';
 }
 
@@ -147,7 +147,7 @@ time_t getModTime (const char* fileName) {
     return statBuf.st_mtime;
 }
 
-GBool openTempFile (GString** name, FILE** f, const char* mode) {
+bool openTempFile (GString** name, FILE** f, const char* mode) {
     assert (f && 0 == f[0]);
     assert (name && 0 == name [0]);
 
@@ -163,16 +163,16 @@ GBool openTempFile (GString** name, FILE** f, const char* mode) {
                 fclose (pf);
             }
 
-            return gFalse;
+            return false;
         }
     }
 
-    return gTrue;
+    return true;
 }
 
-GBool createDir (char* path, int mode) { return !mkdir (path, mode); }
+bool createDir (char* path, int mode) { return !mkdir (path, mode); }
 
-GBool executeCommand (char* cmd) { return system (cmd) ? gFalse : gTrue; }
+bool executeCommand (char* cmd) { return system (cmd) ? false : true; }
 
 FILE* openFile (const char* path, const char* mode) {
     return fopen (path, mode);
@@ -210,12 +210,12 @@ GFileOffset gftell (FILE* f) { return ftell (f); }
 // GDir and GDirEntry
 //------------------------------------------------------------------------
 
-GDirEntry::GDirEntry (const char* dirPath, char* nameA, GBool doStat) {
+GDirEntry::GDirEntry (const char* dirPath, char* nameA, bool doStat) {
     struct stat st;
     GString* s;
 
     name = new GString (nameA);
-    dir = gFalse;
+    dir = false;
 
     if (doStat) {
         s = new GString (dirPath);
@@ -227,7 +227,7 @@ GDirEntry::GDirEntry (const char* dirPath, char* nameA, GBool doStat) {
 
 GDirEntry::~GDirEntry () { delete name; }
 
-GDir::GDir (char* name, GBool doStatA) {
+GDir::GDir (char* name, bool doStatA) {
     path = new GString (name);
     doStat = doStatA;
     dir = opendir (name);

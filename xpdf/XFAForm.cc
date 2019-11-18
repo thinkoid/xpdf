@@ -30,7 +30,7 @@
 // 5 bars + 5 spaces -- each can be wide (1) or narrow (0)
 // (there are always exactly 3 wide elements;
 // the last space is always narrow)
-static Guchar code3Of9Data[128][10] = {
+static unsigned char code3Of9Data[128][10] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // 0x00
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -171,7 +171,7 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
     ZxElement* tmpl;
     Object catDict, resourceDictA, obj1;
     GString* data;
-    GBool fullXFAA;
+    bool fullXFAA;
     GString* name;
     char buf[4096];
     int n, i;
@@ -240,7 +240,7 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
 }
 
 XFAForm::XFAForm (
-    PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, GBool fullXFAA)
+    PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA)
     : Form (docA) {
     xml = xmlA;
     fields = new GList ();
@@ -342,7 +342,7 @@ void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
     }
 }
 
-void XFAForm::draw (int pageNum, Gfx* gfx, GBool printing) {
+void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
     GfxFontDict* fontDict;
     Object obj1;
     int i;
@@ -492,7 +492,7 @@ Unicode* XFAFormField::utf8ToUnicode (GString* s, int* length) {
 }
 
 void XFAFormField::draw (
-    int pageNumA, Gfx* gfx, GBool printing, GfxFontDict* fontDict) {
+    int pageNumA, Gfx* gfx, bool printing, GfxFontDict* fontDict) {
     Page* page;
     PDFRectangle* pageRect;
     ZxElement* uiElem;
@@ -724,7 +724,7 @@ void XFAFormField::drawTextEdit (
     GString *value, *fontName;
     double fontSize;
     int maxChars, combCells;
-    GBool multiLine, bold, italic;
+    bool multiLine, bold, italic;
     XFAHorizAlign hAlign;
     XFAVertAlign vAlign;
 
@@ -737,13 +737,13 @@ void XFAFormField::drawTextEdit (
         maxChars = atoi (attr->getValue ()->c_str ());
     }
 
-    multiLine = gFalse;
+    multiLine = false;
     combCells = 0;
     if ((uiElem = xml->findFirstChildElement ("ui")) &&
         (textEditElem = uiElem->findFirstChildElement ("textEdit"))) {
         if ((attr = textEditElem->findAttr ("multiLine")) &&
             !attr->getValue ()->cmp ("1")) {
-            multiLine = gTrue;
+            multiLine = true;
         }
         if ((combElem = textEditElem->findFirstChildElement ("comb"))) {
             if ((attr = combElem->findAttr ("numberOfCells"))) {
@@ -757,17 +757,17 @@ void XFAFormField::drawTextEdit (
 
     fontName = NULL;
     fontSize = 10;
-    bold = gFalse;
-    italic = gFalse;
+    bold = false;
+    italic = false;
     if ((fontElem = xml->findFirstChildElement ("font"))) {
         if ((attr = fontElem->findAttr ("typeface"))) {
             fontName = attr->getValue ()->copy ();
         }
         if ((attr = fontElem->findAttr ("weight"))) {
-            if (!attr->getValue ()->cmp ("bold")) { bold = gTrue; }
+            if (!attr->getValue ()->cmp ("bold")) { bold = true; }
         }
         if ((attr = fontElem->findAttr ("posture"))) {
-            if (!attr->getValue ()->cmp ("italic")) { italic = gTrue; }
+            if (!attr->getValue ()->cmp ("italic")) { italic = true; }
         }
         if ((attr = fontElem->findAttr ("size"))) {
             fontSize = getMeasurement (attr, fontSize);
@@ -802,7 +802,7 @@ void XFAFormField::drawTextEdit (
 
     drawText (
         value, multiLine, combCells, fontName, bold, italic, fontSize, hAlign,
-        vAlign, 0, 0, w, h, gFalse, fontDict, appearBuf);
+        vAlign, 0, 0, w, h, false, fontDict, appearBuf);
     delete fontName;
 }
 
@@ -814,9 +814,9 @@ void XFAFormField::drawBarCode (
     XFAVertAlign textAlign;
     double wideNarrowRatio, fontSize;
     double yText, wText, yBarcode, hBarcode, wNarrow, xx;
-    GBool doText;
+    bool doText;
     int dataLength;
-    GBool bold, italic;
+    bool bold, italic;
     int i, j, c;
 
     //--- get field value
@@ -878,17 +878,17 @@ void XFAFormField::drawBarCode (
     //--- get font
     fontName = NULL;
     fontSize = 0.2 * h;
-    bold = gFalse;
-    italic = gFalse;
+    bold = false;
+    italic = false;
     if ((fontElem = xml->findFirstChildElement ("font"))) {
         if ((attr = fontElem->findAttr ("typeface"))) {
             fontName = attr->getValue ()->copy ();
         }
         if ((attr = fontElem->findAttr ("weight"))) {
-            if (!attr->getValue ()->cmp ("bold")) { bold = gTrue; }
+            if (!attr->getValue ()->cmp ("bold")) { bold = true; }
         }
         if ((attr = fontElem->findAttr ("posture"))) {
-            if (!attr->getValue ()->cmp ("italic")) { italic = gTrue; }
+            if (!attr->getValue ()->cmp ("italic")) { italic = true; }
         }
         if ((attr = fontElem->findAttr ("size"))) {
             fontSize = getMeasurement (attr, fontSize);
@@ -897,7 +897,7 @@ void XFAFormField::drawBarCode (
     if (!fontName) { fontName = new GString ("Courier"); }
 
     //--- compute the embedded text type position
-    doText = gTrue;
+    doText = true;
     yText = yBarcode = hBarcode = 0;
     if (textLocation && !textLocation->cmp ("above")) {
         textAlign = xfaVAlignTop;
@@ -919,7 +919,7 @@ void XFAFormField::drawBarCode (
     }
     else if (textLocation && !textLocation->cmp ("none")) {
         textAlign = xfaVAlignBottom; // make gcc happy
-        doText = gFalse;
+        doText = false;
     }
     else { // default is "below"
         textAlign = xfaVAlignBottom;
@@ -975,8 +975,8 @@ void XFAFormField::drawBarCode (
     if (doText) {
         appearBuf->append ("0 g\n");
         drawText (
-            value2, gFalse, 0, fontName, bold, italic, fontSize,
-            xfaHAlignCenter, textAlign, 0, yText, wText, h, gTrue, fontDict,
+            value2, false, 0, fontName, bold, italic, fontSize,
+            xfaHAlignCenter, textAlign, 0, yText, wText, h, true, fontDict,
             appearBuf);
     }
     delete fontName;
@@ -990,16 +990,16 @@ Object* XFAFormField::getResources (Object* res) {
 double XFAFormField::getMeasurement (ZxAttr* attr, double defaultVal) {
     GString* s;
     double val, mul;
-    GBool neg;
+    bool neg;
     int i;
 
     if (!attr) { return defaultVal; }
     s = attr->getValue ();
     i = 0;
-    neg = gFalse;
+    neg = false;
     if (i < s->getLength () && s->getChar (i) == '+') { ++i; }
     else if (i < s->getLength () && s->getChar (i) == '-') {
-        neg = gTrue;
+        neg = true;
         ++i;
     }
     val = 0;
@@ -1139,10 +1139,10 @@ void XFAFormField::transform (
 }
 
 void XFAFormField::drawText (
-    GString* text, GBool multiLine, int combCells, GString* fontName,
-    GBool bold, GBool italic, double fontSize, XFAHorizAlign hAlign,
+    GString* text, bool multiLine, int combCells, GString* fontName,
+    bool bold, bool italic, double fontSize, XFAHorizAlign hAlign,
     XFAVertAlign vAlign, double x, double y, double w, double h,
-    GBool whiteBackground, GfxFontDict* fontDict, GString* appearBuf) {
+    bool whiteBackground, GfxFontDict* fontDict, GString* appearBuf) {
     GfxFont* font;
     GString* s;
     double xx, yy, tw, charWidth, lineHeight;
@@ -1347,10 +1347,10 @@ void XFAFormField::drawText (
 // Searches <fontDict> for a font matching(<fontName>, <bold>,
 // <italic>).
 GfxFont* XFAFormField::findFont (
-    GfxFontDict* fontDict, GString* fontName, GBool bold, GBool italic) {
+    GfxFontDict* fontDict, GString* fontName, bool bold, bool italic) {
     GString *reqName, *testName;
     GfxFont* font;
-    GBool foundName, foundBold, foundItalic;
+    bool foundName, foundBold, foundItalic;
     char c;
     int i, j;
 
@@ -1370,16 +1370,16 @@ GfxFont* XFAFormField::findFont (
             c = font->getName ()->getChar (j);
             if (c != ' ') { testName->append (c); }
         }
-        foundName = foundBold = foundItalic = gFalse;
+        foundName = foundBold = foundItalic = false;
         for (const char* p = testName->c_str (); *p; ++p) {
             if (!strncasecmp (
                     p, reqName->c_str (), reqName->getLength ())) {
-                foundName = gTrue;
+                foundName = true;
             }
-            if (!strncasecmp (p, "bold", 4)) { foundBold = gTrue; }
+            if (!strncasecmp (p, "bold", 4)) { foundBold = true; }
             if (!strncasecmp (p, "italic", 6) ||
                 !strncasecmp (p, "oblique", 7)) {
-                foundItalic = gTrue;
+                foundItalic = true;
             }
         }
         delete testName;

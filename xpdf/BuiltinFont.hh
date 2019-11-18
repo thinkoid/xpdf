@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 
 struct BuiltinFont;
 class BuiltinFontWidths;
@@ -31,7 +30,7 @@ struct BuiltinFont {
 
 struct BuiltinFontWidth {
     const char* name;
-    Gushort width;
+    unsigned short width;
     BuiltinFontWidth* next;
 };
 
@@ -39,7 +38,7 @@ class BuiltinFontWidths {
 public:
     BuiltinFontWidths (BuiltinFontWidth* widths, int sizeA);
     ~BuiltinFontWidths ();
-    GBool getWidth (const char* name, Gushort* width);
+    bool getWidth (const char* name, unsigned short* width);
 
 private:
     int hash (const char* name);

@@ -142,7 +142,7 @@ class TextChar {
 public:
     TextChar (
         Unicode cA, int charPosA, int charLenA, double xMinA, double yMinA,
-        double xMaxA, double yMaxA, int rotA, GBool clippedA, GBool invisibleA,
+        double xMaxA, double yMaxA, int rotA, bool clippedA, bool invisibleA,
         TextFontInfo* fontA, double fontSizeA, double colorRA, double colorGA,
         double colorBA);
 
@@ -153,7 +153,7 @@ public:
     int charPos;
     int charLen;
     double xMin, yMin, xMax, yMax;
-    Guchar rot;
+    unsigned char rot;
     char clipped;
     char invisible;
     TextFontInfo* font;
@@ -163,7 +163,7 @@ public:
 
 TextChar::TextChar (
     Unicode cA, int charPosA, int charLenA, double xMinA, double yMinA,
-    double xMaxA, double yMaxA, int rotA, GBool clippedA, GBool invisibleA,
+    double xMaxA, double yMaxA, int rotA, bool clippedA, bool invisibleA,
     TextFontInfo* fontA, double fontSizeA, double colorRA, double colorGA,
     double colorBA) {
     double t;
@@ -187,7 +187,7 @@ TextChar::TextChar (
         yMin = yMax;
         yMax = t;
     }
-    rot = (Guchar)rotA;
+    rot = (unsigned char)rotA;
     clipped = (char)clippedA;
     invisible = (char)invisibleA;
     font = fontA;
@@ -244,7 +244,7 @@ public:
     TextBlockTag tag;
     int rot;
     double xMin, yMin, xMax, yMax;
-    GBool smallSplit; // true for blkVertSplit/blkHorizSplit
+    bool smallSplit; // true for blkVertSplit/blkHorizSplit
                       //   where the gap size is small
     GList* children;  // for blkLeaf, children are TextWord;
         //   for others, children are TextBlock
@@ -255,7 +255,7 @@ TextBlock::TextBlock (TextBlockType typeA, int rotA) {
     tag = blkTagMulticolumn;
     rot = rotA;
     xMin = yMin = xMax = yMax = 0;
-    smallSplit = gFalse;
+    smallSplit = false;
     children = new GList ();
 }
 
@@ -340,7 +340,7 @@ public:
     ~TextUnderline () {}
 
     double x0, y0, x1, y1;
-    GBool horiz;
+    bool horiz;
 };
 
 //------------------------------------------------------------------------
@@ -375,8 +375,8 @@ TextOutputControl::TextOutputControl () {
     mode = textOutReadingOrder;
     fixedPitch = 0;
     fixedLineSpacing = 0;
-    html = gFalse;
-    clipText = gFalse;
+    html = false;
+    clipText = false;
 }
 
 //------------------------------------------------------------------------
@@ -426,10 +426,10 @@ TextFontInfo::~TextFontInfo () {
     if (fontName) { delete fontName; }
 }
 
-GBool TextFontInfo::matches (GfxState* state) {
+bool TextFontInfo::matches (GfxState* state) {
     Ref* id;
 
-    if (!state->getFont ()) { return gFalse; }
+    if (!state->getFont ()) { return false; }
     id = state->getFont ()->getID ();
     return id->num == fontID.num && id->gen == fontID.gen;
 }
@@ -441,7 +441,7 @@ GBool TextFontInfo::matches (GfxState* state) {
 // Build a TextWord object, using chars[start .. start+len-1].
 // (If rot >= 2, the chars list is in reverse order.)
 TextWord::TextWord (
-    GList* chars, int start, int lenA, int rotA, GBool spaceAfterA) {
+    GList* chars, int start, int lenA, int rotA, bool spaceAfterA) {
     TextChar* ch;
     int i;
 
@@ -514,7 +514,7 @@ TextWord::TextWord (
     font = ch->font;
     fontSize = ch->fontSize;
     spaceAfter = spaceAfterA;
-    underlined = gFalse;
+    underlined = false;
     link = NULL;
     colorR = ch->colorR;
     colorG = ch->colorG;
@@ -837,9 +837,9 @@ TextPage::TextPage (TextOutputControl* controlA) {
     links = new GList ();
 
     findCols = NULL;
-    findLR = gTrue;
+    findLR = true;
     lastFindXMin = lastFindYMin = 0;
-    haveLastFind = gFalse;
+    haveLastFind = false;
 }
 
 TextPage::~TextPage () {
@@ -886,9 +886,9 @@ void TextPage::clear () {
         deleteGList (findCols, TextColumn);
         findCols = NULL;
     }
-    findLR = gTrue;
+    findLR = true;
     lastFindXMin = lastFindYMin = 0;
-    haveLastFind = gFalse;
+    haveLastFind = false;
 }
 
 void TextPage::updateFont (GfxState* state) {
@@ -984,7 +984,7 @@ void TextPage::addChar (
     double xMin, yMin, xMax, yMax;
     double clipXMin, clipYMin, clipXMax, clipYMax;
     GfxRGB rgb;
-    GBool clipped, rtl;
+    bool clipped, rtl;
     int i, j;
 
     // if we're in an ActualText span, save the position info (the
@@ -1033,12 +1033,12 @@ void TextPage::addChar (
     }
 
     // check for clipping
-    clipped = gFalse;
+    clipped = false;
     if (control.clipText) {
         state->getClipBBox (&clipXMin, &clipYMin, &clipXMax, &clipYMax);
         if (x1 + 0.1 * w1 < clipXMin || x1 + 0.9 * w1 > clipXMax ||
             y1 + 0.1 * h1 < clipYMin || y1 + 0.9 * h1 > clipYMax) {
-            clipped = gTrue;
+            clipped = true;
         }
     }
 
@@ -1048,16 +1048,16 @@ void TextPage::addChar (
         // characters, and they're all right-to-left, insert them in
         // right-to-left order
         if (uLen > 1) {
-            rtl = gTrue;
+            rtl = true;
             for (i = 0; i < uLen; ++i) {
                 if (!unicodeTypeR (u[i])) {
-                    rtl = gFalse;
+                    rtl = false;
                     break;
                 }
             }
         }
         else {
-            rtl = gFalse;
+            rtl = false;
         }
 
         w1 /= uLen;
@@ -1138,7 +1138,7 @@ void TextPage::endActualText (GfxState* state) {
     gfree (u);
     actualText = NULL;
     actualTextLen = 0;
-    actualTextNBytes = gFalse;
+    actualTextNBytes = false;
 }
 
 void TextPage::addUnderline (double x0, double y0, double x1, double y1) {
@@ -1164,7 +1164,7 @@ void TextPage::write (void* outputStream, TextOutputFunc outputFunc) {
     UnicodeMap* uMap;
     char space[8], eol[16], eop[8];
     int spaceLen, eolLen, eopLen;
-    GBool pageBreaks;
+    bool pageBreaks;
 
     // get the output encoding
     if (!(uMap = globalParams->getTextEncoding ())) { return; }
@@ -1214,7 +1214,7 @@ void TextPage::writeReadingOrder (
     TextParagraph* par;
     TextLine* line;
     GList* columns;
-    GBool primaryLR;
+    bool primaryLR;
     GString* s;
     int colIdx, parIdx, lineIdx, rot, n;
 
@@ -1294,7 +1294,7 @@ void TextPage::writePhysLayout (
     TextParagraph* par;
     TextLine* line;
     GList* columns;
-    GBool primaryLR;
+    bool primaryLR;
     int ph, colIdx, parIdx, lineIdx, rot, y, i;
 
 #if 0 //~debug
@@ -1587,7 +1587,7 @@ void TextPage::writeRaw (
 }
 
 void TextPage::encodeFragment (
-    Unicode* text, int len, UnicodeMap* uMap, GBool primaryLR, GString* s) {
+    Unicode* text, int len, UnicodeMap* uMap, bool primaryLR, GString* s) {
     char lre[8], rle[8], popdf[8], buf[8];
     int lreLen, rleLen, popdfLen, n;
     int i, j, k;
@@ -2144,7 +2144,7 @@ void TextPage::unrotateWords (GList* words, int rot) {
 
 // Determine the primary text direction (LR vs RL).  Returns true for
 // LR, false for RL.
-GBool TextPage::checkPrimaryLR (GList* charsA) {
+bool TextPage::checkPrimaryLR (GList* charsA) {
     TextChar* ch;
     int i, lrCount;
 
@@ -2299,7 +2299,7 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
     int minHorizChunkWidth, minVertChunkWidth, nHorizGaps, nVertGaps;
     double largeCharSize;
     int nLargeChars;
-    GBool doHorizSplit, doVertSplit, smallSplit;
+    bool doHorizSplit, doVertSplit, smallSplit;
     int i, x, y, prev, start;
 
     //----- compute bbox, min font size, average font size, and
@@ -2496,21 +2496,21 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
     }
 
     // figure out which type of split to do
-    doHorizSplit = doVertSplit = gFalse;
-    smallSplit = gFalse;
+    doHorizSplit = doVertSplit = false;
+    smallSplit = false;
     if (rot & 1) {
         if (nHorizGaps > 0 &&
             (horizGapSize > vertGapSize ||
              control.mode == textOutTableLayout) &&
             horizGapSize > vertGapThreshold && minHorizChunkWidth > minChunk) {
-            doHorizSplit = gTrue;
+            doHorizSplit = true;
         }
         else if (nVertGaps > 0) {
-            doVertSplit = gTrue;
+            doVertSplit = true;
         }
         else if (nLargeChars == 0 && nHorizGaps > 0) {
-            doHorizSplit = gTrue;
-            smallSplit = gTrue;
+            doHorizSplit = true;
+            smallSplit = true;
         }
     }
     else {
@@ -2518,14 +2518,14 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
             (vertGapSize > horizGapSize ||
              control.mode == textOutTableLayout) &&
             vertGapSize > vertGapThreshold && minVertChunkWidth > minChunk) {
-            doVertSplit = gTrue;
+            doVertSplit = true;
         }
         else if (nHorizGaps > 0) {
-            doHorizSplit = gTrue;
+            doHorizSplit = true;
         }
         else if (nLargeChars == 0 && nVertGaps > 0) {
-            doVertSplit = gTrue;
-            smallSplit = gTrue;
+            doVertSplit = true;
+            smallSplit = true;
         }
     }
 
@@ -2716,7 +2716,7 @@ void TextPage::tagBlock (TextBlock* blk) {
 // Insert a list of large characters into a tree.
 void TextPage::insertLargeChars (GList* largeChars, TextBlock* blk) {
     TextChar *ch, *ch2;
-    GBool singleLine;
+    bool singleLine;
     double xLimit, yLimit, minOverlap;
     int i;
 
@@ -2726,12 +2726,12 @@ void TextPage::insertLargeChars (GList* largeChars, TextBlock* blk) {
     // upper-left corner of blk (this is just a rough estimate)
     xLimit = blk->xMin + 0.5 * (blk->xMin + blk->xMax);
     yLimit = blk->yMin + 0.5 * (blk->yMin + blk->yMax);
-    singleLine = gTrue;
+    singleLine = true;
     // note: largeChars are already sorted by x
     for (i = 0; i < largeChars->getLength (); ++i) {
         ch2 = (TextChar*)largeChars->get (i);
         if (ch2->xMax > xLimit || ch2->yMax > yLimit) {
-            singleLine = gFalse;
+            singleLine = false;
             break;
         }
         if (i > 0) {
@@ -2740,7 +2740,7 @@ void TextPage::insertLargeChars (GList* largeChars, TextBlock* blk) {
                                                              : ch2->fontSize);
             if (ch->yMax - ch2->yMin < minOverlap ||
                 ch2->yMax - ch->yMin < minOverlap) {
-                singleLine = gFalse;
+                singleLine = false;
                 break;
             }
         }
@@ -3174,7 +3174,7 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     TextChar *ch, *ch2;
     TextWord* word;
     double wordSp, lineFontSize, sp;
-    GBool spaceAfter, spaceAfter2;
+    bool spaceAfter, spaceAfter2;
     int i, j;
 
     charsA = new GList ();
@@ -3184,7 +3184,7 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
 
     words = new GList ();
     lineFontSize = 0;
-    spaceAfter = gFalse;
+    spaceAfter = false;
     i = 0;
     while (i < charsA->getLength ()) {
         sp = wordSp - 1;
@@ -3450,7 +3450,7 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
                                 if (fabs (underline->y0 - base) < ubSlack &&
                                     underline->x0 < word->xMin + uSlack &&
                                     word->xMax - uSlack < underline->x1) {
-                                    word->underlined = gTrue;
+                                    word->underlined = true;
                                 }
                             }
                         }
@@ -3459,7 +3459,7 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
                                 if (fabs (underline->x0 - base) < ubSlack &&
                                     underline->y0 < word->yMin + uSlack &&
                                     word->yMax - uSlack < underline->y1) {
-                                    word->underlined = gTrue;
+                                    word->underlined = true;
                                 }
                             }
                         }
@@ -3485,10 +3485,10 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
 // TextPage: access
 //------------------------------------------------------------------------
 
-GBool TextPage::findText (
-    Unicode* s, int len, GBool startAtTop, GBool stopAtBottom,
-    GBool startAtLast, GBool stopAtLast, GBool caseSensitive, GBool backward,
-    GBool wholeWord, double* xMin, double* yMin, double* xMax, double* yMax) {
+bool TextPage::findText (
+    Unicode* s, int len, bool startAtTop, bool stopAtBottom,
+    bool startAtLast, bool stopAtLast, bool caseSensitive, bool backward,
+    bool wholeWord, double* xMin, double* yMin, double* xMax, double* yMax) {
     TextBlock* tree;
     TextColumn* column;
     TextParagraph* par;
@@ -3498,7 +3498,7 @@ GBool TextPage::findText (
     double xStart, yStart, xStop, yStop;
     double xMin0, yMin0, xMax0, yMax0;
     double xMin1, yMin1, xMax1, yMax1;
-    GBool found;
+    bool found;
     int txtSize, m, rot, colIdx, parIdx, lineIdx, i, j, k;
 
     //~ need to handle right-to-left text
@@ -3547,7 +3547,7 @@ GBool TextPage::findText (
         yStop = *yMax;
     }
 
-    found = gFalse;
+    found = false;
     xMin0 = xMax0 = yMin0 = yMax0 = 0; // make gcc happy
     xMin1 = xMax1 = yMin1 = yMax1 = 0; // make gcc happy
 
@@ -3668,7 +3668,7 @@ GBool TextPage::findText (
                                         xMax0 = xMax1;
                                         yMin0 = yMin1;
                                         yMax0 = yMax1;
-                                        found = gTrue;
+                                        found = true;
                                     }
                                 }
                             }
@@ -3683,7 +3683,7 @@ GBool TextPage::findText (
                                         xMax0 = xMax1;
                                         yMin0 = yMin1;
                                         yMax0 = yMax1;
-                                        found = gTrue;
+                                        found = true;
                                     }
                                 }
                             }
@@ -3714,11 +3714,11 @@ GBool TextPage::findText (
         *yMax = yMax0;
         lastFindXMin = xMin0;
         lastFindYMin = yMin0;
-        haveLastFind = gTrue;
-        return gTrue;
+        haveLastFind = true;
+        return true;
     }
 
-    return gFalse;
+    return false;
 }
 
 GString*
@@ -3733,7 +3733,7 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     TextParagraph* par;
     TextLine* line;
     TextChar* ch;
-    GBool primaryLR;
+    bool primaryLR;
     TextBlock* tree;
     GList* columns;
     GString* ret;
@@ -3835,12 +3835,12 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     return ret;
 }
 
-GBool TextPage::findCharRange (
+bool TextPage::findCharRange (
     int pos, int length, double* xMin, double* yMin, double* xMax,
     double* yMax) {
     TextChar* ch;
     double xMin2, yMin2, xMax2, yMax2;
-    GBool first;
+    bool first;
     int i;
 
     //~ this doesn't correctly handle ranges split across multiple lines
@@ -3848,7 +3848,7 @@ GBool TextPage::findCharRange (
     //~ the range)
 
     xMin2 = yMin2 = xMax2 = yMax2 = 0;
-    first = gTrue;
+    first = true;
     for (i = 0; i < chars->getLength (); ++i) {
         ch = (TextChar*)chars->get (i);
         if (ch->charPos >= pos && ch->charPos < pos + length) {
@@ -3856,15 +3856,15 @@ GBool TextPage::findCharRange (
             if (first || ch->yMin < yMin2) { yMin2 = ch->yMin; }
             if (first || ch->xMax > xMax2) { xMax2 = ch->xMax; }
             if (first || ch->yMax > yMax2) { yMax2 = ch->yMax; }
-            first = gFalse;
+            first = false;
         }
     }
-    if (first) { return gFalse; }
+    if (first) { return false; }
     *xMin = xMin2;
     *yMin = yMin2;
     *xMax = xMax2;
     *yMax = yMax2;
-    return gTrue;
+    return true;
 }
 
 TextWordList* TextPage::makeWordList () {
@@ -4012,21 +4012,21 @@ static void outputToFile (void* stream, const char* text, int len) {
 }
 
 TextOutputDev::TextOutputDev (
-    const char* fileName, TextOutputControl* controlA, GBool append) {
+    const char* fileName, TextOutputControl* controlA, bool append) {
     text = NULL;
     control = *controlA;
-    ok = gTrue;
+    ok = true;
 
     // open file
-    needClose = gFalse;
+    needClose = false;
     if (fileName) {
         if (!strcmp (fileName, "-")) { outputStream = stdout; }
         else if ((outputStream = fopen (fileName, append ? "ab" : "wb"))) {
-            needClose = gTrue;
+            needClose = true;
         }
         else {
             error (errIO, -1, "Couldn't open text file '{0:s}'", fileName);
-            ok = gFalse;
+            ok = false;
             return;
         }
         outputFunc = &outputToFile;
@@ -4043,10 +4043,10 @@ TextOutputDev::TextOutputDev (
     TextOutputFunc func, void* stream, TextOutputControl* controlA) {
     outputFunc = func;
     outputStream = stream;
-    needClose = gFalse;
+    needClose = false;
     control = *controlA;
     text = new TextPage (&control);
-    ok = gTrue;
+    ok = true;
 }
 
 TextOutputDev::~TextOutputDev () {
@@ -4213,10 +4213,10 @@ void TextOutputDev::processLink (Link* link) {
     text->addLink (xMin, yMin, xMax, yMax, link);
 }
 
-GBool TextOutputDev::findText (
-    Unicode* s, int len, GBool startAtTop, GBool stopAtBottom,
-    GBool startAtLast, GBool stopAtLast, GBool caseSensitive, GBool backward,
-    GBool wholeWord, double* xMin, double* yMin, double* xMax, double* yMax) {
+bool TextOutputDev::findText (
+    Unicode* s, int len, bool startAtTop, bool stopAtBottom,
+    bool startAtLast, bool stopAtLast, bool caseSensitive, bool backward,
+    bool wholeWord, double* xMin, double* yMin, double* xMax, double* yMax) {
     return text->findText (
         s, len, startAtTop, stopAtBottom, startAtLast, stopAtLast,
         caseSensitive, backward, wholeWord, xMin, yMin, xMax, yMax);
@@ -4227,7 +4227,7 @@ TextOutputDev::getText (double xMin, double yMin, double xMax, double yMax) {
     return text->getText (xMin, yMin, xMax, yMax);
 }
 
-GBool TextOutputDev::findCharRange (
+bool TextOutputDev::findCharRange (
     int pos, int length, double* xMin, double* yMin, double* xMax,
     double* yMax) {
     return text->findCharRange (pos, length, xMin, yMin, xMax, yMax);

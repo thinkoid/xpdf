@@ -29,13 +29,13 @@
 
 static int firstPage = 1;
 static int lastPage = 0;
-static GBool dumpJPEG = gFalse;
+static bool dumpJPEG = false;
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
-static GBool quiet = gFalse;
+static bool quiet = false;
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to convert" },
@@ -62,7 +62,7 @@ int main (int argc, char* argv[]) {
     char* imgRoot;
     GString *ownerPW, *userPW;
     ImageOutputDev* imgOut;
-    GBool ok;
+    bool ok;
     int exitCode;
 
     exitCode = 99;
@@ -119,7 +119,7 @@ int main (int argc, char* argv[]) {
     imgOut = new ImageOutputDev (imgRoot, dumpJPEG);
     if (imgOut->isOk ()) {
         doc->displayPages (
-            imgOut, firstPage, lastPage, 72, 72, 0, gFalse, gTrue, gFalse);
+            imgOut, firstPage, lastPage, 72, 72, 0, false, true, false);
     }
     delete imgOut;
 

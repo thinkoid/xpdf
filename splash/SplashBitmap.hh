@@ -26,7 +26,7 @@ public:
     // upside-down, i.e., with the last row first in memory.
     SplashBitmap (
         int widthA, int heightA, int rowPad, SplashColorMode modeA,
-        GBool alphaA, GBool topDown = gTrue);
+        bool alphaA, bool topDown = true);
 
     ~SplashBitmap ();
 
@@ -36,14 +36,14 @@ public:
     int getAlphaRowSize () { return width; }
     SplashColorMode getMode () { return mode; }
     SplashColorPtr getDataPtr () { return data; }
-    Guchar* getAlphaPtr () { return alpha; }
+    unsigned char* getAlphaPtr () { return alpha; }
 
     SplashError writePNMFile (const char* fileName);
     SplashError writePNMFile (FILE* f);
     SplashError writeAlphaPGMFile (char* fileName);
 
     void getPixel (int x, int y, SplashColorPtr pixel);
-    Guchar getAlpha (int x, int y);
+    unsigned char getAlpha (int x, int y);
 
     // Caller takes ownership of the bitmap data.  The SplashBitmap
     // object is no longer valid -- the next call should be to the
@@ -56,7 +56,7 @@ private:
                           //   - negative for bottom-up bitmaps
     SplashColorMode mode; // color mode
     SplashColorPtr data;  // pointer to row zero of the color data
-    Guchar* alpha;        // pointer to row zero of the alpha data
+    unsigned char* alpha;        // pointer to row zero of the alpha data
                           //   (always top-down)
 
     friend class Splash;

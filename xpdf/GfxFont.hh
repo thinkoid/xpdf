@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <goo/GString.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/CharTypes.hh>
@@ -129,7 +128,7 @@ public:
 
     virtual ~GfxFont ();
 
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Get font tag.
     GString* getTag () { return tag; }
@@ -138,7 +137,7 @@ public:
     Ref* getID () { return &id; }
 
     // Does this font match the tag?
-    GBool matches (const char* tagA) { return !tag->cmp (tagA); }
+    bool matches (const char* tagA) { return !tag->cmp (tagA); }
 
     // Get the original font name (ignornig any munging that might have
     // been done to map to a canonical Base-14 font name).
@@ -146,11 +145,11 @@ public:
 
     // Get font type.
     GfxFontType getType () { return type; }
-    virtual GBool isCIDFont () { return gFalse; }
+    virtual bool isCIDFont () { return false; }
 
     // Get embedded font ID, i.e., a ref for the font file stream.
     // Returns false if there is no embedded font.
-    GBool getEmbeddedFontID (Ref* embID) {
+    bool getEmbeddedFontID (Ref* embID) {
         *embID = embFontID;
         return embFontID.num >= 0;
     }
@@ -161,11 +160,11 @@ public:
 
     // Get font descriptor flags.
     int getFlags () { return flags; }
-    GBool isFixedWidth () { return flags & fontFixedWidth; }
-    GBool isSerif () { return flags & fontSerif; }
-    GBool isSymbolic () { return flags & fontSymbolic; }
-    GBool isItalic () { return flags & fontItalic; }
-    GBool isBold () { return flags & fontBold; }
+    bool isFixedWidth () { return flags & fontFixedWidth; }
+    bool isSerif () { return flags & fontSerif; }
+    bool isSymbolic () { return flags & fontSymbolic; }
+    bool isItalic () { return flags & fontItalic; }
+    bool isBold () { return flags & fontBold; }
 
     // Return the font matrix.
     double* getFontMatrix () { return fontMat; }
@@ -182,7 +181,7 @@ public:
 
     // Locate the font file for this font.  If <ps> is true, includes PS
     // printer-resident fonts.  Returns NULL on failure.
-    GfxFontLoc* locateFont (XRef* xref, GBool ps);
+    GfxFontLoc* locateFont (XRef* xref, bool ps);
 
     // Locate a Base-14 font file for a specified font name.
     static GfxFontLoc* locateBase14Font (GString* base14Name);
@@ -206,7 +205,7 @@ protected:
     CharCodeToUnicode*
     readToUnicodeCMap (Dict* fontDict, int nBits, CharCodeToUnicode* ctu);
     static GfxFontLoc*
-    getExternalFont (GString* path, int fontNum, double oblique, GBool cid);
+    getExternalFont (GString* path, int fontNum, double oblique, bool cid);
 
     GString* tag;         // PDF font tag
     Ref id;               // reference (used as unique ID)
@@ -220,7 +219,7 @@ protected:
     double missingWidth;  // "default" width
     double ascent;        // max height above baseline
     double descent;       // max depth below baseline
-    GBool ok;
+    bool ok;
 };
 
 //------------------------------------------------------------------------
@@ -249,13 +248,13 @@ public:
     char* getCharName (int code) { return enc[code]; }
 
     // Returns true if the PDF font specified an encoding.
-    GBool getHasEncoding () { return hasEncoding; }
+    bool getHasEncoding () { return hasEncoding; }
 
     // Returns true if the PDF font specified MacRomanEncoding.
-    GBool getUsesMacRomanEnc () { return usesMacRomanEnc; }
+    bool getUsesMacRomanEnc () { return usesMacRomanEnc; }
 
     // Get width of a character.
-    double getWidth (Guchar c) { return widths[c]; }
+    double getWidth (unsigned char c) { return widths[c]; }
 
     // Return a char code-to-GID mapping for the provided font file.
     // (This is only useful for TrueType fonts.)
@@ -277,8 +276,8 @@ private:
     char encFree[256];          // boolean for each char name: if set,
                                 //   the string is malloc'ed
     CharCodeToUnicode* ctu;     // char code --> Unicode
-    GBool hasEncoding;
-    GBool usesMacRomanEnc;
+    bool hasEncoding;
+    bool usesMacRomanEnc;
     double widths[256]; // character widths
     Object charProcs;   // Type 3 CharProcs dictionary
     Object resources;   // Type 3 Resources dictionary
@@ -298,7 +297,7 @@ public:
 
     virtual ~GfxCIDFont ();
 
-    virtual GBool isCIDFont () { return gTrue; }
+    virtual bool isCIDFont () { return true; }
 
     virtual int getNextChar (
         const char* s, int len, CharCode* code, Unicode* u, int uSize, int* uLen,
@@ -322,7 +321,7 @@ private:
     GString* collection;     // collection name
     CMap* cMap;              // char code --> CID
     CharCodeToUnicode* ctu;  // CID/char code --> Unicode
-    GBool ctuUsesCharCode;   // true: ctu maps char code to Unicode;
+    bool ctuUsesCharCode;   // true: ctu maps char code to Unicode;
                              //   false: ctu maps CID to Unicode
     GfxFontCIDWidths widths; // character widths
     int* cidToGID;           // CID --> GID mapping (for embedded

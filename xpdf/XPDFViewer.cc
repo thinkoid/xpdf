@@ -151,94 +151,94 @@ static ZoomMenuInfo zoomMenuInfo[nZoomMenuItems] = { { "400%", 400 },
 #define cmdMaxArgs 8
 
 XPDFViewerCmd XPDFViewer::cmdTab[] = {
-    { "about", 0, gFalse, gFalse, &XPDFViewer::cmdAbout },
-    { "closeOutline", 0, gFalse, gFalse, &XPDFViewer::cmdCloseOutline },
-    { "closeWindow", 0, gFalse, gFalse, &XPDFViewer::cmdCloseWindow },
-    { "closeWindowOrQuit", 0, gFalse, gFalse,
+    { "about", 0, false, false, &XPDFViewer::cmdAbout },
+    { "closeOutline", 0, false, false, &XPDFViewer::cmdCloseOutline },
+    { "closeWindow", 0, false, false, &XPDFViewer::cmdCloseWindow },
+    { "closeWindowOrQuit", 0, false, false,
       &XPDFViewer::cmdCloseWindowOrQuit },
-    { "continuousMode", 0, gFalse, gFalse, &XPDFViewer::cmdContinuousMode },
-    { "endPan", 0, gTrue, gTrue, &XPDFViewer::cmdEndPan },
-    { "endSelection", 0, gTrue, gTrue, &XPDFViewer::cmdEndSelection },
-    { "find", 0, gTrue, gFalse, &XPDFViewer::cmdFind },
-    { "findNext", 0, gTrue, gFalse, &XPDFViewer::cmdFindNext },
-    { "focusToDocWin", 0, gFalse, gFalse, &XPDFViewer::cmdFocusToDocWin },
-    { "focusToPageNum", 0, gFalse, gFalse, &XPDFViewer::cmdFocusToPageNum },
-    { "followLink", 0, gTrue, gTrue, &XPDFViewer::cmdFollowLink },
-    { "followLinkInNewWin", 0, gTrue, gTrue,
+    { "continuousMode", 0, false, false, &XPDFViewer::cmdContinuousMode },
+    { "endPan", 0, true, true, &XPDFViewer::cmdEndPan },
+    { "endSelection", 0, true, true, &XPDFViewer::cmdEndSelection },
+    { "find", 0, true, false, &XPDFViewer::cmdFind },
+    { "findNext", 0, true, false, &XPDFViewer::cmdFindNext },
+    { "focusToDocWin", 0, false, false, &XPDFViewer::cmdFocusToDocWin },
+    { "focusToPageNum", 0, false, false, &XPDFViewer::cmdFocusToPageNum },
+    { "followLink", 0, true, true, &XPDFViewer::cmdFollowLink },
+    { "followLinkInNewWin", 0, true, true,
       &XPDFViewer::cmdFollowLinkInNewWin },
-    { "followLinkInNewWinNoSel", 0, gTrue, gTrue,
+    { "followLinkInNewWinNoSel", 0, true, true,
       &XPDFViewer::cmdFollowLinkInNewWinNoSel },
-    { "followLinkNoSel", 0, gTrue, gTrue, &XPDFViewer::cmdFollowLinkNoSel },
-    { "fullScreenMode", 0, gFalse, gFalse, &XPDFViewer::cmdFullScreenMode },
-    { "goBackward", 0, gFalse, gFalse, &XPDFViewer::cmdGoBackward },
-    { "goForward", 0, gFalse, gFalse, &XPDFViewer::cmdGoForward },
-    { "gotoDest", 1, gTrue, gFalse, &XPDFViewer::cmdGotoDest },
-    { "gotoLastPage", 0, gTrue, gFalse, &XPDFViewer::cmdGotoLastPage },
-    { "gotoLastPageNoScroll", 0, gTrue, gFalse,
+    { "followLinkNoSel", 0, true, true, &XPDFViewer::cmdFollowLinkNoSel },
+    { "fullScreenMode", 0, false, false, &XPDFViewer::cmdFullScreenMode },
+    { "goBackward", 0, false, false, &XPDFViewer::cmdGoBackward },
+    { "goForward", 0, false, false, &XPDFViewer::cmdGoForward },
+    { "gotoDest", 1, true, false, &XPDFViewer::cmdGotoDest },
+    { "gotoLastPage", 0, true, false, &XPDFViewer::cmdGotoLastPage },
+    { "gotoLastPageNoScroll", 0, true, false,
       &XPDFViewer::cmdGotoLastPageNoScroll },
-    { "gotoPage", 1, gTrue, gFalse, &XPDFViewer::cmdGotoPage },
-    { "gotoPageNoScroll", 1, gTrue, gFalse, &XPDFViewer::cmdGotoPageNoScroll },
-    { "nextPage", 0, gTrue, gFalse, &XPDFViewer::cmdNextPage },
-    { "nextPageNoScroll", 0, gTrue, gFalse, &XPDFViewer::cmdNextPageNoScroll },
-    { "open", 0, gFalse, gFalse, &XPDFViewer::cmdOpen },
-    { "openFile", 1, gFalse, gFalse, &XPDFViewer::cmdOpenFile },
-    { "openFileAtDest", 2, gFalse, gFalse, &XPDFViewer::cmdOpenFileAtDest },
-    { "openFileAtDestInNewWin", 2, gFalse, gFalse,
+    { "gotoPage", 1, true, false, &XPDFViewer::cmdGotoPage },
+    { "gotoPageNoScroll", 1, true, false, &XPDFViewer::cmdGotoPageNoScroll },
+    { "nextPage", 0, true, false, &XPDFViewer::cmdNextPage },
+    { "nextPageNoScroll", 0, true, false, &XPDFViewer::cmdNextPageNoScroll },
+    { "open", 0, false, false, &XPDFViewer::cmdOpen },
+    { "openFile", 1, false, false, &XPDFViewer::cmdOpenFile },
+    { "openFileAtDest", 2, false, false, &XPDFViewer::cmdOpenFileAtDest },
+    { "openFileAtDestInNewWin", 2, false, false,
       &XPDFViewer::cmdOpenFileAtDestInNewWin },
-    { "openFileAtPage", 2, gFalse, gFalse, &XPDFViewer::cmdOpenFileAtPage },
-    { "openFileAtPageInNewWin", 2, gFalse, gFalse,
+    { "openFileAtPage", 2, false, false, &XPDFViewer::cmdOpenFileAtPage },
+    { "openFileAtPageInNewWin", 2, false, false,
       &XPDFViewer::cmdOpenFileAtPageInNewWin },
-    { "openFileInNewWin", 1, gFalse, gFalse, &XPDFViewer::cmdOpenFileInNewWin },
-    { "openInNewWin", 0, gFalse, gFalse, &XPDFViewer::cmdOpenInNewWin },
-    { "openOutline", 0, gFalse, gFalse, &XPDFViewer::cmdOpenOutline },
-    { "pageDown", 0, gTrue, gFalse, &XPDFViewer::cmdPageDown },
-    { "pageUp", 0, gTrue, gFalse, &XPDFViewer::cmdPageUp },
-    { "postPopupMenu", 0, gFalse, gTrue, &XPDFViewer::cmdPostPopupMenu },
-    { "prevPage", 0, gTrue, gFalse, &XPDFViewer::cmdPrevPage },
-    { "prevPageNoScroll", 0, gTrue, gFalse, &XPDFViewer::cmdPrevPageNoScroll },
-    { "print", 0, gTrue, gFalse, &XPDFViewer::cmdPrint },
-    { "quit", 0, gFalse, gFalse, &XPDFViewer::cmdQuit },
-    { "raise", 0, gFalse, gFalse, &XPDFViewer::cmdRaise },
-    { "redraw", 0, gTrue, gFalse, &XPDFViewer::cmdRedraw },
-    { "reload", 0, gTrue, gFalse, &XPDFViewer::cmdReload },
-    { "rotateCCW", 0, gTrue, gFalse, &XPDFViewer::cmdRotateCCW },
-    { "rotateCW", 0, gTrue, gFalse, &XPDFViewer::cmdRotateCW },
-    { "run", 1, gFalse, gFalse, &XPDFViewer::cmdRun },
-    { "scrollDown", 1, gTrue, gFalse, &XPDFViewer::cmdScrollDown },
-    { "scrollDownNextPage", 1, gTrue, gFalse,
+    { "openFileInNewWin", 1, false, false, &XPDFViewer::cmdOpenFileInNewWin },
+    { "openInNewWin", 0, false, false, &XPDFViewer::cmdOpenInNewWin },
+    { "openOutline", 0, false, false, &XPDFViewer::cmdOpenOutline },
+    { "pageDown", 0, true, false, &XPDFViewer::cmdPageDown },
+    { "pageUp", 0, true, false, &XPDFViewer::cmdPageUp },
+    { "postPopupMenu", 0, false, true, &XPDFViewer::cmdPostPopupMenu },
+    { "prevPage", 0, true, false, &XPDFViewer::cmdPrevPage },
+    { "prevPageNoScroll", 0, true, false, &XPDFViewer::cmdPrevPageNoScroll },
+    { "print", 0, true, false, &XPDFViewer::cmdPrint },
+    { "quit", 0, false, false, &XPDFViewer::cmdQuit },
+    { "raise", 0, false, false, &XPDFViewer::cmdRaise },
+    { "redraw", 0, true, false, &XPDFViewer::cmdRedraw },
+    { "reload", 0, true, false, &XPDFViewer::cmdReload },
+    { "rotateCCW", 0, true, false, &XPDFViewer::cmdRotateCCW },
+    { "rotateCW", 0, true, false, &XPDFViewer::cmdRotateCW },
+    { "run", 1, false, false, &XPDFViewer::cmdRun },
+    { "scrollDown", 1, true, false, &XPDFViewer::cmdScrollDown },
+    { "scrollDownNextPage", 1, true, false,
       &XPDFViewer::cmdScrollDownNextPage },
-    { "scrollLeft", 1, gTrue, gFalse, &XPDFViewer::cmdScrollLeft },
-    { "scrollOutlineDown", 1, gTrue, gFalse,
+    { "scrollLeft", 1, true, false, &XPDFViewer::cmdScrollLeft },
+    { "scrollOutlineDown", 1, true, false,
       &XPDFViewer::cmdScrollOutlineDown },
-    { "scrollOutlineUp", 1, gTrue, gFalse, &XPDFViewer::cmdScrollOutlineUp },
-    { "scrollRight", 1, gTrue, gFalse, &XPDFViewer::cmdScrollRight },
-    { "scrollToBottomEdge", 0, gTrue, gFalse,
+    { "scrollOutlineUp", 1, true, false, &XPDFViewer::cmdScrollOutlineUp },
+    { "scrollRight", 1, true, false, &XPDFViewer::cmdScrollRight },
+    { "scrollToBottomEdge", 0, true, false,
       &XPDFViewer::cmdScrollToBottomEdge },
-    { "scrollToBottomRight", 0, gTrue, gFalse,
+    { "scrollToBottomRight", 0, true, false,
       &XPDFViewer::cmdScrollToBottomRight },
-    { "scrollToLeftEdge", 0, gTrue, gFalse, &XPDFViewer::cmdScrollToLeftEdge },
-    { "scrollToRightEdge", 0, gTrue, gFalse,
+    { "scrollToLeftEdge", 0, true, false, &XPDFViewer::cmdScrollToLeftEdge },
+    { "scrollToRightEdge", 0, true, false,
       &XPDFViewer::cmdScrollToRightEdge },
-    { "scrollToTopEdge", 0, gTrue, gFalse, &XPDFViewer::cmdScrollToTopEdge },
-    { "scrollToTopLeft", 0, gTrue, gFalse, &XPDFViewer::cmdScrollToTopLeft },
-    { "scrollUp", 1, gTrue, gFalse, &XPDFViewer::cmdScrollUp },
-    { "scrollUpPrevPage", 1, gTrue, gFalse, &XPDFViewer::cmdScrollUpPrevPage },
-    { "setSelection", 5, gTrue, gFalse, &XPDFViewer::cmdSetSelection },
-    { "singlePageMode", 0, gFalse, gFalse, &XPDFViewer::cmdSinglePageMode },
-    { "startPan", 0, gTrue, gTrue, &XPDFViewer::cmdStartPan },
-    { "startSelection", 0, gTrue, gTrue, &XPDFViewer::cmdStartSelection },
-    { "toggleContinuousMode", 0, gFalse, gFalse,
+    { "scrollToTopEdge", 0, true, false, &XPDFViewer::cmdScrollToTopEdge },
+    { "scrollToTopLeft", 0, true, false, &XPDFViewer::cmdScrollToTopLeft },
+    { "scrollUp", 1, true, false, &XPDFViewer::cmdScrollUp },
+    { "scrollUpPrevPage", 1, true, false, &XPDFViewer::cmdScrollUpPrevPage },
+    { "setSelection", 5, true, false, &XPDFViewer::cmdSetSelection },
+    { "singlePageMode", 0, false, false, &XPDFViewer::cmdSinglePageMode },
+    { "startPan", 0, true, true, &XPDFViewer::cmdStartPan },
+    { "startSelection", 0, true, true, &XPDFViewer::cmdStartSelection },
+    { "toggleContinuousMode", 0, false, false,
       &XPDFViewer::cmdToggleContinuousMode },
-    { "toggleFullScreenMode", 0, gFalse, gFalse,
+    { "toggleFullScreenMode", 0, false, false,
       &XPDFViewer::cmdToggleFullScreenMode },
-    { "toggleOutline", 0, gFalse, gFalse, &XPDFViewer::cmdToggleOutline },
-    { "windowMode", 0, gFalse, gFalse, &XPDFViewer::cmdWindowMode },
-    { "zoomFitPage", 0, gFalse, gFalse, &XPDFViewer::cmdZoomFitPage },
-    { "zoomFitWidth", 0, gFalse, gFalse, &XPDFViewer::cmdZoomFitWidth },
-    { "zoomIn", 0, gFalse, gFalse, &XPDFViewer::cmdZoomIn },
-    { "zoomOut", 0, gFalse, gFalse, &XPDFViewer::cmdZoomOut },
-    { "zoomPercent", 1, gFalse, gFalse, &XPDFViewer::cmdZoomPercent },
-    { "zoomToSelection", 0, gTrue, gFalse, &XPDFViewer::cmdZoomToSelection }
+    { "toggleOutline", 0, false, false, &XPDFViewer::cmdToggleOutline },
+    { "windowMode", 0, false, false, &XPDFViewer::cmdWindowMode },
+    { "zoomFitPage", 0, false, false, &XPDFViewer::cmdZoomFitPage },
+    { "zoomFitWidth", 0, false, false, &XPDFViewer::cmdZoomFitWidth },
+    { "zoomIn", 0, false, false, &XPDFViewer::cmdZoomIn },
+    { "zoomOut", 0, false, false, &XPDFViewer::cmdZoomOut },
+    { "zoomPercent", 1, false, false, &XPDFViewer::cmdZoomPercent },
+    { "zoomToSelection", 0, true, false, &XPDFViewer::cmdZoomToSelection }
 };
 
 #define nCmds (sizeof (cmdTab) / sizeof (XPDFViewerCmd))
@@ -247,7 +247,7 @@ XPDFViewerCmd XPDFViewer::cmdTab[] = {
 
 XPDFViewer::XPDFViewer (
     XPDFApp* appA, GString* fileName, int pageA, GString* destName,
-    GBool fullScreen, GString* ownerPassword, GString* userPassword) {
+    bool fullScreen, GString* ownerPassword, GString* userPassword) {
     LinkDest* dest;
     int pg;
     double z;
@@ -255,7 +255,7 @@ XPDFViewer::XPDFViewer (
     app = appA;
     win = NULL;
     core = NULL;
-    ok = gFalse;
+    ok = false;
 
     outlineLabels = NULL;
     outlineLabelsLength = outlineLabelsSize = 0;
@@ -295,19 +295,19 @@ XPDFViewer::XPDFViewer (
     // display the first page
     z = core->getZoom ();
     if (dest) {
-        displayDest (dest, z, core->getRotate (), gTrue);
+        displayDest (dest, z, core->getRotate (), true);
         delete dest;
     }
     else {
-        displayPage (pg, z, core->getRotate (), gTrue, gTrue);
+        displayPage (pg, z, core->getRotate (), true, true);
     }
 
-    ok = gTrue;
+    ok = true;
 }
 
 XPDFViewer::XPDFViewer (
     XPDFApp* appA, PDFDoc* doc, int pageA, GString* destName,
-    GBool fullScreen) {
+    bool fullScreen) {
     LinkDest* dest;
     int pg;
     double z;
@@ -315,7 +315,7 @@ XPDFViewer::XPDFViewer (
     app = appA;
     win = NULL;
     core = NULL;
-    ok = gFalse;
+    ok = false;
     outlineLabels = NULL;
     outlineLabelsLength = outlineLabelsSize = 0;
     outlinePaneWidth = 175;
@@ -350,14 +350,14 @@ XPDFViewer::XPDFViewer (
     // display the first page
     z = core->getZoom ();
     if (dest) {
-        displayDest (dest, z, core->getRotate (), gTrue);
+        displayDest (dest, z, core->getRotate (), true);
         delete dest;
     }
     else {
-        displayPage (pg, z, core->getRotate (), gTrue, gTrue);
+        displayPage (pg, z, core->getRotate (), true, true);
     }
 
-    ok = gTrue;
+    ok = true;
 }
 
 XPDFViewer::~XPDFViewer () {
@@ -381,11 +381,11 @@ void XPDFViewer::open (GString* fileName, int pageA, GString* destName) {
     getPageAndDest (pageA, destName, &pg, &dest);
     z = core->getZoom ();
     if (dest) {
-        displayDest (dest, z, core->getRotate (), gTrue);
+        displayDest (dest, z, core->getRotate (), true);
         delete dest;
     }
     else {
-        displayPage (pg, z, core->getRotate (), gTrue, gTrue);
+        displayPage (pg, z, core->getRotate (), true, true);
     }
 }
 
@@ -423,7 +423,7 @@ void XPDFViewer::clear () {
 // load / display
 //------------------------------------------------------------------------
 
-GBool XPDFViewer::loadFile (
+bool XPDFViewer::loadFile (
     GString* fileName, GString* ownerPassword, GString* userPassword) {
     return core->loadFile (fileName, ownerPassword, userPassword) == errNone;
 }
@@ -437,16 +437,16 @@ void XPDFViewer::reloadFile () {
     if (pg > core->getDoc ()->getNumPages ()) {
         pg = core->getDoc ()->getNumPages ();
     }
-    displayPage (pg, core->getZoom (), core->getRotate (), gFalse, gFalse);
+    displayPage (pg, core->getZoom (), core->getRotate (), false, false);
 }
 
 void XPDFViewer::displayPage (
-    int pageA, double zoomA, int rotateA, GBool scrollToTop, GBool addToHist) {
+    int pageA, double zoomA, int rotateA, bool scrollToTop, bool addToHist) {
     core->displayPage (pageA, zoomA, rotateA, scrollToTop, addToHist);
 }
 
 void XPDFViewer::displayDest (
-    LinkDest* dest, double zoomA, int rotateA, GBool addToHist) {
+    LinkDest* dest, double zoomA, int rotateA, bool addToHist) {
     core->displayDest (dest, zoomA, rotateA, addToHist);
 }
 
@@ -478,7 +478,7 @@ void XPDFViewer::getPageAndDest (
 //------------------------------------------------------------------------
 
 void XPDFViewer::doLink (
-    int wx, int wy, GBool onlyIfNoSelection, GBool newWin) {
+    int wx, int wy, bool onlyIfNoSelection, bool newWin) {
     XPDFViewer* newViewer;
     LinkAction* action;
     int pg, selPg;
@@ -517,7 +517,7 @@ void XPDFViewer::actionCbk (void* data, const char* action) {
 //------------------------------------------------------------------------
 
 void XPDFViewer::keyPressCbk (
-    void* data, KeySym key, Guint modifiers, XEvent* event) {
+    void* data, KeySym key, unsigned modifiers, XEvent* event) {
     XPDFViewer* viewer = (XPDFViewer*)data;
     int keyCode;
     GList* cmds;
@@ -619,7 +619,7 @@ void XPDFViewer::mouseCbk (void* data, XEvent* event) {
     }
 }
 
-int XPDFViewer::getModifiers (Guint modifiers) {
+int XPDFViewer::getModifiers (unsigned modifiers) {
     int mods;
 
     mods = 0;
@@ -629,7 +629,7 @@ int XPDFViewer::getModifiers (Guint modifiers) {
     return mods;
 }
 
-int XPDFViewer::getContext (Guint modifiers) {
+int XPDFViewer::getContext (unsigned modifiers) {
     int context;
 
     context = (core->getFullScreen () ? xpdfKeyContextFullScreen
@@ -759,19 +759,19 @@ void XPDFViewer::cmdCloseOutline (GString* args[], int nArgs, XEvent* event) {
 }
 
 void XPDFViewer::cmdCloseWindow (GString* args[], int nArgs, XEvent* event) {
-    app->close (this, gFalse);
+    app->close (this, false);
 }
 
 void XPDFViewer::cmdCloseWindowOrQuit (
     GString* args[], int nArgs, XEvent* event) {
-    app->close (this, gTrue);
+    app->close (this, true);
 }
 
 void XPDFViewer::cmdContinuousMode (GString* args[], int nArgs, XEvent* event) {
     Widget btn;
 
     if (core->getContinuousMode ()) { return; }
-    core->setContinuousMode (gTrue);
+    core->setContinuousMode (true);
 
     btn = XtNameToWidget (popupMenu, "continuousMode");
     XtVaSetValues (btn, XmNset, XmSET, NULL);
@@ -790,7 +790,7 @@ void XPDFViewer::cmdFind (GString* args[], int nArgs, XEvent* event) {
 }
 
 void XPDFViewer::cmdFindNext (GString* args[], int nArgs, XEvent* event) {
-    doFind (gTrue);
+    doFind (true);
 }
 
 void XPDFViewer::cmdFocusToDocWin (GString* args[], int nArgs, XEvent* event) {
@@ -807,22 +807,22 @@ void XPDFViewer::cmdFocusToPageNum (GString* args[], int nArgs, XEvent* event) {
 }
 
 void XPDFViewer::cmdFollowLink (GString* args[], int nArgs, XEvent* event) {
-    doLink (mouseX (event), mouseY (event), gFalse, gFalse);
+    doLink (mouseX (event), mouseY (event), false, false);
 }
 
 void XPDFViewer::cmdFollowLinkInNewWin (
     GString* args[], int nArgs, XEvent* event) {
-    doLink (mouseX (event), mouseY (event), gFalse, gTrue);
+    doLink (mouseX (event), mouseY (event), false, true);
 }
 
 void XPDFViewer::cmdFollowLinkInNewWinNoSel (
     GString* args[], int nArgs, XEvent* event) {
-    doLink (mouseX (event), mouseY (event), gTrue, gTrue);
+    doLink (mouseX (event), mouseY (event), true, true);
 }
 
 void XPDFViewer::cmdFollowLinkNoSel (
     GString* args[], int nArgs, XEvent* event) {
-    doLink (mouseX (event), mouseY (event), gTrue, gFalse);
+    doLink (mouseX (event), mouseY (event), true, false);
 }
 
 void XPDFViewer::cmdFullScreenMode (GString* args[], int nArgs, XEvent* event) {
@@ -834,8 +834,8 @@ void XPDFViewer::cmdFullScreenMode (GString* args[], int nArgs, XEvent* event) {
     if (core->getFullScreen ()) { return; }
     pg = core->getPageNum ();
     XtPopdown (win);
-    doc = core->takeDoc (gFalse);
-    viewer = app->reopen (this, doc, pg, gTrue);
+    doc = core->takeDoc (false);
+    viewer = app->reopen (this, doc, pg, true);
 
     btn = XtNameToWidget (viewer->popupMenu, "fullScreen");
     XtVaSetValues (btn, XmNset, XmSET, NULL);
@@ -855,7 +855,7 @@ void XPDFViewer::cmdGotoDest (GString* args[], int nArgs, XEvent* event) {
 
     getPageAndDest (1, args[0], &pg, &dest);
     if (dest) {
-        displayDest (dest, core->getZoom (), core->getRotate (), gTrue);
+        displayDest (dest, core->getZoom (), core->getRotate (), true);
         delete dest;
     }
 }
@@ -863,14 +863,14 @@ void XPDFViewer::cmdGotoDest (GString* args[], int nArgs, XEvent* event) {
 void XPDFViewer::cmdGotoLastPage (GString* args[], int nArgs, XEvent* event) {
     displayPage (
         core->getDoc ()->getNumPages (), core->getZoom (), core->getRotate (),
-        gTrue, gTrue);
+        true, true);
 }
 
 void XPDFViewer::cmdGotoLastPageNoScroll (
     GString* args[], int nArgs, XEvent* event) {
     displayPage (
         core->getDoc ()->getNumPages (), core->getZoom (), core->getRotate (),
-        gFalse, gTrue);
+        false, true);
 }
 
 void XPDFViewer::cmdGotoPage (GString* args[], int nArgs, XEvent* event) {
@@ -878,7 +878,7 @@ void XPDFViewer::cmdGotoPage (GString* args[], int nArgs, XEvent* event) {
 
     pg = atoi (args[0]->c_str ());
     if (pg < 1 || pg > core->getDoc ()->getNumPages ()) { return; }
-    displayPage (pg, core->getZoom (), core->getRotate (), gTrue, gTrue);
+    displayPage (pg, core->getZoom (), core->getRotate (), true, true);
 }
 
 void XPDFViewer::cmdGotoPageNoScroll (
@@ -887,20 +887,20 @@ void XPDFViewer::cmdGotoPageNoScroll (
 
     pg = atoi (args[0]->c_str ());
     if (pg < 1 || pg > core->getDoc ()->getNumPages ()) { return; }
-    displayPage (pg, core->getZoom (), core->getRotate (), gFalse, gTrue);
+    displayPage (pg, core->getZoom (), core->getRotate (), false, true);
 }
 
 void XPDFViewer::cmdNextPage (GString* args[], int nArgs, XEvent* event) {
-    core->gotoNextPage (1, gTrue);
+    core->gotoNextPage (1, true);
 }
 
 void XPDFViewer::cmdNextPageNoScroll (
     GString* args[], int nArgs, XEvent* event) {
-    core->gotoNextPage (1, gFalse);
+    core->gotoNextPage (1, false);
 }
 
 void XPDFViewer::cmdOpen (GString* args[], int nArgs, XEvent* event) {
-    mapOpenDialog (gFalse);
+    mapOpenDialog (false);
 }
 
 void XPDFViewer::cmdOpenFile (GString* args[], int nArgs, XEvent* event) {
@@ -931,7 +931,7 @@ void XPDFViewer::cmdOpenFileInNewWin (
 }
 
 void XPDFViewer::cmdOpenInNewWin (GString* args[], int nArgs, XEvent* event) {
-    mapOpenDialog (gTrue);
+    mapOpenDialog (true);
 }
 
 void XPDFViewer::cmdOpenOutline (GString* args[], int nArgs, XEvent* event) {
@@ -971,12 +971,12 @@ void XPDFViewer::cmdPostPopupMenu (GString* args[], int nArgs, XEvent* event) {
 }
 
 void XPDFViewer::cmdPrevPage (GString* args[], int nArgs, XEvent* event) {
-    core->gotoPrevPage (1, gTrue, gFalse);
+    core->gotoPrevPage (1, true, false);
 }
 
 void XPDFViewer::cmdPrevPageNoScroll (
     GString* args[], int nArgs, XEvent* event) {
-    core->gotoPrevPage (1, gFalse, gFalse);
+    core->gotoPrevPage (1, false, false);
 }
 
 void XPDFViewer::cmdPrint (GString* args[], int nArgs, XEvent* event) {
@@ -994,8 +994,8 @@ void XPDFViewer::cmdRaise (GString* args[], int nArgs, XEvent* event) {
 
 void XPDFViewer::cmdRedraw (GString* args[], int nArgs, XEvent* event) {
     displayPage (
-        core->getPageNum (), core->getZoom (), core->getRotate (), gFalse,
-        gFalse);
+        core->getPageNum (), core->getZoom (), core->getRotate (), false,
+        false);
 }
 
 void XPDFViewer::cmdReload (GString* args[], int nArgs, XEvent* event) {
@@ -1007,7 +1007,7 @@ void XPDFViewer::cmdRotateCCW (GString* args[], int nArgs, XEvent* event) {
 
     r = core->getRotate ();
     r = (r == 0) ? 270 : r - 90;
-    displayPage (core->getPageNum (), core->getZoom (), r, gTrue, gFalse);
+    displayPage (core->getPageNum (), core->getZoom (), r, true, false);
 }
 
 void XPDFViewer::cmdRotateCW (GString* args[], int nArgs, XEvent* event) {
@@ -1015,7 +1015,7 @@ void XPDFViewer::cmdRotateCW (GString* args[], int nArgs, XEvent* event) {
 
     r = core->getRotate ();
     r = (r == 270) ? 0 : r + 90;
-    displayPage (core->getPageNum (), core->getZoom (), r, gTrue, gFalse);
+    displayPage (core->getPageNum (), core->getZoom (), r, true, false);
 }
 
 void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
@@ -1023,7 +1023,7 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
     LinkAction* action;
     double selLRX, selLRY, selURX, selURY, mouseX, mouseY;
     int selPage, mousePage;
-    GBool gotSel, gotMouse;
+    bool gotSel, gotMouse;
     char buf[64];
     const char* p;
     char c0, c1;
@@ -1032,7 +1032,7 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
     cmd = new GString ();
     fmt = args[0];
     i = 0;
-    gotSel = gotMouse = gFalse;
+    gotSel = gotMouse = false;
     while (i < fmt->getLength ()) {
         c0 = fmt->getChar (i);
         if (c0 == '%' && i + 1 < fmt->getLength ()) {
@@ -1077,7 +1077,7 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
                         selPage = 0;
                         selURX = selURY = selLRX = selLRY = 0;
                     }
-                    gotSel = gTrue;
+                    gotSel = true;
                 }
                 sprintf (
                     buf, "%g",
@@ -1105,7 +1105,7 @@ void XPDFViewer::cmdRun (GString* args[], int nArgs, XEvent* event) {
                         mousePage = 0;
                         mouseX = mouseY = 0;
                     }
-                    gotMouse = gTrue;
+                    gotMouse = true;
                 }
                 if (c1 == 'i') { sprintf (buf, "%d", mousePage); }
                 else {
@@ -1232,7 +1232,7 @@ void XPDFViewer::cmdSinglePageMode (GString* args[], int nArgs, XEvent* event) {
     Widget btn;
 
     if (!core->getContinuousMode ()) { return; }
-    core->setContinuousMode (gFalse);
+    core->setContinuousMode (false);
 
     btn = XtNameToWidget (popupMenu, "continuousMode");
     XtVaSetValues (btn, XmNset, XmUNSET, NULL);
@@ -1282,8 +1282,8 @@ void XPDFViewer::cmdWindowMode (GString* args[], int nArgs, XEvent* event) {
     if (!core->getFullScreen ()) { return; }
     pg = core->getPageNum ();
     XtPopdown (win);
-    doc = core->takeDoc (gFalse);
-    viewer = app->reopen (this, doc, pg, gFalse);
+    doc = core->takeDoc (false);
+    viewer = app->reopen (this, doc, pg, false);
 
     btn = XtNameToWidget (viewer->popupMenu, "fullScreen");
     XtVaSetValues (btn, XmNset, XmUNSET, NULL);
@@ -1293,7 +1293,7 @@ void XPDFViewer::cmdZoomFitPage (GString* args[], int nArgs, XEvent* event) {
     if (core->getZoom () != zoomPage) {
         setZoomIdx (zoomPageIdx);
         displayPage (
-            core->getPageNum (), zoomPage, core->getRotate (), gTrue, gFalse);
+            core->getPageNum (), zoomPage, core->getRotate (), true, false);
     }
 }
 
@@ -1301,7 +1301,7 @@ void XPDFViewer::cmdZoomFitWidth (GString* args[], int nArgs, XEvent* event) {
     if (core->getZoom () != zoomWidth) {
         setZoomIdx (zoomWidthIdx);
         displayPage (
-            core->getPageNum (), zoomWidth, core->getRotate (), gTrue, gFalse);
+            core->getPageNum (), zoomWidth, core->getRotate (), true, false);
     }
 }
 
@@ -1314,7 +1314,7 @@ void XPDFViewer::cmdZoomIn (GString* args[], int nArgs, XEvent* event) {
         setZoomIdx (z);
         displayPage (
             core->getPageNum (), zoomMenuInfo[z].zoom, core->getRotate (),
-            gTrue, gFalse);
+            true, false);
     }
 }
 
@@ -1327,7 +1327,7 @@ void XPDFViewer::cmdZoomOut (GString* args[], int nArgs, XEvent* event) {
         setZoomIdx (z);
         displayPage (
             core->getPageNum (), zoomMenuInfo[z].zoom, core->getRotate (),
-            gTrue, gFalse);
+            true, false);
     }
 }
 
@@ -1336,7 +1336,7 @@ void XPDFViewer::cmdZoomPercent (GString* args[], int nArgs, XEvent* event) {
 
     z = atof (args[0]->c_str ());
     setZoomVal (z);
-    displayPage (core->getPageNum (), z, core->getRotate (), gTrue, gFalse);
+    displayPage (core->getPageNum (), z, core->getRotate (), true, false);
 }
 
 void XPDFViewer::cmdZoomToSelection (
@@ -1353,7 +1353,7 @@ void XPDFViewer::cmdZoomToSelection (
 // GUI code: main window
 //------------------------------------------------------------------------
 
-void XPDFViewer::initWindow (GBool fullScreen) {
+void XPDFViewer::initWindow (bool fullScreen) {
     Colormap colormap;
     XColor xcol;
     Atom state, val;
@@ -1407,7 +1407,7 @@ void XPDFViewer::initWindow (GBool fullScreen) {
 
     // create the full-screen window
     if (fullScreen) {
-        initCore (win, gTrue);
+        initCore (win, true);
 
         // create the normal (non-full-screen) window
     }
@@ -1514,7 +1514,7 @@ void XPDFViewer::initWindow (GBool fullScreen) {
         val = XInternAtom (display, "_NET_WM_STATE_FULLSCREEN", False);
         XChangeProperty (
             display, XtWindow (win), state, XA_ATOM, 32, PropModeReplace,
-            (Guchar*)&val, 1);
+            (unsigned char*)&val, 1);
     }
 }
 
@@ -1932,7 +1932,7 @@ void XPDFViewer::initPanedWin (Widget parent) {
         (XtPointer)this);
 }
 
-void XPDFViewer::initCore (Widget parent, GBool fullScreen) {
+void XPDFViewer::initCore (Widget parent, bool fullScreen) {
     core = new XPDFCore (
         win, parent, app->getPaperRGB (), app->getPaperPixel (),
         app->getMattePixel (fullScreen), fullScreen, app->getReverseVideo (),
@@ -2318,7 +2318,7 @@ void XPDFViewer::prevPageCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->core->gotoPrevPage (1, gTrue, gFalse);
+    viewer->core->gotoPrevPage (1, true, false);
     viewer->core->takeFocus ();
 }
 
@@ -2326,7 +2326,7 @@ void XPDFViewer::prevTenPageCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->core->gotoPrevPage (10, gTrue, gFalse);
+    viewer->core->gotoPrevPage (10, true, false);
     viewer->core->takeFocus ();
 }
 
@@ -2334,7 +2334,7 @@ void XPDFViewer::nextPageCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->core->gotoNextPage (1, gTrue);
+    viewer->core->gotoNextPage (1, true);
     viewer->core->takeFocus ();
 }
 
@@ -2342,7 +2342,7 @@ void XPDFViewer::nextTenPageCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->core->gotoNextPage (10, gTrue);
+    viewer->core->gotoNextPage (10, true);
     viewer->core->takeFocus ();
 }
 
@@ -2391,8 +2391,8 @@ void XPDFViewer::zoomComboBoxCbk (
     // the caller is responsible for doing the redraw
     if (z != viewer->core->getZoom () && data->event) {
         viewer->displayPage (
-            viewer->core->getPageNum (), z, viewer->core->getRotate (), gTrue,
-            gFalse);
+            viewer->core->getPageNum (), z, viewer->core->getRotate (), true,
+            false);
     }
     viewer->core->takeFocus ();
 }
@@ -2412,8 +2412,8 @@ void XPDFViewer::zoomMenuCbk (
     // the caller is responsible for doing the redraw
     if (z != viewer->core->getZoom () && data->event) {
         viewer->displayPage (
-            viewer->core->getPageNum (), z, viewer->core->getRotate (), gTrue,
-            gFalse);
+            viewer->core->getPageNum (), z, viewer->core->getRotate (), true,
+            false);
     }
     viewer->core->takeFocus ();
 }
@@ -2449,14 +2449,14 @@ void XPDFViewer::quitCbk (Widget widget, XtPointer ptr, XtPointer callData) {
 void XPDFViewer::openCbk (Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->mapOpenDialog (gFalse);
+    viewer->mapOpenDialog (false);
 }
 
 void XPDFViewer::openInNewWindowCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->mapOpenDialog (gTrue);
+    viewer->mapOpenDialog (true);
 }
 
 void XPDFViewer::reloadCbk (Widget widget, XtPointer ptr, XtPointer callData) {
@@ -2521,14 +2521,14 @@ void XPDFViewer::zoomToSelectionCbk (
 void XPDFViewer::closeCbk (Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->app->close (viewer, gFalse);
+    viewer->app->close (viewer, false);
 }
 
 void XPDFViewer::closeMsgCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->app->close (viewer, gTrue);
+    viewer->app->close (viewer, true);
 }
 
 void XPDFViewer::pageNumCbk (Widget widget, XtPointer ptr, XtPointer callData) {
@@ -2545,8 +2545,8 @@ void XPDFViewer::pageNumCbk (Widget widget, XtPointer ptr, XtPointer callData) {
     pg = atoi (s);
     if (pg < 1 || pg > viewer->core->getDoc ()->getNumPages ()) { goto err; }
     viewer->displayPage (
-        pg, viewer->core->getZoom (), viewer->core->getRotate (), gFalse,
-        gTrue);
+        pg, viewer->core->getZoom (), viewer->core->getRotate (), false,
+        true);
     viewer->core->takeFocus ();
     return;
 
@@ -2915,7 +2915,7 @@ void XPDFViewer::initOpenDialog () {
     }
 }
 
-void XPDFViewer::mapOpenDialog (GBool openInNewWindowA) {
+void XPDFViewer::mapOpenDialog (bool openInNewWindowA) {
     if (!openDialog) { initOpenDialog (); }
     openInNewWindow = openInNewWindowA;
     XmFileSelectionDoSearch (openDialog, NULL);
@@ -2941,7 +2941,7 @@ void XPDFViewer::openOkCbk (Widget widget, XtPointer ptr, XtPointer callData) {
             if (viewer->loadFile (fileNameStr)) {
                 viewer->displayPage (
                     1, viewer->core->getZoom (), viewer->core->getRotate (),
-                    gTrue, gTrue);
+                    true, true);
             }
         }
         delete fileNameStr;
@@ -3162,7 +3162,7 @@ void XPDFViewer::findFindCbk (
     Widget widget, XtPointer ptr, XtPointer callData) {
     XPDFViewer* viewer = (XPDFViewer*)ptr;
 
-    viewer->doFind (gFalse);
+    viewer->doFind (false);
 }
 
 void XPDFViewer::mapFindDialog () {
@@ -3173,7 +3173,7 @@ void XPDFViewer::mapFindDialog () {
     XtManageChild (findDialog);
 }
 
-void XPDFViewer::doFind (GBool next) {
+void XPDFViewer::doFind (bool next) {
     if (XtWindow (findDialog)) {
         XDefineCursor (display, XtWindow (findDialog), core->getBusyCursor ());
     }
@@ -3181,7 +3181,7 @@ void XPDFViewer::doFind (GBool next) {
         XmTextFieldGetString (findText),
         XmToggleButtonGetState (findCaseSensitiveToggle), next,
         XmToggleButtonGetState (findBackwardToggle),
-        XmToggleButtonGetState (findWholeWordToggle), gFalse);
+        XmToggleButtonGetState (findWholeWordToggle), false);
     if (XtWindow (findDialog)) {
         XUndefineCursor (display, XtWindow (findDialog));
     }
@@ -3598,7 +3598,7 @@ void XPDFViewer::printPrintCbk (
         return;
     }
 
-    viewer->core->setBusyCursor (gTrue);
+    viewer->core->setBusyCursor (true);
 
     XtVaGetValues (viewer->printWithCmdBtn, XmNset, &withCmd, NULL);
     if (withCmd) {
@@ -3624,13 +3624,13 @@ void XPDFViewer::printPrintCbk (
         psFileName->c_str (), doc, firstPage, lastPage, psModePS);
     if (psOut->isOk ()) {
         doc->displayPages (
-            psOut, firstPage, lastPage, 72, 72, 0, gTrue,
-            globalParams->getPSCrop (), gTrue);
+            psOut, firstPage, lastPage, 72, 72, 0, true,
+            globalParams->getPSCrop (), true);
     }
     delete psOut;
     delete psFileName;
 
-    viewer->core->setBusyCursor (gFalse);
+    viewer->core->setBusyCursor (false);
 }
 
 //------------------------------------------------------------------------

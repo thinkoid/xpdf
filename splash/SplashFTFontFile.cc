@@ -23,9 +23,9 @@ SplashFontFile* SplashFTFontFile::loadType1Font (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    const char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, bool deleteFileA,
 #endif
-    const char** encA, GBool useLightHintingA) {
+    const char** encA, bool useLightHintingA) {
     FT_Face faceA;
     int* codeToGIDA;
     const char* name;
@@ -55,7 +55,7 @@ SplashFontFile* SplashFTFontFile::loadType1Font (
 #else
         fileNameA, deleteFileA,
 #endif
-        faceA, codeToGIDA, 256, gFalse, useLightHintingA);
+        faceA, codeToGIDA, 256, false, useLightHintingA);
 }
 
 SplashFontFile* SplashFTFontFile::loadCIDFont (
@@ -63,7 +63,7 @@ SplashFontFile* SplashFTFontFile::loadCIDFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    const char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, bool deleteFileA,
 #endif
     int* codeToGIDA, int codeToGIDLenA) {
     FT_Face faceA;
@@ -85,7 +85,7 @@ SplashFontFile* SplashFTFontFile::loadCIDFont (
 #else
         fileNameA, deleteFileA,
 #endif
-        faceA, codeToGIDA, codeToGIDLenA, gFalse, gFalse);
+        faceA, codeToGIDA, codeToGIDLenA, false, false);
 }
 
 SplashFontFile* SplashFTFontFile::loadTrueTypeFont (
@@ -93,7 +93,7 @@ SplashFontFile* SplashFTFontFile::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    const char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, bool deleteFileA,
 #endif
     int fontNum, int* codeToGIDA, int codeToGIDLenA) {
     FT_Face faceA;
@@ -115,7 +115,7 @@ SplashFontFile* SplashFTFontFile::loadTrueTypeFont (
 #else
         fileNameA, deleteFileA,
 #endif
-        faceA, codeToGIDA, codeToGIDLenA, gTrue, gFalse);
+        faceA, codeToGIDA, codeToGIDLenA, true, false);
 }
 
 SplashFTFontFile::SplashFTFontFile (
@@ -123,10 +123,10 @@ SplashFTFontFile::SplashFTFontFile (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA,
 #else
-    const char* fileNameA, GBool deleteFileA,
+    const char* fileNameA, bool deleteFileA,
 #endif
-    FT_Face faceA, int* codeToGIDA, int codeToGIDLenA, GBool trueTypeA,
-    GBool useLightHintingA)
+    FT_Face faceA, int* codeToGIDA, int codeToGIDLenA, bool trueTypeA,
+    bool useLightHintingA)
     :
 #if LOAD_FONTS_FROM_MEM
       SplashFontFile (idA, fontBufA)

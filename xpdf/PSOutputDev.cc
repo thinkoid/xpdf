@@ -938,11 +938,11 @@ public:
         return (bufIdx >= bufSize && !fillBuf ()) ? EOF : buf[bufIdx];
     }
     virtual GString* getPSFilter (int psLevel, char* indent) { return NULL; }
-    virtual GBool isBinary (GBool last = gTrue) { return gTrue; }
-    virtual GBool isEncoder () { return gTrue; }
+    virtual bool isBinary (bool last = true) { return true; }
+    virtual bool isEncoder () { return true; }
 
 private:
-    GBool fillBuf ();
+    bool fillBuf ();
 
     int width, height;
     GfxImageColorMap* colorMap;
@@ -981,13 +981,13 @@ void DeviceNRecoder::reset () {
     imgStr->reset ();
 }
 
-GBool DeviceNRecoder::fillBuf () {
-    Guchar pixBuf[gfxColorMaxComps];
+bool DeviceNRecoder::fillBuf () {
+    unsigned char pixBuf[gfxColorMaxComps];
     GfxColor color;
     double x[gfxColorMaxComps], y[gfxColorMaxComps];
     int i;
 
-    if (pixelIdx >= width * height) { return gFalse; }
+    if (pixelIdx >= width * height) { return false; }
     imgStr->getPixel (pixBuf);
     colorMap->getColor (pixBuf, &color);
     for (i = 0;
@@ -999,7 +999,7 @@ GBool DeviceNRecoder::fillBuf () {
     for (i = 0; i < bufSize; ++i) { buf[i] = (int)(y[i] * 255 + 0.5); }
     bufIdx = 0;
     ++pixelIdx;
-    return gTrue;
+    return true;
 }
 
 //------------------------------------------------------------------------
@@ -1016,7 +1016,7 @@ static void outputToFile (void* stream, const char* data, int len) {
 
 PSOutputDev::PSOutputDev (
     const char* fileName, PDFDoc* docA, int firstPage, int lastPage, PSOutMode modeA,
-    int imgLLXA, int imgLLYA, int imgURXA, int imgURYA, GBool manualCtrlA,
+    int imgLLXA, int imgLLYA, int imgURXA, int imgURYA, bool manualCtrlA,
     PSOutCustomCodeCbk customCodeCbkA, void* customCodeCbkDataA) {
     FILE* f;
     PSFileType fileTypeA;
@@ -1036,7 +1036,7 @@ PSOutputDev::PSOutputDev (
     paperSizes = NULL;
     embFontList = NULL;
     customColors = NULL;
-    haveTextClip = gFalse;
+    haveTextClip = false;
     t3String = NULL;
 
     // open file or pipe
@@ -1050,7 +1050,7 @@ PSOutputDev::PSOutputDev (
 
         if (!(f = popen (fileName + 1, "w"))) {
             error (errIO, -1, "Couldn't run print command '{0:s}'", fileName);
-            ok = gFalse;
+            ok = false;
             return;
         }
     }
@@ -1059,7 +1059,7 @@ PSOutputDev::PSOutputDev (
         if (!(f = fopen (fileName, "w"))) {
             error (
                 errIO, -1, "Couldn't open PostScript file '{0:s}'", fileName);
-            ok = gFalse;
+            ok = false;
             return;
         }
     }
@@ -1072,7 +1072,7 @@ PSOutputDev::PSOutputDev (
 PSOutputDev::PSOutputDev (
     PSOutputFunc outputFuncA, void* outputStreamA, PDFDoc* docA, int firstPage,
     int lastPage, PSOutMode modeA, int imgLLXA, int imgLLYA, int imgURXA,
-    int imgURYA, GBool manualCtrlA, PSOutCustomCodeCbk customCodeCbkA,
+    int imgURYA, bool manualCtrlA, PSOutCustomCodeCbk customCodeCbkA,
     void* customCodeCbkDataA) {
     underlayCbk = NULL;
     underlayCbkData = NULL;
@@ -1089,7 +1089,7 @@ PSOutputDev::PSOutputDev (
     paperSizes = NULL;
     embFontList = NULL;
     customColors = NULL;
-    haveTextClip = gFalse;
+    haveTextClip = false;
     t3String = NULL;
 
     init (
@@ -1100,7 +1100,7 @@ PSOutputDev::PSOutputDev (
 void PSOutputDev::init (
     PSOutputFunc outputFuncA, void* outputStreamA, PSFileType fileTypeA,
     PDFDoc* docA, int firstPage, int lastPage, PSOutMode modeA, int imgLLXA,
-    int imgLLYA, int imgURXA, int imgURYA, GBool manualCtrlA) {
+    int imgLLYA, int imgURXA, int imgURYA, bool manualCtrlA) {
     Catalog* catalog;
     Page* page;
     PDFRectangle* box;
@@ -1110,7 +1110,7 @@ void PSOutputDev::init (
     int pg, w, h, i;
 
     // initialize
-    ok = gTrue;
+    ok = true;
     outputFunc = outputFuncA;
     outputStream = outputStreamA;
     fileType = fileTypeA;
@@ -1129,7 +1129,7 @@ void PSOutputDev::init (
         globalParams->getPSImageableArea (&imgLLX, &imgLLY, &imgURX, &imgURY);
     }
     if (paperWidth < 0 || paperHeight < 0) {
-        paperMatch = gTrue;
+        paperMatch = true;
         paperSizes = new GList ();
         paperWidth = paperHeight = 1; // in case the document has zero pages
         for (pg = (firstPage >= 1) ? firstPage : 1;
@@ -1156,13 +1156,13 @@ void PSOutputDev::init (
         // NB: img{LLX,LLY,URX,URY} will be set by startPage()
     }
     else {
-        paperMatch = gFalse;
+        paperMatch = false;
     }
     preload = globalParams->getPSPreload ();
     manualCtrl = manualCtrlA;
     if (mode == psModeForm) { lastPage = firstPage; }
     processColors = 0;
-    inType3Char = gFalse;
+    inType3Char = false;
 
 #if OPI_SUPPORT
     // initialize OPI nesting levels
@@ -1262,14 +1262,14 @@ PSOutputDev::~PSOutputDev () {
     }
 }
 
-GBool PSOutputDev::checkIO () {
+bool PSOutputDev::checkIO () {
     if (fileType == psFile || fileType == psPipe || fileType == psStdout) {
         if (ferror ((FILE*)outputStream)) {
             error (errIO, -1, "Error writing to PostScript file");
-            return gFalse;
+            return false;
         }
     }
-    return gTrue;
+    return true;
 }
 
 void PSOutputDev::writeHeader (
@@ -1377,24 +1377,24 @@ void PSOutputDev::writeHeader (
 }
 
 void PSOutputDev::writeXpdfProcset () {
-    GBool lev1, lev2, lev3, sep, nonSep;
+    bool lev1, lev2, lev3, sep, nonSep;
     const char** p;
     const char* q;
     double w;
 
     writePSFmt ("%%BeginResource: procset xpdf {0:s} 0\n", PACKAGE_VERSION);
     writePSFmt ("%%Copyright: {0:s}\n", XPDF_COPYRIGHT);
-    lev1 = lev2 = lev3 = sep = nonSep = gTrue;
+    lev1 = lev2 = lev3 = sep = nonSep = true;
     for (p = prolog; *p; ++p) {
         if ((*p)[0] == '~') {
-            lev1 = lev2 = lev3 = sep = nonSep = gFalse;
+            lev1 = lev2 = lev3 = sep = nonSep = false;
             for (q = *p + 1; *q; ++q) {
                 switch (*q) {
-                case '1': lev1 = gTrue; break;
-                case '2': lev2 = gTrue; break;
-                case '3': lev3 = gTrue; break;
-                case 's': sep = gTrue; break;
-                case 'n': nonSep = gTrue; break;
+                case '1': lev1 = true; break;
+                case '2': lev2 = true; break;
+                case '3': lev3 = true; break;
+                case 's': sep = true; break;
+                case 'n': nonSep = true; break;
                 }
             }
         }
@@ -1536,7 +1536,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
     Object xObjDict, xObjRef, xObj, patDict, patRef, pat;
     Object gsDict, gsRef, gs, smask, smaskGroup, resObj;
     Ref ref0, ref1;
-    GBool skip;
+    bool skip;
     int i, j;
 
     setupFonts (resDict);
@@ -1547,13 +1547,13 @@ void PSOutputDev::setupResources (Dict* resDict) {
     if (xObjDict.isDict ()) {
         for (i = 0; i < xObjDict.dictGetLength (); ++i) {
             // avoid infinite recursion on XObjects
-            skip = gFalse;
+            skip = false;
             if ((xObjDict.dictGetValNF (i, &xObjRef)->isRef ())) {
                 ref0 = xObjRef.getRef ();
                 for (j = 0; j < xobjStack->getLength (); ++j) {
                     ref1 = *(Ref*)xobjStack->get (j);
                     if (ref1.num == ref0.num && ref1.gen == ref0.gen) {
-                        skip = gTrue;
+                        skip = true;
                         break;
                     }
                 }
@@ -1583,16 +1583,16 @@ void PSOutputDev::setupResources (Dict* resDict) {
     //----- recursively scan Patterns
     resDict->lookup ("Pattern", &patDict);
     if (patDict.isDict ()) {
-        inType3Char = gTrue;
+        inType3Char = true;
         for (i = 0; i < patDict.dictGetLength (); ++i) {
             // avoid infinite recursion on Patterns
-            skip = gFalse;
+            skip = false;
             if ((patDict.dictGetValNF (i, &patRef)->isRef ())) {
                 ref0 = patRef.getRef ();
                 for (j = 0; j < xobjStack->getLength (); ++j) {
                     ref1 = *(Ref*)xobjStack->get (j);
                     if (ref1.num == ref0.num && ref1.gen == ref0.gen) {
-                        skip = gTrue;
+                        skip = true;
                         break;
                     }
                 }
@@ -1616,7 +1616,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
             }
             patRef.free ();
         }
-        inType3Char = gFalse;
+        inType3Char = false;
     }
     patDict.free ();
 
@@ -1625,13 +1625,13 @@ void PSOutputDev::setupResources (Dict* resDict) {
     if (gsDict.isDict ()) {
         for (i = 0; i < gsDict.dictGetLength (); ++i) {
             // avoid infinite recursion on ExtGStates
-            skip = gFalse;
+            skip = false;
             if ((gsDict.dictGetValNF (i, &gsRef)->isRef ())) {
                 ref0 = gsRef.getRef ();
                 for (j = 0; j < xobjStack->getLength (); ++j) {
                     ref1 = *(Ref*)xobjStack->get (j);
                     if (ref1.num == ref0.num && ref1.gen == ref0.gen) {
-                        skip = gTrue;
+                        skip = true;
                         break;
                     }
                 }
@@ -1701,7 +1701,7 @@ void PSOutputDev::setupFonts (Dict* resDict) {
 void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
     PSFontInfo* fi;
     GfxFontLoc* fontLoc;
-    GBool subst;
+    bool subst;
     char buf[16];
     UnicodeMap* uMap;
     char* charName;
@@ -1724,13 +1724,13 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
     fontInfo->append (fi);
 
     xs = ys = 1;
-    subst = gFalse;
+    subst = false;
 
     if (font->getType () == fontType3) {
         fi->ff = setupType3Font (font, parentResDict);
     }
     else {
-        if ((fontLoc = font->locateFont (xref, gTrue))) {
+        if ((fontLoc = font->locateFont (xref, true))) {
             switch (fontLoc->locType) {
             case gfxFontLocEmbedded:
                 switch (fontLoc->fontType) {
@@ -1758,7 +1758,7 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
                 case fontCIDType2OT:
                     //~ should check to see if font actually uses vertical mode
                     fi->ff = setupEmbeddedCIDTrueTypeFont (
-                        font, &fontLoc->embFontID, gTrue);
+                        font, &fontLoc->embFontID, true);
                     break;
                 case fontCIDType0COT:
                     fi->ff = setupEmbeddedOpenTypeCFFFont (
@@ -1782,7 +1782,7 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
                 case fontCIDType2OT:
                     //~ should check to see if font actually uses vertical mode
                     fi->ff = setupExternalCIDTrueTypeFont (
-                        font, fontLoc->path, fontLoc->fontNum, gTrue);
+                        font, fontLoc->path, fontLoc->fontNum, true);
                     break;
                 default: break;
                 }
@@ -1824,7 +1824,7 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
 
         // scale substituted 8-bit fonts
         if (fontLoc->locType == gfxFontLocResident && fontLoc->substIdx >= 0) {
-            subst = gTrue;
+            subst = true;
             for (code = 0; code < 256; ++code) {
                 if ((charName = ((Gfx8BitFont*)font)->getCharName (code)) &&
                     charName[0] == 'm' && charName[1] == '\0') {
@@ -1843,7 +1843,7 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
         // handle encodings for substituted CID fonts
         if (fontLoc->locType == gfxFontLocResident &&
             fontLoc->fontType >= fontCIDType0) {
-            subst = gTrue;
+            subst = true;
             if ((uMap = globalParams->getUnicodeMap (fontLoc->encoding))) {
                 fi->ff->encoding = fontLoc->encoding->copy ();
                 uMap->decRefCnt ();
@@ -1912,7 +1912,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1Font (GfxFont* font, Ref* id) {
     int length1, length2;
     int c;
     int start[6];
-    GBool binMode;
+    bool binMode;
     int n, i;
 
     // check if font is already embedded
@@ -2015,7 +2015,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1Font (GfxFont* font, Ref* id) {
         }
 
         // figure out if encrypted portion is binary or ASCII
-        binMode = gFalse;
+        binMode = false;
         for (i = 0; i < 4; ++i) {
             start[i] = strObj.streamGetChar ();
             if (start[i] == EOF) {
@@ -2027,7 +2027,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1Font (GfxFont* font, Ref* id) {
             if (!((start[i] >= '0' && start[i] <= '9') ||
                   (start[i] >= 'A' && start[i] <= 'F') ||
                   (start[i] >= 'a' && start[i] <= 'f')))
-                binMode = gTrue;
+                binMode = true;
         }
 
         // convert binary data to ASCII
@@ -2211,7 +2211,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1CFont (GfxFont* font, Ref* id) {
     if ((fontBuf = font->readEmbFontFile (xref, &fontLen))) {
         if ((ffT1C = FoFiType1C::make (fontBuf, fontLen))) {
             ffT1C->convertToType1 (
-                psName->c_str (), NULL, gTrue, outputFunc, outputStream);
+                psName->c_str (), NULL, true, outputFunc, outputStream);
             delete ffT1C;
         }
         gfree (fontBuf);
@@ -2259,7 +2259,7 @@ PSOutputDev::setupEmbeddedOpenTypeT1CFont (GfxFont* font, Ref* id) {
         if ((ffTT = FoFiTrueType::make (fontBuf, fontLen, 0))) {
             if (ffTT->isOpenTypeCFF ()) {
                 ffTT->convertToType1 (
-                    psName->c_str (), NULL, gTrue, outputFunc,
+                    psName->c_str (), NULL, true, outputFunc,
                     outputStream);
             }
             delete ffTT;
@@ -2450,7 +2450,7 @@ PSOutputDev::setupEmbeddedCIDType0Font (GfxFont* font, Ref* id) {
 }
 
 PSFontFileInfo* PSOutputDev::setupEmbeddedCIDTrueTypeFont (
-    GfxFont* font, Ref* id, GBool needVerticalMetrics) {
+    GfxFont* font, Ref* id, bool needVerticalMetrics) {
     GString* psName;
     PSFontFileInfo* ff;
     char* fontBuf;
@@ -2522,7 +2522,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedCIDTrueTypeFont (
 }
 
 PSFontFileInfo* PSOutputDev::setupExternalCIDTrueTypeFont (
-    GfxFont* font, GString* fileName, int fontNum, GBool needVerticalMetrics) {
+    GfxFont* font, GString* fileName, int fontNum, bool needVerticalMetrics) {
     GString* psName;
     PSFontFileInfo* ff;
     FoFiTrueType* ffTT;
@@ -2728,9 +2728,9 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
 
     // set up resources used by font
     if ((resDict = ((Gfx8BitFont*)font)->getResources ())) {
-        inType3Char = gTrue;
+        inType3Char = true;
         setupResources (resDict);
-        inType3Char = gFalse;
+        inType3Char = false;
     }
     else {
         resDict = parentResDict;
@@ -2772,11 +2772,11 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
         box.x2 = m[2];
         box.y2 = m[3];
         gfx = new Gfx (doc, this, resDict, &box, NULL);
-        inType3Char = gTrue;
+        inType3Char = true;
         for (i = 0; i < charProcs->getLength (); ++i) {
-            t3FillColorOnly = gFalse;
-            t3Cacheable = gFalse;
-            t3NeedsRestore = gFalse;
+            t3FillColorOnly = false;
+            t3Cacheable = false;
+            t3NeedsRestore = false;
             writePS ("/");
             writePSName (charProcs->getKey (i));
             writePS (" {\n");
@@ -2805,7 +2805,7 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
             if (t3NeedsRestore) { (*outputFunc) (outputStream, "Q\n", 2); }
             writePS ("} def\n");
         }
-        inType3Char = gFalse;
+        inType3Char = false;
         delete gfx;
         writePS ("end\n");
     }
@@ -2882,12 +2882,12 @@ void PSOutputDev::setupImages (Dict* resDict) {
                                     imgIDs, imgIDSize, sizeof (Ref));
                             }
                             imgIDs[imgIDLen++] = imgID;
-                            setupImage (imgID, xObj.getStream (), gFalse);
+                            setupImage (imgID, xObj.getStream (), false);
                             if (level >= psLevel3 &&
                                 xObj.streamGetDict ()
                                     ->lookup ("Mask", &maskObj)
                                     ->isStream ()) {
-                                setupImage (imgID, maskObj.getStream (), gTrue);
+                                setupImage (imgID, maskObj.getStream (), true);
                             }
                             maskObj.free ();
                         }
@@ -2908,8 +2908,8 @@ void PSOutputDev::setupImages (Dict* resDict) {
     xObjDict.free ();
 }
 
-void PSOutputDev::setupImage (Ref id, Stream* str, GBool mask) {
-    GBool useLZW, useRLE, useCompressed, useASCIIHex;
+void PSOutputDev::setupImage (Ref id, Stream* str, bool mask) {
+    bool useLZW, useRLE, useCompressed, useASCIIHex;
     GString* s;
     int c;
     int size, line, col, i;
@@ -2918,32 +2918,32 @@ void PSOutputDev::setupImage (Ref id, Stream* str, GBool mask) {
     //~ this does not correctly handle the DeviceN color space
     //~   -- need to use DeviceNRecoder
     if (level < psLevel2) {
-        useLZW = useRLE = gFalse;
-        useCompressed = gFalse;
-        useASCIIHex = gTrue;
+        useLZW = useRLE = false;
+        useCompressed = false;
+        useASCIIHex = true;
     }
     else {
         if (globalParams->getPSUncompressPreloadedImages ()) {
-            useLZW = useRLE = gFalse;
-            useCompressed = gFalse;
+            useLZW = useRLE = false;
+            useCompressed = false;
         }
         else {
             s = str->getPSFilter (level < psLevel3 ? 2 : 3, "");
             if (s) {
-                useLZW = useRLE = gFalse;
-                useCompressed = gTrue;
+                useLZW = useRLE = false;
+                useCompressed = true;
                 delete s;
             }
             else {
                 if (globalParams->getPSLZW ()) {
-                    useLZW = gTrue;
-                    useRLE = gFalse;
+                    useLZW = true;
+                    useRLE = false;
                 }
                 else {
-                    useRLE = gTrue;
-                    useLZW = gFalse;
+                    useRLE = true;
+                    useLZW = false;
                 }
-                useCompressed = gFalse;
+                useCompressed = false;
             }
         }
         useASCIIHex = globalParams->getPSASCIIHex ();
@@ -3150,14 +3150,14 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     resObj.free ();
 }
 
-GBool PSOutputDev::checkPageSlice (
-    Page* page, double hDPI, double vDPI, int rotateA, GBool useMediaBox,
-    GBool crop, int sliceX, int sliceY, int sliceW, int sliceH, GBool printing,
-    GBool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
+bool PSOutputDev::checkPageSlice (
+    Page* page, double hDPI, double vDPI, int rotateA, bool useMediaBox,
+    bool crop, int sliceX, int sliceY, int sliceW, int sliceH, bool printing,
+    bool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
     PreScanOutputDev* scan;
-    GBool rasterize;
-    GBool mono;
-    GBool useLZW;
+    bool rasterize;
+    bool mono;
+    bool useLZW;
     double dpi;
     SplashOutputDev* splashOut;
     SplashColor paperColor;
@@ -3166,15 +3166,15 @@ GBool PSOutputDev::checkPageSlice (
     SplashBitmap* bitmap;
     Stream *str0, *str;
     Object obj;
-    Guchar* p;
-    Guchar col[4];
+    unsigned char* p;
+    unsigned char col[4];
     char buf[4096];
     double hDPI2, vDPI2;
     double m0, m1, m2, m3, m4, m5;
     int nStripes, stripeH, stripeY;
     int w, h, x, y, comp, i, n;
 
-    if (globalParams->getPSAlwaysRasterize ()) { rasterize = gTrue; }
+    if (globalParams->getPSAlwaysRasterize ()) { rasterize = true; }
     else {
         scan = new PreScanOutputDev ();
         page->displaySlice (
@@ -3183,7 +3183,7 @@ GBool PSOutputDev::checkPageSlice (
         rasterize = scan->usesTransparency () || scan->usesPatternImageMask ();
         delete scan;
     }
-    if (!rasterize) { return gTrue; }
+    if (!rasterize) { return true; }
 
     // get the rasterization parameters
     dpi = globalParams->getPSRasterResolution ();
@@ -3192,14 +3192,14 @@ GBool PSOutputDev::checkPageSlice (
 
     // start the PS page
     page->makeBox (
-        dpi, dpi, rotateA, useMediaBox, gFalse, sliceX, sliceY, sliceW, sliceH,
+        dpi, dpi, rotateA, useMediaBox, false, sliceX, sliceY, sliceW, sliceH,
         &box, &crop);
     rotateA += page->getRotate ();
     if (rotateA >= 360) { rotateA -= 360; }
     else if (rotateA < 0) {
         rotateA += 360;
     }
-    state = new GfxState (dpi, dpi, &box, rotateA, gFalse);
+    state = new GfxState (dpi, dpi, &box, rotateA, false);
     startPage (page->getNum (), state);
     delete state;
 
@@ -3207,21 +3207,21 @@ GBool PSOutputDev::checkPageSlice (
     if (mono || level == psLevel1) {
         paperColor[0] = 0xff;
         splashOut = new SplashOutputDev (
-            splashModeMono8, 1, gFalse, paperColor, gFalse,
+            splashModeMono8, 1, false, paperColor, false,
             globalParams->getAntialiasPrinting ());
 #if SPLASH_CMYK
     }
     else if (level == psLevel1Sep) {
         paperColor[0] = paperColor[1] = paperColor[2] = paperColor[3] = 0;
         splashOut = new SplashOutputDev (
-            splashModeCMYK8, 1, gFalse, paperColor, gFalse,
+            splashModeCMYK8, 1, false, paperColor, false,
             globalParams->getAntialiasPrinting ());
 #endif
     }
     else {
         paperColor[0] = paperColor[1] = paperColor[2] = 0xff;
         splashOut = new SplashOutputDev (
-            splashModeRGB8, 1, gFalse, paperColor, gFalse,
+            splashModeRGB8, 1, false, paperColor, false,
             globalParams->getAntialiasPrinting ());
     }
     splashOut->startDoc (xref);
@@ -3247,7 +3247,7 @@ GBool PSOutputDev::checkPageSlice (
     for (stripeY = sliceY; stripeY < sliceH; stripeY += stripeH) {
         // rasterize a stripe
         page->makeBox (
-            hDPI2, vDPI2, 0, useMediaBox, gFalse, sliceX, stripeY, sliceW,
+            hDPI2, vDPI2, 0, useMediaBox, false, sliceX, stripeY, sliceW,
             stripeH, &box, &crop);
         m0 = box.x2 - box.x1;
         m1 = 0;
@@ -3374,14 +3374,14 @@ GBool PSOutputDev::checkPageSlice (
     // finish the PS page
     endPage ();
 
-    return gFalse;
+    return false;
 }
 
 void PSOutputDev::startPage (int pageNum, GfxState* state) {
     Page* page;
     int x1, y1, x2, y2, width, height, t;
     int imgWidth, imgHeight, imgWidth2, imgHeight2;
-    GBool landscape;
+    bool landscape;
     GString* s;
 
     if (mode == psModePS) {
@@ -3428,11 +3428,11 @@ void PSOutputDev::startPage (int pageNum, GfxState* state) {
         // rotation and portrait/landscape mode
         if (paperMatch) {
             rotate = (360 - state->getRotate ()) % 360;
-            landscape = gFalse;
+            landscape = false;
         }
         else if (rotate0 >= 0) {
             rotate = (360 - rotate0) % 360;
-            landscape = gFalse;
+            landscape = false;
         }
         else {
             rotate = (360 - state->getRotate ()) % 360;
@@ -3442,10 +3442,10 @@ void PSOutputDev::startPage (int pageNum, GfxState* state) {
                     (width > height && imgWidth < imgHeight &&
                      width > imgWidth)) {
                     rotate += 90;
-                    landscape = gTrue;
+                    landscape = true;
                 }
                 else {
-                    landscape = gFalse;
+                    landscape = false;
                 }
             }
             else { // rotate == 90 || rotate == 270
@@ -3454,10 +3454,10 @@ void PSOutputDev::startPage (int pageNum, GfxState* state) {
                     (height > width && imgWidth < imgHeight &&
                      height > imgWidth)) {
                     rotate = 270 - rotate;
-                    landscape = gTrue;
+                    landscape = true;
                 }
                 else {
-                    landscape = gFalse;
+                    landscape = false;
                 }
             }
         }
@@ -3689,7 +3689,7 @@ void PSOutputDev::updateFillColorSpace (GfxState* state) {
     case psLevel3:
         if (state->getFillColorSpace ()->getMode () != csPattern) {
             dumpColorSpaceL2 (
-                state->getFillColorSpace (), gTrue, gFalse, gFalse);
+                state->getFillColorSpace (), true, false, false);
             writePS (" cs\n");
         }
         break;
@@ -3706,7 +3706,7 @@ void PSOutputDev::updateStrokeColorSpace (GfxState* state) {
     case psLevel3:
         if (state->getStrokeColorSpace ()->getMode () != csPattern) {
             dumpColorSpaceL2 (
-                state->getStrokeColorSpace (), gTrue, gFalse, gFalse);
+                state->getStrokeColorSpace (), true, false, false);
             writePS (" CS\n");
         }
         break;
@@ -3774,7 +3774,7 @@ void PSOutputDev::updateFillColor (GfxState* state) {
         }
         break;
     }
-    t3Cacheable = gFalse;
+    t3Cacheable = false;
 }
 
 void PSOutputDev::updateStrokeColor (GfxState* state) {
@@ -3836,7 +3836,7 @@ void PSOutputDev::updateStrokeColor (GfxState* state) {
         }
         break;
     }
-    t3Cacheable = gFalse;
+    t3Cacheable = false;
 }
 
 void PSOutputDev::addProcessColor (double c, double m, double y, double k) {
@@ -3937,7 +3937,7 @@ void PSOutputDev::updateRender (GfxState* state) {
     rm = state->getRender ();
     writePSFmt ("{0:d} Tr\n", rm);
     rm &= 3;
-    if (rm != 0 && rm != 3) { t3Cacheable = gFalse; }
+    if (rm != 0 && rm != 3) { t3Cacheable = false; }
 }
 
 void PSOutputDev::updateRise (GfxState* state) {
@@ -4034,20 +4034,20 @@ void PSOutputDev::tilingPatternFill (
         writePSFmt (
             "{0:.6g} 0 {1:.6g} {2:.6g} {3:.6g} {4:.6g} setcachedevice\n", xStep,
             bbox[0], bbox[1], bbox[2], bbox[3]);
-        t3FillColorOnly = gTrue;
+        t3FillColorOnly = true;
     }
     else {
         if (x1 - 1 <= x0) { writePS ("1 0 setcharwidth\n"); }
         else {
             writePSFmt ("{0:.6g} 0 setcharwidth\n", xStep);
         }
-        t3FillColorOnly = gFalse;
+        t3FillColorOnly = false;
     }
-    inType3Char = gTrue;
+    inType3Char = true;
     ++numTilingPatterns;
     gfx2->display (strRef);
     --numTilingPatterns;
-    inType3Char = gFalse;
+    inType3Char = false;
     writePS ("} def\n");
     delete gfx2;
     writePS ("end\n");
@@ -4067,7 +4067,7 @@ void PSOutputDev::tilingPatternFill (
     writePS ("grestore\n");
 }
 
-GBool PSOutputDev::functionShadedFill (
+bool PSOutputDev::functionShadedFill (
     GfxState* state, GfxFunctionShading* shading) {
     double x0, y0, x1, y1;
     double* mat;
@@ -4075,7 +4075,7 @@ GBool PSOutputDev::functionShadedFill (
 
     if (level == psLevel2Sep || level == psLevel3Sep) {
         if (shading->getColorSpace ()->getMode () != csDeviceCMYK) {
-            return gFalse;
+            return false;
         }
         processColors |= psProcessCMYK;
     }
@@ -4103,10 +4103,10 @@ GBool PSOutputDev::functionShadedFill (
     }
     writePSFmt ("{0:.6g} {1:.6g} {2:.6g} {3:.6g} 0 funcSH\n", x0, y0, x1, y1);
 
-    return gTrue;
+    return true;
 }
 
-GBool PSOutputDev::axialShadedFill (GfxState* state, GfxAxialShading* shading) {
+bool PSOutputDev::axialShadedFill (GfxState* state, GfxAxialShading* shading) {
     double xMin, yMin, xMax, yMax;
     double x0, y0, x1, y1, dx, dy, mul;
     double tMin, tMax, t, t0, t1;
@@ -4114,7 +4114,7 @@ GBool PSOutputDev::axialShadedFill (GfxState* state, GfxAxialShading* shading) {
 
     if (level == psLevel2Sep || level == psLevel3Sep) {
         if (shading->getColorSpace ()->getMode () != csDeviceCMYK) {
-            return gFalse;
+            return false;
         }
         processColors |= psProcessCMYK;
     }
@@ -4127,7 +4127,7 @@ GBool PSOutputDev::axialShadedFill (GfxState* state, GfxAxialShading* shading) {
     shading->getCoords (&x0, &y0, &x1, &y1);
     dx = x1 - x0;
     dy = y1 - y0;
-    if (fabs (dx) < 0.01 && fabs (dy) < 0.01) { return gTrue; }
+    if (fabs (dx) < 0.01 && fabs (dy) < 0.01) { return true; }
     else {
         mul = 1 / (dx * dx + dy * dy);
         tMin = tMax = ((xMin - x0) * dx + (yMin - y0) * dy) * mul;
@@ -4186,25 +4186,25 @@ GBool PSOutputDev::axialShadedFill (GfxState* state, GfxAxialShading* shading) {
     }
     writePSFmt ("{0:.6g} {1:.6g} 0 axialSH\n", tMin, tMax);
 
-    return gTrue;
+    return true;
 }
 
-GBool PSOutputDev::radialShadedFill (
+bool PSOutputDev::radialShadedFill (
     GfxState* state, GfxRadialShading* shading) {
     double xMin, yMin, xMax, yMax;
     double x0, y0, r0, x1, y1, r1, t0, t1;
     double xa, ya, ra;
     double sMin, sMax, h, ta;
     double sLeft, sRight, sTop, sBottom, sZero, sDiag;
-    GBool haveSLeft, haveSRight, haveSTop, haveSBottom, haveSZero;
-    GBool haveSMin, haveSMax;
+    bool haveSLeft, haveSRight, haveSTop, haveSBottom, haveSZero;
+    bool haveSMin, haveSMax;
     double theta, alpha, a1, a2;
-    GBool enclosed;
+    bool enclosed;
     int i;
 
     if (level == psLevel2Sep || level == psLevel3Sep) {
         if (shading->getColorSpace ()->getMode () != csDeviceCMYK) {
-            return gFalse;
+            return false;
         }
         processColors |= psProcessCMYK;
     }
@@ -4218,19 +4218,19 @@ GBool PSOutputDev::radialShadedFill (
     // circles case; and compute the angles for the tangent lines.
     h = sqrt ((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
     if (h == 0) {
-        enclosed = gTrue;
+        enclosed = true;
         theta = 0; // make gcc happy
     }
     else if (r1 - r0 == 0) {
-        enclosed = gFalse;
+        enclosed = false;
         theta = 0;
     }
     else if (fabs (r1 - r0) >= h) {
-        enclosed = gTrue;
+        enclosed = true;
         theta = 0; // make gcc happy
     }
     else {
-        enclosed = gFalse;
+        enclosed = false;
         theta = asin ((r1 - r0) / h);
     }
     if (enclosed) {
@@ -4300,25 +4300,25 @@ GBool PSOutputDev::radialShadedFill (
         // compute sMin
         if (shading->getExtend0 ()) {
             sMin = 0;
-            haveSMin = gFalse;
+            haveSMin = false;
             if (x0 < x1 && haveSLeft && sLeft < 0) {
                 sMin = sLeft;
-                haveSMin = gTrue;
+                haveSMin = true;
             }
             else if (x0 > x1 && haveSRight && sRight < 0) {
                 sMin = sRight;
-                haveSMin = gTrue;
+                haveSMin = true;
             }
             if (y0 < y1 && haveSBottom && sBottom < 0) {
                 if (!haveSMin || sBottom > sMin) {
                     sMin = sBottom;
-                    haveSMin = gTrue;
+                    haveSMin = true;
                 }
             }
             else if (y0 > y1 && haveSTop && sTop < 0) {
                 if (!haveSMin || sTop > sMin) {
                     sMin = sTop;
-                    haveSMin = gTrue;
+                    haveSMin = true;
                 }
             }
             if (haveSZero && sZero < 0) {
@@ -4331,25 +4331,25 @@ GBool PSOutputDev::radialShadedFill (
         // compute sMax
         if (shading->getExtend1 ()) {
             sMax = 1;
-            haveSMax = gFalse;
+            haveSMax = false;
             if (x1 < x0 && haveSLeft && sLeft > 1) {
                 sMax = sLeft;
-                haveSMax = gTrue;
+                haveSMax = true;
             }
             else if (x1 > x0 && haveSRight && sRight > 1) {
                 sMax = sRight;
-                haveSMax = gTrue;
+                haveSMax = true;
             }
             if (y1 < y0 && haveSBottom && sBottom > 1) {
                 if (!haveSMax || sBottom < sMax) {
                     sMax = sBottom;
-                    haveSMax = gTrue;
+                    haveSMax = true;
                 }
             }
             else if (y1 > y0 && haveSTop && sTop > 1) {
                 if (!haveSMax || sTop < sMax) {
                     sMax = sTop;
-                    haveSMax = gTrue;
+                    haveSMax = true;
                 }
             }
             if (haveSZero && sDiag > 1) {
@@ -4450,7 +4450,7 @@ GBool PSOutputDev::radialShadedFill (
         }
     }
 
-    return gTrue;
+    return true;
 }
 
 void PSOutputDev::clip (GfxState* state) {
@@ -4677,19 +4677,19 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
     gfree (dxdy);
     delete s2;
 
-    if (state->getRender () & 4) { haveTextClip = gTrue; }
+    if (state->getRender () & 4) { haveTextClip = true; }
 }
 
 void PSOutputDev::endTextObject (GfxState* state) {
     if (haveTextClip) {
         writePS ("Tclip\n");
-        haveTextClip = gFalse;
+        haveTextClip = false;
     }
 }
 
 void PSOutputDev::drawImageMask (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GBool invert, GBool inlineImg, GBool interpolate) {
+    bool invert, bool inlineImg, bool interpolate) {
     int len;
 
     len = height * ((width + 7) / 8);
@@ -4702,21 +4702,21 @@ void PSOutputDev::drawImageMask (
     case psLevel2Sep:
         doImageL2 (
             ref, NULL, invert, inlineImg, str, width, height, len, NULL, NULL,
-            0, 0, gFalse);
+            0, 0, false);
         break;
     case psLevel3:
     case psLevel3Sep:
         doImageL3 (
             ref, NULL, invert, inlineImg, str, width, height, len, NULL, NULL,
-            0, 0, gFalse);
+            0, 0, false);
         break;
     }
 }
 
 void PSOutputDev::drawImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-    GBool interpolate) {
+    GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+    bool interpolate) {
     int len;
 
     len = height *
@@ -4724,32 +4724,32 @@ void PSOutputDev::drawImage (
            8);
     switch (level) {
     case psLevel1:
-        doImageL1 (ref, colorMap, gFalse, inlineImg, str, width, height, len);
+        doImageL1 (ref, colorMap, false, inlineImg, str, width, height, len);
         break;
     case psLevel1Sep:
         //~ handle indexed, separation, ... color spaces
-        doImageL1Sep (colorMap, gFalse, inlineImg, str, width, height, len);
+        doImageL1Sep (colorMap, false, inlineImg, str, width, height, len);
         break;
     case psLevel2:
     case psLevel2Sep:
         doImageL2 (
-            ref, colorMap, gFalse, inlineImg, str, width, height, len,
-            maskColors, NULL, 0, 0, gFalse);
+            ref, colorMap, false, inlineImg, str, width, height, len,
+            maskColors, NULL, 0, 0, false);
         break;
     case psLevel3:
     case psLevel3Sep:
         doImageL3 (
-            ref, colorMap, gFalse, inlineImg, str, width, height, len,
-            maskColors, NULL, 0, 0, gFalse);
+            ref, colorMap, false, inlineImg, str, width, height, len,
+            maskColors, NULL, 0, 0, false);
         break;
     }
-    t3Cacheable = gFalse;
+    t3Cacheable = false;
 }
 
 void PSOutputDev::drawMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GBool maskInvert, GBool interpolate) {
+    bool maskInvert, bool interpolate) {
     int len;
 
     len = height *
@@ -4757,33 +4757,33 @@ void PSOutputDev::drawMaskedImage (
            8);
     switch (level) {
     case psLevel1:
-        doImageL1 (ref, colorMap, gFalse, gFalse, str, width, height, len);
+        doImageL1 (ref, colorMap, false, false, str, width, height, len);
         break;
     case psLevel1Sep:
         //~ handle indexed, separation, ... color spaces
-        doImageL1Sep (colorMap, gFalse, gFalse, str, width, height, len);
+        doImageL1Sep (colorMap, false, false, str, width, height, len);
         break;
     case psLevel2:
     case psLevel2Sep:
         doImageL2 (
-            ref, colorMap, gFalse, gFalse, str, width, height, len, NULL,
+            ref, colorMap, false, false, str, width, height, len, NULL,
             maskStr, maskWidth, maskHeight, maskInvert);
         break;
     case psLevel3:
     case psLevel3Sep:
         doImageL3 (
-            ref, colorMap, gFalse, gFalse, str, width, height, len, NULL,
+            ref, colorMap, false, false, str, width, height, len, NULL,
             maskStr, maskWidth, maskHeight, maskInvert);
         break;
     }
-    t3Cacheable = gFalse;
+    t3Cacheable = false;
 }
 
 void PSOutputDev::doImageL1 (
-    Object* ref, GfxImageColorMap* colorMap, GBool invert, GBool inlineImg,
+    Object* ref, GfxImageColorMap* colorMap, bool invert, bool inlineImg,
     Stream* str, int width, int height, int len) {
     ImageStream* imgStr;
-    Guchar pixBuf[gfxColorMaxComps];
+    unsigned char pixBuf[gfxColorMaxComps];
     GfxGray gray;
     int col, x, y, c, i;
 
@@ -4886,11 +4886,11 @@ void PSOutputDev::doImageL1 (
 }
 
 void PSOutputDev::doImageL1Sep (
-    GfxImageColorMap* colorMap, GBool invert, GBool inlineImg, Stream* str,
+    GfxImageColorMap* colorMap, bool invert, bool inlineImg, Stream* str,
     int width, int height, int len) {
     ImageStream* imgStr;
-    Guchar* lineBuf;
-    Guchar pixBuf[gfxColorMaxComps];
+    unsigned char* lineBuf;
+    unsigned char pixBuf[gfxColorMaxComps];
     GfxCMYK cmyk;
     int x, y, i, comp;
 
@@ -4900,7 +4900,7 @@ void PSOutputDev::doImageL1Sep (
         width, -height, height);
 
     // allocate a line buffer
-    lineBuf = (Guchar*)gmallocn (width, 4);
+    lineBuf = (unsigned char*)gmallocn (width, 4);
 
     // set up to process the data stream
     imgStr = new ImageStream (
@@ -4943,18 +4943,18 @@ void PSOutputDev::doImageL1Sep (
 }
 
 void PSOutputDev::doImageL2 (
-    Object* ref, GfxImageColorMap* colorMap, GBool invert, GBool inlineImg,
+    Object* ref, GfxImageColorMap* colorMap, bool invert, bool inlineImg,
     Stream* str, int width, int height, int len, int* maskColors,
-    Stream* maskStr, int maskWidth, int maskHeight, GBool maskInvert) {
+    Stream* maskStr, int maskWidth, int maskHeight, bool maskInvert) {
     Stream* str2;
     ImageStream* imgStr;
-    Guchar* line;
+    unsigned char* line;
     PSOutImgClipRect *rects0, *rects1, *rectsTmp, *rectsOut;
     int rects0Len, rects1Len, rectsSize, rectsOutLen, rectsOutSize;
-    GBool emitRect, addRect, extendRect;
+    bool emitRect, addRect, extendRect;
     GString* s;
     int n, numComps;
-    GBool useLZW, useRLE, useASCII, useASCIIHex, useCompressed;
+    bool useLZW, useRLE, useASCII, useASCIIHex, useCompressed;
     GfxSeparationColorSpace* sepCS;
     GfxColor color;
     GfxCMYK cmyk;
@@ -5000,22 +5000,22 @@ void PSOutputDev::doImageL2 (
                 if (j == numComps) { break; }
             }
             while (x0 < width || i < rects0Len) {
-                emitRect = addRect = extendRect = gFalse;
-                if (x0 >= width) { emitRect = gTrue; }
+                emitRect = addRect = extendRect = false;
+                if (x0 >= width) { emitRect = true; }
                 else if (i >= rects0Len) {
-                    addRect = gTrue;
+                    addRect = true;
                 }
                 else if (rects0[i].x0 < x0) {
-                    emitRect = gTrue;
+                    emitRect = true;
                 }
                 else if (x0 < rects0[i].x0) {
-                    addRect = gTrue;
+                    addRect = true;
                 }
                 else if (rects0[i].x1 == x1) {
-                    extendRect = gTrue;
+                    extendRect = true;
                 }
                 else {
-                    emitRect = addRect = gTrue;
+                    emitRect = addRect = true;
                 }
                 if (emitRect) {
                     if (rectsOutLen == rectsOutSize) {
@@ -5124,22 +5124,22 @@ void PSOutputDev::doImageL2 (
             for (x1 = x0; x1 < maskWidth && !(line[x1] ^ maskXor); ++x1)
                 ;
             while (x0 < maskWidth || i < rects0Len) {
-                emitRect = addRect = extendRect = gFalse;
-                if (x0 >= maskWidth) { emitRect = gTrue; }
+                emitRect = addRect = extendRect = false;
+                if (x0 >= maskWidth) { emitRect = true; }
                 else if (i >= rects0Len) {
-                    addRect = gTrue;
+                    addRect = true;
                 }
                 else if (rects0[i].x0 < x0) {
-                    emitRect = gTrue;
+                    emitRect = true;
                 }
                 else if (x0 < rects0[i].x0) {
-                    addRect = gTrue;
+                    addRect = true;
                 }
                 else if (rects0[i].x1 == x1) {
-                    extendRect = gTrue;
+                    extendRect = true;
                 }
                 else {
-                    emitRect = addRect = gTrue;
+                    emitRect = addRect = true;
                 }
                 if (emitRect) {
                     if (rectsOutLen == rectsOutSize) {
@@ -5212,7 +5212,7 @@ void PSOutputDev::doImageL2 (
 
     // color space
     if (colorMap) {
-        dumpColorSpaceL2 (colorMap->getColorSpace (), gFalse, gTrue, gFalse);
+        dumpColorSpaceL2 (colorMap->getColorSpace (), false, true, false);
         writePS (" setcolorspace\n");
     }
 
@@ -5343,9 +5343,9 @@ void PSOutputDev::doImageL2 (
     if ((mode == psModeForm || inType3Char || preload) &&
         globalParams->getPSUncompressPreloadedImages ()) {
         s = NULL;
-        useLZW = useRLE = gFalse;
-        useCompressed = gFalse;
-        useASCII = gFalse;
+        useLZW = useRLE = false;
+        useCompressed = false;
+        useASCII = false;
     }
     else {
         s = str->getPSFilter (
@@ -5353,21 +5353,21 @@ void PSOutputDev::doImageL2 (
         if ((colorMap && colorMap->getColorSpace ()->getMode () == csDeviceN) ||
             inlineImg || !s) {
             if (globalParams->getPSLZW ()) {
-                useLZW = gTrue;
-                useRLE = gFalse;
+                useLZW = true;
+                useRLE = false;
             }
             else {
-                useRLE = gTrue;
-                useLZW = gFalse;
+                useRLE = true;
+                useLZW = false;
             }
             useASCII = !(mode == psModeForm || inType3Char || preload);
-            useCompressed = gFalse;
+            useCompressed = false;
         }
         else {
-            useLZW = useRLE = gFalse;
+            useLZW = useRLE = false;
             useASCII = str->isBinary () &&
                        !(mode == psModeForm || inType3Char || preload);
-            useCompressed = gTrue;
+            useCompressed = true;
         }
     }
     if (useASCII) {
@@ -5478,14 +5478,14 @@ void PSOutputDev::doImageL2 (
 
 //~ this doesn't currently support OPI
 void PSOutputDev::doImageL3 (
-    Object* ref, GfxImageColorMap* colorMap, GBool invert, GBool inlineImg,
+    Object* ref, GfxImageColorMap* colorMap, bool invert, bool inlineImg,
     Stream* str, int width, int height, int len, int* maskColors,
-    Stream* maskStr, int maskWidth, int maskHeight, GBool maskInvert) {
+    Stream* maskStr, int maskWidth, int maskHeight, bool maskInvert) {
     Stream* str2;
     GString* s;
     int n, numComps;
-    GBool useLZW, useRLE, useASCII, useASCIIHex, useCompressed;
-    GBool maskUseLZW, maskUseRLE, maskUseASCII, maskUseCompressed;
+    bool useLZW, useRLE, useASCII, useASCIIHex, useCompressed;
+    bool maskUseLZW, maskUseRLE, maskUseASCII, maskUseCompressed;
     GString* maskFilters;
     GfxSeparationColorSpace* sepCS;
     GfxColor color;
@@ -5495,9 +5495,9 @@ void PSOutputDev::doImageL3 (
     int col, i;
 
     useASCIIHex = globalParams->getPSASCIIHex ();
-    useLZW = useRLE = useASCII = useCompressed = gFalse; // make gcc happy
-    maskUseLZW = maskUseRLE = maskUseASCII = gFalse;     // make gcc happy
-    maskUseCompressed = gFalse;                          // make gcc happy
+    useLZW = useRLE = useASCII = useCompressed = false; // make gcc happy
+    maskUseLZW = maskUseRLE = maskUseASCII = false;     // make gcc happy
+    maskUseCompressed = false;                          // make gcc happy
     maskFilters = NULL;                                  // make gcc happy
 
     // explicit masking
@@ -5506,29 +5506,29 @@ void PSOutputDev::doImageL3 (
         if ((mode == psModeForm || inType3Char || preload) &&
             globalParams->getPSUncompressPreloadedImages ()) {
             s = NULL;
-            maskUseLZW = maskUseRLE = gFalse;
-            maskUseCompressed = gFalse;
-            maskUseASCII = gFalse;
+            maskUseLZW = maskUseRLE = false;
+            maskUseCompressed = false;
+            maskUseASCII = false;
         }
         else {
             s = maskStr->getPSFilter (3, "  ");
             if (!s) {
                 if (globalParams->getPSLZW ()) {
-                    maskUseLZW = gTrue;
-                    maskUseRLE = gFalse;
+                    maskUseLZW = true;
+                    maskUseRLE = false;
                 }
                 else {
-                    maskUseRLE = gTrue;
-                    maskUseLZW = gFalse;
+                    maskUseRLE = true;
+                    maskUseLZW = false;
                 }
                 maskUseASCII = !(mode == psModeForm || inType3Char || preload);
-                maskUseCompressed = gFalse;
+                maskUseCompressed = false;
             }
             else {
-                maskUseLZW = maskUseRLE = gFalse;
+                maskUseLZW = maskUseRLE = false;
                 maskUseASCII = maskStr->isBinary () &&
                                !(mode == psModeForm || inType3Char || preload);
-                maskUseCompressed = gTrue;
+                maskUseCompressed = true;
             }
         }
         maskFilters = new GString ();
@@ -5581,7 +5581,7 @@ void PSOutputDev::doImageL3 (
 
     // color space
     if (colorMap) {
-        dumpColorSpaceL2 (colorMap->getColorSpace (), gFalse, gTrue, gFalse);
+        dumpColorSpaceL2 (colorMap->getColorSpace (), false, true, false);
         writePS (" setcolorspace\n");
     }
 
@@ -5727,9 +5727,9 @@ void PSOutputDev::doImageL3 (
     if ((mode == psModeForm || inType3Char || preload) &&
         globalParams->getPSUncompressPreloadedImages ()) {
         s = NULL;
-        useLZW = useRLE = gFalse;
-        useCompressed = gFalse;
-        useASCII = gFalse;
+        useLZW = useRLE = false;
+        useCompressed = false;
+        useASCII = false;
     }
     else {
         s = str->getPSFilter (
@@ -5737,21 +5737,21 @@ void PSOutputDev::doImageL3 (
         if ((colorMap && colorMap->getColorSpace ()->getMode () == csDeviceN) ||
             inlineImg || !s) {
             if (globalParams->getPSLZW ()) {
-                useLZW = gTrue;
-                useRLE = gFalse;
+                useLZW = true;
+                useRLE = false;
             }
             else {
-                useRLE = gTrue;
-                useLZW = gFalse;
+                useRLE = true;
+                useLZW = false;
             }
             useASCII = !(mode == psModeForm || inType3Char || preload);
-            useCompressed = gFalse;
+            useCompressed = false;
         }
         else {
-            useLZW = useRLE = gFalse;
+            useLZW = useRLE = false;
             useASCII = str->isBinary () &&
                        !(mode == psModeForm || inType3Char || preload);
-            useCompressed = gTrue;
+            useCompressed = true;
         }
     }
     if (useASCII) {
@@ -5871,8 +5871,8 @@ void PSOutputDev::doImageL3 (
 }
 
 void PSOutputDev::dumpColorSpaceL2 (
-    GfxColorSpace* colorSpace, GBool genXform, GBool updateColors,
-    GBool map01) {
+    GfxColorSpace* colorSpace, bool genXform, bool updateColors,
+    bool map01) {
     GfxCalGrayColorSpace* calGrayCS;
     GfxCalRGBColorSpace* calRGBCS;
     GfxLabColorSpace* labCS;
@@ -5880,7 +5880,7 @@ void PSOutputDev::dumpColorSpaceL2 (
     GfxSeparationColorSpace* separationCS;
     GfxDeviceNColorSpace* deviceNCS;
     GfxColorSpace* baseCS;
-    Guchar *lookup, *p;
+    unsigned char *lookup, *p;
     double x[gfxColorMaxComps], y[gfxColorMaxComps];
     double low[gfxColorMaxComps], range[gfxColorMaxComps];
     GfxColor color;
@@ -6009,14 +6009,14 @@ void PSOutputDev::dumpColorSpaceL2 (
         // we can use it directly
         dumpColorSpaceL2 (
             ((GfxICCBasedColorSpace*)colorSpace)->getAlt (), genXform,
-            updateColors, gFalse);
+            updateColors, false);
         break;
 
     case csIndexed:
         indexedCS = (GfxIndexedColorSpace*)colorSpace;
         baseCS = indexedCS->getBase ();
         writePS ("[/Indexed ");
-        dumpColorSpaceL2 (baseCS, gFalse, gFalse, gTrue);
+        dumpColorSpaceL2 (baseCS, false, false, true);
         n = indexedCS->getIndexHigh ();
         numComps = baseCS->getNComps ();
         lookup = indexedCS->getLookup ();
@@ -6095,7 +6095,7 @@ void PSOutputDev::dumpColorSpaceL2 (
         writePS ("[/Separation ");
         writePSString (separationCS->getName ());
         writePS (" ");
-        dumpColorSpaceL2 (separationCS->getAlt (), gFalse, gFalse, gFalse);
+        dumpColorSpaceL2 (separationCS->getAlt (), false, false, false);
         writePS ("\n");
         cvtFunction (separationCS->getFunc ());
         writePS ("]");
@@ -6106,7 +6106,7 @@ void PSOutputDev::dumpColorSpaceL2 (
     case csDeviceN:
         // DeviceN color spaces are a Level 3 PostScript feature.
         deviceNCS = (GfxDeviceNColorSpace*)colorSpace;
-        dumpColorSpaceL2 (deviceNCS->getAlt (), gFalse, updateColors, map01);
+        dumpColorSpaceL2 (deviceNCS->getAlt (), false, updateColors, map01);
         if (genXform) {
             writePS (" ");
             cvtFunction (deviceNCS->getTintTransformFunc ());
@@ -6526,33 +6526,33 @@ void PSOutputDev::opiEnd (GfxState* state, Dict* opiDict) {
     }
 }
 
-GBool PSOutputDev::getFileSpec (Object* fileSpec, Object* fileName) {
+bool PSOutputDev::getFileSpec (Object* fileSpec, Object* fileName) {
     if (fileSpec->isString ()) {
         fileSpec->copy (fileName);
-        return gTrue;
+        return true;
     }
     if (fileSpec->isDict ()) {
         fileSpec->dictLookup ("DOS", fileName);
-        if (fileName->isString ()) { return gTrue; }
+        if (fileName->isString ()) { return true; }
         fileName->free ();
         fileSpec->dictLookup ("Mac", fileName);
-        if (fileName->isString ()) { return gTrue; }
+        if (fileName->isString ()) { return true; }
         fileName->free ();
         fileSpec->dictLookup ("Unix", fileName);
-        if (fileName->isString ()) { return gTrue; }
+        if (fileName->isString ()) { return true; }
         fileName->free ();
         fileSpec->dictLookup ("F", fileName);
-        if (fileName->isString ()) { return gTrue; }
+        if (fileName->isString ()) { return true; }
         fileName->free ();
     }
-    return gFalse;
+    return false;
 }
 #endif // OPI_SUPPORT
 
 void PSOutputDev::type3D0 (GfxState* state, double wx, double wy) {
     writePSFmt ("{0:.6g} {1:.6g} setcharwidth\n", wx, wy);
     writePS ("q\n");
-    t3NeedsRestore = gTrue;
+    t3NeedsRestore = true;
 }
 
 void PSOutputDev::type3D1 (
@@ -6571,9 +6571,9 @@ void PSOutputDev::type3D1 (
     t3URY = ury;
     t3String = new GString ();
     writePS ("q\n");
-    t3FillColorOnly = gTrue;
-    t3Cacheable = gTrue;
-    t3NeedsRestore = gTrue;
+    t3FillColorOnly = true;
+    t3Cacheable = true;
+    t3NeedsRestore = true;
 }
 
 void PSOutputDev::drawForm (Ref id) {
@@ -6799,13 +6799,13 @@ void PSOutputDev::writePSFmt (const char* fmt, ...) {
 }
 
 void PSOutputDev::writePSString (GString* s) {
-    Guchar* p;
+    unsigned char* p;
     int n, line;
     char buf[8];
 
     writePSChar ('(');
     line = 1;
-    for (p = (Guchar*)s->c_str (), n = s->getLength (); n; ++p, --n) {
+    for (p = (unsigned char*)s->c_str (), n = s->getLength (); n; ++p, --n) {
         if (line >= 64) {
             writePSChar ('\\');
             writePSChar ('\n');

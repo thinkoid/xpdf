@@ -136,13 +136,13 @@ void TextString::expand (int delta) {
 
 GString* TextString::toPDFTextString () {
     GString* s;
-    GBool useUnicode;
+    bool useUnicode;
     int i;
 
-    useUnicode = gFalse;
+    useUnicode = false;
     for (i = 0; i < len; ++i) {
         if (u[i] >= 0x80) {
-            useUnicode = gTrue;
+            useUnicode = true;
             break;
         }
     }

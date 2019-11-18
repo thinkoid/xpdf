@@ -70,16 +70,16 @@ static int hexCharVals[256] = {
 
 // Parse a <len>-byte hex string <s> into *<val>.  Returns false on
 // error.
-static GBool parseHex (char* s, int len, Guint* val) {
+static bool parseHex (char* s, int len, unsigned* val) {
     int i, x;
 
     *val = 0;
     for (i = 0; i < len; ++i) {
         x = hexCharVals[s[i] & 0xff];
-        if (x < 0) { return gFalse; }
+        if (x < 0) { return false; }
         *val = (*val << 4) + x;
     }
-    return gTrue;
+    return true;
 }
 
 //------------------------------------------------------------------------
@@ -126,7 +126,7 @@ CharCodeToUnicode::parseCIDToUnicode (GString* fileName, GString* collection) {
     fclose (f);
 
     ctu = new CharCodeToUnicode (
-        collection->copy (), mapA, mapLenA, gTrue, NULL, 0, 0);
+        collection->copy (), mapA, mapLenA, true, NULL, 0, 0);
     gfree (mapA);
     return ctu;
 }
@@ -212,13 +212,13 @@ CharCodeToUnicode::parseUnicodeToUnicode (GString* fileName) {
     fclose (f);
 
     ctu = new CharCodeToUnicode (
-        fileName->copy (), mapA, len, gTrue, sMapA, sMapLenA, sMapSizeA);
+        fileName->copy (), mapA, len, true, sMapA, sMapLenA, sMapSizeA);
     gfree (mapA);
     return ctu;
 }
 
 CharCodeToUnicode* CharCodeToUnicode::make8BitToUnicode (Unicode* toUnicode) {
-    return new CharCodeToUnicode (NULL, toUnicode, 256, gTrue, NULL, 0, 0);
+    return new CharCodeToUnicode (NULL, toUnicode, 256, true, NULL, 0, 0);
 }
 
 CharCodeToUnicode* CharCodeToUnicode::parseCMap (GString* buf, int nBits) {
@@ -440,7 +440,7 @@ CharCodeToUnicode::CharCodeToUnicode (GString* tagA) {
 }
 
 CharCodeToUnicode::CharCodeToUnicode (
-    GString* tagA, Unicode* mapA, CharCode mapLenA, GBool copyMap,
+    GString* tagA, Unicode* mapA, CharCode mapLenA, bool copyMap,
     CharCodeToUnicodeString* sMapA, int sMapLenA, int sMapSizeA) {
     tag = tagA;
     mapLen = mapLenA;
@@ -466,12 +466,12 @@ CharCodeToUnicode::~CharCodeToUnicode () {
 void CharCodeToUnicode::incRefCnt () { ++refCnt; }
 
 void CharCodeToUnicode::decRefCnt () {
-    GBool done = --refCnt == 0;
+    bool done = --refCnt == 0;
 
     if (done) { delete this; }
 }
 
-GBool CharCodeToUnicode::match (GString* tagA) {
+bool CharCodeToUnicode::match (GString* tagA) {
     return tag && !tag->cmp (tagA);
 }
 

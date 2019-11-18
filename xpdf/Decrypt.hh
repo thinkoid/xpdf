@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <goo/GString.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
@@ -27,20 +26,20 @@ public:
     // and returns true if either is correct.  Sets <ownerPasswordOk> if
     // the owner password was correct.  Either or both of the passwords
     // may be NULL, which is treated as an empty string.
-    static GBool makeFileKey (
+    static bool makeFileKey (
         int encVersion, int encRevision, int keyLength, GString* ownerKey,
         GString* userKey, GString* ownerEnc, GString* userEnc, int permissions,
         GString* fileID, GString* ownerPassword, GString* userPassword,
-        Guchar* fileKey, GBool encryptMetadata, GBool* ownerPasswordOk);
+        unsigned char* fileKey, bool encryptMetadata, bool* ownerPasswordOk);
 
 private:
     static void r6Hash (
-        Guchar* key, int keyLen, const char* pwd, int pwdLen, const char* userKey);
+        unsigned char* key, int keyLen, const char* pwd, int pwdLen, const char* userKey);
 
-    static GBool makeFileKey2 (
+    static bool makeFileKey2 (
         int encVersion, int encRevision, int keyLength, GString* ownerKey,
         GString* userKey, int permissions, GString* fileID,
-        GString* userPassword, Guchar* fileKey, GBool encryptMetadata);
+        GString* userPassword, unsigned char* fileKey, bool encryptMetadata);
 };
 
 //------------------------------------------------------------------------
@@ -48,44 +47,44 @@ private:
 //------------------------------------------------------------------------
 
 struct DecryptRC4State {
-    Guchar state[256];
-    Guchar x, y;
+    unsigned char state[256];
+    unsigned char x, y;
     int buf;
 };
 
 struct DecryptAESState {
-    Guint w[44];
-    Guchar state[16];
-    Guchar cbc[16];
-    Guchar buf[16];
+    unsigned w[44];
+    unsigned char state[16];
+    unsigned char cbc[16];
+    unsigned char buf[16];
     int bufIdx;
 };
 
 struct DecryptAES256State {
-    Guint w[60];
-    Guchar state[16];
-    Guchar cbc[16];
-    Guchar buf[16];
+    unsigned w[60];
+    unsigned char state[16];
+    unsigned char cbc[16];
+    unsigned char buf[16];
     int bufIdx;
 };
 
 class DecryptStream : public FilterStream {
 public:
     DecryptStream (
-        Stream* strA, Guchar* fileKey, CryptAlgorithm algoA, int keyLength,
+        Stream* strA, unsigned char* fileKey, CryptAlgorithm algoA, int keyLength,
         int objNum, int objGen);
     virtual ~DecryptStream ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
     virtual int getChar ();
     virtual int lookChar ();
-    virtual GBool isBinary (GBool last);
+    virtual bool isBinary (bool last);
     virtual Stream* getUndecodedStream () { return this; }
 
 private:
     CryptAlgorithm algo;
     int objKeyLength;
-    Guchar objKey[32];
+    unsigned char objKey[32];
 
     union {
         DecryptRC4State rc4;
@@ -97,22 +96,22 @@ private:
 //------------------------------------------------------------------------
 
 struct MD5State {
-    Gulong a, b, c, d;
-    Guchar buf[64];
+    size_t a, b, c, d;
+    unsigned char buf[64];
     int bufLen;
     int msgLen;
-    Guchar digest[16];
+    unsigned char digest[16];
 };
 
-extern void rc4InitKey (Guchar* key, int keyLen, Guchar* state);
-extern Guchar rc4DecryptByte (Guchar* state, Guchar* x, Guchar* y, Guchar c);
+extern void rc4InitKey (unsigned char* key, int keyLen, unsigned char* state);
+extern unsigned char rc4DecryptByte (unsigned char* state, unsigned char* x, unsigned char* y, unsigned char c);
 void md5Start (MD5State* state);
-void md5Append (MD5State* state, Guchar* data, int dataLen);
+void md5Append (MD5State* state, unsigned char* data, int dataLen);
 void md5Finish (MD5State* state);
-extern void md5 (Guchar* msg, int msgLen, Guchar* digest);
+extern void md5 (unsigned char* msg, int msgLen, unsigned char* digest);
 extern void aesKeyExpansion (
-    DecryptAESState* s, Guchar* objKey, int objKeyLen, GBool decrypt);
-extern void aesEncryptBlock (DecryptAESState* s, Guchar* in);
-extern void aesDecryptBlock (DecryptAESState* s, Guchar* in, GBool last);
+    DecryptAESState* s, unsigned char* objKey, int objKeyLen, bool decrypt);
+extern void aesEncryptBlock (DecryptAESState* s, unsigned char* in);
+extern void aesDecryptBlock (DecryptAESState* s, unsigned char* in, bool last);
 
 #endif

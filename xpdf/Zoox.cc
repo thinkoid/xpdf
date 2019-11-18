@@ -144,7 +144,7 @@ ZxDoc::ZxDoc () {
     root = NULL;
 }
 
-ZxDoc* ZxDoc::loadMem (const char* data, Guint dataLen) {
+ZxDoc* ZxDoc::loadMem (const char* data, unsigned dataLen) {
     ZxDoc* doc;
 
     doc = new ZxDoc ();
@@ -159,11 +159,11 @@ ZxDoc* ZxDoc::loadFile (const char* fileName) {
     ZxDoc* doc;
     FILE* f;
     char* data;
-    Guint dataLen;
+    unsigned dataLen;
 
     if (!(f = fopen (fileName, "rb"))) { return NULL; }
     fseek (f, 0, SEEK_END);
-    dataLen = (Guint)ftell (f);
+    dataLen = (unsigned)ftell (f);
     if (!dataLen) {
         fclose (f);
         return NULL;
@@ -194,7 +194,7 @@ void ZxDoc::addChild (ZxNode* node) {
     ZxNode::addChild (node);
 }
 
-bool ZxDoc::parse (const char* data, Guint dataLen) {
+bool ZxDoc::parse (const char* data, unsigned dataLen) {
     parsePtr = data;
     parseEnd = data + dataLen;
 

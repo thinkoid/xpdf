@@ -60,7 +60,7 @@ public:
     }
 
     // Returns true if <c> is a whitespace character.
-    static GBool isSpace (int c);
+    static bool isSpace (int c);
 
 private:
     int getChar ();
@@ -69,7 +69,7 @@ private:
     Array* streams;          // array of input streams
     int strPtr;              // index of current stream
     Object curStr;           // current stream
-    GBool freeArray;         // should lexer free the streams array?
+    bool freeArray;         // should lexer free the streams array?
     char tokBuf[tokBufSize]; // temporary token buffer
 };
 

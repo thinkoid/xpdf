@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 
 //------------------------------------------------------------------------
 // SplashFontFileID
@@ -21,7 +20,7 @@ class SplashFontFileID {
 public:
     SplashFontFileID ();
     virtual ~SplashFontFileID ();
-    virtual GBool matches (SplashFontFileID* id) = 0;
+    virtual bool matches (SplashFontFileID* id) = 0;
 };
 
 #endif

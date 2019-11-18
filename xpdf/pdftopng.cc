@@ -24,17 +24,17 @@
 static int firstPage = 1;
 static int lastPage = 0;
 static int resolution = 150;
-static GBool mono = gFalse;
-static GBool gray = gFalse;
+static bool mono = false;
+static bool gray = false;
 static char enableFreeTypeStr[16] = "";
 static char antialiasStr[16] = "";
 static char vectorAntialiasStr[16] = "";
 static char ownerPassword[33] = "";
 static char userPassword[33] = "";
-static GBool quiet = gFalse;
+static bool quiet = false;
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to print" },
@@ -77,7 +77,7 @@ int main (int argc, char* argv[]) {
     GString *ownerPW, *userPW;
     SplashColor paperColor;
     SplashOutputDev* splashOut;
-    GBool ok;
+    bool ok;
     int exitCode;
     int pg;
     png_structp png;
@@ -88,7 +88,7 @@ int main (int argc, char* argv[]) {
 
     // parse args
     ok = parseArgs (argDesc, &argc, argv);
-    if (mono && gray) { ok = gFalse; }
+    if (mono && gray) { ok = false; }
     if (!ok || argc != 3 || printVersion || printHelp) {
         fprintf (stderr, "pdftopng version %s\n", PACKAGE_VERSION);
         fprintf (stderr, "%s\n", XPDF_COPYRIGHT);
@@ -146,21 +146,21 @@ int main (int argc, char* argv[]) {
     if (mono) {
         paperColor[0] = 0xff;
         splashOut =
-            new SplashOutputDev (splashModeMono1, 1, gFalse, paperColor);
+            new SplashOutputDev (splashModeMono1, 1, false, paperColor);
     }
     else if (gray) {
         paperColor[0] = 0xff;
         splashOut =
-            new SplashOutputDev (splashModeMono8, 1, gFalse, paperColor);
+            new SplashOutputDev (splashModeMono8, 1, false, paperColor);
     }
     else {
         paperColor[0] = paperColor[1] = paperColor[2] = 0xff;
-        splashOut = new SplashOutputDev (splashModeRGB8, 1, gFalse, paperColor);
+        splashOut = new SplashOutputDev (splashModeRGB8, 1, false, paperColor);
     }
     splashOut->startDoc (doc->getXRef ());
     for (pg = firstPage; pg <= lastPage; ++pg) {
         doc->displayPage (
-            splashOut, pg, resolution, resolution, 0, gFalse, gTrue, gFalse);
+            splashOut, pg, resolution, resolution, 0, false, true, false);
         if (mono) {
             if (!strcmp (pngRoot, "-")) { f = stdout; }
             else {
@@ -239,7 +239,7 @@ static void setupPNG (
 }
 
 static void writePNGData (png_structp png, SplashBitmap* bitmap) {
-    Guchar* p;
+    unsigned char* p;
     int y;
 
     if (setjmp (png_jmpbuf (png))) { exit (2); }

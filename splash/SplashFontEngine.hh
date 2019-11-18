@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 class GString;
 
 class SplashFTFontEngine;
@@ -33,7 +32,7 @@ class SplashFont;
 class SplashFontEngine {
 public:
     // Create a font engine.
-    SplashFontEngine (GBool enableFreeType, Guint freeTypeFlags, GBool aa);
+    SplashFontEngine (bool enableFreeType, unsigned freeTypeFlags, bool aa);
 
     ~SplashFontEngine ();
 
@@ -47,7 +46,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadType1CFont (
@@ -55,7 +54,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadOpenTypeT1CFont (
@@ -63,7 +62,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         const char** enc);
     SplashFontFile* loadCIDFont (
@@ -71,7 +70,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf
 #else
-        const char* fileName, GBool deleteFile
+        const char* fileName, bool deleteFile
 #endif
     );
     SplashFontFile* loadOpenTypeCFFFont (
@@ -79,7 +78,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         int* codeToGID, int codeToGIDLen);
     SplashFontFile* loadTrueTypeFont (
@@ -87,7 +86,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBuf,
 #else
-        const char* fileName, GBool deleteFile,
+        const char* fileName, bool deleteFile,
 #endif
         int fontNum, int* codeToGID, int codeToGIDLen, const char* fontName);
 

@@ -37,7 +37,7 @@ void PreScanOutputDev::stroke (GfxState* state) {
         state->getStrokeColorSpace (), state->getStrokeColor (),
         state->getStrokeOpacity (), state->getBlendMode ());
     state->getLineDash (&dash, &dashLen, &dashStart);
-    if (dashLen != 0) { gdi = gFalse; }
+    if (dashLen != 0) { gdi = false; }
 }
 
 void PreScanOutputDev::fill (GfxState* state) {
@@ -64,46 +64,46 @@ void PreScanOutputDev::tilingPatternFill (
     }
 }
 
-GBool PreScanOutputDev::functionShadedFill (
+bool PreScanOutputDev::functionShadedFill (
     GfxState* state, GfxFunctionShading* shading) {
     if (shading->getColorSpace ()->getMode () != csDeviceGray &&
         shading->getColorSpace ()->getMode () != csCalGray) {
-        gray = gFalse;
+        gray = false;
     }
-    mono = gFalse;
+    mono = false;
     if (state->getFillOpacity () != 1 ||
         state->getBlendMode () != gfxBlendNormal) {
-        transparency = gTrue;
+        transparency = true;
     }
-    return gTrue;
+    return true;
 }
 
-GBool PreScanOutputDev::axialShadedFill (
+bool PreScanOutputDev::axialShadedFill (
     GfxState* state, GfxAxialShading* shading) {
     if (shading->getColorSpace ()->getMode () != csDeviceGray &&
         shading->getColorSpace ()->getMode () != csCalGray) {
-        gray = gFalse;
+        gray = false;
     }
-    mono = gFalse;
+    mono = false;
     if (state->getFillOpacity () != 1 ||
         state->getBlendMode () != gfxBlendNormal) {
-        transparency = gTrue;
+        transparency = true;
     }
-    return gTrue;
+    return true;
 }
 
-GBool PreScanOutputDev::radialShadedFill (
+bool PreScanOutputDev::radialShadedFill (
     GfxState* state, GfxRadialShading* shading) {
     if (shading->getColorSpace ()->getMode () != csDeviceGray &&
         shading->getColorSpace ()->getMode () != csCalGray) {
-        gray = gFalse;
+        gray = false;
     }
-    mono = gFalse;
+    mono = false;
     if (state->getFillOpacity () != 1 ||
         state->getBlendMode () != gfxBlendNormal) {
-        transparency = gTrue;
+        transparency = true;
     }
-    return gTrue;
+    return true;
 }
 
 void PreScanOutputDev::clip (GfxState* state) {
@@ -119,7 +119,7 @@ void PreScanOutputDev::beginStringOp (GfxState* state) {
     int render;
     GfxFont* font;
     double m11, m12, m21, m22;
-    GBool simpleTTF;
+    bool simpleTTF;
 
     render = state->getRender ();
     if (!(render & 1)) {
@@ -144,30 +144,30 @@ void PreScanOutputDev::beginStringOp (GfxState* state) {
     if (simpleTTF) {
         //~ need to create a FoFiTrueType object, and check for a Unicode cmap
     }
-    if (state->getRender () != 0 || !simpleTTF) { gdi = gFalse; }
+    if (state->getRender () != 0 || !simpleTTF) { gdi = false; }
 }
 
 void PreScanOutputDev::endStringOp (GfxState* state) {}
 
-GBool PreScanOutputDev::beginType3Char (
+bool PreScanOutputDev::beginType3Char (
     GfxState* state, double x, double y, double dx, double dy, CharCode code,
     Unicode* u, int uLen) {
     // return false so all Type 3 chars get rendered (no caching)
-    return gFalse;
+    return false;
 }
 
 void PreScanOutputDev::endType3Char (GfxState* state) {}
 
 void PreScanOutputDev::drawImageMask (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GBool invert, GBool inlineImg, GBool interpolate) {
+    bool invert, bool inlineImg, bool interpolate) {
     check (
         state->getFillColorSpace (), state->getFillColor (),
         state->getFillOpacity (), state->getBlendMode ());
     if (state->getFillColorSpace ()->getMode () == csPattern) {
-        patternImgMask = gTrue;
+        patternImgMask = true;
     }
-    gdi = gFalse;
+    gdi = false;
 
     if (inlineImg) {
         str->reset ();
@@ -178,8 +178,8 @@ void PreScanOutputDev::drawImageMask (
 
 void PreScanOutputDev::drawImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-    GBool interpolate) {
+    GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+    bool interpolate) {
     GfxColorSpace* colorSpace;
 
     colorSpace = colorMap->getColorSpace ();
@@ -188,17 +188,17 @@ void PreScanOutputDev::drawImage (
     }
     if (colorSpace->getMode () == csDeviceGray ||
         colorSpace->getMode () == csCalGray) {
-        if (colorMap->getBits () > 1) { mono = gFalse; }
+        if (colorMap->getBits () > 1) { mono = false; }
     }
     else {
-        gray = gFalse;
-        mono = gFalse;
+        gray = false;
+        mono = false;
     }
     if (state->getFillOpacity () != 1 ||
         state->getBlendMode () != gfxBlendNormal) {
-        transparency = gTrue;
+        transparency = true;
     }
-    gdi = gFalse;
+    gdi = false;
 
     if (inlineImg) {
         str->reset ();
@@ -214,7 +214,7 @@ void PreScanOutputDev::drawImage (
 void PreScanOutputDev::drawMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GBool maskInvert, GBool interpolate) {
+    bool maskInvert, bool interpolate) {
     GfxColorSpace* colorSpace;
 
     colorSpace = colorMap->getColorSpace ();
@@ -223,23 +223,23 @@ void PreScanOutputDev::drawMaskedImage (
     }
     if (colorSpace->getMode () == csDeviceGray ||
         colorSpace->getMode () == csCalGray) {
-        if (colorMap->getBits () > 1) { mono = gFalse; }
+        if (colorMap->getBits () > 1) { mono = false; }
     }
     else {
-        gray = gFalse;
-        mono = gFalse;
+        gray = false;
+        mono = false;
     }
     if (state->getFillOpacity () != 1 ||
         state->getBlendMode () != gfxBlendNormal) {
-        transparency = gTrue;
+        transparency = true;
     }
-    gdi = gFalse;
+    gdi = false;
 }
 
 void PreScanOutputDev::drawSoftMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GfxImageColorMap* maskColorMap, GBool interpolate) {
+    GfxImageColorMap* maskColorMap, bool interpolate) {
     GfxColorSpace* colorSpace;
 
     colorSpace = colorMap->getColorSpace ();
@@ -248,18 +248,18 @@ void PreScanOutputDev::drawSoftMaskedImage (
     }
     if (colorSpace->getMode () != csDeviceGray &&
         colorSpace->getMode () != csCalGray) {
-        gray = gFalse;
+        gray = false;
     }
-    mono = gFalse;
-    transparency = gTrue;
-    gdi = gFalse;
+    mono = false;
+    transparency = true;
+    gdi = false;
 }
 
 void PreScanOutputDev::beginTransparencyGroup (
     GfxState* state, double* bbox, GfxColorSpace* blendingColorSpace,
-    GBool isolated, GBool knockout, GBool forSoftMask) {
-    transparency = gTrue;
-    gdi = gFalse;
+    bool isolated, bool knockout, bool forSoftMask) {
+    transparency = true;
+    gdi = false;
 }
 
 void PreScanOutputDev::check (
@@ -268,29 +268,29 @@ void PreScanOutputDev::check (
     GfxRGB rgb;
 
     if (colorSpace->getMode () == csPattern) {
-        mono = gFalse;
-        gray = gFalse;
-        gdi = gFalse;
+        mono = false;
+        gray = false;
+        gdi = false;
     }
     else {
         colorSpace->getRGB (color, &rgb);
         if (rgb.r != rgb.g || rgb.g != rgb.b || rgb.b != rgb.r) {
-            mono = gFalse;
-            gray = gFalse;
+            mono = false;
+            gray = false;
         }
         else if (!((rgb.r == 0 && rgb.g == 0 && rgb.b == 0) ||
                    (rgb.r == gfxColorComp1 && rgb.g == gfxColorComp1 &&
                     rgb.b == gfxColorComp1))) {
-            mono = gFalse;
+            mono = false;
         }
     }
-    if (opacity != 1 || blendMode != gfxBlendNormal) { transparency = gTrue; }
+    if (opacity != 1 || blendMode != gfxBlendNormal) { transparency = true; }
 }
 
 void PreScanOutputDev::clearStats () {
-    mono = gTrue;
-    gray = gTrue;
-    transparency = gFalse;
-    patternImgMask = gFalse;
-    gdi = gTrue;
+    mono = true;
+    gray = true;
+    transparency = false;
+    patternImgMask = false;
+    gdi = true;
 }

@@ -53,8 +53,8 @@ public:
     int getTitleLength ();
     TextString* getTitleTextString () { return title; }
     LinkAction* getAction () { return action; }
-    GBool isOpen () { return startsOpen; }
-    GBool hasKids () { return firstRef.isRef (); }
+    bool isOpen () { return startsOpen; }
+    bool hasKids () { return firstRef.isRef (); }
     GList* getKids () { return kids; }
 
 private:
@@ -65,7 +65,7 @@ private:
     Object firstRef;
     Object lastRef;
     Object nextRef;
-    GBool startsOpen;
+    bool startsOpen;
     GList* kids; // NULL unless this item is open [OutlineItem]
     OutlineItem* parent;
 };

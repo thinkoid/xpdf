@@ -27,7 +27,7 @@
 //------------------------------------------------------------------------
 
 SplashXPathScanner::SplashXPathScanner (
-    SplashXPath* xPathA, GBool eoA, int yMinA, int yMaxA) {
+    SplashXPath* xPathA, bool eoA, int yMinA, int yMaxA) {
     xPath = xPathA;
     eo = eoA;
     yMin = yMinA;
@@ -40,10 +40,10 @@ SplashXPathScanner::SplashXPathScanner (
 
 SplashXPathScanner::~SplashXPathScanner () { delete activeSegs; }
 
-void SplashXPathScanner::getSpan (Guchar* line, int y, int x0, int x1) {
+void SplashXPathScanner::getSpan (unsigned char* line, int y, int x0, int x1) {
     SplashXPathSeg *seg, *seg0;
     SplashCoord y0, y1, y1p;
-    GBool intersect, last;
+    bool intersect, last;
     int eoMask, state0, state1, count, i;
 
     //--- clear the scan line buffer
@@ -112,14 +112,14 @@ void SplashXPathScanner::getSpan (Guchar* line, int y, int x0, int x1) {
 
         //--- compute xCur1 values, check for intersections
         seg0 = NULL;
-        intersect = gFalse;
+        intersect = false;
         for (i = 0; i < activeSegs->getLength (); ++i) {
             seg = (SplashXPathSeg*)activeSegs->get (i);
             if (seg->y1 == y1) { seg->xCur1 = seg->x1; }
             else {
                 seg->xCur1 = seg->x0 + (y1 - seg->y0) * seg->dxdy;
             }
-            if (seg0 && seg0->xCur1 > seg->xCur1) { intersect = gTrue; }
+            if (seg0 && seg0->xCur1 > seg->xCur1) { intersect = true; }
             seg0 = seg;
         }
 
@@ -128,10 +128,10 @@ void SplashXPathScanner::getSpan (Guchar* line, int y, int x0, int x1) {
             for (; y0 < y1; y0 += minVertStep) {
                 if ((y1p = y0 + minVertStep) >= y1) {
                     y1p = y1;
-                    last = gTrue;
+                    last = true;
                 }
                 else {
-                    last = gFalse;
+                    last = false;
                 }
                 state0 = state1 = count = 0;
                 seg0 = NULL;
@@ -189,7 +189,7 @@ void SplashXPathScanner::getSpan (Guchar* line, int y, int x0, int x1) {
     yNext = y + 1;
 }
 
-void SplashXPathScanner::getSpanBinary (Guchar* line, int y, int x0, int x1) {
+void SplashXPathScanner::getSpanBinary (unsigned char* line, int y, int x0, int x1) {
     SplashXPathSeg* seg;
     int xx0, xx1, xx;
     int eoMask, state0, state1, count, i;
@@ -295,7 +295,7 @@ void SplashXPathScanner::getSpanBinary (Guchar* line, int y, int x0, int x1) {
     yNext = y + 1;
 }
 
-inline void SplashXPathScanner::addArea (Guchar* line, int x, SplashCoord a) {
+inline void SplashXPathScanner::addArea (unsigned char* line, int x, SplashCoord a) {
     int a2, t;
 
     a2 = splashRound (a * 255);
@@ -311,7 +311,7 @@ inline void SplashXPathScanner::addArea (Guchar* line, int x, SplashCoord a) {
 //   right:  (xb0, y0) - (xb1, y1)
 //   bottom: (xa1, y1) - (xb1, y1)
 void SplashXPathScanner::drawTrapezoid (
-    Guchar* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
+    unsigned char* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
     SplashCoord xa0, SplashCoord xa1, SplashCoord dydxa, SplashCoord xb0,
     SplashCoord xb1, SplashCoord dydxb) {
     SplashCoord a, dy;
@@ -462,7 +462,7 @@ SplashCoord SplashXPathScanner::areaRight (
 }
 
 void SplashXPathScanner::drawRectangle (
-    Guchar* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
+    unsigned char* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
     SplashCoord x0, SplashCoord x1) {
     SplashCoord dy, a;
     int xx0, xx1, x;

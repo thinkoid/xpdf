@@ -30,7 +30,7 @@ struct GHashIter {
 
 //------------------------------------------------------------------------
 
-GHash::GHash (GBool deleteKeysA) {
+GHash::GHash (bool deleteKeysA) {
     int h;
 
     deleteKeys = deleteKeysA;
@@ -221,36 +221,36 @@ void GHash::startIter (GHashIter** iter) {
     (*iter)->p = NULL;
 }
 
-GBool GHash::getNext (GHashIter** iter, GString** key, void** val) {
-    if (!*iter) { return gFalse; }
+bool GHash::getNext (GHashIter** iter, GString** key, void** val) {
+    if (!*iter) { return false; }
     if ((*iter)->p) { (*iter)->p = (*iter)->p->next; }
     while (!(*iter)->p) {
         if (++(*iter)->h == size) {
             delete *iter;
             *iter = NULL;
-            return gFalse;
+            return false;
         }
         (*iter)->p = tab[(*iter)->h];
     }
     *key = (*iter)->p->key;
     *val = (*iter)->p->val.p;
-    return gTrue;
+    return true;
 }
 
-GBool GHash::getNext (GHashIter** iter, GString** key, int* val) {
-    if (!*iter) { return gFalse; }
+bool GHash::getNext (GHashIter** iter, GString** key, int* val) {
+    if (!*iter) { return false; }
     if ((*iter)->p) { (*iter)->p = (*iter)->p->next; }
     while (!(*iter)->p) {
         if (++(*iter)->h == size) {
             delete *iter;
             *iter = NULL;
-            return gFalse;
+            return false;
         }
         (*iter)->p = tab[(*iter)->h];
     }
     *key = (*iter)->p->key;
     *val = (*iter)->p->val.i;
-    return gTrue;
+    return true;
 }
 
 void GHash::killIter (GHashIter** iter) {

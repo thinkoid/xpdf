@@ -69,9 +69,9 @@ OutlineItem::OutlineItem (
     dict->lookupNF ("Last", &lastRef);
     dict->lookupNF ("Next", &nextRef);
 
-    startsOpen = gFalse;
+    startsOpen = false;
     if (dict->lookup ("Count", &obj1)->isInt ()) {
-        if (obj1.getInt () > 0) { startsOpen = gTrue; }
+        if (obj1.getInt () > 0) { startsOpen = true; }
     }
     obj1.free ();
 }

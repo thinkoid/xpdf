@@ -87,7 +87,7 @@ Catalog::Catalog (PDFDoc* docA) {
     Object catDict;
     Object obj, obj2;
 
-    ok = gTrue;
+    ok = true;
     doc = docA;
     xref = doc->getXRef ();
     pageTree = NULL;
@@ -170,7 +170,7 @@ err1:
     catDict.free ();
     dests.initNull ();
     nameTree.initNull ();
-    ok = gFalse;
+    ok = false;
 }
 
 Catalog::~Catalog () {
@@ -250,19 +250,19 @@ int Catalog::findPage (int num, int gen) {
 LinkDest* Catalog::findDest (GString* name) {
     LinkDest* dest;
     Object obj1, obj2;
-    GBool found;
+    bool found;
 
     // try named destination dictionary then name tree
-    found = gFalse;
+    found = false;
     if (dests.isDict ()) {
         if (!dests.dictLookup (name->c_str (), &obj1)->isNull ())
-            found = gTrue;
+            found = true;
         else
             obj1.free ();
     }
     if (!found && nameTree.isDict ()) {
         if (!findDestInTree (&nameTree, name, &obj1)->isNull ())
-            found = gTrue;
+            found = true;
         else
             obj1.free ();
     }
@@ -293,22 +293,22 @@ LinkDest* Catalog::findDest (GString* name) {
 Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
     Object names, name1;
     Object kids, kid, limits, low, high;
-    GBool done, found;
+    bool done, found;
     int cmp, i;
 
     // leaf node
     if (tree->dictLookup ("Names", &names)->isArray ()) {
-        done = found = gFalse;
+        done = found = false;
         for (i = 0; !done && i < names.arrayGetLength (); i += 2) {
             if (names.arrayGet (i, &name1)->isString ()) {
                 cmp = name->cmp (name1.getString ());
                 if (cmp == 0) {
                     names.arrayGet (i + 1, obj);
-                    found = gTrue;
-                    done = gTrue;
+                    found = true;
+                    done = true;
                 }
                 else if (cmp < 0) {
-                    done = gTrue;
+                    done = true;
                 }
             }
             name1.free ();
@@ -320,7 +320,7 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
     names.free ();
 
     // root or intermediate node
-    done = gFalse;
+    done = false;
     if (tree->dictLookup ("Kids", &kids)->isArray ()) {
         for (i = 0; !done && i < kids.arrayGetLength (); ++i) {
             if (kids.arrayGet (i, &kid)->isDict ()) {
@@ -330,7 +330,7 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
                         if (limits.arrayGet (1, &high)->isString () &&
                             name->cmp (high.getString ()) <= 0) {
                             findDestInTree (&kid, name, obj);
-                            done = gTrue;
+                            done = true;
                         }
                         high.free ();
                     }
@@ -349,7 +349,7 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
     return obj;
 }
 
-GBool Catalog::readPageTree (Object* catDict) {
+bool Catalog::readPageTree (Object* catDict) {
     Object topPagesRef, topPagesObj, countObj;
     int i;
 
@@ -359,7 +359,7 @@ GBool Catalog::readPageTree (Object* catDict) {
             "Top-level pages reference is wrong type ({0:s})",
             topPagesRef.getTypeName ());
         topPagesRef.free ();
-        return gFalse;
+        return false;
     }
     if (!topPagesRef.fetch (xref, &topPagesObj)->isDict ()) {
         error (
@@ -367,7 +367,7 @@ GBool Catalog::readPageTree (Object* catDict) {
             topPagesObj.getTypeName ());
         topPagesObj.free ();
         topPagesRef.free ();
-        return gFalse;
+        return false;
     }
     if (topPagesObj.dictLookup ("Count", &countObj)->isInt ()) {
         numPages = countObj.getInt ();
@@ -386,7 +386,7 @@ GBool Catalog::readPageTree (Object* catDict) {
         topPagesObj.free ();
         topPagesRef.free ();
         numPages = 0;
-        return gFalse;
+        return false;
     }
     pageTree = new PageTreeNode (topPagesRef.getRef (), numPages, NULL);
     topPagesObj.free ();
@@ -398,7 +398,7 @@ GBool Catalog::readPageTree (Object* catDict) {
         pageRefs[i].num = -1;
         pageRefs[i].gen = -1;
     }
-    return gTrue;
+    return true;
 }
 
 int Catalog::countPageTree (Object* pagesObj) {

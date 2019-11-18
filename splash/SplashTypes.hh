@@ -10,7 +10,6 @@
 #define SPLASHTYPES_H
 
 #include <defs.hh>
-#include <goo/gtypes.hh>
 
 //------------------------------------------------------------------------
 // coordinates
@@ -55,25 +54,25 @@ extern int splashColorModeNComps[];
 #define splashMaxColorComps 4
 #endif
 
-typedef Guchar SplashColor[splashMaxColorComps];
-typedef Guchar* SplashColorPtr;
+typedef unsigned char SplashColor[splashMaxColorComps];
+typedef unsigned char* SplashColorPtr;
 
 // RGB8
-static inline Guchar splashRGB8R (SplashColorPtr rgb8) { return rgb8[0]; }
-static inline Guchar splashRGB8G (SplashColorPtr rgb8) { return rgb8[1]; }
-static inline Guchar splashRGB8B (SplashColorPtr rgb8) { return rgb8[2]; }
+static inline unsigned char splashRGB8R (SplashColorPtr rgb8) { return rgb8[0]; }
+static inline unsigned char splashRGB8G (SplashColorPtr rgb8) { return rgb8[1]; }
+static inline unsigned char splashRGB8B (SplashColorPtr rgb8) { return rgb8[2]; }
 
 // BGR8
-static inline Guchar splashBGR8R (SplashColorPtr bgr8) { return bgr8[2]; }
-static inline Guchar splashBGR8G (SplashColorPtr bgr8) { return bgr8[1]; }
-static inline Guchar splashBGR8B (SplashColorPtr bgr8) { return bgr8[0]; }
+static inline unsigned char splashBGR8R (SplashColorPtr bgr8) { return bgr8[2]; }
+static inline unsigned char splashBGR8G (SplashColorPtr bgr8) { return bgr8[1]; }
+static inline unsigned char splashBGR8B (SplashColorPtr bgr8) { return bgr8[0]; }
 
 #if SPLASH_CMYK
 // CMYK8
-static inline Guchar splashCMYK8C (SplashColorPtr cmyk8) { return cmyk8[0]; }
-static inline Guchar splashCMYK8M (SplashColorPtr cmyk8) { return cmyk8[1]; }
-static inline Guchar splashCMYK8Y (SplashColorPtr cmyk8) { return cmyk8[2]; }
-static inline Guchar splashCMYK8K (SplashColorPtr cmyk8) { return cmyk8[3]; }
+static inline unsigned char splashCMYK8C (SplashColorPtr cmyk8) { return cmyk8[0]; }
+static inline unsigned char splashCMYK8M (SplashColorPtr cmyk8) { return cmyk8[1]; }
+static inline unsigned char splashCMYK8Y (SplashColorPtr cmyk8) { return cmyk8[2]; }
+static inline unsigned char splashCMYK8K (SplashColorPtr cmyk8) { return cmyk8[3]; }
 #endif
 
 static inline void splashColorCopy (SplashColorPtr dest, SplashColorPtr src) {

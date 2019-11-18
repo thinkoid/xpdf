@@ -14,14 +14,14 @@
 #include <goo/parseargs.hh>
 
 static ArgDesc* findArg (ArgDesc* args, char* arg);
-static GBool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]);
+static bool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]);
 
-GBool parseArgs (ArgDesc* args, int* argc, char* argv[]) {
+bool parseArgs (ArgDesc* args, int* argc, char* argv[]) {
     ArgDesc* arg;
     int i, j;
-    GBool ok;
+    bool ok;
 
-    ok = gTrue;
+    ok = true;
     i = 1;
     while (i < *argc) {
         if (!strcmp (argv[i], "--")) {
@@ -30,7 +30,7 @@ GBool parseArgs (ArgDesc* args, int* argc, char* argv[]) {
             break;
         }
         else if ((arg = findArg (args, argv[i]))) {
-            if (!grabArg (arg, i, argc, argv)) ok = gFalse;
+            if (!grabArg (arg, i, argc, argv)) ok = false;
         }
         else {
             ++i;
@@ -82,16 +82,16 @@ static ArgDesc* findArg (ArgDesc* args, char* arg) {
     return NULL;
 }
 
-static GBool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]) {
+static bool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]) {
     int n;
     int j;
-    GBool ok;
+    bool ok;
 
-    ok = gTrue;
+    ok = true;
     n = 0;
     switch (arg->kind) {
     case argFlag:
-        *(GBool*)arg->val = gTrue;
+        *(bool*)arg->val = true;
         n = 1;
         break;
     case argInt:
@@ -100,7 +100,7 @@ static GBool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]) {
             n = 2;
         }
         else {
-            ok = gFalse;
+            ok = false;
             n = 1;
         }
         break;
@@ -110,7 +110,7 @@ static GBool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]) {
             n = 2;
         }
         else {
-            ok = gFalse;
+            ok = false;
             n = 1;
         }
         break;
@@ -121,7 +121,7 @@ static GBool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]) {
             n = 2;
         }
         else {
-            ok = gFalse;
+            ok = false;
             n = 1;
         }
         break;
@@ -137,14 +137,14 @@ static GBool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]) {
     return ok;
 }
 
-GBool isInt (char* s) {
+bool isInt (char* s) {
     if (*s == '-' || *s == '+') ++s;
     while (isdigit (*s & 0xff)) ++s;
-    if (*s) return gFalse;
-    return gTrue;
+    if (*s) return false;
+    return true;
 }
 
-GBool isFP (char* s) {
+bool isFP (char* s) {
     int n;
 
     if (*s == '-' || *s == '+') ++s;
@@ -162,9 +162,9 @@ GBool isFP (char* s) {
         ++s;
         if (*s == '-' || *s == '+') ++s;
         n = 0;
-        if (!isdigit (*s & 0xff)) return gFalse;
+        if (!isdigit (*s & 0xff)) return false;
         do { ++s; } while (isdigit (*s & 0xff));
     }
-    if (*s) return gFalse;
-    return gTrue;
+    if (*s) return false;
+    return true;
 }

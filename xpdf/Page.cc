@@ -73,7 +73,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
         mediaBox.x2 = 612;
         mediaBox.y2 = 792;
         cropBox.x1 = cropBox.y1 = cropBox.x2 = cropBox.y2 = 0;
-        haveCropBox = gFalse;
+        haveCropBox = false;
         rotate = 0;
         resources.initNull ();
     }
@@ -82,7 +82,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     readBox (dict, "MediaBox", &mediaBox);
 
     // crop box
-    if (readBox (dict, "CropBox", &cropBox)) { haveCropBox = gTrue; }
+    if (readBox (dict, "CropBox", &cropBox)) { haveCropBox = true; }
     if (!haveCropBox) { cropBox = mediaBox; }
 
     // other boxes
@@ -129,7 +129,7 @@ PageAttrs::PageAttrs () {
     mediaBox.x1 = mediaBox.y1 = 0;
     mediaBox.x2 = mediaBox.y2 = 50;
     cropBox = mediaBox;
-    haveCropBox = gFalse;
+    haveCropBox = false;
     bleedBox = cropBox;
     trimBox = cropBox;
     artBox = cropBox;
@@ -160,37 +160,37 @@ void PageAttrs::clipBoxes () {
     artBox.clipTo (&mediaBox);
 }
 
-GBool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
+bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     PDFRectangle tmp;
     double t;
     Object obj1, obj2;
-    GBool ok;
+    bool ok;
 
     dict->lookup (key, &obj1);
     if (obj1.isArray () && obj1.arrayGetLength () == 4) {
-        ok = gTrue;
+        ok = true;
         obj1.arrayGet (0, &obj2);
         if (obj2.isNum ()) { tmp.x1 = obj2.getNum (); }
         else {
-            ok = gFalse;
+            ok = false;
         }
         obj2.free ();
         obj1.arrayGet (1, &obj2);
         if (obj2.isNum ()) { tmp.y1 = obj2.getNum (); }
         else {
-            ok = gFalse;
+            ok = false;
         }
         obj2.free ();
         obj1.arrayGet (2, &obj2);
         if (obj2.isNum ()) { tmp.x2 = obj2.getNum (); }
         else {
-            ok = gFalse;
+            ok = false;
         }
         obj2.free ();
         obj1.arrayGet (3, &obj2);
         if (obj2.isNum ()) { tmp.y2 = obj2.getNum (); }
         else {
-            ok = gFalse;
+            ok = false;
         }
         obj2.free ();
         if (ok) {
@@ -208,7 +208,7 @@ GBool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
         }
     }
     else {
-        ok = gFalse;
+        ok = false;
     }
     obj1.free ();
     return ok;
@@ -219,7 +219,7 @@ GBool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
 //------------------------------------------------------------------------
 
 Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
-    ok = gTrue;
+    ok = true;
     doc = docA;
     xref = doc->getXRef ();
     num = numA;
@@ -256,7 +256,7 @@ err2:
     annots.initNull ();
 err1:
     contents.initNull ();
-    ok = gFalse;
+    ok = false;
 }
 
 Page::Page (PDFDoc* docA, int numA) {
@@ -266,7 +266,7 @@ Page::Page (PDFDoc* docA, int numA) {
     attrs = new PageAttrs ();
     annots.initNull ();
     contents.initNull ();
-    ok = gTrue;
+    ok = true;
 }
 
 Page::~Page () {
@@ -285,8 +285,8 @@ Links* Page::getLinks () {
 }
 
 void Page::display (
-    OutputDev* out, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-    GBool crop, GBool printing, GBool (*abortCheckCbk) (void* data),
+    OutputDev* out, double hDPI, double vDPI, int rotate, bool useMediaBox,
+    bool crop, bool printing, bool (*abortCheckCbk) (void* data),
     void* abortCheckCbkData) {
     displaySlice (
         out, hDPI, vDPI, rotate, useMediaBox, crop, -1, -1, -1, -1, printing,
@@ -294,9 +294,9 @@ void Page::display (
 }
 
 void Page::displaySlice (
-    OutputDev* out, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-    GBool crop, int sliceX, int sliceY, int sliceW, int sliceH, GBool printing,
-    GBool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
+    OutputDev* out, double hDPI, double vDPI, int rotate, bool useMediaBox,
+    bool crop, int sliceX, int sliceY, int sliceW, int sliceH, bool printing,
+    bool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
 #ifndef PDF_PARSER_ONLY
     PDFRectangle *mediaBox, *cropBox;
     PDFRectangle box;
@@ -379,9 +379,9 @@ void Page::displaySlice (
 }
 
 void Page::makeBox (
-    double hDPI, double vDPI, int rotate, GBool useMediaBox, GBool upsideDown,
+    double hDPI, double vDPI, int rotate, bool useMediaBox, bool upsideDown,
     double sliceX, double sliceY, double sliceW, double sliceH,
-    PDFRectangle* box, GBool* crop) {
+    PDFRectangle* box, bool* crop) {
     PDFRectangle *mediaBox, *cropBox, *baseBox;
     double kx, ky;
 
@@ -445,7 +445,7 @@ void Page::makeBox (
     }
     else {
         *box = *cropBox;
-        *crop = gFalse;
+        *crop = false;
     }
 }
 
@@ -462,8 +462,8 @@ void Page::processLinks (OutputDev* out) {
 
 #ifndef PDF_PARSER_ONLY
 void Page::getDefaultCTM (
-    double* ctm, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-    GBool upsideDown) {
+    double* ctm, double hDPI, double vDPI, int rotate, bool useMediaBox,
+    bool upsideDown) {
     GfxState* state;
     int i;
 

@@ -89,7 +89,7 @@ Function* Function::parse (Object* funcObj, int recursion) {
     return func;
 }
 
-GBool Function::init (Dict* dict) {
+bool Function::init (Dict* dict) {
     Object obj1, obj2;
     int i;
 
@@ -127,10 +127,10 @@ GBool Function::init (Dict* dict) {
     obj1.free ();
 
     //----- Range
-    hasRange = gFalse;
+    hasRange = false;
     n = 0;
     if (dict->lookup ("Range", &obj1)->isArray ()) {
-        hasRange = gTrue;
+        hasRange = true;
         n = obj1.arrayGetLength () / 2;
         if (n > funcMaxOutputs) {
             error (
@@ -162,13 +162,13 @@ GBool Function::init (Dict* dict) {
     }
     obj1.free ();
 
-    return gTrue;
+    return true;
 
 err1:
     obj2.free ();
 err2:
     obj1.free ();
-    return gFalse;
+    return false;
 }
 
 //------------------------------------------------------------------------
@@ -186,7 +186,7 @@ IdentityFunction::IdentityFunction () {
         domain[i][0] = 0;
         domain[i][1] = 1;
     }
-    hasRange = gFalse;
+    hasRange = false;
 }
 
 IdentityFunction::~IdentityFunction () {}
@@ -206,16 +206,16 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict) {
     int sampleBits;
     double sampleMul;
     Object obj1, obj2;
-    Guint buf, bitMask;
+    unsigned buf, bitMask;
     int bits;
-    Guint s;
+    unsigned s;
     double in[funcMaxInputs];
     int i, j, t, bit, idx;
 
     idxOffset = NULL;
     samples = NULL;
     sBuf = NULL;
-    ok = gFalse;
+    ok = false;
 
     //----- initialize the generic stuff
     if (!init (dict)) { goto err1; }
@@ -399,7 +399,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict) {
     }
     transform (in, cacheOut);
 
-    ok = gTrue;
+    ok = true;
     return;
 
 err3:
@@ -499,7 +499,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
     Object obj1, obj2;
     int i;
 
-    ok = gFalse;
+    ok = false;
 
     //----- initialize the generic stuff
     if (!init (dict)) { goto err1; }
@@ -572,7 +572,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
     e = obj1.getNum ();
     obj1.free ();
 
-    ok = gTrue;
+    ok = true;
     return;
 
 err3:
@@ -621,7 +621,7 @@ StitchingFunction::StitchingFunction (
     Object obj1, obj2;
     int i;
 
-    ok = gFalse;
+    ok = false;
     funcs = NULL;
     bounds = NULL;
     encode = NULL;
@@ -720,7 +720,7 @@ StitchingFunction::StitchingFunction (
         }
     }
 
-    ok = gTrue;
+    ok = true;
     return;
 
 err2:
@@ -741,7 +741,7 @@ StitchingFunction::StitchingFunction (StitchingFunction* func) {
     memcpy (encode, func->encode, 2 * k * sizeof (double));
     scale = (double*)gmallocn (k, sizeof (double));
     memcpy (scale, func->scale, k * sizeof (double));
-    ok = gTrue;
+    ok = true;
 }
 
 StitchingFunction::~StitchingFunction () {
@@ -859,7 +859,7 @@ PostScriptFunction::PostScriptFunction (Object* funcObj, Dict* dict) {
     codeString = NULL;
     code = NULL;
     codeSize = 0;
-    ok = gFalse;
+    ok = false;
 
     //----- initialize the generic stuff
     if (!init (dict)) { goto err1; }
@@ -900,7 +900,7 @@ PostScriptFunction::PostScriptFunction (Object* funcObj, Dict* dict) {
     }
     transform (in, cacheOut);
 
-    ok = gTrue;
+    ok = true;
 
 err2:
     deleteGList (tokens, GString);
@@ -960,7 +960,7 @@ void PostScriptFunction::transform (double* in, double* out) {
     for (i = 0; i < n; ++i) { cacheOut[i] = out[i]; }
 }
 
-GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
+bool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
     GString* tok;
     int a, b, mid, cmp;
     int codePtr0, codePtr1;
@@ -970,7 +970,7 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
             error (
                 errSyntaxError, -1,
                 "Unexpected end of PostScript function stream");
-            return gFalse;
+            return false;
         }
 
         tok = (GString*)tokens->get ((*tokPtr)++);
@@ -982,12 +982,12 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
         else if (!tok->cmp ("{")) {
             codePtr0 = *codePtr;
             addCodeI (codePtr, psOpJz, 0);
-            if (!parseCode (tokens, tokPtr, codePtr)) { return gFalse; }
+            if (!parseCode (tokens, tokPtr, codePtr)) { return false; }
             if (*tokPtr >= tokens->getLength ()) {
                 error (
                     errSyntaxError, -1,
                     "Unexpected end of PostScript function stream");
-                return gFalse;
+                return false;
             }
             tok = (GString*)tokens->get ((*tokPtr)++);
             if (!tok->cmp ("if")) { code[codePtr0].val.i = *codePtr; }
@@ -995,12 +995,12 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
                 codePtr1 = *codePtr;
                 addCodeI (codePtr, psOpJ, 0);
                 code[codePtr0].val.i = *codePtr;
-                if (!parseCode (tokens, tokPtr, codePtr)) { return gFalse; }
+                if (!parseCode (tokens, tokPtr, codePtr)) { return false; }
                 if (*tokPtr >= tokens->getLength ()) {
                     error (
                         errSyntaxError, -1,
                         "Unexpected end of PostScript function stream");
-                    return gFalse;
+                    return false;
                 }
                 tok = (GString*)tokens->get ((*tokPtr)++);
                 if (!tok->cmp ("ifelse")) { code[codePtr1].val.i = *codePtr; }
@@ -1008,14 +1008,14 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
                     error (
                         errSyntaxError, -1,
                         "Expected 'ifelse' in PostScript function stream");
-                    return gFalse;
+                    return false;
                 }
             }
             else {
                 error (
                     errSyntaxError, -1,
                     "Expected 'if' in PostScript function stream");
-                return gFalse;
+                return false;
             }
         }
         else if (!tok->cmp ("}")) {
@@ -1025,13 +1025,13 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
             error (
                 errSyntaxError, -1,
                 "Unexpected 'if' in PostScript function stream");
-            return gFalse;
+            return false;
         }
         else if (!tok->cmp ("ifelse")) {
             error (
                 errSyntaxError, -1,
                 "Unexpected 'ifelse' in PostScript function stream");
-            return gFalse;
+            return false;
         }
         else {
             a = -1;
@@ -1053,12 +1053,12 @@ GBool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
                 error (
                     errSyntaxError, -1,
                     "Unknown operator '{0:t}' in PostScript function", tok);
-                return gFalse;
+                return false;
             }
             addCode (codePtr, a);
         }
     }
-    return gTrue;
+    return true;
 }
 
 void PostScriptFunction::addCode (int* codePtr, int op) {
@@ -1102,10 +1102,10 @@ void PostScriptFunction::addCodeD (int* codePtr, int op, double x) {
 GString* PostScriptFunction::getToken (Stream* str) {
     GString* s;
     int c;
-    GBool comment;
+    bool comment;
 
     s = new GString ();
-    comment = gFalse;
+    comment = false;
     while (1) {
         if ((c = str->getChar ()) == EOF) {
             delete s;
@@ -1113,10 +1113,10 @@ GString* PostScriptFunction::getToken (Stream* str) {
         }
         codeString->append (c);
         if (comment) {
-            if (c == '\x0a' || c == '\x0d') { comment = gFalse; }
+            if (c == '\x0a' || c == '\x0d') { comment = false; }
         }
         else if (c == '%') {
-            comment = gTrue;
+            comment = true;
         }
         else if (!isspace (c)) {
             break;

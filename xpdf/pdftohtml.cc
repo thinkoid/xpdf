@@ -22,20 +22,20 @@
 
 //------------------------------------------------------------------------
 
-static GBool createIndex (char* htmlDir);
+static bool createIndex (char* htmlDir);
 
 //------------------------------------------------------------------------
 
 static int firstPage = 1;
 static int lastPage = 0;
 static int resolution = 150;
-static GBool skipInvisible = gFalse;
+static bool skipInvisible = false;
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
-static GBool quiet = gFalse;
+static bool quiet = false;
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to convert" },
@@ -73,7 +73,7 @@ int main (int argc, char* argv[]) {
     GString *htmlFileName, *pngFileName, *pngURL;
     FILE *htmlFile, *pngFile;
     int pg, err, exitCode;
-    GBool ok;
+    bool ok;
 
     exitCode = 99;
 
@@ -202,7 +202,7 @@ err0:
     return exitCode;
 }
 
-static GBool createIndex (char* htmlDir) {
+static bool createIndex (char* htmlDir) {
     GString* htmlFileName;
     FILE* html;
     int pg;
@@ -212,7 +212,7 @@ static GBool createIndex (char* htmlDir) {
     delete htmlFileName;
     if (!html) {
         error (errIO, -1, "Couldn't open HTML file '{0:t}'", htmlFileName);
-        return gFalse;
+        return false;
     }
 
     fprintf (html, "<html>\n");
@@ -225,5 +225,5 @@ static GBool createIndex (char* htmlDir) {
 
     fclose (html);
 
-    return gTrue;
+    return true;
 }

@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <fofi/FoFiBase.hh>
 
 class GString;
@@ -30,26 +29,26 @@ public:
     // table are permitted -- this is useful when calling the convert*
     // functions.
     static FoFiTrueType*
-    make (char* fileA, int lenA, int fontNum, GBool allowHeadlessCFF = gFalse);
+    make (char* fileA, int lenA, int fontNum, bool allowHeadlessCFF = false);
 
     // Create a FoFiTrueType object from a file on disk.  If
     // <allowHeadlessCFF> is true, OpenType CFF fonts without the 'head'
     // table are permitted -- this is useful when calling the convert*
     // functions.
     static FoFiTrueType*
-    load (const char* fileName, int fontNum, GBool allowHeadlessCFF = gFalse);
+    load (const char* fileName, int fontNum, bool allowHeadlessCFF = false);
 
     virtual ~FoFiTrueType ();
 
     // Returns true if this an OpenType font containing CFF data, false
     // if it's a TrueType font (or OpenType font with TrueType data).
-    GBool isOpenTypeCFF () { return openTypeCFF; }
+    bool isOpenTypeCFF () { return openTypeCFF; }
 
     // Returns true if this is an OpenType CFF font that is missing the
     // 'head' table.  This is a violation of the OpenType spec, but the
     // embedded CFF font can be usable for some purposes (e.g., the
     // convert* functions).
-    GBool isHeadlessCFF () { return headlessCFF; }
+    bool isHeadlessCFF () { return headlessCFF; }
 
     // Return the number of cmaps defined by this font.
     int getNumCmaps ();
@@ -109,7 +108,7 @@ public:
     // non-NULL, it will be used as the PostScript font name.  (Only
     // useful for OpenType CFF fonts.)
     void convertToType1 (
-        const char* psName, const char** newEncoding, GBool ascii,
+        const char* psName, const char** newEncoding, bool ascii,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 2 CIDFont, suitable for embedding in a
@@ -118,7 +117,7 @@ public:
     // font).  The <cidMap> array maps CIDs to GIDs; it has <nCIDs>
     // entries.  (Not useful for OpenType CFF fonts.)
     void convertToCIDType2 (
-        const char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
+        const char* psName, int* cidMap, int nCIDs, bool needVerticalMetrics,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 0 CIDFont, suitable for embedding in a
@@ -134,7 +133,7 @@ public:
     // table in the font).  The <cidMap> array maps CIDs to GIDs; it has
     // <nCIDs> entries.  (Not useful for OpenType CFF fonts.)
     void convertToType0 (
-        const char* psName, int* cidMap, int nCIDs, GBool needVerticalMetrics,
+        const char* psName, int* cidMap, int nCIDs, bool needVerticalMetrics,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 0 (but non-CID) composite font, suitable for
@@ -157,12 +156,12 @@ public:
     // Returns a pointer to the CFF font embedded in this OpenType font.
     // If successful, sets *<start> and *<length>, and returns true.
     // Otherwise returns false.  (Only useful for OpenType CFF fonts).
-    GBool getCFFBlock (char** start, int* length);
+    bool getCFFBlock (char** start, int* length);
 
 private:
     FoFiTrueType (
-        char* fileA, int lenA, GBool freeFileDataA, int fontNum, GBool isDfont,
-        GBool allowHeadlessCFF);
+        char* fileA, int lenA, bool freeFileDataA, int fontNum, bool isDfont,
+        bool allowHeadlessCFF);
     void cvtEncoding (
         char** encoding, FoFiOutputFunc outputFunc, void* outputStream);
     void cvtCharStrings (
@@ -170,11 +169,11 @@ private:
         void* outputStream);
     void cvtSfnts (
         FoFiOutputFunc outputFunc, void* outputStream, GString* name,
-        GBool needVerticalMetrics, int* maxUsedGlyph);
+        bool needVerticalMetrics, int* maxUsedGlyph);
     void dumpString (
-        Guchar* s, int length, FoFiOutputFunc outputFunc, void* outputStream);
-    Guint computeTableChecksum (Guchar* data, int length);
-    void parse (int fontNum, GBool allowHeadlessCFF);
+        unsigned char* s, int length, FoFiOutputFunc outputFunc, void* outputStream);
+    unsigned computeTableChecksum (unsigned char* data, int length);
+    void parse (int fontNum, bool allowHeadlessCFF);
     void parseTTC (int fontNum, int* pos);
     void parseDfont (int fontNum, int* offset, int* pos);
     void readPostTable ();
@@ -188,11 +187,11 @@ private:
     int locaFmt;
     int bbox[4];
     GHash* nameToGID;
-    GBool openTypeCFF;
-    GBool headlessCFF;
-    GBool isDfont;
+    bool openTypeCFF;
+    bool headlessCFF;
+    bool isDfont;
 
-    GBool parsedOk;
+    bool parsedOk;
 };
 
 #endif

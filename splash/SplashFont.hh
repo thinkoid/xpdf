@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <splash/SplashTypes.hh>
 
 struct SplashGlyphBitmap;
@@ -35,7 +34,7 @@ class SplashFont {
 public:
     SplashFont (
         SplashFontFile* fontFileA, SplashCoord* matA, SplashCoord* textMatA,
-        GBool aaA);
+        bool aaA);
 
     // This must be called after the constructor, so that the subclass
     // constructor has a chance to compute the bbox.
@@ -46,7 +45,7 @@ public:
     SplashFontFile* getFontFile () { return fontFile; }
 
     // Return true if <this> matches the specified font file and matrix.
-    GBool matches (
+    bool matches (
         SplashFontFile* fontFileA, SplashCoord* matA, SplashCoord* textMatA) {
         return fontFileA == fontFile && matA[0] == mat[0] &&
                matA[1] == mat[1] && matA[2] == mat[2] && matA[3] == mat[3] &&
@@ -61,12 +60,12 @@ public:
     // splashFontFraction = 1 << splashFontFractionBits.  Subclasses
     // should override this to zero out xFrac and/or yFrac if they don't
     // support fractional coordinates.
-    virtual GBool
+    virtual bool
     getGlyph (int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap);
 
     // Rasterize a glyph.  The <xFrac> and <yFrac> values are the same
     // as described for getGlyph.
-    virtual GBool
+    virtual bool
     makeGlyph (int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap) = 0;
 
     // Return the path for a glyph.
@@ -89,9 +88,9 @@ protected:
                                 //   (text space -> device space)
     SplashCoord textMat[4];     // text transform matrix
                                 //   (text space -> user space)
-    GBool aa;                   // anti-aliasing
+    bool aa;                   // anti-aliasing
     int xMin, yMin, xMax, yMax; // glyph bounding box
-    Guchar* cache;              // glyph bitmap cache
+    unsigned char* cache;              // glyph bitmap cache
     SplashFontCacheTag*         // cache tags
         cacheTags;
     int glyphW, glyphH; // size of glyph bitmaps

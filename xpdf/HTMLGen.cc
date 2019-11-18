@@ -45,42 +45,42 @@
 struct FontStyleTagInfo {
     const char* tag;
     int tagLen;
-    GBool bold;
-    GBool italic;
+    bool bold;
+    bool italic;
 };
 
 // NB: these are compared, in order, against the tail of the font
 // name, so "BoldItalic" must come before "Italic", etc.
 static FontStyleTagInfo fontStyleTags[] = {
-    { "Roman", 5, gFalse, gFalse },
-    { "Regular", 7, gFalse, gFalse },
-    { "Condensed", 9, gFalse, gFalse },
-    { "CondensedBold", 13, gTrue, gFalse },
-    { "CondensedLight", 14, gFalse, gFalse },
-    { "SemiBold", 8, gTrue, gFalse },
-    { "BoldItalic", 10, gTrue, gTrue },
-    { "Bold_Italic", 11, gTrue, gTrue },
-    { "BoldOblique", 11, gTrue, gTrue },
-    { "Bold_Oblique", 12, gTrue, gTrue },
-    { "Bold", 4, gTrue, gFalse },
-    { "Italic", 6, gFalse, gTrue },
-    { "Oblique", 7, gFalse, gTrue },
-    { NULL, 0, gFalse, gFalse }
+    { "Roman", 5, false, false },
+    { "Regular", 7, false, false },
+    { "Condensed", 9, false, false },
+    { "CondensedBold", 13, true, false },
+    { "CondensedLight", 14, false, false },
+    { "SemiBold", 8, true, false },
+    { "BoldItalic", 10, true, true },
+    { "Bold_Italic", 11, true, true },
+    { "BoldOblique", 11, true, true },
+    { "Bold_Oblique", 12, true, true },
+    { "Bold", 4, true, false },
+    { "Italic", 6, false, true },
+    { "Oblique", 7, false, true },
+    { NULL, 0, false, false }
 };
 
 struct StandardFontInfo {
     const char* name;
-    GBool fixedWidth;
-    GBool serif;
+    bool fixedWidth;
+    bool serif;
 };
 
 static StandardFontInfo standardFonts[] = {
-    { "Arial", gFalse, gFalse },      { "Courier", gTrue, gFalse },
-    { "Futura", gFalse, gFalse },     { "Helvetica", gFalse, gFalse },
-    { "Minion", gFalse, gTrue },      { "NewCenturySchlbk", gFalse, gTrue },
-    { "Times", gFalse, gTrue },       { "TimesNew", gFalse, gTrue },
-    { "Times_New", gFalse, gTrue },   { "Verdana", gFalse, gFalse },
-    { "LucidaSans", gFalse, gFalse }, { NULL, gFalse, gFalse }
+    { "Arial", false, false },      { "Courier", true, false },
+    { "Futura", false, false },     { "Helvetica", false, false },
+    { "Minion", false, true },      { "NewCenturySchlbk", false, true },
+    { "Times", false, true },       { "TimesNew", false, true },
+    { "Times_New", false, true },   { "Verdana", false, false },
+    { "LucidaSans", false, false }, { NULL, false, false }
 };
 
 struct SubstFontInfo {
@@ -147,7 +147,7 @@ static void drawEvalModeMsg (SplashOutputDev* out) {
     char* msg;
     SplashCoord mat[4], ident[6];
     SplashCoord diag, size, textW, x, y;
-    Gushort cw;
+    unsigned short cw;
     int w, h, n, i;
 
     // get the Helvetica font info
@@ -203,21 +203,21 @@ HTMLGen::HTMLGen (double backgroundResolutionA) {
     TextOutputControl textOutControl;
     SplashColor paperColor;
 
-    ok = gTrue;
+    ok = true;
 
     backgroundResolution = backgroundResolutionA;
-    drawInvisibleText = gTrue;
+    drawInvisibleText = true;
 
     // set up the TextOutputDev
     textOutControl.mode = textOutReadingOrder;
-    textOutControl.html = gTrue;
-    textOut = new TextOutputDev (NULL, &textOutControl, gFalse);
-    if (!textOut->isOk ()) { ok = gFalse; }
+    textOutControl.html = true;
+    textOut = new TextOutputDev (NULL, &textOutControl, false);
+    if (!textOut->isOk ()) { ok = false; }
 
     // set up the SplashOutputDev
     paperColor[0] = paperColor[1] = paperColor[2] = 0xff;
-    splashOut = new SplashOutputDev (splashModeRGB8, 1, gFalse, paperColor);
-    splashOut->setSkipText (gTrue, gFalse);
+    splashOut = new SplashOutputDev (splashModeRGB8, 1, false, paperColor);
+    splashOut->setSkipText (true, false);
 }
 
 HTMLGen::~HTMLGen () {
@@ -273,7 +273,7 @@ int HTMLGen::convertPage (
     png_infop pngInfo;
     PNGWriteInfo writeInfo;
     SplashBitmap* bitmap;
-    Guchar* p;
+    unsigned char* p;
     double pageW, pageH;
     TextPage* text;
     GList *fonts, *cols, *pars, *lines, *words;
@@ -292,8 +292,8 @@ int HTMLGen::convertPage (
 
     // generate the background bitmap
     doc->displayPage (
-        splashOut, pg, backgroundResolution, backgroundResolution, 0, gFalse,
-        gTrue, gFalse);
+        splashOut, pg, backgroundResolution, backgroundResolution, 0, false,
+        true, false);
 #if EVAL_MODE
     drawEvalModeMsg (splashOut);
 #endif
@@ -325,7 +325,7 @@ int HTMLGen::convertPage (
     pageH = doc->getPageCropHeight (pg);
 
     // get the PDF text
-    doc->displayPage (textOut, pg, 72, 72, 0, gFalse, gTrue, gFalse);
+    doc->displayPage (textOut, pg, 72, 72, 0, false, true, false);
     doc->processLinks (textOut, pg);
     text = textOut->takeText ();
 
@@ -489,7 +489,7 @@ GString* HTMLGen::getFontDefn (TextFontInfo* font, double* scale) {
     const char* fontName2;
     FontStyleTagInfo* fst;
     StandardFontInfo* sf;
-    GBool fixedWidth, serif, bold, italic;
+    bool fixedWidth, serif, bold, italic;
     double s;
     int n, i;
 

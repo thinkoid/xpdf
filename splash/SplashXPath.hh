@@ -65,7 +65,7 @@ public:
     // subpaths.
     SplashXPath (
         SplashPath* path, SplashCoord* matrix, SplashCoord flatness,
-        GBool closeSubpaths);
+        bool closeSubpaths);
 
     // Copy an expanded path.
     SplashXPath* copy () { return new SplashXPath (this); }
@@ -88,7 +88,7 @@ private:
     void addCurve (
         SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
         SplashCoord x2, SplashCoord y2, SplashCoord x3, SplashCoord y3,
-        SplashCoord flatness, GBool first, GBool last, GBool end0, GBool end1);
+        SplashCoord flatness, bool first, bool last, bool end0, bool end1);
     void
     addSegment (SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1);
 

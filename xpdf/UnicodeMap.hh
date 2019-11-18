@@ -13,7 +13,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>
 
 class GString;
@@ -30,7 +29,7 @@ typedef int (*UnicodeMapFunc) (Unicode u, char* buf, int bufSize);
 
 struct UnicodeMapRange {
     Unicode start, end; // range of Unicode chars
-    Guint code, nBytes; // first output code
+    unsigned code, nBytes; // first output code
 };
 
 struct UnicodeMapExt;
@@ -45,13 +44,13 @@ public:
 
     // Create a resident UnicodeMap.
     UnicodeMap (
-        const char* encodingNameA, GBool unicodeOutA, UnicodeMapRange* rangesA,
+        const char* encodingNameA, bool unicodeOutA, UnicodeMapRange* rangesA,
         int lenA);
 
     // Create a resident UnicodeMap that uses a function instead of a
     // list of ranges.
     UnicodeMap (
-        const char* encodingNameA, GBool unicodeOutA, UnicodeMapFunc funcA);
+        const char* encodingNameA, bool unicodeOutA, UnicodeMapFunc funcA);
 
     ~UnicodeMap ();
 
@@ -60,11 +59,11 @@ public:
 
     GString* getEncodingName () { return encodingName; }
 
-    GBool isUnicode () { return unicodeOut; }
+    bool isUnicode () { return unicodeOut; }
 
     // Return true if this UnicodeMap matches the specified
     // <encodingNameA>.
-    GBool match (GString* encodingNameA);
+    bool match (GString* encodingNameA);
 
     // Map Unicode to the target encoding.  Fills in <buf> with the
     // output and returns the number of bytes used.  Output will be
@@ -77,7 +76,7 @@ private:
 
     GString* encodingName;
     UnicodeMapKind kind;
-    GBool unicodeOut;
+    bool unicodeOut;
     union {
         UnicodeMapRange* ranges; // (user, resident)
         UnicodeMapFunc func;     // (func)

@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------
 
 struct CMapVectorEntry {
-    GBool isVector;
+    bool isVector;
     union {
         CMapVectorEntry* vector;
         CID cid;
@@ -117,7 +117,7 @@ void CMap::parse2 (CMapCache* cache, int (*getCharFunc) (void*), void* data) {
     PSTokenizer* pst;
     char tok1[256], tok2[256], tok3[256];
     int n1, n2, n3;
-    Guint start, end, code;
+    unsigned start, end, code;
 
     pst = new PSTokenizer (getCharFunc, data);
     pst->getToken (tok1, sizeof (tok1), &n1);
@@ -194,11 +194,11 @@ CMap::CMap (GString* collectionA, GString* cMapNameA) {
 
     collection = collectionA;
     cMapName = cMapNameA;
-    isIdent = gFalse;
+    isIdent = false;
     wMode = 0;
     vector = (CMapVectorEntry*)gmallocn (256, sizeof (CMapVectorEntry));
     for (i = 0; i < 256; ++i) {
-        vector[i].isVector = gFalse;
+        vector[i].isVector = false;
         vector[i].cid = 0;
     }
     refCnt = 1;
@@ -207,7 +207,7 @@ CMap::CMap (GString* collectionA, GString* cMapNameA) {
 CMap::CMap (GString* collectionA, GString* cMapNameA, int wModeA) {
     collection = collectionA;
     cMapName = cMapNameA;
-    isIdent = gTrue;
+    isIdent = true;
     wMode = wModeA;
     vector = NULL;
     refCnt = 1;
@@ -249,11 +249,11 @@ void CMap::copyVector (CMapVectorEntry* dest, CMapVectorEntry* src) {
     for (i = 0; i < 256; ++i) {
         if (src[i].isVector) {
             if (!dest[i].isVector) {
-                dest[i].isVector = gTrue;
+                dest[i].isVector = true;
                 dest[i].vector =
                     (CMapVectorEntry*)gmallocn (256, sizeof (CMapVectorEntry));
                 for (j = 0; j < 256; ++j) {
-                    dest[i].vector[j].isVector = gFalse;
+                    dest[i].vector[j].isVector = false;
                     dest[i].vector[j].cid = 0;
                 }
             }
@@ -270,10 +270,10 @@ void CMap::copyVector (CMapVectorEntry* dest, CMapVectorEntry* src) {
     }
 }
 
-void CMap::addCIDs (Guint start, Guint end, Guint nBytes, CID firstCID) {
+void CMap::addCIDs (unsigned start, unsigned end, unsigned nBytes, CID firstCID) {
     CMapVectorEntry* vec;
     int byte, byte0, byte1;
-    Guint start1, end1, i, j, k;
+    unsigned start1, end1, i, j, k;
 
     start1 = start & 0xffffff00;
     end1 = end & 0xffffff00;
@@ -282,11 +282,11 @@ void CMap::addCIDs (Guint start, Guint end, Guint nBytes, CID firstCID) {
         for (j = nBytes - 1; j >= 1; --j) {
             byte = (i >> (8 * j)) & 0xff;
             if (!vec[byte].isVector) {
-                vec[byte].isVector = gTrue;
+                vec[byte].isVector = true;
                 vec[byte].vector =
                     (CMapVectorEntry*)gmallocn (256, sizeof (CMapVectorEntry));
                 for (k = 0; k < 256; ++k) {
-                    vec[byte].vector[k].isVector = gFalse;
+                    vec[byte].vector[k].isVector = false;
                     vec[byte].vector[k].cid = 0;
                 }
             }
@@ -325,14 +325,14 @@ void CMap::freeCMapVector (CMapVectorEntry* vec) {
 void CMap::incRefCnt () { ++refCnt; }
 
 void CMap::decRefCnt () {
-    GBool done;
+    bool done;
 
     done = --refCnt == 0;
 
     if (done) { delete this; }
 }
 
-GBool CMap::match (GString* collectionA, GString* cMapNameA) {
+bool CMap::match (GString* collectionA, GString* cMapNameA) {
     return !collection->cmp (collectionA) && !cMapName->cmp (cMapNameA);
 }
 

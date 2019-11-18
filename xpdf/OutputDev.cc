@@ -69,15 +69,15 @@ void OutputDev::updateAll (GfxState* state) {
     updateFont (state);
 }
 
-GBool OutputDev::beginType3Char (
+bool OutputDev::beginType3Char (
     GfxState* state, double x, double y, double dx, double dy, CharCode code,
     Unicode* u, int uLen) {
-    return gFalse;
+    return false;
 }
 
 void OutputDev::drawImageMask (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GBool invert, GBool inlineImg, GBool interpolate) {
+    bool invert, bool inlineImg, bool interpolate) {
     if (inlineImg) {
         str->reset ();
         str->discardChars (height * ((width + 7) / 8));
@@ -87,15 +87,15 @@ void OutputDev::drawImageMask (
 
 void OutputDev::setSoftMaskFromImageMask (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GBool invert, GBool inlineImg, GBool interpolate) {
+    bool invert, bool inlineImg, bool interpolate) {
     drawImageMask (
         state, ref, str, width, height, invert, inlineImg, interpolate);
 }
 
 void OutputDev::drawImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-    GBool interpolate) {
+    GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+    bool interpolate) {
     if (inlineImg) {
         str->reset ();
         str->discardChars (
@@ -110,17 +110,17 @@ void OutputDev::drawImage (
 void OutputDev::drawMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GBool maskInvert, GBool interpolate) {
+    bool maskInvert, bool interpolate) {
     drawImage (
-        state, ref, str, width, height, colorMap, NULL, gFalse, interpolate);
+        state, ref, str, width, height, colorMap, NULL, false, interpolate);
 }
 
 void OutputDev::drawSoftMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GfxImageColorMap* maskColorMap, GBool interpolate) {
+    GfxImageColorMap* maskColorMap, bool interpolate) {
     drawImage (
-        state, ref, str, width, height, colorMap, NULL, gFalse, interpolate);
+        state, ref, str, width, height, colorMap, NULL, false, interpolate);
 }
 
 #if OPI_SUPPORT

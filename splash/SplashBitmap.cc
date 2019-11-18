@@ -19,8 +19,8 @@
 //------------------------------------------------------------------------
 
 SplashBitmap::SplashBitmap (
-    int widthA, int heightA, int rowPad, SplashColorMode modeA, GBool alphaA,
-    GBool topDown) {
+    int widthA, int heightA, int rowPad, SplashColorMode modeA, bool alphaA,
+    bool topDown) {
     width = widthA;
     height = heightA;
     mode = modeA;
@@ -62,7 +62,7 @@ SplashBitmap::SplashBitmap (
         data += (height - 1) * rowSize;
         rowSize = -rowSize;
     }
-    if (alphaA) { alpha = (Guchar*)gmallocn (width, height); }
+    if (alphaA) { alpha = (unsigned char*)gmallocn (width, height); }
     else {
         alpha = NULL;
     }
@@ -197,7 +197,7 @@ void SplashBitmap::getPixel (int x, int y, SplashColorPtr pixel) {
     }
 }
 
-Guchar SplashBitmap::getAlpha (int x, int y) { return alpha[y * width + x]; }
+unsigned char SplashBitmap::getAlpha (int x, int y) { return alpha[y * width + x]; }
 
 SplashColorPtr SplashBitmap::takeData () {
     SplashColorPtr data2;

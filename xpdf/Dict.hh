@@ -38,7 +38,7 @@ public:
     void add (char* key, Object* val);
 
     // Check if dictionary is of specified type.
-    GBool is (const char* type);
+    bool is (const char* type);
 
     // Look up an entry and return the value.  Returns a null object
     // if <key> is not in the dictionary.

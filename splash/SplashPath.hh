@@ -79,7 +79,7 @@ public:
     // Close the last subpath, adding a line segment if necessary.  If
     // <force> is true, this adds a line segment even if the current
     // point is equal to the first point in the subpath.
-    SplashError close (GBool force = gFalse);
+    SplashError close (bool force = false);
 
     // Add a stroke adjustment hint.  The controlling segments are
     // <ctrl0> and <ctrl1> (where segments are identified by their first
@@ -91,24 +91,24 @@ public:
 
     // Get the points on the path.
     int getLength () { return length; }
-    void getPoint (int i, SplashCoord* x, SplashCoord* y, Guchar* f) {
+    void getPoint (int i, SplashCoord* x, SplashCoord* y, unsigned char* f) {
         *x = pts[i].x;
         *y = pts[i].y;
         *f = flags[i];
     }
 
     // Get the current point.
-    GBool getCurPt (SplashCoord* x, SplashCoord* y);
+    bool getCurPt (SplashCoord* x, SplashCoord* y);
 
 private:
     SplashPath (SplashPath* path);
     void grow (int nPts);
-    GBool noCurrentPoint () { return curSubpath == length; }
-    GBool onePointSubpath () { return curSubpath == length - 1; }
-    GBool openSubpath () { return curSubpath < length - 1; }
+    bool noCurrentPoint () { return curSubpath == length; }
+    bool onePointSubpath () { return curSubpath == length - 1; }
+    bool openSubpath () { return curSubpath < length - 1; }
 
     SplashPathPoint* pts; // array of points
-    Guchar* flags;        // array of flags
+    unsigned char* flags;        // array of flags
     int length, size;     // length/size of the pts and flags arrays
     int curSubpath;       // index of first point in last subpath
 

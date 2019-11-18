@@ -39,15 +39,15 @@ static void printBox (const char* text, PDFRectangle* box);
 
 static int firstPage = 1;
 static int lastPage = 0;
-static GBool printBoxes = gFalse;
-static GBool printMetadata = gFalse;
-static GBool rawDates = gFalse;
+static bool printBoxes = false;
+static bool printMetadata = false;
+static bool rawDates = false;
 static char textEncName[128] = "";
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to convert" },
@@ -85,10 +85,10 @@ int main (int argc, char* argv[]) {
     double w, h, wISO, hISO;
     FILE* f;
     GString* metadata;
-    GBool ok;
+    bool ok;
     int exitCode;
     int pg, i;
-    GBool multiPage;
+    bool multiPage;
 
     exitCode = 99;
 
@@ -133,11 +133,11 @@ int main (int argc, char* argv[]) {
     // get page range
     if (firstPage < 1) { firstPage = 1; }
     if (lastPage == 0) {
-        multiPage = gFalse;
+        multiPage = false;
         lastPage = 1;
     }
     else {
-        multiPage = gTrue;
+        multiPage = true;
     }
     if (lastPage < 1 || lastPage > doc->getNumPages ()) {
         lastPage = doc->getNumPages ();
@@ -193,10 +193,10 @@ int main (int argc, char* argv[]) {
     if (doc->isEncrypted ()) {
         printf (
             "yes (print:%s copy:%s change:%s addNotes:%s)\n",
-            doc->okToPrint (gTrue) ? "yes" : "no",
-            doc->okToCopy (gTrue) ? "yes" : "no",
-            doc->okToChange (gTrue) ? "yes" : "no",
-            doc->okToAddNotes (gTrue) ? "yes" : "no");
+            doc->okToPrint (true) ? "yes" : "no",
+            doc->okToCopy (true) ? "yes" : "no",
+            doc->okToChange (true) ? "yes" : "no",
+            doc->okToAddNotes (true) ? "yes" : "no");
     }
     else {
         printf ("no\n");
@@ -262,7 +262,7 @@ int main (int argc, char* argv[]) {
     f = fopen (fileName->c_str (), "rb");
     if (f) {
         gfseek (f, 0, SEEK_END);
-        printf ("File size:      %u bytes\n", (Guint)gftell (f));
+        printf ("File size:      %u bytes\n", (unsigned)gftell (f));
         fclose (f);
     }
 

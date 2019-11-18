@@ -36,22 +36,22 @@
 
 static int firstPage = 1;
 static int lastPage = 0;
-static GBool physLayout = gFalse;
-static GBool tableLayout = gFalse;
-static GBool linePrinter = gFalse;
-static GBool rawOrder = gFalse;
+static bool physLayout = false;
+static bool tableLayout = false;
+static bool linePrinter = false;
+static bool rawOrder = false;
 static double fixedPitch = 0;
 static double fixedLineSpacing = 0;
-static GBool clipText = gFalse;
+static bool clipText = false;
 static char textEncName[128] = "";
 static char textEOL[16] = "";
-static GBool noPageBreaks = gFalse;
+static bool noPageBreaks = false;
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
-static GBool quiet = gFalse;
+static bool quiet = false;
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to convert" },
@@ -96,7 +96,7 @@ int main (int argc, char* argv[]) {
     TextOutputDev* textOut;
     UnicodeMap* uMap;
     Object info;
-    GBool ok;
+    bool ok;
     const char* p;
     int exitCode;
 
@@ -137,7 +137,7 @@ int main (int argc, char* argv[]) {
             fprintf (stderr, "Bad '-eol' value on command line\n");
         }
     }
-    if (noPageBreaks) { globalParams->setTextPageBreaks (gFalse); }
+    if (noPageBreaks) { globalParams->setTextPageBreaks (false); }
     if (quiet) { globalParams->setErrQuiet (quiet); }
 
     // get mapping to output encoding
@@ -215,10 +215,10 @@ int main (int argc, char* argv[]) {
     }
     textOutControl.clipText = clipText;
     textOut = new TextOutputDev (
-        textFileName->c_str (), &textOutControl, gFalse);
+        textFileName->c_str (), &textOutControl, false);
     if (textOut->isOk ()) {
         doc->displayPages (
-            textOut, firstPage, lastPage, 72, 72, 0, gFalse, gTrue, gFalse);
+            textOut, firstPage, lastPage, 72, 72, 0, false, true, false);
     }
     else {
         delete textOut;

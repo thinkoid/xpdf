@@ -41,7 +41,7 @@ public:
     ~PDFDoc ();
 
     // Was PDF document successfully opened?
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Get the error code (if isOk() returns false).
     int getErrorCode () { return errCode; }
@@ -88,22 +88,22 @@ public:
     // Display a page.
     void displayPage (
         OutputDev* out, int page, double hDPI, double vDPI, int rotate,
-        GBool useMediaBox, GBool crop, GBool printing,
-        GBool (*abortCheckCbk) (void* data) = NULL,
+        bool useMediaBox, bool crop, bool printing,
+        bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL);
 
     // Display a range of pages.
     void displayPages (
         OutputDev* out, int firstPage, int lastPage, double hDPI, double vDPI,
-        int rotate, GBool useMediaBox, GBool crop, GBool printing,
-        GBool (*abortCheckCbk) (void* data) = NULL,
+        int rotate, bool useMediaBox, bool crop, bool printing,
+        bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL);
 
     // Display part of a page.
     void displayPageSlice (
         OutputDev* out, int page, double hDPI, double vDPI, int rotate,
-        GBool useMediaBox, GBool crop, GBool printing, int sliceX, int sliceY,
-        int sliceW, int sliceH, GBool (*abortCheckCbk) (void* data) = NULL,
+        bool useMediaBox, bool crop, bool printing, int sliceX, int sliceY,
+        int sliceW, int sliceH, bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL);
 
     // Find a page, given its object ID.  Returns page number, or 0 if
@@ -130,24 +130,24 @@ public:
     OptionalContent* getOptionalContent () { return optContent; }
 
     // Is the file encrypted?
-    GBool isEncrypted () { return xref->isEncrypted (); }
+    bool isEncrypted () { return xref->isEncrypted (); }
 
     // Check various permissions.
-    GBool okToPrint (GBool ignoreOwnerPW = gFalse) {
+    bool okToPrint (bool ignoreOwnerPW = false) {
         return xref->okToPrint (ignoreOwnerPW);
     }
-    GBool okToChange (GBool ignoreOwnerPW = gFalse) {
+    bool okToChange (bool ignoreOwnerPW = false) {
         return xref->okToChange (ignoreOwnerPW);
     }
-    GBool okToCopy (GBool ignoreOwnerPW = gFalse) {
+    bool okToCopy (bool ignoreOwnerPW = false) {
         return xref->okToCopy (ignoreOwnerPW);
     }
-    GBool okToAddNotes (GBool ignoreOwnerPW = gFalse) {
+    bool okToAddNotes (bool ignoreOwnerPW = false) {
         return xref->okToAddNotes (ignoreOwnerPW);
     }
 
     // Is this document linearized?
-    GBool isLinearized ();
+    bool isLinearized ();
 
     // Return the document's Info dictionary (if any).
     Object* getDocInfo (Object* obj) { return xref->getDocInfo (obj); }
@@ -157,7 +157,7 @@ public:
     double getPDFVersion () { return pdfVersion; }
 
     // Save this file with another name.
-    GBool saveAs (GString* name);
+    bool saveAs (GString* name);
 
     // Return a pointer to the PDFCore object.
     PDFCore* getCore () { return core; }
@@ -170,16 +170,16 @@ public:
     int getEmbeddedFileNameLength (int idx) {
         return catalog->getEmbeddedFileNameLength (idx);
     }
-    GBool saveEmbeddedFile (int idx, char* path);
+    bool saveEmbeddedFile (int idx, char* path);
     char* getEmbeddedFileMem (int idx, int* size);
 
 private:
-    GBool setup (GString* ownerPassword, GString* userPassword);
-    GBool
-    setup2 (GString* ownerPassword, GString* userPassword, GBool repairXRef);
+    bool setup (GString* ownerPassword, GString* userPassword);
+    bool
+    setup2 (GString* ownerPassword, GString* userPassword, bool repairXRef);
     void checkHeader ();
-    GBool checkEncryption (GString* ownerPassword, GString* userPassword);
-    GBool saveEmbeddedFile2 (int idx, FILE* f);
+    bool checkEncryption (GString* ownerPassword, GString* userPassword);
+    bool saveEmbeddedFile2 (int idx, FILE* f);
 
     GString* fileName;
     FILE* file;
@@ -193,7 +193,7 @@ private:
 #endif
     OptionalContent* optContent;
 
-    GBool ok;
+    bool ok;
     int errCode;
 };
 

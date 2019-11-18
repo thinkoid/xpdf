@@ -25,7 +25,7 @@
 struct UnicodeMapExt {
     Unicode u; // Unicode char
     char code[maxExtCode];
-    Guint nBytes;
+    unsigned nBytes;
 };
 
 //------------------------------------------------------------------------
@@ -115,7 +115,7 @@ UnicodeMap* UnicodeMap::parse (GString* encodingNameA) {
 
 UnicodeMap::UnicodeMap (GString* encodingNameA) {
     encodingName = encodingNameA;
-    unicodeOut = gFalse;
+    unicodeOut = false;
     kind = unicodeMapUser;
     ranges = NULL;
     len = 0;
@@ -125,7 +125,7 @@ UnicodeMap::UnicodeMap (GString* encodingNameA) {
 }
 
 UnicodeMap::UnicodeMap (
-    const char* encodingNameA, GBool unicodeOutA, UnicodeMapRange* rangesA,
+    const char* encodingNameA, bool unicodeOutA, UnicodeMapRange* rangesA,
     int lenA) {
     encodingName = new GString (encodingNameA);
     unicodeOut = unicodeOutA;
@@ -138,7 +138,7 @@ UnicodeMap::UnicodeMap (
 }
 
 UnicodeMap::UnicodeMap (
-    const char* encodingNameA, GBool unicodeOutA, UnicodeMapFunc funcA) {
+    const char* encodingNameA, bool unicodeOutA, UnicodeMapFunc funcA) {
     encodingName = new GString (encodingNameA);
     unicodeOut = unicodeOutA;
     kind = unicodeMapFunc;
@@ -157,18 +157,18 @@ UnicodeMap::~UnicodeMap () {
 void UnicodeMap::incRefCnt () { ++refCnt; }
 
 void UnicodeMap::decRefCnt () {
-    GBool done = --refCnt == 0;
+    bool done = --refCnt == 0;
 
     if (done) { delete this; }
 }
 
-GBool UnicodeMap::match (GString* encodingNameA) {
+bool UnicodeMap::match (GString* encodingNameA) {
     return !encodingName->cmp (encodingNameA);
 }
 
 int UnicodeMap::mapUnicode (Unicode u, char* buf, int bufSize) {
     int a, b, m, n, i, j;
-    Guint code;
+    unsigned code;
 
     if (kind == unicodeMapFunc) { return (*func) (u, buf, bufSize); }
 

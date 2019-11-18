@@ -831,25 +831,25 @@ static inline char getType (Unicode c) {
     return type;
 }
 
-GBool unicodeTypeL (Unicode c) { return getType (c) == 'L'; }
+bool unicodeTypeL (Unicode c) { return getType (c) == 'L'; }
 
-GBool unicodeTypeR (Unicode c) { return getType (c) == 'R'; }
+bool unicodeTypeR (Unicode c) { return getType (c) == 'R'; }
 
-GBool unicodeTypeNum (Unicode c) {
+bool unicodeTypeNum (Unicode c) {
     char t;
 
     t = getType (c);
     return t == '#' || t == '.';
 }
 
-GBool unicodeTypeAlphaNum (Unicode c) {
+bool unicodeTypeAlphaNum (Unicode c) {
     char t;
 
     t = getType (c);
     return t == 'L' || t == 'R' || t == '#' || t == '.';
 }
 
-GBool unicodeTypeWord (Unicode c) {
+bool unicodeTypeWord (Unicode c) {
     char t;
 
     t = getType (c);

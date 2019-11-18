@@ -29,15 +29,15 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        const char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, bool deleteFileA,
 #endif
-        const char** encA, GBool useLightHintingA);
+        const char** encA, bool useLightHintingA);
     static SplashFontFile* loadCIDFont (
         SplashFTFontEngine* engineA, SplashFontFileID* idA,
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        const char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, bool deleteFileA,
 #endif
         int* codeToGIDA, int codeToGIDLenA);
     static SplashFontFile* loadTrueTypeFont (
@@ -45,7 +45,7 @@ public:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        const char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, bool deleteFileA,
 #endif
         int fontNum, int* codeToGIDA, int codeToGIDLenA);
 
@@ -61,17 +61,17 @@ private:
 #if LOAD_FONTS_FROM_MEM
         GString* fontBufA,
 #else
-        const char* fileNameA, GBool deleteFileA,
+        const char* fileNameA, bool deleteFileA,
 #endif
-        FT_Face faceA, int* codeToGIDA, int codeToGIDLenA, GBool trueTypeA,
-        GBool useLightHintingA);
+        FT_Face faceA, int* codeToGIDA, int codeToGIDLenA, bool trueTypeA,
+        bool useLightHintingA);
 
     SplashFTFontEngine* engine;
     FT_Face face;
     int* codeToGID;
     int codeToGIDLen;
-    GBool trueType;
-    GBool useLightHinting;
+    bool trueType;
+    bool useLightHinting;
 
     friend class SplashFTFont;
 };

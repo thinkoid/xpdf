@@ -29,12 +29,12 @@ public:
     virtual ~SplashFTFont ();
 
     // Munge xFrac and yFrac before calling SplashFont::getGlyph.
-    virtual GBool
+    virtual bool
     getGlyph (int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap);
 
     // Rasterize a glyph.  The <xFrac> and <yFrac> values are the same
     // as described for getGlyph.
-    virtual GBool
+    virtual bool
     makeGlyph (int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap);
 
     // Return the path for a glyph.

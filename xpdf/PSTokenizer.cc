@@ -45,24 +45,24 @@ PSTokenizer::PSTokenizer (int (*getCharFuncA) (void*), void* dataA) {
 
 PSTokenizer::~PSTokenizer () {}
 
-GBool PSTokenizer::getToken (char* buf, int size, int* length) {
-    GBool comment, backslash;
+bool PSTokenizer::getToken (char* buf, int size, int* length) {
+    bool comment, backslash;
     int c;
     int i;
 
     // skip whitespace and comments
-    comment = gFalse;
+    comment = false;
     while (1) {
         if ((c = getChar ()) == EOF) {
             buf[0] = '\0';
             *length = 0;
-            return gFalse;
+            return false;
         }
         if (comment) {
-            if (c == '\x0a' || c == '\x0d') { comment = gFalse; }
+            if (c == '\x0a' || c == '\x0d') { comment = false; }
         }
         else if (c == '%') {
-            comment = gTrue;
+            comment = true;
         }
         else if (specialChars[c] != 1) {
             break;
@@ -73,16 +73,16 @@ GBool PSTokenizer::getToken (char* buf, int size, int* length) {
     i = 0;
     buf[i++] = c;
     if (c == '(') {
-        backslash = gFalse;
+        backslash = false;
         while ((c = lookChar ()) != EOF) {
             if (i < size - 1) { buf[i++] = c; }
             getChar ();
-            if (c == '\\') { backslash = gTrue; }
+            if (c == '\\') { backslash = true; }
             else if (!backslash && c == ')') {
                 break;
             }
             else {
-                backslash = gFalse;
+                backslash = false;
             }
         }
     }
@@ -102,7 +102,7 @@ GBool PSTokenizer::getToken (char* buf, int size, int* length) {
     buf[i] = '\0';
     *length = i;
 
-    return gTrue;
+    return true;
 }
 
 int PSTokenizer::lookChar () {

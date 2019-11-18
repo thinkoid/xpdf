@@ -32,7 +32,7 @@ public:
         x2 = x2A;
         y2 = y2A;
     }
-    GBool isValid () { return x1 != 0 || y1 != 0 || x2 != 0 || y2 != 0; }
+    bool isValid () { return x1 != 0 || y1 != 0 || x2 != 0 || y2 != 0; }
     void clipTo (PDFRectangle* rect);
 };
 
@@ -57,7 +57,7 @@ public:
     // Accessors.
     PDFRectangle* getMediaBox () { return &mediaBox; }
     PDFRectangle* getCropBox () { return &cropBox; }
-    GBool isCropped () { return haveCropBox; }
+    bool isCropped () { return haveCropBox; }
     PDFRectangle* getBleedBox () { return &bleedBox; }
     PDFRectangle* getTrimBox () { return &trimBox; }
     PDFRectangle* getArtBox () { return &artBox; }
@@ -91,11 +91,11 @@ public:
     void clipBoxes ();
 
 private:
-    GBool readBox (Dict* dict, const char* key, PDFRectangle* box);
+    bool readBox (Dict* dict, const char* key, PDFRectangle* box);
 
     PDFRectangle mediaBox;
     PDFRectangle cropBox;
-    GBool haveCropBox;
+    bool haveCropBox;
     PDFRectangle bleedBox;
     PDFRectangle trimBox;
     PDFRectangle artBox;
@@ -127,13 +127,13 @@ public:
     ~Page ();
 
     // Is page valid?
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Get page parameters.
     int getNum () { return num; }
     PDFRectangle* getMediaBox () { return attrs->getMediaBox (); }
     PDFRectangle* getCropBox () { return attrs->getCropBox (); }
-    GBool isCropped () { return attrs->isCropped (); }
+    bool isCropped () { return attrs->isCropped (); }
     double getMediaWidth () {
         return attrs->getMediaBox ()->x2 - attrs->getMediaBox ()->x1;
     }
@@ -172,28 +172,28 @@ public:
 
     // Display a page.
     void display (
-        OutputDev* out, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-        GBool crop, GBool printing, GBool (*abortCheckCbk) (void* data) = NULL,
+        OutputDev* out, double hDPI, double vDPI, int rotate, bool useMediaBox,
+        bool crop, bool printing, bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL);
 
     // Display part of a page.
     void displaySlice (
-        OutputDev* out, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-        GBool crop, int sliceX, int sliceY, int sliceW, int sliceH,
-        GBool printing, GBool (*abortCheckCbk) (void* data) = NULL,
+        OutputDev* out, double hDPI, double vDPI, int rotate, bool useMediaBox,
+        bool crop, int sliceX, int sliceY, int sliceW, int sliceH,
+        bool printing, bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL);
 
     void makeBox (
-        double hDPI, double vDPI, int rotate, GBool useMediaBox,
-        GBool upsideDown, double sliceX, double sliceY, double sliceW,
-        double sliceH, PDFRectangle* box, GBool* crop);
+        double hDPI, double vDPI, int rotate, bool useMediaBox,
+        bool upsideDown, double sliceX, double sliceY, double sliceW,
+        double sliceH, PDFRectangle* box, bool* crop);
 
     void processLinks (OutputDev* out);
 
     // Get the page's default CTM.
     void getDefaultCTM (
-        double* ctm, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-        GBool upsideDown);
+        double* ctm, double hDPI, double vDPI, int rotate, bool useMediaBox,
+        bool upsideDown);
 
 private:
     PDFDoc* doc;
@@ -202,7 +202,7 @@ private:
     PageAttrs* attrs; // page attributes
     Object annots;    // annotations array
     Object contents;  // page contents
-    GBool ok;         // true if page is valid
+    bool ok;         // true if page is valid
 };
 
 #endif

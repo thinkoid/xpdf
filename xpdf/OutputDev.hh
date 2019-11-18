@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>
 
 class GString;
@@ -46,35 +45,35 @@ public:
 
     // Does this device use upside-down coordinates?
     // (Upside-down means (0,0) is the top left corner of the page.)
-    virtual GBool upsideDown () = 0;
+    virtual bool upsideDown () = 0;
 
     // Does this device use drawChar() or drawString()?
-    virtual GBool useDrawChar () = 0;
+    virtual bool useDrawChar () = 0;
 
     // Does this device use tilingPatternFill()?  If this returns false,
     // tiling pattern fills will be reduced to a series of other drawing
     // operations.
-    virtual GBool useTilingPatternFill () { return gFalse; }
+    virtual bool useTilingPatternFill () { return false; }
 
     // Does this device use functionShadedFill(), axialShadedFill(), and
     // radialShadedFill()?  If this returns false, these shaded fills
     // will be reduced to a series of other drawing operations.
-    virtual GBool useShadedFills () { return gFalse; }
+    virtual bool useShadedFills () { return false; }
 
     // Does this device use drawForm()?  If this returns false,
     // form-type XObjects will be interpreted (i.e., unrolled).
-    virtual GBool useDrawForm () { return gFalse; }
+    virtual bool useDrawForm () { return false; }
 
     // Does this device use beginType3Char/endType3Char?  Otherwise,
     // text in Type 3 fonts will be drawn with drawChar/drawString.
-    virtual GBool interpretType3Chars () = 0;
+    virtual bool interpretType3Chars () = 0;
 
     // Does this device need non-text content?
-    virtual GBool needNonText () { return gTrue; }
+    virtual bool needNonText () { return true; }
 
     // Does this device require incCharCount to be called for text on
     // non-shown layers?
-    virtual GBool needCharCount () { return gFalse; }
+    virtual bool needCharCount () { return false; }
 
     //----- initialization and control
 
@@ -85,12 +84,12 @@ public:
     // returns false, the page display is aborted.  Typically, an
     // OutputDev will use some alternate means to display the page
     // before returning false.
-    virtual GBool checkPageSlice (
-        Page* page, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-        GBool crop, int sliceX, int sliceY, int sliceW, int sliceH,
-        GBool printing, GBool (*abortCheckCbk) (void* data) = NULL,
+    virtual bool checkPageSlice (
+        Page* page, double hDPI, double vDPI, int rotate, bool useMediaBox,
+        bool crop, int sliceX, int sliceY, int sliceW, int sliceH,
+        bool printing, bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL) {
-        return gTrue;
+        return true;
     }
 
     // Start a page.
@@ -161,16 +160,16 @@ public:
         GfxState* state, Gfx* gfx, Object* strRef, int paintType, Dict* resDict,
         double* mat, double* bbox, int x0, int y0, int x1, int y1, double xStep,
         double yStep) {}
-    virtual GBool
+    virtual bool
     functionShadedFill (GfxState* state, GfxFunctionShading* shading) {
-        return gFalse;
+        return false;
     }
-    virtual GBool axialShadedFill (GfxState* state, GfxAxialShading* shading) {
-        return gFalse;
+    virtual bool axialShadedFill (GfxState* state, GfxAxialShading* shading) {
+        return false;
     }
-    virtual GBool
+    virtual bool
     radialShadedFill (GfxState* state, GfxRadialShading* shading) {
-        return gFalse;
+        return false;
     }
 
     //----- path clipping
@@ -188,7 +187,7 @@ public:
         double originX, double originY, CharCode code, int nBytes, Unicode* u,
         int uLen) {}
     virtual void drawString (GfxState* state, GString* s) {}
-    virtual GBool beginType3Char (
+    virtual bool beginType3Char (
         GfxState* state, double x, double y, double dx, double dy,
         CharCode code, Unicode* u, int uLen);
     virtual void endType3Char (GfxState* state) {}
@@ -200,22 +199,22 @@ public:
     //----- image drawing
     virtual void drawImageMask (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GBool invert, GBool inlineImg, GBool interpolate);
+        bool invert, bool inlineImg, bool interpolate);
     virtual void setSoftMaskFromImageMask (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GBool invert, GBool inlineImg, GBool interpolate);
+        bool invert, bool inlineImg, bool interpolate);
     virtual void drawImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-        GBool interpolate);
+        GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+        bool interpolate);
     virtual void drawMaskedImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
         GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth,
-        int maskHeight, GBool maskInvert, GBool interpolate);
+        int maskHeight, bool maskInvert, bool interpolate);
     virtual void drawSoftMaskedImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
         GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth,
-        int maskHeight, GfxImageColorMap* maskColorMap, GBool interpolate);
+        int maskHeight, GfxImageColorMap* maskColorMap, bool interpolate);
 
 #if OPI_SUPPORT
     //----- OPI functions
@@ -238,11 +237,11 @@ public:
     //----- transparency groups and soft masks
     virtual void beginTransparencyGroup (
         GfxState* state, double* bbox, GfxColorSpace* blendingColorSpace,
-        GBool isolated, GBool knockout, GBool forSoftMask) {}
+        bool isolated, bool knockout, bool forSoftMask) {}
     virtual void endTransparencyGroup (GfxState* state) {}
     virtual void paintTransparencyGroup (GfxState* state, double* bbox) {}
     virtual void setSoftMask (
-        GfxState* state, double* bbox, GBool alpha, Function* transferFunc,
+        GfxState* state, double* bbox, bool alpha, Function* transferFunc,
         GfxColor* backdropColor) {}
     virtual void clearSoftMask (GfxState* state) {}
 
@@ -250,7 +249,7 @@ public:
     virtual void processLink (Link* link) {}
 
 #if 1 //~tmp: turn off anti-aliasing temporarily
-    virtual void setInShading (GBool sh) {}
+    virtual void setInShading (bool sh) {}
 #endif
 
 private:

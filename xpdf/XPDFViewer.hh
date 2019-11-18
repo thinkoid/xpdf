@@ -14,7 +14,6 @@
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object
-#include <goo/gtypes.hh>
 #include <xpdf/XPDFCore.hh>
 
 #if (XmVERSION >= 2 && !defined(LESSTIF_VERSION))
@@ -40,8 +39,8 @@ class XPDFViewer;
 struct XPDFViewerCmd {
     const char* name;
     int nArgs;
-    GBool requiresDoc;
-    GBool requiresEvent;
+    bool requiresDoc;
+    bool requiresEvent;
     void (XPDFViewer::*func) (GString* args[], int nArgs, XEvent* event);
 };
 
@@ -53,11 +52,11 @@ class XPDFViewer {
 public:
     XPDFViewer (
         XPDFApp* appA, GString* fileName, int pageA, GString* destName,
-        GBool fullScreen, GString* ownerPassword, GString* userPassword);
+        bool fullScreen, GString* ownerPassword, GString* userPassword);
     XPDFViewer (
         XPDFApp* appA, PDFDoc* doc, int pageA, GString* destName,
-        GBool fullScreen);
-    GBool isOk () { return ok; }
+        bool fullScreen);
+    bool isOk () { return ok; }
     ~XPDFViewer ();
 
     void open (GString* fileName, int pageA, GString* destName);
@@ -70,27 +69,27 @@ public:
 
 private:
     //----- load / display
-    GBool loadFile (
+    bool loadFile (
         GString* fileName, GString* ownerPassword = NULL,
         GString* userPassword = NULL);
     void displayPage (
-        int pageA, double zoomA, int rotateA, GBool scrollToTop,
-        GBool addToHist);
+        int pageA, double zoomA, int rotateA, bool scrollToTop,
+        bool addToHist);
     void
-    displayDest (LinkDest* dest, double zoomA, int rotateA, GBool addToHist);
+    displayDest (LinkDest* dest, double zoomA, int rotateA, bool addToHist);
     void getPageAndDest (
         int pageA, GString* destName, int* pageOut, LinkDest** destOut);
 
     //----- hyperlinks / actions
-    void doLink (int wx, int wy, GBool onlyIfNoSelection, GBool newWin);
+    void doLink (int wx, int wy, bool onlyIfNoSelection, bool newWin);
     static void actionCbk (void* data, const char* action);
 
     //----- keyboard/mouse input
     static void
-    keyPressCbk (void* data, KeySym key, Guint modifiers, XEvent* event);
+    keyPressCbk (void* data, KeySym key, unsigned modifiers, XEvent* event);
     static void mouseCbk (void* data, XEvent* event);
-    int getModifiers (Guint modifiers);
-    int getContext (Guint modifiers);
+    int getModifiers (unsigned modifiers);
+    int getContext (unsigned modifiers);
 
     //----- command functions
     void cmdAbout (GString* args[], int nArgs, XEvent* event);
@@ -170,12 +169,12 @@ private:
     void cmdZoomToSelection (GString* args[], int nArgs, XEvent* event);
 
     //----- GUI code: main window
-    void initWindow (GBool fullScreen);
+    void initWindow (bool fullScreen);
     void initToolbar (Widget parent);
 #ifndef DISABLE_OUTLINE
     void initPanedWin (Widget parent);
 #endif
-    void initCore (Widget parent, GBool fullScreen);
+    void initCore (Widget parent, bool fullScreen);
     void initPopupMenu ();
     void addToolTip (Widget widget, char* text);
     void mapWindow ();
@@ -234,14 +233,14 @@ private:
 
     //----- GUI code: "open" dialog
     void initOpenDialog ();
-    void mapOpenDialog (GBool openInNewWindowA);
+    void mapOpenDialog (bool openInNewWindowA);
     static void openOkCbk (Widget widget, XtPointer ptr, XtPointer callData);
 
     //----- GUI code: "find" dialog
     void initFindDialog ();
     static void findFindCbk (Widget widget, XtPointer ptr, XtPointer callData);
     void mapFindDialog ();
-    void doFind (GBool next);
+    void doFind (bool next);
     static void findCloseCbk (Widget widget, XtPointer ptr, XtPointer callData);
 
     //----- GUI code: "save as" dialog
@@ -265,7 +264,7 @@ private:
     static XPDFViewerCmd cmdTab[];
 
     XPDFApp* app;
-    GBool ok;
+    bool ok;
 
     Display* display;
     int screenNum;
@@ -308,7 +307,7 @@ private:
     XmFontList aboutBigFont, aboutVersionFont, aboutFixedFont;
 
     Widget openDialog;
-    GBool openInNewWindow;
+    bool openInNewWindow;
 
     Widget findDialog;
     Widget findText;

@@ -45,7 +45,7 @@ static void gstringWrite (void* stream, const char* data, int len) {
 //------------------------------------------------------------------------
 
 SplashFTFontEngine::SplashFTFontEngine (
-    GBool aaA, Guint flagsA, FT_Library libA) {
+    bool aaA, unsigned flagsA, FT_Library libA) {
     FT_Int major, minor, patch;
 
     aa = aaA;
@@ -58,7 +58,7 @@ SplashFTFontEngine::SplashFTFontEngine (
         major > 2 || (major == 2 && (minor > 1 || (minor == 1 && patch > 7)));
 }
 
-SplashFTFontEngine* SplashFTFontEngine::init (GBool aaA, Guint flagsA) {
+SplashFTFontEngine* SplashFTFontEngine::init (bool aaA, unsigned flagsA) {
     FT_Library libA;
 
     if (FT_Init_FreeType (&libA)) { return NULL; }
@@ -72,7 +72,7 @@ SplashFontFile* SplashFTFontEngine::loadType1Font (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     const char** enc) {
     return SplashFTFontFile::loadType1Font (
@@ -82,7 +82,7 @@ SplashFontFile* SplashFTFontEngine::loadType1Font (
 #else
         fileName, deleteFile,
 #endif
-        enc, gTrue);
+        enc, true);
 }
 
 SplashFontFile* SplashFTFontEngine::loadType1CFont (
@@ -90,7 +90,7 @@ SplashFontFile* SplashFTFontEngine::loadType1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     const char** enc) {
     return SplashFTFontFile::loadType1Font (
@@ -100,7 +100,7 @@ SplashFontFile* SplashFTFontEngine::loadType1CFont (
 #else
         fileName, deleteFile,
 #endif
-        enc, gFalse);
+        enc, false);
 }
 
 SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
@@ -108,7 +108,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     const char** enc) {
     FoFiTrueType* ff;
@@ -122,19 +122,19 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
 
 #if LOAD_FONTS_FROM_MEM
     if (!(ff = FoFiTrueType::make (
-              fontBuf->c_str (), fontBuf->getLength (), 0, gTrue))) {
+              fontBuf->c_str (), fontBuf->getLength (), 0, true))) {
 #else
-    if (!(ff = FoFiTrueType::load (fileName, 0, gTrue))) {
+    if (!(ff = FoFiTrueType::load (fileName, 0, true))) {
 #endif
         return NULL;
     }
     if (ff->isHeadlessCFF ()) {
 #if LOAD_FONTS_FROM_MEM
         fontBuf2 = new GString ();
-        ff->convertToType1 (NULL, enc, gFalse, &gstringWrite, fontBuf2);
+        ff->convertToType1 (NULL, enc, false, &gstringWrite, fontBuf2);
         delete ff;
         ret =
-            SplashFTFontFile::loadType1Font (this, idA, fontBuf2, enc, gFalse);
+            SplashFTFontFile::loadType1Font (this, idA, fontBuf2, enc, false);
         if (ret) { delete fontBuf; }
         else {
             delete fontBuf2;
@@ -144,11 +144,11 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
             delete ff;
             return NULL;
         }
-        ff->convertToType1 (NULL, enc, gFalse, &fileWrite, tmpFile);
+        ff->convertToType1 (NULL, enc, false, &fileWrite, tmpFile);
         delete ff;
         fclose (tmpFile);
         ret = SplashFTFontFile::loadType1Font (
-            this, idA, tmpFileName->c_str (), gTrue, enc, gFalse);
+            this, idA, tmpFileName->c_str (), true, enc, false);
         if (ret) {
             if (deleteFile) { unlink (fileName); }
         }
@@ -167,7 +167,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
 #else
             fileName, deleteFile,
 #endif
-            enc, gFalse);
+            enc, false);
     }
     return ret;
 }
@@ -177,7 +177,7 @@ SplashFontFile* SplashFTFontEngine::loadCIDFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf
 #else
-    const char* fileName, GBool deleteFile
+    const char* fileName, bool deleteFile
 #endif
 ) {
     FoFiType1C* ff;
@@ -221,7 +221,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     int* codeToGID, int codeToGIDLen) {
     FoFiTrueType* ff;
@@ -239,9 +239,9 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
 
 #if LOAD_FONTS_FROM_MEM
     if (!(ff = FoFiTrueType::make (
-              fontBuf->c_str (), fontBuf->getLength (), 0, gTrue))) {
+              fontBuf->c_str (), fontBuf->getLength (), 0, true))) {
 #else
-    if (!(ff = FoFiTrueType::load (fileName, 0, gTrue))) {
+    if (!(ff = FoFiTrueType::load (fileName, 0, true))) {
 #endif
         return NULL;
     }
@@ -267,7 +267,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
         fclose (tmpFile);
         if (!useCIDs) { cidToGIDMap = ff->getCIDToGIDMap (&nCIDs); }
         ret = SplashFTFontFile::loadCIDFont (
-            this, idA, tmpFileName->c_str (), gTrue, cidToGIDMap, nCIDs);
+            this, idA, tmpFileName->c_str (), true, cidToGIDMap, nCIDs);
         if (ret) {
             if (deleteFile) { unlink (fileName); }
         }
@@ -301,7 +301,7 @@ SplashFontFile* SplashFTFontEngine::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     int fontNum, int* codeToGID, int codeToGIDLen) {
     FoFiTrueType* ff;
@@ -338,7 +338,7 @@ SplashFontFile* SplashFTFontEngine::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
         fontBuf2,
 #else
-        tmpFileName->c_str (), gTrue,
+        tmpFileName->c_str (), true,
 #endif
         0, codeToGID, codeToGIDLen);
 #if LOAD_FONTS_FROM_MEM

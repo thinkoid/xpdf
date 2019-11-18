@@ -47,7 +47,7 @@ PDFDoc::PDFDoc (
     Object obj;
     GString *fileName1, *fileName2;
 
-    ok = gFalse;
+    ok = false;
     errCode = errNone;
 
     core = coreA;
@@ -82,7 +82,7 @@ PDFDoc::PDFDoc (
 
     // create stream
     obj.initNull ();
-    str = new FileStream (file, 0, gFalse, 0, &obj);
+    str = new FileStream (file, 0, false, 0, &obj);
 
     ok = setup (ownerPassword, userPassword);
 }
@@ -90,7 +90,7 @@ PDFDoc::PDFDoc (
 PDFDoc::PDFDoc (
     BaseStream* strA, GString* ownerPassword, GString* userPassword,
     PDFCore* coreA) {
-    ok = gFalse;
+    ok = false;
     errCode = errNone;
     core = coreA;
     if (strA->getFileName ()) { fileName = strA->getFileName ()->copy (); }
@@ -106,26 +106,26 @@ PDFDoc::PDFDoc (
     ok = setup (ownerPassword, userPassword);
 }
 
-GBool PDFDoc::setup (GString* ownerPassword, GString* userPassword) {
+bool PDFDoc::setup (GString* ownerPassword, GString* userPassword) {
     str->reset ();
 
     // check header
     checkHeader ();
 
     // read the xref and catalog
-    if (!PDFDoc::setup2 (ownerPassword, userPassword, gFalse)) {
+    if (!PDFDoc::setup2 (ownerPassword, userPassword, false)) {
         if (errCode == errDamaged || errCode == errBadCatalog) {
             // try repairing the xref table
             error (
                 errSyntaxWarning, -1,
                 "PDF file is damaged - attempting to reconstruct xref "
                 "table...");
-            if (!PDFDoc::setup2 (ownerPassword, userPassword, gTrue)) {
-                return gFalse;
+            if (!PDFDoc::setup2 (ownerPassword, userPassword, true)) {
+                return false;
             }
         }
         else {
-            return gFalse;
+            return false;
         }
     }
 
@@ -136,11 +136,11 @@ GBool PDFDoc::setup (GString* ownerPassword, GString* userPassword) {
     optContent = new OptionalContent (this);
 
     // done
-    return gTrue;
+    return true;
 }
 
-GBool PDFDoc::setup2 (
-    GString* ownerPassword, GString* userPassword, GBool repairXRef) {
+bool PDFDoc::setup2 (
+    GString* ownerPassword, GString* userPassword, bool repairXRef) {
     // read xref table
     xref = new XRef (str, repairXRef);
     if (!xref->isOk ()) {
@@ -148,7 +148,7 @@ GBool PDFDoc::setup2 (
         errCode = xref->getErrorCode ();
         delete xref;
         xref = NULL;
-        return gFalse;
+        return false;
     }
 
     // check for encryption
@@ -156,7 +156,7 @@ GBool PDFDoc::setup2 (
         errCode = errEncrypted;
         delete xref;
         xref = NULL;
-        return gFalse;
+        return false;
     }
 
     // read catalog
@@ -168,10 +168,10 @@ GBool PDFDoc::setup2 (
         catalog = NULL;
         delete xref;
         xref = NULL;
-        return gFalse;
+        return false;
     }
 
-    return gTrue;
+    return true;
 }
 
 PDFDoc::~PDFDoc () {
@@ -219,18 +219,18 @@ void PDFDoc::checkHeader () {
     }
 }
 
-GBool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
+bool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
     Object encrypt;
-    GBool encrypted;
+    bool encrypted;
     SecurityHandler* secHdlr;
-    GBool ret;
+    bool ret;
 
     xref->getTrailerDict ()->dictLookup ("Encrypt", &encrypt);
     if ((encrypted = encrypt.isDict ())) {
         if ((secHdlr = SecurityHandler::make (this, &encrypt))) {
             if (secHdlr->isUnencrypted ()) {
                 // no encryption
-                ret = gTrue;
+                ret = true;
             }
             else if (secHdlr->checkEncryption (ownerPassword, userPassword)) {
                 // authorization succeeded
@@ -239,22 +239,22 @@ GBool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
                     secHdlr->getOwnerPasswordOk (), secHdlr->getFileKey (),
                     secHdlr->getFileKeyLength (), secHdlr->getEncVersion (),
                     secHdlr->getEncAlgorithm ());
-                ret = gTrue;
+                ret = true;
             }
             else {
                 // authorization failed
-                ret = gFalse;
+                ret = false;
             }
             delete secHdlr;
         }
         else {
             // couldn't find the matching security handler
-            ret = gFalse;
+            ret = false;
         }
     }
     else {
         // document is not encrypted
-        ret = gTrue;
+        ret = true;
     }
     encrypt.free ();
     return ret;
@@ -262,8 +262,8 @@ GBool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
 
 void PDFDoc::displayPage (
     OutputDev* out, int page, double hDPI, double vDPI, int rotate,
-    GBool useMediaBox, GBool crop, GBool printing,
-    GBool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
+    bool useMediaBox, bool crop, bool printing,
+    bool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
     if (globalParams->getPrintCommands ()) {
         printf ("***** page %d *****\n", page);
     }
@@ -274,8 +274,8 @@ void PDFDoc::displayPage (
 
 void PDFDoc::displayPages (
     OutputDev* out, int firstPage, int lastPage, double hDPI, double vDPI,
-    int rotate, GBool useMediaBox, GBool crop, GBool printing,
-    GBool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
+    int rotate, bool useMediaBox, bool crop, bool printing,
+    bool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
     int page;
 
     for (page = firstPage; page <= lastPage; ++page) {
@@ -288,8 +288,8 @@ void PDFDoc::displayPages (
 
 void PDFDoc::displayPageSlice (
     OutputDev* out, int page, double hDPI, double vDPI, int rotate,
-    GBool useMediaBox, GBool crop, GBool printing, int sliceX, int sliceY,
-    int sliceW, int sliceH, GBool (*abortCheckCbk) (void* data),
+    bool useMediaBox, bool crop, bool printing, int sliceX, int sliceY,
+    int sliceW, int sliceH, bool (*abortCheckCbk) (void* data),
     void* abortCheckCbkData) {
     catalog->getPage (page)->displaySlice (
         out, hDPI, vDPI, rotate, useMediaBox, crop, sliceX, sliceY, sliceW,
@@ -304,18 +304,18 @@ void PDFDoc::processLinks (OutputDev* out, int page) {
     catalog->getPage (page)->processLinks (out);
 }
 
-GBool PDFDoc::isLinearized () {
+bool PDFDoc::isLinearized () {
     Parser* parser;
     Object obj1, obj2, obj3, obj4, obj5;
-    GBool lin;
+    bool lin;
 
-    lin = gFalse;
+    lin = false;
     obj1.initNull ();
     parser = new Parser (
         xref,
         new Lexer (
-            xref, str->makeSubStream (str->getStart (), gFalse, 0, &obj1)),
-        gTrue);
+            xref, str->makeSubStream (str->getStart (), false, 0, &obj1)),
+        true);
     parser->getObj (&obj1);
     parser->getObj (&obj2);
     parser->getObj (&obj3);
@@ -323,7 +323,7 @@ GBool PDFDoc::isLinearized () {
     if (obj1.isInt () && obj2.isInt () && obj3.isCmd ("obj") &&
         obj4.isDict ()) {
         obj4.dictLookup ("Linearized", &obj5);
-        if (obj5.isNum () && obj5.getNum () > 0) { lin = gTrue; }
+        if (obj5.isNum () && obj5.getNum () > 0) { lin = true; }
         obj5.free ();
     }
     obj4.free ();
@@ -334,14 +334,14 @@ GBool PDFDoc::isLinearized () {
     return lin;
 }
 
-GBool PDFDoc::saveAs (GString* name) {
+bool PDFDoc::saveAs (GString* name) {
     FILE* f;
     char buf[4096];
     int n;
 
     if (!(f = fopen (name->c_str (), "wb"))) {
         error (errIO, -1, "Couldn't open file '{0:t}'", name);
-        return gFalse;
+        return false;
     }
     str->reset ();
     while ((n = str->getBlock (buf, sizeof (buf))) > 0) {
@@ -349,32 +349,32 @@ GBool PDFDoc::saveAs (GString* name) {
     }
     str->close ();
     fclose (f);
-    return gTrue;
+    return true;
 }
 
-GBool PDFDoc::saveEmbeddedFile (int idx, char* path) {
+bool PDFDoc::saveEmbeddedFile (int idx, char* path) {
     FILE* f;
-    GBool ret;
+    bool ret;
 
-    if (!(f = fopen (path, "wb"))) { return gFalse; }
+    if (!(f = fopen (path, "wb"))) { return false; }
     ret = saveEmbeddedFile2 (idx, f);
     fclose (f);
     return ret;
 }
 
-GBool PDFDoc::saveEmbeddedFile2 (int idx, FILE* f) {
+bool PDFDoc::saveEmbeddedFile2 (int idx, FILE* f) {
     Object strObj;
     char buf[4096];
     int n;
 
-    if (!catalog->getEmbeddedFileStreamObj (idx, &strObj)) { return gFalse; }
+    if (!catalog->getEmbeddedFileStreamObj (idx, &strObj)) { return false; }
     strObj.streamReset ();
     while ((n = strObj.streamGetBlock (buf, sizeof (buf))) > 0) {
         fwrite (buf, 1, n, f);
     }
     strObj.streamClose ();
     strObj.free ();
-    return gTrue;
+    return true;
 }
 
 char* PDFDoc::getEmbeddedFileMem (int idx, int* size) {

@@ -7,7 +7,6 @@
 //========================================================================
 
 #include <defs.hh>
-#include <goo/gtypes.hh>
 #include <goo/GString.hh>
 #include <goo/parseargs.hh>
 #include <goo/gfile.hh>
@@ -21,7 +20,7 @@
 // command line options
 //------------------------------------------------------------------------
 
-static GBool contView = gFalse;
+static bool contView = false;
 static char enableFreeTypeStr[16] = "";
 static char antialiasStr[16] = "";
 static char vectorAntialiasStr[16] = "";
@@ -29,22 +28,22 @@ static char psFileArg[256];
 static char paperSize[15] = "";
 static int paperWidth = 0;
 static int paperHeight = 0;
-static GBool level1 = gFalse;
+static bool level1 = false;
 static char textEncName[128] = "";
 static char textEOL[16] = "";
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
-static GBool fullScreen = gFalse;
+static bool fullScreen = false;
 static char remoteName[100] = "xpdf_";
 static char remoteCmd[512] = "";
-static GBool doRemoteReload = gFalse;
-static GBool doRemoteRaise = gFalse;
-static GBool doRemoteQuit = gFalse;
-static GBool printCommands = gFalse;
-static GBool quiet = gFalse;
+static bool doRemoteReload = false;
+static bool doRemoteRaise = false;
+static bool doRemoteQuit = false;
+static bool printCommands = false;
+static bool quiet = false;
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-g", argStringDummy, NULL, 0, "initial window geometry" },
@@ -112,7 +111,7 @@ int main (int argc, char* argv[]) {
     int pg;
     GString* destName;
     GString *userPasswordStr, *ownerPasswordStr;
-    GBool ok;
+    bool ok;
     int exitCode;
 
     exitCode = 0;

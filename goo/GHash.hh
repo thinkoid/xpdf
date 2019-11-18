@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 
 class GString;
 struct GHashBucket;
@@ -21,7 +20,7 @@ struct GHashIter;
 
 class GHash {
 public:
-    GHash (GBool deleteKeysA = gFalse);
+    GHash (bool deleteKeysA = false);
     ~GHash ();
     void add (GString* key, void* val);
     void add (GString* key, int val);
@@ -37,8 +36,8 @@ public:
     int removeInt (const char* key);
     int getLength () { return len; }
     void startIter (GHashIter** iter);
-    GBool getNext (GHashIter** iter, GString** key, void** val);
-    GBool getNext (GHashIter** iter, GString** key, int* val);
+    bool getNext (GHashIter** iter, GString** key, void** val);
+    bool getNext (GHashIter** iter, GString** key, int* val);
     void killIter (GHashIter** iter);
 
 private:
@@ -48,7 +47,7 @@ private:
     int hash (GString* key);
     int hash (const char* key);
 
-    GBool deleteKeys; // set if key strings should be deleted
+    bool deleteKeys; // set if key strings should be deleted
     int size;         // number of buckets
     int len;          // number of entries
     GHashBucket** tab;

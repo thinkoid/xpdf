@@ -19,7 +19,7 @@
 //------------------------------------------------------------------------
 
 FoFiType1* FoFiType1::make (char* fileA, int lenA) {
-    return new FoFiType1 (fileA, lenA, gFalse);
+    return new FoFiType1 (fileA, lenA, false);
 }
 
 FoFiType1* FoFiType1::load (char* fileName) {
@@ -27,10 +27,10 @@ FoFiType1* FoFiType1::load (char* fileName) {
     int lenA;
 
     if (!(fileA = FoFiBase::readFile (fileName, &lenA))) { return NULL; }
-    return new FoFiType1 (fileA, lenA, gTrue);
+    return new FoFiType1 (fileA, lenA, true);
 }
 
-FoFiType1::FoFiType1 (char* fileA, int lenA, GBool freeFileDataA)
+FoFiType1::FoFiType1 (char* fileA, int lenA, bool freeFileDataA)
     : FoFiBase (fileA, lenA, freeFileDataA) {
     name = NULL;
     encoding = NULL;
@@ -40,7 +40,7 @@ FoFiType1::FoFiType1 (char* fileA, int lenA, GBool freeFileDataA)
     fontMatrix[3] = 0.001;
     fontMatrix[4] = 0;
     fontMatrix[5] = 0;
-    parsed = gFalse;
+    parsed = false;
     undoPFB ();
 }
 
@@ -175,9 +175,9 @@ void FoFiType1::parse () {
     char buf[256];
     char c;
     int n, code, base, i, j;
-    GBool gotMatrix;
+    bool gotMatrix;
 
-    gotMatrix = gFalse;
+    gotMatrix = false;
     for (i = 1, line = (char*)file; i <= 100 && line && (!name || !encoding);
          ++i) {
         // get font name
@@ -274,26 +274,26 @@ void FoFiType1::parse () {
                     }
                 }
             }
-            gotMatrix = gTrue;
+            gotMatrix = true;
         }
         else {
             line = getNextLine (line);
         }
     }
 
-    parsed = gTrue;
+    parsed = true;
 }
 
 // Undo the PFB encoding, i.e., remove the PFB headers.
 void FoFiType1::undoPFB () {
-    GBool ok;
-    Guchar* file2;
+    bool ok;
+    unsigned char* file2;
     int pos1, pos2, type;
-    Guint segLen;
+    unsigned segLen;
 
-    ok = gTrue;
+    ok = true;
     if (getU8 (0, &ok) != 0x80 || !ok) { return; }
-    file2 = (Guchar*)gmalloc (len);
+    file2 = (unsigned char*)gmalloc (len);
     pos1 = pos2 = 0;
     while (getU8 (pos1, &ok) == 0x80 && ok) {
         type = getU8 (pos1 + 1, &ok);
@@ -307,6 +307,6 @@ void FoFiType1::undoPFB () {
     }
     if (freeFileData) { gfree (fileData); }
     file = fileData = file2;
-    freeFileData = gTrue;
+    freeFileData = true;
     len = pos2;
 }

@@ -18,7 +18,7 @@
 
 JArithmeticDecoderStats::JArithmeticDecoderStats (int contextSizeA) {
     contextSize = contextSizeA;
-    cxTab = (Guchar*)gmallocn (contextSize, sizeof (Guchar));
+    cxTab = (unsigned char*)gmallocn (contextSize, sizeof (unsigned char));
     reset ();
 }
 
@@ -38,7 +38,7 @@ void JArithmeticDecoderStats::copyFrom (JArithmeticDecoderStats* stats) {
     memcpy (cxTab, stats->cxTab, contextSize);
 }
 
-void JArithmeticDecoderStats::setEntry (Guint cx, int i, int mps) {
+void JArithmeticDecoderStats::setEntry (unsigned cx, int i, int mps) {
     cxTab[cx] = (i << 1) + mps;
 }
 
@@ -46,7 +46,7 @@ void JArithmeticDecoderStats::setEntry (Guint cx, int i, int mps) {
 // JArithmeticDecoder
 //------------------------------------------------------------------------
 
-Guint JArithmeticDecoder::qeTab[47] = {
+unsigned JArithmeticDecoder::qeTab[47] = {
     0x56010000, 0x34010000, 0x18010000, 0x0AC10000, 0x05210000, 0x02210000,
     0x56010000, 0x54010000, 0x48010000, 0x38010000, 0x30010000, 0x24010000,
     0x1C010000, 0x16010000, 0x56010000, 0x54010000, 0x51010000, 0x48010000,
@@ -77,17 +77,17 @@ int JArithmeticDecoder::switchTab[47] = { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
 JArithmeticDecoder::JArithmeticDecoder () {
     str = NULL;
     dataLen = 0;
-    limitStream = gFalse;
+    limitStream = false;
     nBytesRead = 0;
     readBuf = -1;
 }
 
-inline Guint JArithmeticDecoder::readByte () {
-    Guint x;
+inline unsigned JArithmeticDecoder::readByte () {
+    unsigned x;
 
     if (limitStream) {
         if (readBuf >= 0) {
-            x = (Guint)readBuf;
+            x = (unsigned)readBuf;
             readBuf = -1;
             return x;
         }
@@ -95,7 +95,7 @@ inline Guint JArithmeticDecoder::readByte () {
         if (dataLen < 0) { return 0xff; }
     }
     ++nBytesRead;
-    return (Guint)str->getChar () & 0xff;
+    return (unsigned)str->getChar () & 0xff;
 }
 
 JArithmeticDecoder::~JArithmeticDecoder () { cleanup (); }
@@ -113,8 +113,8 @@ void JArithmeticDecoder::start () {
 }
 
 void JArithmeticDecoder::restart (int dataLenA) {
-    Guint cAdd;
-    GBool prevFF;
+    unsigned cAdd;
+    bool prevFF;
     int k, nBits;
 
     if (dataLen >= 0) { dataLen = dataLenA; }
@@ -126,7 +126,7 @@ void JArithmeticDecoder::restart (int dataLenA) {
         k = (-dataLen - 1) * 8 - ct;
         dataLen = dataLenA;
         cAdd = 0;
-        prevFF = gFalse;
+        prevFF = false;
         while (k > 0) {
             buf0 = readByte ();
             if (prevFF) {
@@ -169,9 +169,9 @@ void JArithmeticDecoder::cleanup () {
 }
 
 int JArithmeticDecoder::decodeBit (
-    Guint context, JArithmeticDecoderStats* stats) {
+    unsigned context, JArithmeticDecoderStats* stats) {
     int bit;
-    Guint qe;
+    unsigned qe;
     int iCX, mpsCX;
 
     iCX = stats->cxTab[context] >> 1;
@@ -233,7 +233,7 @@ int JArithmeticDecoder::decodeBit (
 }
 
 int JArithmeticDecoder::decodeByte (
-    Guint context, JArithmeticDecoderStats* stats) {
+    unsigned context, JArithmeticDecoderStats* stats) {
     int byte;
     int i;
 
@@ -242,9 +242,9 @@ int JArithmeticDecoder::decodeByte (
     return byte;
 }
 
-GBool JArithmeticDecoder::decodeInt (int* x, JArithmeticDecoderStats* stats) {
+bool JArithmeticDecoder::decodeInt (int* x, JArithmeticDecoderStats* stats) {
     int s;
-    Guint v;
+    unsigned v;
     int i;
 
     prev = 1;
@@ -296,13 +296,13 @@ GBool JArithmeticDecoder::decodeInt (int* x, JArithmeticDecoderStats* stats) {
     }
 
     if (s) {
-        if (v == 0) { return gFalse; }
+        if (v == 0) { return false; }
         *x = -(int)v;
     }
     else {
         *x = (int)v;
     }
-    return gTrue;
+    return true;
 }
 
 int JArithmeticDecoder::decodeIntBit (JArithmeticDecoderStats* stats) {
@@ -316,9 +316,9 @@ int JArithmeticDecoder::decodeIntBit (JArithmeticDecoderStats* stats) {
     return bit;
 }
 
-Guint JArithmeticDecoder::decodeIAID (
-    Guint codeLen, JArithmeticDecoderStats* stats) {
-    Guint i;
+unsigned JArithmeticDecoder::decodeIAID (
+    unsigned codeLen, JArithmeticDecoderStats* stats) {
+    unsigned i;
     int bit;
 
     prev = 1;

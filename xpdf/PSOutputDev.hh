@@ -56,7 +56,7 @@ public:
     PSOutputDev (
         const char* fileName, PDFDoc* docA, int firstPage, int lastPage,
         PSOutMode modeA, int imgLLXA = 0, int imgLLYA = 0, int imgURXA = 0,
-        int imgURYA = 0, GBool manualCtrlA = gFalse,
+        int imgURYA = 0, bool manualCtrlA = false,
         PSOutCustomCodeCbk customCodeCbkA = NULL,
         void* customCodeCbkDataA = NULL);
 
@@ -65,44 +65,44 @@ public:
         PSOutputFunc outputFuncA, void* outputStreamA, PDFDoc* docA,
         int firstPage, int lastPage, PSOutMode modeA, int imgLLXA = 0,
         int imgLLYA = 0, int imgURXA = 0, int imgURYA = 0,
-        GBool manualCtrlA = gFalse, PSOutCustomCodeCbk customCodeCbkA = NULL,
+        bool manualCtrlA = false, PSOutCustomCodeCbk customCodeCbkA = NULL,
         void* customCodeCbkDataA = NULL);
 
     // Destructor -- writes the trailer and closes the file.
     virtual ~PSOutputDev ();
 
     // Check if file was successfully created.
-    virtual GBool isOk () { return ok; }
+    virtual bool isOk () { return ok; }
 
     // Returns false if there have been any errors on the output stream.
-    GBool checkIO ();
+    bool checkIO ();
 
     //---- get info about output device
 
     // Does this device use upside-down coordinates?
     // (Upside-down means (0,0) is the top left corner of the page.)
-    virtual GBool upsideDown () { return gFalse; }
+    virtual bool upsideDown () { return false; }
 
     // Does this device use drawChar() or drawString()?
-    virtual GBool useDrawChar () { return gFalse; }
+    virtual bool useDrawChar () { return false; }
 
     // Does this device use tilingPatternFill()?  If this returns false,
     // tiling pattern fills will be reduced to a series of other drawing
     // operations.
-    virtual GBool useTilingPatternFill () { return gTrue; }
+    virtual bool useTilingPatternFill () { return true; }
 
     // Does this device use functionShadedFill(), axialShadedFill(), and
     // radialShadedFill()?  If this returns false, these shaded fills
     // will be reduced to a series of other drawing operations.
-    virtual GBool useShadedFills () { return level >= psLevel2; }
+    virtual bool useShadedFills () { return level >= psLevel2; }
 
     // Does this device use drawForm()?  If this returns false,
     // form-type XObjects will be interpreted (i.e., unrolled).
-    virtual GBool useDrawForm () { return preload; }
+    virtual bool useDrawForm () { return preload; }
 
     // Does this device use beginType3Char/endType3Char?  Otherwise,
     // text in Type 3 fonts will be drawn with drawChar/drawString.
-    virtual GBool interpretType3Chars () { return gFalse; }
+    virtual bool interpretType3Chars () { return false; }
 
     //----- header/trailer (used only if manualCtrl is true)
 
@@ -129,10 +129,10 @@ public:
     // returns false, the page display is aborted.  Typically, an
     // OutputDev will use some alternate means to display the page
     // before returning false.
-    virtual GBool checkPageSlice (
-        Page* page, double hDPI, double vDPI, int rotate, GBool useMediaBox,
-        GBool crop, int sliceX, int sliceY, int sliceW, int sliceH,
-        GBool printing, GBool (*abortCheckCbk) (void* data) = NULL,
+    virtual bool checkPageSlice (
+        Page* page, double hDPI, double vDPI, int rotate, bool useMediaBox,
+        bool crop, int sliceX, int sliceY, int sliceW, int sliceH,
+        bool printing, bool (*abortCheckCbk) (void* data) = NULL,
         void* abortCheckCbkData = NULL);
 
     // Start a page.
@@ -184,10 +184,10 @@ public:
         GfxState* state, Gfx* gfx, Object* strRef, int paintType, Dict* resDict,
         double* mat, double* bbox, int x0, int y0, int x1, int y1, double xStep,
         double yStep);
-    virtual GBool
+    virtual bool
     functionShadedFill (GfxState* state, GfxFunctionShading* shading);
-    virtual GBool axialShadedFill (GfxState* state, GfxAxialShading* shading);
-    virtual GBool radialShadedFill (GfxState* state, GfxRadialShading* shading);
+    virtual bool axialShadedFill (GfxState* state, GfxAxialShading* shading);
+    virtual bool radialShadedFill (GfxState* state, GfxRadialShading* shading);
 
     //----- path clipping
     virtual void clip (GfxState* state);
@@ -201,15 +201,15 @@ public:
     //----- image drawing
     virtual void drawImageMask (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GBool invert, GBool inlineImg, GBool interpolate);
+        bool invert, bool inlineImg, bool interpolate);
     virtual void drawImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-        GBool interpolate);
+        GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+        bool interpolate);
     virtual void drawMaskedImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
         GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth,
-        int maskHeight, GBool maskInvert, GBool interpolate);
+        int maskHeight, bool maskInvert, bool interpolate);
 
 #if OPI_SUPPORT
     //----- OPI functions
@@ -267,7 +267,7 @@ private:
     void init (
         PSOutputFunc outputFuncA, void* outputStreamA, PSFileType fileTypeA,
         PDFDoc* docA, int firstPage, int lastPage, PSOutMode modeA, int imgLLXA,
-        int imgLLYA, int imgURXA, int imgURYA, GBool manualCtrlA);
+        int imgLLYA, int imgURXA, int imgURYA, bool manualCtrlA);
     void setupResources (Dict* resDict);
     void setupFonts (Dict* resDict);
     void setupFont (GfxFont* font, Dict* parentResDict);
@@ -280,43 +280,43 @@ private:
     setupExternalTrueTypeFont (GfxFont* font, GString* fileName, int fontNum);
     PSFontFileInfo* setupEmbeddedCIDType0Font (GfxFont* font, Ref* id);
     PSFontFileInfo* setupEmbeddedCIDTrueTypeFont (
-        GfxFont* font, Ref* id, GBool needVerticalMetrics);
+        GfxFont* font, Ref* id, bool needVerticalMetrics);
     PSFontFileInfo* setupExternalCIDTrueTypeFont (
         GfxFont* font, GString* fileName, int fontNum,
-        GBool needVerticalMetrics);
+        bool needVerticalMetrics);
     PSFontFileInfo* setupEmbeddedOpenTypeCFFFont (GfxFont* font, Ref* id);
     PSFontFileInfo* setupType3Font (GfxFont* font, Dict* parentResDict);
     GString* makePSFontName (GfxFont* font, Ref* id);
     void setupImages (Dict* resDict);
-    void setupImage (Ref id, Stream* str, GBool mask);
+    void setupImage (Ref id, Stream* str, bool mask);
     void setupForms (Dict* resDict);
     void setupForm (Object* strRef, Object* strObj);
     void addProcessColor (double c, double m, double y, double k);
     void addCustomColor (GfxSeparationColorSpace* sepCS);
     void doPath (GfxPath* path);
     void doImageL1 (
-        Object* ref, GfxImageColorMap* colorMap, GBool invert, GBool inlineImg,
+        Object* ref, GfxImageColorMap* colorMap, bool invert, bool inlineImg,
         Stream* str, int width, int height, int len);
     void doImageL1Sep (
-        GfxImageColorMap* colorMap, GBool invert, GBool inlineImg, Stream* str,
+        GfxImageColorMap* colorMap, bool invert, bool inlineImg, Stream* str,
         int width, int height, int len);
     void doImageL2 (
-        Object* ref, GfxImageColorMap* colorMap, GBool invert, GBool inlineImg,
+        Object* ref, GfxImageColorMap* colorMap, bool invert, bool inlineImg,
         Stream* str, int width, int height, int len, int* maskColors,
-        Stream* maskStr, int maskWidth, int maskHeight, GBool maskInvert);
+        Stream* maskStr, int maskWidth, int maskHeight, bool maskInvert);
     void doImageL3 (
-        Object* ref, GfxImageColorMap* colorMap, GBool invert, GBool inlineImg,
+        Object* ref, GfxImageColorMap* colorMap, bool invert, bool inlineImg,
         Stream* str, int width, int height, int len, int* maskColors,
-        Stream* maskStr, int maskWidth, int maskHeight, GBool maskInvert);
+        Stream* maskStr, int maskWidth, int maskHeight, bool maskInvert);
     void dumpColorSpaceL2 (
-        GfxColorSpace* colorSpace, GBool genXform, GBool updateColors,
-        GBool map01);
+        GfxColorSpace* colorSpace, bool genXform, bool updateColors,
+        bool map01);
 #if OPI_SUPPORT
     void opiBegin20 (GfxState* state, Dict* dict);
     void opiBegin13 (GfxState* state, Dict* dict);
     void opiTransform (
         GfxState* state, double x0, double y0, double* x1, double* y1);
-    GBool getFileSpec (Object* fileSpec, Object* fileName);
+    bool getFileSpec (Object* fileSpec, Object* fileName);
 #endif
     void cvtFunction (Function* func);
     GString* filterPSName (GString* name);
@@ -326,16 +326,16 @@ private:
     PSOutMode mode;     // PostScript mode (PS, EPS, form)
     int paperWidth;     // width of paper, in pts
     int paperHeight;    // height of paper, in pts
-    GBool paperMatch;   // true if paper size is set to match each page
+    bool paperMatch;   // true if paper size is set to match each page
     int imgLLX, imgLLY, // imageable area, in pts
         imgURX, imgURY;
-    GBool preload; // load all images into memory, and
+    bool preload; // load all images into memory, and
                    //   predefine forms
 
     PSOutputFunc outputFunc;
     void* outputStream;
     PSFileType fileType; // file / pipe / stdout
-    GBool manualCtrl;
+    bool manualCtrl;
     int seqPage; // current sequential page number
     void (*underlayCbk) (PSOutputDev* psOut, void* data);
     void* underlayCbkData;
@@ -380,23 +380,23 @@ private:
     PSOutCustomColor   // used custom colors
         * customColors;
 
-    GBool haveTextClip; // set if text has been drawn with a
+    bool haveTextClip; // set if text has been drawn with a
                         //   clipping render mode
 
-    GBool inType3Char; // inside a Type 3 CharProc
+    bool inType3Char; // inside a Type 3 CharProc
     GString* t3String; // Type 3 content string
     double t3WX, t3WY, // Type 3 character parameters
         t3LLX, t3LLY, t3URX, t3URY;
-    GBool t3FillColorOnly; // operators should only use the fill color
-    GBool t3Cacheable;     // cleared if char is not cacheable
-    GBool t3NeedsRestore;  // set if a 'q' operator was issued
+    bool t3FillColorOnly; // operators should only use the fill color
+    bool t3Cacheable;     // cleared if char is not cacheable
+    bool t3NeedsRestore;  // set if a 'q' operator was issued
 
 #if OPI_SUPPORT
     int opi13Nest; // nesting level of OPI 1.3 objects
     int opi20Nest; // nesting level of OPI 2.0 objects
 #endif
 
-    GBool ok; // set up ok?
+    bool ok; // set up ok?
 
     friend class WinPDFPrinter;
 };

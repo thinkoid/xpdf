@@ -20,11 +20,11 @@
 //------------------------------------------------------------------------
 
 // Compute x * y / 255, where x and y are in [0, 255].
-static inline Guchar mul255 (Guchar x, Guchar y) {
+static inline unsigned char mul255 (unsigned char x, unsigned char y) {
     int z;
 
     z = (int)x * (int)y;
-    return (Guchar) ((z + (z >> 8) + 0x80) >> 8);
+    return (unsigned char) ((z + (z >> 8) + 0x80) >> 8);
 }
 
 //------------------------------------------------------------------------
@@ -43,13 +43,13 @@ SplashClip::SplashClip (
     yMin = hardYMin;
     xMax = hardXMax;
     yMax = hardYMax;
-    intBoundsValid = gFalse;
+    intBoundsValid = false;
     paths = NULL;
     eo = NULL;
     scanners = NULL;
     length = size = 0;
     if ((w = hardXMax + 1) <= 0) { w = 1; }
-    buf = (Guchar*)gmalloc (w);
+    buf = (unsigned char*)gmalloc (w);
 }
 
 SplashClip::SplashClip (SplashClip* clip) {
@@ -72,7 +72,7 @@ SplashClip::SplashClip (SplashClip* clip) {
     length = clip->length;
     size = clip->size;
     paths = (SplashXPath**)gmallocn (size, sizeof (SplashXPath*));
-    eo = (Guchar*)gmallocn (size, sizeof (Guchar));
+    eo = (unsigned char*)gmallocn (size, sizeof (unsigned char));
     scanners =
         (SplashXPathScanner**)gmallocn (size, sizeof (SplashXPathScanner*));
     for (i = 0; i < length; ++i) {
@@ -81,7 +81,7 @@ SplashClip::SplashClip (SplashClip* clip) {
         scanners[i] = new SplashXPathScanner (paths[i], eo[i], yMinI, yMaxI);
     }
     if ((w = splashCeil (xMax)) <= 0) { w = 1; }
-    buf = (Guchar*)gmalloc (w);
+    buf = (unsigned char*)gmalloc (w);
 }
 
 SplashClip::~SplashClip () {
@@ -102,7 +102,7 @@ void SplashClip::grow (int nPaths) {
         if (size == 0) { size = 32; }
         while (size < length + nPaths) { size *= 2; }
         paths = (SplashXPath**)greallocn (paths, size, sizeof (SplashXPath*));
-        eo = (Guchar*)greallocn (eo, size, sizeof (Guchar));
+        eo = (unsigned char*)greallocn (eo, size, sizeof (unsigned char));
         scanners = (SplashXPathScanner**)greallocn (
             scanners, size, sizeof (SplashXPathScanner*));
     }
@@ -141,9 +141,9 @@ void SplashClip::resetToRect (
         yMin = y1;
         yMax = y0;
     }
-    intBoundsValid = gFalse;
+    intBoundsValid = false;
     if ((w = splashCeil (xMax)) <= 0) { w = 1; }
-    buf = (Guchar*)gmalloc (w);
+    buf = (unsigned char*)gmalloc (w);
 }
 
 SplashError SplashClip::clipToRect (
@@ -151,58 +151,58 @@ SplashError SplashClip::clipToRect (
     if (x0 < x1) {
         if (x0 > xMin) {
             xMin = x0;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
         if (x1 < xMax) {
             xMax = x1;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
     }
     else {
         if (x1 > xMin) {
             xMin = x1;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
         if (x0 < xMax) {
             xMax = x0;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
     }
     if (y0 < y1) {
         if (y0 > yMin) {
             yMin = y0;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
         if (y1 < yMax) {
             yMax = y1;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
     }
     else {
         if (y1 > yMin) {
             yMin = y1;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
         if (y0 < yMax) {
             yMax = y0;
-            intBoundsValid = gFalse;
+            intBoundsValid = false;
         }
     }
     return splashOk;
 }
 
 SplashError SplashClip::clipToPath (
-    SplashPath* path, SplashCoord* matrix, SplashCoord flatness, GBool eoA) {
+    SplashPath* path, SplashCoord* matrix, SplashCoord flatness, bool eoA) {
     SplashXPath* xPath;
     SplashCoord t;
 
-    xPath = new SplashXPath (path, matrix, flatness, gTrue);
+    xPath = new SplashXPath (path, matrix, flatness, true);
 
     // check for an empty path
     if (xPath->length == 0) {
         xMin = yMin = 1;
         xMax = yMax = 0;
-        intBoundsValid = gFalse;
+        intBoundsValid = false;
         delete xPath;
         return splashOk;
     }
@@ -241,12 +241,12 @@ SplashError SplashClip::clipToPath (
 
     grow (1);
     paths[length] = xPath;
-    eo[length] = (Guchar)eoA;
+    eo[length] = (unsigned char)eoA;
     if ((t = xPath->getXMin ()) > xMin) { xMin = t; }
     if ((t = xPath->getYMin ()) > yMin) { yMin = t; }
     if ((t = xPath->getXMax () + 1) < xMax) { xMax = t; }
     if ((t = xPath->getYMax () + 1) < yMax) { yMax = t; }
-    intBoundsValid = gFalse;
+    intBoundsValid = false;
     scanners[length] = new SplashXPathScanner (
         xPath, eoA, splashFloor (yMin), splashCeil (yMax) - 1);
     ++length;
@@ -256,7 +256,7 @@ SplashError SplashClip::clipToPath (
 
 SplashClipResult SplashClip::testRect (
     int rectXMin, int rectYMin, int rectXMax, int rectYMax,
-    GBool strokeAdjust) {
+    bool strokeAdjust) {
     // In general, this function tests the rectangle:
     //     x = [rectXMin, rectXMax + 1)    (note: coords are ints)
     //     y = [rectYMin, rectYMax + 1)
@@ -299,7 +299,7 @@ SplashClipResult SplashClip::testRect (
 }
 
 void SplashClip::clipSpan (
-    Guchar* line, int y, int x0, int x1, GBool strokeAdjust) {
+    unsigned char* line, int y, int x0, int x1, bool strokeAdjust) {
     SplashCoord d;
     int x0a, x1a, x, i;
 
@@ -333,20 +333,20 @@ void SplashClip::clipSpan (
         // clip left edge (xMin)
         if (x0a == xMinI) {
             d = (SplashCoord) (xMinI + 1) - xMin;
-            line[x0a] = (Guchar) (int)((SplashCoord)line[x0a] * d);
+            line[x0a] = (unsigned char) (int)((SplashCoord)line[x0a] * d);
         }
 
         // clip right edge (xMax)
         if (x1a == xMaxI) {
             d = xMax - (SplashCoord)xMaxI;
-            line[x1a] = (Guchar) (int)((SplashCoord)line[x1a] * d);
+            line[x1a] = (unsigned char) (int)((SplashCoord)line[x1a] * d);
         }
 
         // clip top edge (yMin)
         if (y == yMinI) {
             d = (SplashCoord) (yMinI + 1) - yMin;
             for (x = x0a; x <= x1a; ++x) {
-                line[x] = (Guchar) (int)((SplashCoord)line[x] * d);
+                line[x] = (unsigned char) (int)((SplashCoord)line[x] * d);
             }
         }
 
@@ -354,7 +354,7 @@ void SplashClip::clipSpan (
         if (y == yMaxI) {
             d = yMax - (SplashCoord)yMaxI;
             for (x = x0a; x <= x1a; ++x) {
-                line[x] = (Guchar) (int)((SplashCoord)line[x] * d);
+                line[x] = (unsigned char) (int)((SplashCoord)line[x] * d);
             }
         }
     }
@@ -369,16 +369,16 @@ void SplashClip::clipSpan (
     }
 }
 
-GBool SplashClip::clipSpanBinary (
-    Guchar* line, int y, int x0, int x1, GBool strokeAdjust) {
+bool SplashClip::clipSpanBinary (
+    unsigned char* line, int y, int x0, int x1, bool strokeAdjust) {
     int x0a, x1a, x0b, x1b, x, i;
-    Guchar any;
+    unsigned char any;
 
     updateIntBounds (strokeAdjust);
 
     if (y < yMinI || y > yMaxI || x1 < xMinI || x0 > xMaxI) {
         if (x0 <= x1) { memset (line + x0, 0, x1 - x0 + 1); }
-        return gFalse;
+        return false;
     }
 
     if (x0 > xMinI) { x0a = x0; }
@@ -393,13 +393,13 @@ GBool SplashClip::clipSpanBinary (
         memset (line + x1a + 1, 0, x1 - x1a);
     }
 
-    if (x0a > x1a) { return gFalse; }
+    if (x0a > x1a) { return false; }
 
     if (length == 0) {
         for (x = x0a; x <= x1a; ++x) {
-            if (line[x]) { return gTrue; }
+            if (line[x]) { return true; }
         }
-        return gFalse;
+        return false;
     }
 
     any = 0;
@@ -420,27 +420,27 @@ GBool SplashClip::clipSpanBinary (
     return any != 0;
 }
 
-int SplashClip::getXMinI (GBool strokeAdjust) {
+int SplashClip::getXMinI (bool strokeAdjust) {
     updateIntBounds (strokeAdjust);
     return xMinI;
 }
 
-int SplashClip::getXMaxI (GBool strokeAdjust) {
+int SplashClip::getXMaxI (bool strokeAdjust) {
     updateIntBounds (strokeAdjust);
     return xMaxI;
 }
 
-int SplashClip::getYMinI (GBool strokeAdjust) {
+int SplashClip::getYMinI (bool strokeAdjust) {
     updateIntBounds (strokeAdjust);
     return yMinI;
 }
 
-int SplashClip::getYMaxI (GBool strokeAdjust) {
+int SplashClip::getYMaxI (bool strokeAdjust) {
     updateIntBounds (strokeAdjust);
     return yMaxI;
 }
 
-void SplashClip::updateIntBounds (GBool strokeAdjust) {
+void SplashClip::updateIntBounds (bool strokeAdjust) {
     if (intBoundsValid && strokeAdjust == intBoundsStrokeAdjust) { return; }
     if (strokeAdjust && length == 0) {
         splashStrokeAdjust (xMin, xMax, &xMinI, &xMaxI);
@@ -459,6 +459,6 @@ void SplashClip::updateIntBounds (GBool strokeAdjust) {
     // the clipping code uses [xMinI, xMaxI] instead of [xMinI, xMaxI)
     --xMaxI;
     --yMaxI;
-    intBoundsValid = gTrue;
+    intBoundsValid = true;
     intBoundsStrokeAdjust = strokeAdjust;
 }

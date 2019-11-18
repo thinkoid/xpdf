@@ -112,7 +112,7 @@ AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
 
 AcroForm::AcroForm (PDFDoc* docA, Object* acroFormObjA) : Form (docA) {
     acroFormObjA->copy (&acroFormObj);
-    needAppearances = gFalse;
+    needAppearances = false;
     annotPages = new GList ();
     fields = new GList ();
 }
@@ -162,7 +162,7 @@ int AcroForm::lookupAnnotPage (Object* annotRef) {
 void AcroForm::scanField (Object* fieldRef) {
     AcroFormField* field;
     Object fieldObj, kidsObj, kidRef, kidObj, subtypeObj;
-    GBool isTerminal;
+    bool isTerminal;
     int i;
 
     fieldRef->fetch (doc->getXRef (), &fieldObj);
@@ -176,14 +176,14 @@ void AcroForm::scanField (Object* fieldRef) {
     // reference (i.e., they're all form fields, not widget
     // annotations), then this is a non-terminal field, and we need to
     // scan the kids
-    isTerminal = gTrue;
+    isTerminal = true;
     if (fieldObj.dictLookup ("Kids", &kidsObj)->isArray ()) {
-        isTerminal = gFalse;
+        isTerminal = false;
         for (i = 0; !isTerminal && i < kidsObj.arrayGetLength (); ++i) {
             kidsObj.arrayGet (i, &kidObj);
             if (kidObj.isDict ()) {
                 if (kidObj.dictLookup ("Parent", &subtypeObj)->isNull ()) {
-                    isTerminal = gTrue;
+                    isTerminal = true;
                 }
                 subtypeObj.free ();
             }
@@ -208,7 +208,7 @@ void AcroForm::scanField (Object* fieldRef) {
     fieldObj.free ();
 }
 
-void AcroForm::draw (int pageNum, Gfx* gfx, GBool printing) {
+void AcroForm::draw (int pageNum, Gfx* gfx, bool printing) {
     int i;
 
     for (i = 0; i < fields->getLength (); ++i) {
@@ -229,8 +229,8 @@ FormField* AcroForm::getField (int idx) {
 AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     GString* typeStr;
     TextString* nameA;
-    Guint flagsA;
-    GBool haveFlags;
+    unsigned flagsA;
+    bool haveFlags;
     Object fieldObjA, parentObj, parentObj2, obj1, obj2;
     AcroFormFieldType typeA;
     AcroFormField* field;
@@ -256,12 +256,12 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     obj1.free ();
 
     if (fieldObjA.dictLookup ("Ff", &obj1)->isInt ()) {
-        flagsA = (Guint)obj1.getInt ();
-        haveFlags = gTrue;
+        flagsA = (unsigned)obj1.getInt ();
+        haveFlags = true;
     }
     else {
         flagsA = 0;
-        haveFlags = gFalse;
+        haveFlags = false;
     }
     obj1.free ();
 
@@ -284,8 +284,8 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
 
         if (!haveFlags) {
             if (parentObj.dictLookup ("Ff", &obj1)->isInt ()) {
-                flagsA = (Guint)obj1.getInt ();
-                haveFlags = gTrue;
+                flagsA = (unsigned)obj1.getInt ();
+                haveFlags = true;
             }
             obj1.free ();
         }
@@ -351,7 +351,7 @@ err1:
 
 AcroFormField::AcroFormField (
     AcroForm* acroFormA, Object* fieldRefA, Object* fieldObjA,
-    AcroFormFieldType typeA, TextString* nameA, Guint flagsA) {
+    AcroFormFieldType typeA, TextString* nameA, unsigned flagsA) {
     acroForm = acroFormA;
     fieldRefA->copy (&fieldRef);
     fieldObjA->copy (&fieldObj);
@@ -423,7 +423,7 @@ Unicode* AcroFormField::getValue (int* length) {
     }
 }
 
-void AcroFormField::draw (int pageNum, Gfx* gfx, GBool printing) {
+void AcroFormField::draw (int pageNum, Gfx* gfx, bool printing) {
     Object kidsObj, annotRef, annotObj;
     int i;
 
@@ -444,11 +444,11 @@ void AcroFormField::draw (int pageNum, Gfx* gfx, GBool printing) {
 }
 
 void AcroFormField::drawAnnot (
-    int pageNum, Gfx* gfx, GBool printing, Object* annotRef, Object* annotObj) {
+    int pageNum, Gfx* gfx, bool printing, Object* annotRef, Object* annotObj) {
     Object obj1, obj2;
     double xMin, yMin, xMax, yMax, t;
     int annotFlags;
-    GBool oc;
+    bool oc;
 
     if (!annotObj->isDict ()) { return; }
 
@@ -570,11 +570,11 @@ void AcroFormField::drawNewAppearance (
     Dict* mkDict;
     MemStream* appearStream;
     GfxFontDict* fontDict;
-    GBool hasCaption;
+    bool hasCaption;
     double dx, dy, r;
     GString *caption, *da;
     GString** text;
-    GBool* selection;
+    bool* selection;
     AnnotBorderType borderType;
     double borderWidth;
     double* borderDash;
@@ -593,7 +593,7 @@ void AcroFormField::drawNewAppearance (
     if (mkDict) {
         if (mkDict->lookup ("BG", &obj1)->isArray () &&
             obj1.arrayGetLength () > 0) {
-            setColor (obj1.getArray (), gTrue, 0);
+            setColor (obj1.getArray (), true, 0);
             appearBuf->appendf (
                 "0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
         }
@@ -706,23 +706,23 @@ void AcroFormField::drawNewAppearance (
                     case annotBorderSolid:
                     case annotBorderUnderlined:
                         appearBuf->appendf ("{0:.4f} w\n", borderWidth);
-                        setColor (obj1.getArray (), gFalse, 0);
+                        setColor (obj1.getArray (), false, 0);
                         drawCircle (
                             0.5 * dx, 0.5 * dy, r - 0.5 * borderWidth, "s");
                         break;
                     case annotBorderBeveled:
                     case annotBorderInset:
                         appearBuf->appendf ("{0:.4f} w\n", 0.5 * borderWidth);
-                        setColor (obj1.getArray (), gFalse, 0);
+                        setColor (obj1.getArray (), false, 0);
                         drawCircle (
                             0.5 * dx, 0.5 * dy, r - 0.25 * borderWidth, "s");
                         setColor (
-                            obj1.getArray (), gFalse,
+                            obj1.getArray (), false,
                             borderType == annotBorderBeveled ? 1 : -1);
                         drawCircleTopLeft (
                             0.5 * dx, 0.5 * dy, r - 0.75 * borderWidth);
                         setColor (
-                            obj1.getArray (), gFalse,
+                            obj1.getArray (), false,
                             borderType == annotBorderBeveled ? -1 : 1);
                         drawCircleBottomRight (
                             0.5 * dx, 0.5 * dy, r - 0.75 * borderWidth);
@@ -740,7 +740,7 @@ void AcroFormField::drawNewAppearance (
                         // fall through to the solid case
                     case annotBorderSolid:
                         appearBuf->appendf ("{0:.4f} w\n", borderWidth);
-                        setColor (obj1.getArray (), gFalse, 0);
+                        setColor (obj1.getArray (), false, 0);
                         appearBuf->appendf (
                             "{0:.4f} {0:.4f} {1:.4f} {2:.4f} re s\n",
                             0.5 * borderWidth, dx - borderWidth,
@@ -749,7 +749,7 @@ void AcroFormField::drawNewAppearance (
                     case annotBorderBeveled:
                     case annotBorderInset:
                         setColor (
-                            obj1.getArray (), gTrue,
+                            obj1.getArray (), true,
                             borderType == annotBorderBeveled ? 1 : -1);
                         appearBuf->append ("0 0 m\n");
                         appearBuf->appendf ("0 {0:.4f} l\n", dy);
@@ -763,7 +763,7 @@ void AcroFormField::drawNewAppearance (
                         appearBuf->appendf ("{0:.4f} {0:.4f} l\n", borderWidth);
                         appearBuf->append ("f\n");
                         setColor (
-                            obj1.getArray (), gTrue,
+                            obj1.getArray (), true,
                             borderType == annotBorderBeveled ? -1 : 1);
                         appearBuf->append ("0 0 m\n");
                         appearBuf->appendf ("{0:.4f} 0 l\n", dx);
@@ -779,7 +779,7 @@ void AcroFormField::drawNewAppearance (
                         break;
                     case annotBorderUnderlined:
                         appearBuf->appendf ("{0:.4f} w\n", borderWidth);
-                        setColor (obj1.getArray (), gFalse, 0);
+                        setColor (obj1.getArray (), false, 0);
                         appearBuf->appendf ("0 0 m {0:.4f} 0 l s\n", dx);
                         break;
                     }
@@ -856,8 +856,8 @@ void AcroFormField::drawNewAppearance (
                     ->isName (appearanceState->c_str ())) {
                 if (caption) {
                     drawText (
-                        caption, da, fontDict, gFalse, 0, acroFormQuadCenter,
-                        gFalse, gTrue, rot, xMin, yMin, xMax, yMax,
+                        caption, da, fontDict, false, 0, acroFormQuadCenter,
+                        false, true, rot, xMin, yMin, xMax, yMax,
                         borderWidth);
                 }
                 else {
@@ -866,7 +866,7 @@ void AcroFormField::drawNewAppearance (
                             obj2.arrayGetLength () > 0) {
                             dx = xMax - xMin;
                             dy = yMax - yMin;
-                            setColor (obj2.getArray (), gTrue, 0);
+                            setColor (obj2.getArray (), true, 0);
                             drawCircle (
                                 0.5 * dx, 0.5 * dy, 0.2 * (dx < dy ? dx : dy),
                                 "f");
@@ -881,8 +881,8 @@ void AcroFormField::drawNewAppearance (
         else if (flags & acroFormFlagPushbutton) {
             if (caption) {
                 drawText (
-                    caption, da, fontDict, gFalse, 0, acroFormQuadCenter,
-                    gFalse, gFalse, rot, xMin, yMin, xMax, yMax, borderWidth);
+                    caption, da, fontDict, false, 0, acroFormQuadCenter,
+                    false, false, rot, xMin, yMin, xMax, yMax, borderWidth);
             }
             // checkbox
         }
@@ -893,8 +893,8 @@ void AcroFormField::drawNewAppearance (
                     caption = new GString ("3"); // ZapfDingbats checkmark
                 }
                 drawText (
-                    caption, da, fontDict, gFalse, 0, acroFormQuadCenter,
-                    gFalse, gTrue, rot, xMin, yMin, xMax, yMax, borderWidth);
+                    caption, da, fontDict, false, 0, acroFormQuadCenter,
+                    false, true, rot, xMin, yMin, xMax, yMax, borderWidth);
             }
             obj1.free ();
         }
@@ -923,7 +923,7 @@ void AcroFormField::drawNewAppearance (
             }
             drawText (
                 obj1.getString (), da, fontDict, flags & acroFormFlagMultiline,
-                comb, quadding, gTrue, gFalse, rot, xMin, yMin, xMax, yMax,
+                comb, quadding, true, false, rot, xMin, yMin, xMax, yMax,
                 borderWidth);
         }
         obj1.free ();
@@ -939,8 +939,8 @@ void AcroFormField::drawNewAppearance (
         if (flags & acroFormFlagCombo) {
             if (fieldLookup ("V", &obj1)->isString ()) {
                 drawText (
-                    obj1.getString (), da, fontDict, gFalse, 0, quadding, gTrue,
-                    gFalse, rot, xMin, yMin, xMax, yMax, borderWidth);
+                    obj1.getString (), da, fontDict, false, 0, quadding, true,
+                    false, rot, xMin, yMin, xMax, yMax, borderWidth);
                 //~ Acrobat draws a popup icon on the right side
             }
             obj1.free ();
@@ -967,21 +967,21 @@ void AcroFormField::drawNewAppearance (
                     if (!text[i]) { text[i] = new GString (); }
                 }
                 // get the selected option(s)
-                selection = (GBool*)gmallocn (nOptions, sizeof (GBool));
+                selection = (bool*)gmallocn (nOptions, sizeof (bool));
                 //~ need to use the I field in addition to the V field
                 fieldLookup ("V", &obj2);
                 for (i = 0; i < nOptions; ++i) {
-                    selection[i] = gFalse;
+                    selection[i] = false;
                     if (obj2.isString ()) {
                         if (!obj2.getString ()->cmp (text[i])) {
-                            selection[i] = gTrue;
+                            selection[i] = true;
                         }
                     }
                     else if (obj2.isArray ()) {
                         for (j = 0; j < obj2.arrayGetLength (); ++j) {
                             if (obj2.arrayGet (j, &obj3)->isString () &&
                                 !obj3.getString ()->cmp (text[i])) {
-                                selection[i] = gTrue;
+                                selection[i] = true;
                             }
                             obj3.free ();
                         }
@@ -1055,7 +1055,7 @@ void AcroFormField::drawNewAppearance (
 // have 1, 3, or 4 elements).  If <adjust> is +1, color is brightened;
 // if <adjust> is -1, color is darkened; otherwise color is not
 // modified.
-void AcroFormField::setColor (Array* a, GBool fill, int adjust) {
+void AcroFormField::setColor (Array* a, bool fill, int adjust) {
     Object obj1;
     double color[4];
     int nComps, i;
@@ -1093,8 +1093,8 @@ void AcroFormField::setColor (Array* a, GBool fill, int adjust) {
 
 // Draw the variable text or caption for a field.
 void AcroFormField::drawText (
-    GString* text, GString* da, GfxFontDict* fontDict, GBool multiline,
-    int comb, int quadding, GBool txField, GBool forceZapfDingbats, int rot,
+    GString* text, GString* da, GfxFontDict* fontDict, bool multiline,
+    int comb, int quadding, bool txField, bool forceZapfDingbats, int rot,
     double xMin, double yMin, double xMax, double yMax, double border) {
     GString* text2;
     GList* daToks;
@@ -1475,8 +1475,8 @@ void AcroFormField::drawText (
 
 // Draw the variable text or caption for a field.
 void AcroFormField::drawListBox (
-    GString** text, GBool* selection, int nOptions, int topIdx, GString* da,
-    GfxFontDict* fontDict, GBool quadding, double xMin, double yMin,
+    GString** text, bool* selection, int nOptions, int topIdx, GString* da,
+    GfxFontDict* fontDict, bool quadding, double xMin, double yMin,
     double xMax, double yMax, double border) {
     GList* daToks;
     GString* tok;

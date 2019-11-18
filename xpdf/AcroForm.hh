@@ -28,7 +28,7 @@ public:
 
     virtual const char* getType () { return "AcroForm"; }
 
-    virtual void draw (int pageNum, Gfx* gfx, GBool printing);
+    virtual void draw (int pageNum, Gfx* gfx, bool printing);
 
     virtual int getNumFields ();
     virtual FormField* getField (int idx);
@@ -40,7 +40,7 @@ private:
     void scanField (Object* fieldRef);
 
     Object acroFormObj;
-    GBool needAppearances;
+    bool needAppearances;
     GList* annotPages; // [AcroFormAnnotPage]
     GList* fields;     // [AcroFormField]
 
@@ -76,10 +76,10 @@ public:
 private:
     AcroFormField (
         AcroForm* acroFormA, Object* fieldRefA, Object* fieldObjA,
-        AcroFormFieldType typeA, TextString* nameA, Guint flagsA);
-    void draw (int pageNum, Gfx* gfx, GBool printing);
+        AcroFormFieldType typeA, TextString* nameA, unsigned flagsA);
+    void draw (int pageNum, Gfx* gfx, bool printing);
     void drawAnnot (
-        int pageNum, Gfx* gfx, GBool printing, Object* annotRef,
+        int pageNum, Gfx* gfx, bool printing, Object* annotRef,
         Object* annotObj);
     void drawExistingAppearance (
         Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax,
@@ -87,14 +87,14 @@ private:
     void drawNewAppearance (
         Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax,
         double yMax);
-    void setColor (Array* a, GBool fill, int adjust);
+    void setColor (Array* a, bool fill, int adjust);
     void drawText (
-        GString* text, GString* da, GfxFontDict* fontDict, GBool multiline,
-        int comb, int quadding, GBool txField, GBool forceZapfDingbats, int rot,
+        GString* text, GString* da, GfxFontDict* fontDict, bool multiline,
+        int comb, int quadding, bool txField, bool forceZapfDingbats, int rot,
         double xMin, double yMin, double xMax, double yMax, double border);
     void drawListBox (
-        GString** text, GBool* selection, int nOptions, int topIdx, GString* da,
-        GfxFontDict* fontDict, GBool quadding, double xMin, double yMin,
+        GString** text, bool* selection, int nOptions, int topIdx, GString* da,
+        GfxFontDict* fontDict, bool quadding, double xMin, double yMin,
         double xMax, double yMax, double border);
     void getNextLine (
         GString* text, int start, GfxFont* font, double fontSize, double wMax,
@@ -111,7 +111,7 @@ private:
     Object fieldObj;
     AcroFormFieldType type;
     TextString* name;
-    Guint flags;
+    unsigned flags;
     GString* appearBuf;
 
     friend class AcroForm;

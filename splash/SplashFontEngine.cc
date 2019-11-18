@@ -27,7 +27,7 @@
 //------------------------------------------------------------------------
 
 SplashFontEngine::SplashFontEngine (
-    GBool enableFreeType, Guint freeTypeFlags, GBool aa) {
+    bool enableFreeType, unsigned freeTypeFlags, bool aa) {
     int i;
 
     for (i = 0; i < splashFontCacheSize; ++i) { fontCache[i] = NULL; }
@@ -70,7 +70,7 @@ SplashFontFile* SplashFontEngine::loadType1Font (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     const char** enc) {
     SplashFontFile* fontFile;
@@ -105,7 +105,7 @@ SplashFontFile* SplashFontEngine::loadType1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     const char** enc) {
     SplashFontFile* fontFile;
@@ -140,7 +140,7 @@ SplashFontFile* SplashFontEngine::loadOpenTypeT1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     const char** enc) {
     SplashFontFile* fontFile;
@@ -175,7 +175,7 @@ SplashFontFile* SplashFontEngine::loadCIDFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf
 #else
-    const char* fileName, GBool deleteFile
+    const char* fileName, bool deleteFile
 #endif
 ) {
     SplashFontFile* fontFile;
@@ -210,7 +210,7 @@ SplashFontFile* SplashFontEngine::loadOpenTypeCFFFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     int* codeToGID, int codeToGIDLen) {
     SplashFontFile* fontFile;
@@ -245,7 +245,7 @@ SplashFontFile* SplashFontEngine::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf,
 #else
-    const char* fileName, GBool deleteFile,
+    const char* fileName, bool deleteFile,
 #endif
     int fontNum, int* codeToGID, int codeToGIDLen,
     const char* fontName) {

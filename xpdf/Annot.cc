@@ -79,7 +79,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     double t;
     int i;
 
-    ok = gTrue;
+    ok = true;
     doc = docA;
     xref = doc->getXRef ();
     ref = *refA;
@@ -121,7 +121,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     }
     else {
         error (errSyntaxError, -1, "Bad bounding box for annotation");
-        ok = gFalse;
+        ok = false;
     }
     obj1.free ();
 
@@ -316,7 +316,7 @@ void Annot::generateLineAppearance () {
     double bx1, by1, bx2, by2;
     double leaderLen, leaderExtLen, leaderOffLen;
     AnnotLineEndType lineEnd1, lineEnd2;
-    GBool fill;
+    bool fill;
 
     if (!getObject (&annotObj)->isDict ()) {
         annotObj.free ();
@@ -336,9 +336,9 @@ void Annot::generateLineAppearance () {
     //----- set line style, colors
     setLineStyle (borderStyle, &w);
     setStrokeColor (borderStyle->getColor (), borderStyle->getNumColorComps ());
-    fill = gFalse;
+    fill = false;
     if (annotObj.dictLookup ("IC", &obj1)->isArray ()) {
-        if (setFillColor (&obj1)) { fill = gTrue; }
+        if (setFillColor (&obj1)) { fill = true; }
     }
     obj1.free ();
 
@@ -521,10 +521,10 @@ void Annot::generatePolyLineAppearance () {
     //----- set line style, colors
     setLineStyle (borderStyle, &w);
     setStrokeColor (borderStyle->getColor (), borderStyle->getNumColorComps ());
-    // fill = gFalse;
+    // fill = false;
     // if (annotObj.dictLookup("IC", &obj1)->isArray()) {
     //   if (setFillColor(&obj1)) {
-    //     fill = gTrue;
+    //     fill = true;
     //   }
     // }
     // obj1.free();
@@ -712,12 +712,12 @@ void Annot::setStrokeColor (double* color, int nComps) {
     }
 }
 
-GBool Annot::setFillColor (Object* colorObj) {
+bool Annot::setFillColor (Object* colorObj) {
     Object obj;
     double color[4];
     int i;
 
-    if (!colorObj->isArray ()) { return gFalse; }
+    if (!colorObj->isArray ()) { return false; }
     for (i = 0; i < colorObj->arrayGetLength (); ++i) {
         if (colorObj->arrayGet (i, &obj)->isNum ()) {
             color[i] = obj.getNum ();
@@ -728,18 +728,18 @@ GBool Annot::setFillColor (Object* colorObj) {
         obj.free ();
     }
     switch (colorObj->arrayGetLength ()) {
-    case 1: appearBuf->appendf ("{0:.2f} g\n", color[0]); return gTrue;
+    case 1: appearBuf->appendf ("{0:.2f} g\n", color[0]); return true;
     case 3:
         appearBuf->appendf (
             "{0:.2f} {1:.2f} {2:.2f} rg\n", color[0], color[1], color[2]);
-        return gTrue;
+        return true;
     case 4:
         appearBuf->appendf (
             "{0:.2f} {1:.2f} {2:.2f} {3:.3f} k\n", color[0], color[1], color[2],
             color[3]);
-        return gTrue;
+        return true;
     }
-    return gFalse;
+    return false;
 }
 
 AnnotLineEndType Annot::parseLineEndType (Object* obj) {
@@ -803,7 +803,7 @@ void Annot::adjustLineEndpoint (
 
 void Annot::drawLineArrow (
     AnnotLineEndType lineEnd, double x, double y, double dx, double dy,
-    double w, GBool fill) {
+    double w, bool fill) {
     switch (lineEnd) {
     case annotLineEndNone: break;
     case annotLineEndSquare:
@@ -977,8 +977,8 @@ void Annot::drawCircleBottomRight (double cx, double cy, double r) {
     appearBuf->append ("S\n");
 }
 
-void Annot::draw (Gfx* gfx, GBool printing) {
-    GBool oc, isLink;
+void Annot::draw (Gfx* gfx, bool printing) {
+    bool oc, isLink;
 
     // check the flags
     if ((flags & annotFlagHidden) || (printing && !(flags & annotFlagPrint)) ||
@@ -1014,7 +1014,7 @@ Annots::Annots (PDFDoc* docA, Object* annotsObj) {
     Annot* annot;
     Object obj1, obj2;
     Ref ref;
-    GBool drawWidgetAnnots;
+    bool drawWidgetAnnots;
     int size;
     int i;
 

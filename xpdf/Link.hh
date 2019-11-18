@@ -40,7 +40,7 @@ public:
     virtual ~LinkAction () {}
 
     // Was the LinkAction created successfully?
-    virtual GBool isOk () = 0;
+    virtual bool isOk () = 0;
 
     // Check link action type.
     virtual LinkActionKind getKind () = 0;
@@ -80,11 +80,11 @@ public:
     LinkDest* copy () { return new LinkDest (this); }
 
     // Was the LinkDest created successfully?
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Accessors.
     LinkDestKind getKind () { return kind; }
-    GBool isPageRef () { return pageIsRef; }
+    bool isPageRef () { return pageIsRef; }
     int getPageNum () { return pageNum; }
     Ref getPageRef () { return pageRef; }
     double getLeft () { return left; }
@@ -92,13 +92,13 @@ public:
     double getRight () { return right; }
     double getTop () { return top; }
     double getZoom () { return zoom; }
-    GBool getChangeLeft () { return changeLeft; }
-    GBool getChangeTop () { return changeTop; }
-    GBool getChangeZoom () { return changeZoom; }
+    bool getChangeLeft () { return changeLeft; }
+    bool getChangeTop () { return changeTop; }
+    bool getChangeZoom () { return changeZoom; }
 
 private:
     LinkDestKind kind; // destination type
-    GBool pageIsRef;   // is the page a reference or number?
+    bool pageIsRef;   // is the page a reference or number?
     union {
         Ref pageRef; // reference to page
         int pageNum; // one-relative page number
@@ -106,11 +106,11 @@ private:
     double left, bottom; // position
     double right, top;
     double zoom;                 // zoom factor
-    GBool changeLeft, changeTop; // which position components to change:
-    GBool changeZoom;            //   destXYZ uses all three;
+    bool changeLeft, changeTop; // which position components to change:
+    bool changeZoom;            //   destXYZ uses all three;
                                  //   destFitH/BH use changeTop;
                                  //   destFitV/BV use changeLeft
-    GBool ok;                    // set if created successfully
+    bool ok;                    // set if created successfully
 
     LinkDest (LinkDest* dest);
 };
@@ -128,7 +128,7 @@ public:
     virtual ~LinkGoTo ();
 
     // Was the LinkGoTo created successfully?
-    virtual GBool isOk () { return dest || namedDest; }
+    virtual bool isOk () { return dest || namedDest; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionGoTo; }
@@ -156,7 +156,7 @@ public:
     virtual ~LinkGoToR ();
 
     // Was the LinkGoToR created successfully?
-    virtual GBool isOk () { return fileName && (dest || namedDest); }
+    virtual bool isOk () { return fileName && (dest || namedDest); }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionGoToR; }
@@ -185,7 +185,7 @@ public:
     virtual ~LinkLaunch ();
 
     // Was the LinkLaunch created successfully?
-    virtual GBool isOk () { return fileName != NULL; }
+    virtual bool isOk () { return fileName != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionLaunch; }
@@ -210,7 +210,7 @@ public:
     virtual ~LinkURI ();
 
     // Was the LinkURI created successfully?
-    virtual GBool isOk () { return uri != NULL; }
+    virtual bool isOk () { return uri != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionURI; }
@@ -232,7 +232,7 @@ public:
     virtual ~LinkNamed ();
 
     // Was the LinkNamed created successfully?
-    virtual GBool isOk () { return name != NULL; }
+    virtual bool isOk () { return name != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionNamed; }
@@ -253,11 +253,11 @@ public:
     virtual ~LinkMovie ();
 
     // Was the LinkMovie created successfully?
-    virtual GBool isOk () { return annotRef.num >= 0 || title != NULL; }
+    virtual bool isOk () { return annotRef.num >= 0 || title != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionMovie; }
-    GBool hasAnnotRef () { return annotRef.num >= 0; }
+    bool hasAnnotRef () { return annotRef.num >= 0; }
     Ref* getAnnotRef () { return &annotRef; }
     GString* getTitle () { return title; }
 
@@ -277,7 +277,7 @@ public:
     virtual ~LinkJavaScript ();
 
     // Was the LinkJavaScript created successfully?
-    virtual GBool isOk () { return js != NULL; }
+    virtual bool isOk () { return js != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionJavaScript; }
@@ -298,7 +298,7 @@ public:
     virtual ~LinkSubmitForm ();
 
     // Was the LinkSubmitForm created successfully?
-    virtual GBool isOk () { return url != NULL; }
+    virtual bool isOk () { return url != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionSubmitForm; }
@@ -323,16 +323,16 @@ public:
     virtual ~LinkHide ();
 
     // Was the LinkHide created successfully?
-    virtual GBool isOk () { return !fields.isNull (); }
+    virtual bool isOk () { return !fields.isNull (); }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionHide; }
     Object* getFields () { return &fields; }
-    GBool getHideFlag () { return hideFlag; }
+    bool getHideFlag () { return hideFlag; }
 
 private:
     Object fields;
-    GBool hideFlag;
+    bool hideFlag;
 };
 
 //------------------------------------------------------------------------
@@ -348,7 +348,7 @@ public:
     virtual ~LinkUnknown ();
 
     // Was the LinkUnknown create successfully?
-    virtual GBool isOk () { return action != NULL; }
+    virtual bool isOk () { return action != NULL; }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionUnknown; }
@@ -371,10 +371,10 @@ public:
     ~Link ();
 
     // Was the link created successfully?
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Check if point is inside the link rectangle.
-    GBool inRect (double x, double y) {
+    bool inRect (double x, double y) {
         return x1 <= x && x <= x2 && y1 <= y && y <= y2;
     }
 
@@ -393,7 +393,7 @@ private:
     double x1, y1;      // lower left corner
     double x2, y2;      // upper right corner
     LinkAction* action; // action
-    GBool ok;           // is link valid?
+    bool ok;           // is link valid?
 };
 
 //------------------------------------------------------------------------
@@ -417,7 +417,7 @@ public:
     LinkAction* find (double x, double y);
 
     // Return true if <x>,<y> is in a link.
-    GBool onLink (double x, double y);
+    bool onLink (double x, double y);
 
 private:
     Link** links;

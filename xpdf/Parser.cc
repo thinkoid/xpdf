@@ -21,7 +21,7 @@
 // in the object structure.
 #define recursionLimit 500
 
-Parser::Parser (XRef* xrefA, Lexer* lexerA, GBool allowStreamsA) {
+Parser::Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA) {
     xref = xrefA;
     lexer = lexerA;
     inlineImg = 0;
@@ -37,7 +37,7 @@ Parser::~Parser () {
 }
 
 Object* Parser::getObj (
-    Object* obj, GBool simpleOnly, Guchar* fileKey, CryptAlgorithm encAlgorithm,
+    Object* obj, bool simpleOnly, unsigned char* fileKey, CryptAlgorithm encAlgorithm,
     int keyLength, int objNum, int objGen, int recursion) {
     char* key;
     Stream* str;
@@ -62,7 +62,7 @@ Object* Parser::getObj (
         obj->initArray (xref);
         while (!buf1.isCmd ("]") && !buf1.isEOF ())
             obj->arrayAdd (getObj (
-                &obj2, gFalse, fileKey, encAlgorithm, keyLength, objNum, objGen,
+                &obj2, false, fileKey, encAlgorithm, keyLength, objNum, objGen,
                 recursion + 1));
         if (buf1.isEOF ())
             error (errSyntaxError, getPos (), "End of file inside array");
@@ -89,7 +89,7 @@ Object* Parser::getObj (
                 }
                 obj->dictAdd (
                     key, getObj (
-                             &obj2, gFalse, fileKey, encAlgorithm, keyLength,
+                             &obj2, false, fileKey, encAlgorithm, keyLength,
                              objNum, objGen, recursion + 1));
             }
         }
@@ -152,7 +152,7 @@ Object* Parser::getObj (
 }
 
 Stream* Parser::makeStream (
-    Object* dict, Guchar* fileKey, CryptAlgorithm encAlgorithm, int keyLength,
+    Object* dict, unsigned char* fileKey, CryptAlgorithm encAlgorithm, int keyLength,
     int objNum, int objGen, int recursion) {
     Object obj;
     BaseStream* baseStr;
@@ -173,7 +173,7 @@ Stream* Parser::makeStream (
     else {
         dict->dictLookup ("Length", &obj, recursion);
         if (obj.isInt ()) {
-            length = (GFileOffset) (Guint)obj.getInt ();
+            length = (GFileOffset) (unsigned)obj.getInt ();
             obj.free ();
         }
         else {
@@ -204,7 +204,7 @@ Stream* Parser::makeStream (
     }
 
     // make base stream
-    str = baseStr->makeSubStream (pos, gTrue, length, dict);
+    str = baseStr->makeSubStream (pos, true, length, dict);
 
     // handle decryption
     if (fileKey) {

@@ -115,12 +115,12 @@ SplashFTFont::SplashFTFont (
 
 SplashFTFont::~SplashFTFont () {}
 
-GBool SplashFTFont::getGlyph (
+bool SplashFTFont::getGlyph (
     int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap) {
     return SplashFont::getGlyph (c, xFrac, 0, bitmap);
 }
 
-GBool SplashFTFont::makeGlyph (
+bool SplashFTFont::makeGlyph (
     int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap) {
     SplashFTFontFile* ff;
     FT_Vector offset;
@@ -128,7 +128,7 @@ GBool SplashFTFont::makeGlyph (
     FT_UInt gid;
     FT_Int32 flags;
     int rowSize;
-    Guchar *p, *q;
+    unsigned char *p, *q;
     int i;
 
     ff = (SplashFTFontFile*)fontFile;
@@ -165,15 +165,15 @@ GBool SplashFTFont::makeGlyph (
     else {
         flags |= FT_LOAD_NO_AUTOHINT;
     }
-    if (FT_Load_Glyph (ff->face, gid, flags)) { return gFalse; }
+    if (FT_Load_Glyph (ff->face, gid, flags)) { return false; }
     if (FT_Render_Glyph (
             slot, aa ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO)) {
-        return gFalse;
+        return false;
     }
     if (slot->bitmap.width == 0 || slot->bitmap.rows == 0) {
         // this can happen if (a) the glyph is really tiny or (b) the
         // metrics in the TrueType file are broken
-        return gFalse;
+        return false;
     }
 
     bitmap->x = -slot->bitmap_left;
@@ -185,20 +185,20 @@ GBool SplashFTFont::makeGlyph (
     else {
         rowSize = (bitmap->w + 7) >> 3;
     }
-    bitmap->data = (Guchar*)gmallocn (bitmap->h, rowSize);
-    bitmap->freeData = gTrue;
+    bitmap->data = (unsigned char*)gmallocn (bitmap->h, rowSize);
+    bitmap->freeData = true;
     for (i = 0, p = bitmap->data, q = slot->bitmap.buffer; i < bitmap->h;
          ++i, p += rowSize, q += slot->bitmap.pitch) {
         memcpy (p, q, rowSize);
     }
 
-    return gTrue;
+    return true;
 }
 
 struct SplashFTFontPath {
     SplashPath* path;
     SplashCoord textScale;
-    GBool needClose;
+    bool needClose;
 };
 
 SplashPath* SplashFTFont::getGlyphPath (int c) {
@@ -242,7 +242,7 @@ SplashPath* SplashFTFont::getGlyphPath (int c) {
     if (FT_Get_Glyph (slot, &glyph)) { return NULL; }
     path.path = new SplashPath ();
     path.textScale = textScale;
-    path.needClose = gFalse;
+    path.needClose = false;
     FT_Outline_Decompose (
         &((FT_OutlineGlyph)glyph)->outline, &outlineFuncs, &path);
     if (path.needClose) { path.path->close (); }
@@ -255,7 +255,7 @@ static int glyphPathMoveTo (const FT_Vector* pt, void* path) {
 
     if (p->needClose) {
         p->path->close ();
-        p->needClose = gFalse;
+        p->needClose = false;
     }
     p->path->moveTo (
         (SplashCoord)pt->x * p->textScale / 64.0,
@@ -269,7 +269,7 @@ static int glyphPathLineTo (const FT_Vector* pt, void* path) {
     p->path->lineTo (
         (SplashCoord)pt->x * p->textScale / 64.0,
         (SplashCoord)pt->y * p->textScale / 64.0);
-    p->needClose = gTrue;
+    p->needClose = true;
     return 0;
 }
 
@@ -306,7 +306,7 @@ glyphPathConicTo (const FT_Vector* ctrl, const FT_Vector* pt, void* path) {
     y2 = (SplashCoord) (1.0 / 3.0) * ((SplashCoord)2 * yc + y3);
 
     p->path->curveTo (x1, y1, x2, y2, x3, y3);
-    p->needClose = gTrue;
+    p->needClose = true;
     return 0;
 }
 
@@ -322,6 +322,6 @@ static int glyphPathCubicTo (
         (SplashCoord)ctrl2->y * p->textScale / 64.0,
         (SplashCoord)pt->x * p->textScale / 64.0,
         (SplashCoord)pt->y * p->textScale / 64.0);
-    p->needClose = gTrue;
+    p->needClose = true;
     return 0;
 }

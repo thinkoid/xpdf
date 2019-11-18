@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/CharTypes.hh>
 
@@ -44,10 +43,10 @@ public:
     // Evaluate an optional content object -- either an OCG or an OCMD.
     // If <obj> is a valid OCG or OCMD, sets *<visible> and returns
     // true; otherwise returns false.
-    GBool evalOCObject (Object* obj, GBool* visible);
+    bool evalOCObject (Object* obj, bool* visible);
 
 private:
-    GBool evalOCVisibilityExpr (Object* expr, int recursion);
+    bool evalOCVisibilityExpr (Object* expr, int recursion);
 
     XRef* xref;
     GList* ocgs;            // all OCGs [OptionalContentGroup]
@@ -66,14 +65,14 @@ public:
     static OptionalContentGroup* parse (Ref* refA, Object* obj);
     ~OptionalContentGroup ();
 
-    GBool matches (Ref* refA);
+    bool matches (Ref* refA);
 
     Unicode* getName ();
     int getNameLength ();
     OCUsageState getViewState () { return viewState; }
     OCUsageState getPrintState () { return printState; }
-    GBool getState () { return state; }
-    void setState (GBool stateA) { state = stateA; }
+    bool getState () { return state; }
+    void setState (bool stateA) { state = stateA; }
 
 private:
     OptionalContentGroup (
@@ -84,7 +83,7 @@ private:
     TextString* name;
     OCUsageState viewState, // suggested state when viewing
         printState;         // suggested state when printing
-    GBool state;            // current state (on/off)
+    bool state;            // current state (on/off)
 
     friend class OCDisplayNode;
 };

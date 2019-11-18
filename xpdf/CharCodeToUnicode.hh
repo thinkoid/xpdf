@@ -53,7 +53,7 @@ public:
     void decRefCnt ();
 
     // Return true if this mapping matches the specified <tagA>.
-    GBool match (GString* tagA);
+    bool match (GString* tagA);
 
     // Set the mapping for <c>.
     void setMapping (CharCode c, Unicode* u, int len);
@@ -65,7 +65,7 @@ public:
     // code supported by the mapping.
     CharCode getLength () { return mapLen; }
 
-    GBool isIdentity () { return !map; }
+    bool isIdentity () { return !map; }
 
 private:
     void parseCMap1 (int (*getCharFunc) (void*), void* data, int nBits);
@@ -73,7 +73,7 @@ private:
     CharCodeToUnicode ();
     CharCodeToUnicode (GString* tagA);
     CharCodeToUnicode (
-        GString* tagA, Unicode* mapA, CharCode mapLenA, GBool copyMap,
+        GString* tagA, Unicode* mapA, CharCode mapLenA, bool copyMap,
         CharCodeToUnicodeString* sMapA, int sMapLenA, int sMapSizeA);
 
     GString* tag;

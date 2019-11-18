@@ -20,7 +20,7 @@
 class Parser {
 public:
     // Constructor.
-    Parser (XRef* xrefA, Lexer* lexerA, GBool allowStreamsA);
+    Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA);
 
     // Destructor.
     ~Parser ();
@@ -29,7 +29,7 @@ public:
     // true, do not parse compound objects (arrays, dictionaries, or
     // streams).
     Object* getObj (
-        Object* obj, GBool simpleOnly = gFalse, Guchar* fileKey = NULL,
+        Object* obj, bool simpleOnly = false, unsigned char* fileKey = NULL,
         CryptAlgorithm encAlgorithm = cryptRC4, int keyLength = 0,
         int objNum = 0, int objGen = 0, int recursion = 0);
 
@@ -42,12 +42,12 @@ public:
 private:
     XRef* xref;         // the xref table for this PDF file
     Lexer* lexer;       // input stream
-    GBool allowStreams; // parse stream objects?
+    bool allowStreams; // parse stream objects?
     Object buf1, buf2;  // next two tokens
     int inlineImg;      // set when inline image data is encountered
 
     Stream* makeStream (
-        Object* dict, Guchar* fileKey, CryptAlgorithm encAlgorithm,
+        Object* dict, unsigned char* fileKey, CryptAlgorithm encAlgorithm,
         int keyLength, int objNum, int objGen, int recursion);
     void shift ();
 };

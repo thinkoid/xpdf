@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/Object.hh>
 
 class GList;
@@ -37,7 +36,7 @@ public:
     static Function* parse (Object* funcObj, int recursion = 0);
 
     // Initialize the entries common to all function types.
-    GBool init (Dict* dict);
+    bool init (Dict* dict);
 
     virtual Function* copy () = 0;
 
@@ -57,12 +56,12 @@ public:
     double getDomainMax (int i) { return domain[i][1]; }
     double getRangeMin (int i) { return range[i][0]; }
     double getRangeMax (int i) { return range[i][1]; }
-    GBool getHasRange () { return hasRange; }
+    bool getHasRange () { return hasRange; }
 
     // Transform an input tuple into an output tuple.
     virtual void transform (double* in, double* out) = 0;
 
-    virtual GBool isOk () = 0;
+    virtual bool isOk () = 0;
 
 protected:
     int m, n; // size of input and output tuples
@@ -70,7 +69,7 @@ protected:
         domain[funcMaxInputs][2];
     double // min and max values for function range
         range[funcMaxOutputs][2];
-    GBool hasRange; // set if range is defined
+    bool hasRange; // set if range is defined
 };
 
 //------------------------------------------------------------------------
@@ -84,7 +83,7 @@ public:
     virtual Function* copy () { return new IdentityFunction (); }
     virtual int getType () { return -1; }
     virtual void transform (double* in, double* out);
-    virtual GBool isOk () { return gTrue; }
+    virtual bool isOk () { return true; }
 
 private:
 };
@@ -100,7 +99,7 @@ public:
     virtual Function* copy () { return new SampledFunction (this); }
     virtual int getType () { return 0; }
     virtual void transform (double* in, double* out);
-    virtual GBool isOk () { return ok; }
+    virtual bool isOk () { return ok; }
 
     int getSampleSize (int i) { return sampleSize[i]; }
     double getEncodeMin (int i) { return encode[i][0]; }
@@ -126,7 +125,7 @@ private:
     double* sBuf;    // buffer for the transform function
     double cacheIn[funcMaxInputs];
     double cacheOut[funcMaxOutputs];
-    GBool ok;
+    bool ok;
 };
 
 //------------------------------------------------------------------------
@@ -140,7 +139,7 @@ public:
     virtual Function* copy () { return new ExponentialFunction (this); }
     virtual int getType () { return 2; }
     virtual void transform (double* in, double* out);
-    virtual GBool isOk () { return ok; }
+    virtual bool isOk () { return ok; }
 
     double* getC0 () { return c0; }
     double* getC1 () { return c1; }
@@ -152,7 +151,7 @@ private:
     double c0[funcMaxOutputs];
     double c1[funcMaxOutputs];
     double e;
-    GBool ok;
+    bool ok;
 };
 
 //------------------------------------------------------------------------
@@ -166,7 +165,7 @@ public:
     virtual Function* copy () { return new StitchingFunction (this); }
     virtual int getType () { return 3; }
     virtual void transform (double* in, double* out);
-    virtual GBool isOk () { return ok; }
+    virtual bool isOk () { return ok; }
 
     int getNumFuncs () { return k; }
     Function* getFunc (int i) { return funcs[i]; }
@@ -182,7 +181,7 @@ private:
     double* bounds;
     double* encode;
     double* scale;
-    GBool ok;
+    bool ok;
 };
 
 //------------------------------------------------------------------------
@@ -196,13 +195,13 @@ public:
     virtual Function* copy () { return new PostScriptFunction (this); }
     virtual int getType () { return 4; }
     virtual void transform (double* in, double* out);
-    virtual GBool isOk () { return ok; }
+    virtual bool isOk () { return ok; }
 
     GString* getCodeString () { return codeString; }
 
 private:
     PostScriptFunction (PostScriptFunction* func);
-    GBool parseCode (GList* tokens, int* tokPtr, int* codePtr);
+    bool parseCode (GList* tokens, int* tokPtr, int* codePtr);
     void addCode (int* codePtr, int op);
     void addCodeI (int* codePtr, int op, int x);
     void addCodeD (int* codePtr, int op, double x);
@@ -215,7 +214,7 @@ private:
     int codeSize;
     double cacheIn[funcMaxInputs];
     double cacheOut[funcMaxOutputs];
-    GBool ok;
+    bool ok;
 };
 
 #endif

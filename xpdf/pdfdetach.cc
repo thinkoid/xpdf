@@ -8,7 +8,6 @@
 
 #include <defs.hh>
 #include <stdio.h>
-#include <goo/gtypes.hh>
 #include <goo/gmem.hh>
 #include <goo/parseargs.hh>
 #include <xpdf/GlobalParams.hh>
@@ -18,16 +17,16 @@
 #include <xpdf/Error.hh>
 #include <defs.hh>
 
-static GBool doList = gFalse;
+static bool doList = false;
 static int saveNum = 0;
-static GBool saveAll = gFalse;
+static bool saveAll = false;
 static char savePath[1024] = "";
 static char textEncName[128] = "";
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-list", argFlag, &doList, 0, "list all embedded files" },
@@ -60,7 +59,7 @@ int main (int argc, char* argv[]) {
     char uBuf[8];
     char path[1024];
     char* p;
-    GBool ok;
+    bool ok;
     int exitCode;
     int nFiles, nameLen, n, i, j;
 
@@ -69,7 +68,7 @@ int main (int argc, char* argv[]) {
     // parse args
     ok = parseArgs (argDesc, &argc, argv);
     if ((doList ? 1 : 0) + ((saveNum != 0) ? 1 : 0) + (saveAll ? 1 : 0) != 1) {
-        ok = gFalse;
+        ok = false;
     }
     if (!ok || argc != 2 || printVersion || printHelp) {
         fprintf (stderr, "pdfdetach version %s\n", PACKAGE_VERSION);

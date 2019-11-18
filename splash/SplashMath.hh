@@ -25,7 +25,7 @@ static inline int splashFloor (SplashCoord x) {
     // floor() and (int)() are implemented separately, which results
     // in changing the FPCW multiple times - so we optimize it with
     // some inline assembly
-    Gushort oldCW, newCW, t;
+    unsigned short oldCW, newCW, t;
     int result;
 
     __asm__ volatile(
@@ -50,7 +50,7 @@ static inline int splashCeil (SplashCoord x) {
     // ceil() and (int)() are implemented separately, which results
     // in changing the FPCW multiple times - so we optimize it with
     // some inline assembly
-    Gushort oldCW, newCW, t;
+    unsigned short oldCW, newCW, t;
     int result;
 
     __asm__ volatile(
@@ -75,7 +75,7 @@ static inline int splashRound (SplashCoord x) {
     // this could use round-to-nearest mode and avoid the "+0.5",
     // but that produces slightly different results (because i+0.5
     // sometimes rounds up and sometimes down using the even rule)
-    Gushort oldCW, newCW, t;
+    unsigned short oldCW, newCW, t;
     int result;
 
     x += 0.5;
@@ -114,7 +114,7 @@ splashDist (SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1) {
     return sqrt (dx * dx + dy * dy);
 }
 
-static inline GBool splashCheckDet (
+static inline bool splashCheckDet (
     SplashCoord m11, SplashCoord m12, SplashCoord m21, SplashCoord m22,
     SplashCoord epsilon) {
     return fabs (m11 * m22 - m12 * m21) >= epsilon;

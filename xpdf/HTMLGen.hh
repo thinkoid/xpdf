@@ -24,15 +24,15 @@ public:
     HTMLGen (double backgroundResolutionA);
     ~HTMLGen ();
 
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     double getBackgroundResolution () { return backgroundResolution; }
     void setBackgroundResolution (double backgroundResolutionA) {
         backgroundResolution = backgroundResolutionA;
     }
 
-    GBool getDrawInvisibleText () { return drawInvisibleText; }
-    void setDrawInvisibleText (GBool drawInvisibleTextA) {
+    bool getDrawInvisibleText () { return drawInvisibleText; }
+    void setDrawInvisibleText (bool drawInvisibleTextA) {
         drawInvisibleText = drawInvisibleTextA;
     }
 
@@ -48,13 +48,13 @@ private:
     GString* getFontDefn (TextFontInfo* font, double* scale);
 
     double backgroundResolution;
-    GBool drawInvisibleText;
+    bool drawInvisibleText;
 
     PDFDoc* doc;
     TextOutputDev* textOut;
     SplashOutputDev* splashOut;
 
-    GBool ok;
+    bool ok;
 };
 
 #endif

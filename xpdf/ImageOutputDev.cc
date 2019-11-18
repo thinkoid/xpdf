@@ -20,12 +20,12 @@
 #include <xpdf/Stream.hh>
 #include <xpdf/ImageOutputDev.hh>
 
-ImageOutputDev::ImageOutputDev (char* fileRootA, GBool dumpJPEGA) {
+ImageOutputDev::ImageOutputDev (char* fileRootA, bool dumpJPEGA) {
     fileRoot = copyString (fileRootA);
     fileName = (char*)gmalloc ((int)strlen (fileRoot) + 20);
     dumpJPEG = dumpJPEGA;
     imgNum = 0;
-    ok = gTrue;
+    ok = true;
 }
 
 ImageOutputDev::~ImageOutputDev () {
@@ -42,7 +42,7 @@ void ImageOutputDev::tilingPatternFill (
 
 void ImageOutputDev::drawImageMask (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GBool invert, GBool inlineImg, GBool interpolate) {
+    bool invert, bool inlineImg, bool interpolate) {
     FILE* f;
     char buf[4096];
     int size, n, i;
@@ -102,11 +102,11 @@ void ImageOutputDev::drawImageMask (
 
 void ImageOutputDev::drawImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
-    GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-    GBool interpolate) {
+    GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+    bool interpolate) {
     FILE* f;
     ImageStream* imgStr;
-    Guchar* p;
+    unsigned char* p;
     GfxRGB rgb;
     int x, y;
     char buf[4096];
@@ -216,21 +216,21 @@ void ImageOutputDev::drawImage (
 void ImageOutputDev::drawMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GBool maskInvert, GBool interpolate) {
+    bool maskInvert, bool interpolate) {
     drawImage (
-        state, ref, str, width, height, colorMap, NULL, gFalse, interpolate);
+        state, ref, str, width, height, colorMap, NULL, false, interpolate);
     drawImageMask (
-        state, ref, maskStr, maskWidth, maskHeight, maskInvert, gFalse,
+        state, ref, maskStr, maskWidth, maskHeight, maskInvert, false,
         interpolate);
 }
 
 void ImageOutputDev::drawSoftMaskedImage (
     GfxState* state, Object* ref, Stream* str, int width, int height,
     GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth, int maskHeight,
-    GfxImageColorMap* maskColorMap, GBool interpolate) {
+    GfxImageColorMap* maskColorMap, bool interpolate) {
     drawImage (
-        state, ref, str, width, height, colorMap, NULL, gFalse, interpolate);
+        state, ref, str, width, height, colorMap, NULL, false, interpolate);
     drawImage (
-        state, ref, maskStr, maskWidth, maskHeight, maskColorMap, NULL, gFalse,
+        state, ref, maskStr, maskWidth, maskHeight, maskColorMap, NULL, false,
         interpolate);
 }

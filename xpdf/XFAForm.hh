@@ -33,19 +33,19 @@ public:
 
     virtual const char* getType () { return "XFA"; }
 
-    virtual void draw (int pageNum, Gfx* gfx, GBool printing);
+    virtual void draw (int pageNum, Gfx* gfx, bool printing);
 
     virtual int getNumFields ();
     virtual FormField* getField (int idx);
 
 private:
-    XFAForm (PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, GBool fullXFAA);
+    XFAForm (PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA);
     void scanFields (ZxElement* elem, GString* name, GString* dataName);
 
     ZxDoc* xml;
     GList* fields; // [XFAFormField]
     Object resourceDict;
-    GBool fullXFA;     // true for "Full XFA", false for
+    bool fullXFA;     // true for "Full XFA", false for
                        //   "XFA Foreground"
     int curPageNum;    // current page number - used by scanFields()
     double curXOffset, // current x,y offset - used by scanFields()
@@ -72,7 +72,7 @@ public:
 
 private:
     Unicode* utf8ToUnicode (GString* s, int* length);
-    void draw (int pageNumA, Gfx* gfx, GBool printing, GfxFontDict* fontDict);
+    void draw (int pageNumA, Gfx* gfx, bool printing, GfxFontDict* fontDict);
     void drawTextEdit (
         GfxFontDict* fontDict, double w, double h, int rot, GString* appearBuf);
     void drawBarCode (
@@ -84,12 +84,12 @@ private:
         int rot, double w, double h, double* wNew, double* hNew,
         GString* appearBuf);
     void drawText (
-        GString* text, GBool multiLine, int combCells, GString* fontName,
-        GBool bold, GBool italic, double fontSize, XFAHorizAlign hAlign,
+        GString* text, bool multiLine, int combCells, GString* fontName,
+        bool bold, bool italic, double fontSize, XFAHorizAlign hAlign,
         XFAVertAlign vAlign, double x, double y, double w, double h,
-        GBool whiteBackground, GfxFontDict* fontDict, GString* appearBuf);
+        bool whiteBackground, GfxFontDict* fontDict, GString* appearBuf);
     GfxFont* findFont (
-        GfxFontDict* fontDict, GString* fontName, GBool bold, GBool italic);
+        GfxFontDict* fontDict, GString* fontName, bool bold, bool italic);
     void getNextLine (
         GString* text, int start, GfxFont* font, double fontSize, double wMax,
         int* end, double* width, int* next);

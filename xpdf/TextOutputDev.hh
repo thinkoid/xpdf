@@ -12,7 +12,6 @@
 #include <defs.hh>
 
 #include <stdio.h>
-#include <goo/gtypes.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/OutputDev.hh>
 
@@ -53,8 +52,8 @@ public:
                              //   and LinePrinter modes)
     double fixedLineSpacing; // fixed line spacing (only relevant for
                              //   LinePrinter mode)
-    GBool html;              // enable extra processing for HTML
-    GBool clipText;          // separate clipped text and add it back
+    bool html;              // enable extra processing for HTML
+    bool clipText;          // separate clipped text and add it back
         //   in after forming columns
 };
 
@@ -67,17 +66,17 @@ public:
     TextFontInfo (GfxState* state);
     ~TextFontInfo ();
 
-    GBool matches (GfxState* state);
+    bool matches (GfxState* state);
 
     // Get the font name (which may be NULL).
     GString* getFontName () { return fontName; }
 
     // Get font descriptor flags.
-    GBool isFixedWidth () { return flags & fontFixedWidth; }
-    GBool isSerif () { return flags & fontSerif; }
-    GBool isSymbolic () { return flags & fontSymbolic; }
-    GBool isItalic () { return flags & fontItalic; }
-    GBool isBold () { return flags & fontBold; }
+    bool isFixedWidth () { return flags & fontFixedWidth; }
+    bool isSerif () { return flags & fontSerif; }
+    bool isSymbolic () { return flags & fontSymbolic; }
+    bool isItalic () { return flags & fontItalic; }
+    bool isBold () { return flags & fontBold; }
 
     // Get the width of the 'm' character, if available.
     double getMWidth () { return mWidth; }
@@ -100,7 +99,7 @@ private:
 
 class TextWord {
 public:
-    TextWord (GList* chars, int start, int lenA, int rotA, GBool spaceAfterA);
+    TextWord (GList* chars, int start, int lenA, int rotA, bool spaceAfterA);
     ~TextWord ();
     TextWord* copy () { return new TextWord (this); }
 
@@ -116,7 +115,7 @@ public:
         *g = colorG;
         *b = colorB;
     }
-    GBool isInvisible () { return invisible; }
+    bool isInvisible () { return invisible; }
     void getBBox (double* xMinA, double* yMinA, double* xMaxA, double* yMaxA) {
         *xMinA = xMin;
         *yMinA = yMin;
@@ -130,9 +129,9 @@ public:
     int getRotation () { return rot; }
     int getCharPos () { return charPos[0]; }
     int getCharLen () { return charPos[len] - charPos[0]; }
-    GBool getSpaceAfter () { return spaceAfter; }
+    bool getSpaceAfter () { return spaceAfter; }
     double getBaseline ();
-    GBool isUnderlined () { return underlined; }
+    bool isUnderlined () { return underlined; }
     GString* getLinkURI ();
 
 private:
@@ -154,15 +153,15 @@ private:
     int len;            // number of characters
     TextFontInfo* font; // font information
     double fontSize;    // font size
-    GBool spaceAfter;   // set if there is a space between this
+    bool spaceAfter;   // set if there is a space between this
                         //   word and the next word on the line
 
-    GBool underlined;
+    bool underlined;
     TextLink* link;
 
     double colorR, // word color
         colorG, colorB;
-    GBool invisible; // set for invisible text (render mode 3)
+    bool invisible; // set for invisible text (render mode 3)
 
     friend class TextBlock;
     friend class TextLine;
@@ -198,7 +197,7 @@ private:
     double* edge;      // "near" edge x or y coord of each char
                        //   (plus one extra entry for the last char)
     int len;           // number of Unicode chars
-    GBool hyphenated;  // set if last char is a hyphen
+    bool hyphenated;  // set if last char is a hyphen
     int px;            // x offset (in characters, relative to
                        //   containing column) in physical layout mode
     int pw;            // line width (in characters) in physical
@@ -297,10 +296,10 @@ public:
     // bottom of the page; else if <stopAtLast> is true, stops looking
     // just before the last find result; else stops looking at
     // <xMax>,<yMax>.
-    GBool findText (
-        Unicode* s, int len, GBool startAtTop, GBool stopAtBottom,
-        GBool startAtLast, GBool stopAtLast, GBool caseSensitive,
-        GBool backward, GBool wholeWord, double* xMin, double* yMin,
+    bool findText (
+        Unicode* s, int len, bool startAtTop, bool stopAtBottom,
+        bool startAtLast, bool stopAtLast, bool caseSensitive,
+        bool backward, bool wholeWord, double* xMin, double* yMin,
         double* xMax, double* yMax);
 
     // Get the text which is inside the specified rectangle.
@@ -309,7 +308,7 @@ public:
     // Find a string by character position and length.  If found, sets
     // the text bounding rectangle and returns true; otherwise returns
     // false.
-    GBool findCharRange (
+    bool findCharRange (
         int pos, int length, double* xMin, double* yMin, double* xMax,
         double* yMax);
 
@@ -350,7 +349,7 @@ private:
         void* outputStream, TextOutputFunc outputFunc, UnicodeMap* uMap,
         char* space, int spaceLen, char* eol, int eolLen);
     void encodeFragment (
-        Unicode* text, int len, UnicodeMap* uMap, GBool primaryLR, GString* s);
+        Unicode* text, int len, UnicodeMap* uMap, bool primaryLR, GString* s);
 
     // analysis
     int rotateChars (GList* charsA);
@@ -358,7 +357,7 @@ private:
     void unrotateChars (GList* charsA, int rot);
     void unrotateColumns (GList* columns, int rot);
     void unrotateWords (GList* words, int rot);
-    GBool checkPrimaryLR (GList* charsA);
+    bool checkPrimaryLR (GList* charsA);
     void removeDuplicates (GList* charsA, int rot);
     TextBlock* splitChars (GList* charsA);
     TextBlock* split (GList* charsA, int rot);
@@ -418,11 +417,11 @@ private:
 
     GList* findCols;     // text used by the findText function
                          //   [TextColumn]
-    GBool findLR;        // primary text direction, used by the
+    bool findLR;        // primary text direction, used by the
                          //   findText function
     double lastFindXMin, // coordinates of the last "find" result
         lastFindYMin;
-    GBool haveLastFind;
+    bool haveLastFind;
 
     friend class TextOutputDev;
 };
@@ -438,7 +437,7 @@ public:
     // <physLayoutA> is true, the original physical layout of the text
     // is maintained.  If <rawOrder> is true, the text is kept in
     // content stream order.
-    TextOutputDev (const char*, TextOutputControl*, GBool);
+    TextOutputDev (const char*, TextOutputControl*, bool);
 
     // Create a TextOutputDev which will write to a generic stream.  If
     // <physLayoutA> is true, the original physical layout of the text
@@ -450,27 +449,27 @@ public:
     virtual ~TextOutputDev ();
 
     // Check if file was successfully created.
-    virtual GBool isOk () { return ok; }
+    virtual bool isOk () { return ok; }
 
     //---- get info about output device
 
     // Does this device use upside-down coordinates?
     // (Upside-down means (0,0) is the top left corner of the page.)
-    virtual GBool upsideDown () { return gTrue; }
+    virtual bool upsideDown () { return true; }
 
     // Does this device use drawChar() or drawString()?
-    virtual GBool useDrawChar () { return gTrue; }
+    virtual bool useDrawChar () { return true; }
 
     // Does this device use beginType3Char/endType3Char?  Otherwise,
     // text in Type 3 fonts will be drawn with drawChar/drawString.
-    virtual GBool interpretType3Chars () { return gFalse; }
+    virtual bool interpretType3Chars () { return false; }
 
     // Does this device need non-text content?
-    virtual GBool needNonText () { return gFalse; }
+    virtual bool needNonText () { return false; }
 
     // Does this device require incCharCount to be called for text on
     // non-shown layers?
-    virtual GBool needCharCount () { return gTrue; }
+    virtual bool needCharCount () { return true; }
 
     //----- initialization and control
 
@@ -514,10 +513,10 @@ public:
     // bottom of the page; else if <stopAtLast> is true, stops looking
     // just before the last find result; else stops looking at
     // <xMax>,<yMax>.
-    GBool findText (
-        Unicode* s, int len, GBool startAtTop, GBool stopAtBottom,
-        GBool startAtLast, GBool stopAtLast, GBool caseSensitive,
-        GBool backward, GBool wholeWord, double* xMin, double* yMin,
+    bool findText (
+        Unicode* s, int len, bool startAtTop, bool stopAtBottom,
+        bool startAtLast, bool stopAtLast, bool caseSensitive,
+        bool backward, bool wholeWord, double* xMin, double* yMin,
         double* xMax, double* yMax);
 
     // Get the text which is inside the specified rectangle.
@@ -526,7 +525,7 @@ public:
     // Find a string by character position and length.  If found, sets
     // the text bounding rectangle and returns true; otherwise returns
     // false.
-    GBool findCharRange (
+    bool findCharRange (
         int pos, int length, double* xMin, double* yMin, double* xMax,
         double* yMax);
 
@@ -541,16 +540,16 @@ public:
     TextPage* takeText ();
 
     // Turn extra processing for HTML conversion on or off.
-    void enableHTMLExtras (GBool html) { control.html = html; }
+    void enableHTMLExtras (bool html) { control.html = html; }
 
 private:
     TextOutputFunc outputFunc; // output function
     void* outputStream;        // output stream
-    GBool needClose;           // need to close the output file?
+    bool needClose;           // need to close the output file?
                                //   (only if outputStream is a FILE*)
     TextPage* text;            // text for the current page
     TextOutputControl control; // formatting parameters
-    GBool ok;                  // set up ok?
+    bool ok;                  // set up ok?
 };
 
 #endif

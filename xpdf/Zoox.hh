@@ -9,7 +9,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 
 class GString;
 class GList;
@@ -58,7 +57,7 @@ public:
     ZxDoc ();
 
     // Parse from memory.  Returns NULL on error.
-    static ZxDoc* loadMem (const char* data, Guint dataLen);
+    static ZxDoc* loadMem (const char* data, unsigned dataLen);
 
     // Parse from disk.  Returns NULL on error.
     static ZxDoc* loadFile (const char* fileName);
@@ -72,7 +71,7 @@ public:
     virtual void addChild (ZxNode* node);
 
 private:
-    bool parse (const char* data, Guint dataLen);
+    bool parse (const char* data, unsigned dataLen);
     void parseXMLDecl (ZxNode* par);
     void parseDocTypeDecl (ZxNode* par);
     void parseElement (ZxNode* par);

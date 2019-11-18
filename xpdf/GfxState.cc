@@ -930,8 +930,8 @@ GfxIndexedColorSpace::GfxIndexedColorSpace (
     GfxColorSpace* baseA, int indexHighA) {
     base = baseA;
     indexHigh = indexHighA;
-    lookup = (Guchar*)gmallocn (
-        (indexHigh + 1) * base->getNComps (), sizeof (Guchar));
+    lookup = (unsigned char*)gmallocn (
+        (indexHigh + 1) * base->getNComps (), sizeof (unsigned char));
     overprintMask = base->getOverprintMask ();
 }
 
@@ -946,7 +946,7 @@ GfxColorSpace* GfxIndexedColorSpace::copy () {
     cs = new GfxIndexedColorSpace (base->copy (), indexHigh);
     memcpy (
         cs->lookup, lookup,
-        (indexHigh + 1) * base->getNComps () * sizeof (Guchar));
+        (indexHigh + 1) * base->getNComps () * sizeof (unsigned char));
     return cs;
 }
 
@@ -1002,7 +1002,7 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
                         "short)");
                     cs->indexHigh = indexHighA = i - 1;
                 }
-                cs->lookup[i * n + j] = (Guchar)x;
+                cs->lookup[i * n + j] = (unsigned char)x;
             }
         }
         obj1.streamClose ();
@@ -1019,7 +1019,7 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
         const char* s = obj1.getString ()->c_str ();
 
         for (i = 0; i <= indexHighA; ++i) {
-            for (j = 0; j < n; ++j) { cs->lookup[i * n + j] = (Guchar)*s++; }
+            for (j = 0; j < n; ++j) { cs->lookup[i * n + j] = (unsigned char)*s++; }
         }
     }
     else {
@@ -1039,7 +1039,7 @@ err1:
 
 GfxColor*
 GfxIndexedColorSpace::mapColorToBase (GfxColor* color, GfxColor* baseColor) {
-    Guchar* p;
+    unsigned char* p;
     double low[gfxColorMaxComps], range[gfxColorMaxComps];
     int n, i;
 
@@ -1103,8 +1103,8 @@ GfxSeparationColorSpace::GfxSeparationColorSpace (
 }
 
 GfxSeparationColorSpace::GfxSeparationColorSpace (
-    GString* nameA, GfxColorSpace* altA, Function* funcA, GBool nonMarkingA,
-    Guint overprintMaskA) {
+    GString* nameA, GfxColorSpace* altA, Function* funcA, bool nonMarkingA,
+    unsigned overprintMaskA) {
     name = nameA;
     alt = altA;
     func = funcA;
@@ -1219,11 +1219,11 @@ GfxDeviceNColorSpace::GfxDeviceNColorSpace (
     nComps = nCompsA;
     alt = altA;
     func = funcA;
-    nonMarking = gTrue;
+    nonMarking = true;
     overprintMask = 0;
     for (i = 0; i < nComps; ++i) {
         names[i] = namesA[i];
-        if (names[i]->cmp ("None")) { nonMarking = gFalse; }
+        if (names[i]->cmp ("None")) { nonMarking = false; }
         if (!names[i]->cmp ("Cyan")) { overprintMask |= 0x01; }
         else if (!names[i]->cmp ("Magenta")) {
             overprintMask |= 0x02;
@@ -1242,7 +1242,7 @@ GfxDeviceNColorSpace::GfxDeviceNColorSpace (
 
 GfxDeviceNColorSpace::GfxDeviceNColorSpace (
     int nCompsA, GString** namesA, GfxColorSpace* altA, Function* funcA,
-    GBool nonMarkingA, Guint overprintMaskA) {
+    bool nonMarkingA, unsigned overprintMaskA) {
     int i;
 
     nComps = nCompsA;
@@ -1734,7 +1734,7 @@ err1:
     return NULL;
 }
 
-GBool GfxShading::init (Dict* dict) {
+bool GfxShading::init (Dict* dict) {
     Object obj1, obj2;
     int i;
 
@@ -1742,15 +1742,15 @@ GBool GfxShading::init (Dict* dict) {
     if (!(colorSpace = GfxColorSpace::parse (&obj1))) {
         error (errSyntaxError, -1, "Bad color space in shading dictionary");
         obj1.free ();
-        return gFalse;
+        return false;
     }
     obj1.free ();
 
     for (i = 0; i < gfxColorMaxComps; ++i) { background.c[i] = 0; }
-    hasBackground = gFalse;
+    hasBackground = false;
     if (dict->lookup ("Background", &obj1)->isArray ()) {
         if (obj1.arrayGetLength () == colorSpace->getNComps ()) {
-            hasBackground = gTrue;
+            hasBackground = true;
             for (i = 0; i < colorSpace->getNComps (); ++i) {
                 background.c[i] =
                     dblToCol (obj1.arrayGet (i, &obj2)->getNum ());
@@ -1764,10 +1764,10 @@ GBool GfxShading::init (Dict* dict) {
     obj1.free ();
 
     xMin = yMin = xMax = yMax = 0;
-    hasBBox = gFalse;
+    hasBBox = false;
     if (dict->lookup ("BBox", &obj1)->isArray ()) {
         if (obj1.arrayGetLength () == 4) {
-            hasBBox = gTrue;
+            hasBBox = true;
             xMin = obj1.arrayGet (0, &obj2)->getNum ();
             obj2.free ();
             yMin = obj1.arrayGet (1, &obj2)->getNum ();
@@ -1783,7 +1783,7 @@ GBool GfxShading::init (Dict* dict) {
     }
     obj1.free ();
 
-    return gTrue;
+    return true;
 }
 
 //------------------------------------------------------------------------
@@ -1930,7 +1930,7 @@ void GfxFunctionShading::getColor (double x, double y, GfxColor* color) {
 
 GfxAxialShading::GfxAxialShading (
     double x0A, double y0A, double x1A, double y1A, double t0A, double t1A,
-    Function** funcsA, int nFuncsA, GBool extend0A, GBool extend1A)
+    Function** funcsA, int nFuncsA, bool extend0A, bool extend1A)
     : GfxShading (2) {
     int i;
 
@@ -1974,7 +1974,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     double t0A, t1A;
     Function* funcsA[gfxColorMaxComps];
     int nFuncsA;
-    GBool extend0A, extend1A;
+    bool extend0A, extend1A;
     Object obj1, obj2;
     int i;
 
@@ -2037,7 +2037,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     }
     obj1.free ();
 
-    extend0A = extend1A = gFalse;
+    extend0A = extend1A = false;
     if (dict->lookup ("Extend", &obj1)->isArray () &&
         obj1.arrayGetLength () == 2) {
         extend0A = obj1.arrayGet (0, &obj2)->getBool ();
@@ -2078,8 +2078,8 @@ void GfxAxialShading::getColor (double t, GfxColor* color) {
 
 GfxRadialShading::GfxRadialShading (
     double x0A, double y0A, double r0A, double x1A, double y1A, double r1A,
-    double t0A, double t1A, Function** funcsA, int nFuncsA, GBool extend0A,
-    GBool extend1A)
+    double t0A, double t1A, Function** funcsA, int nFuncsA, bool extend0A,
+    bool extend1A)
     : GfxShading (3) {
     int i;
 
@@ -2127,7 +2127,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     double t0A, t1A;
     Function* funcsA[gfxColorMaxComps];
     int nFuncsA;
-    GBool extend0A, extend1A;
+    bool extend0A, extend1A;
     Object obj1, obj2;
     int i;
 
@@ -2194,7 +2194,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     }
     obj1.free ();
 
-    extend0A = extend1A = gFalse;
+    extend0A = extend1A = false;
     if (dict->lookup ("Extend", &obj1)->isArray () &&
         obj1.arrayGetLength () == 2) {
         extend0A = obj1.arrayGet (0, &obj2)->getBool ();
@@ -2238,7 +2238,7 @@ class GfxShadingBitBuf {
 public:
     GfxShadingBitBuf (Stream* strA);
     ~GfxShadingBitBuf ();
-    GBool getBits (int n, Guint* val);
+    bool getBits (int n, unsigned* val);
     void flushBits ();
 
 private:
@@ -2256,7 +2256,7 @@ GfxShadingBitBuf::GfxShadingBitBuf (Stream* strA) {
 
 GfxShadingBitBuf::~GfxShadingBitBuf () { str->close (); }
 
-GBool GfxShadingBitBuf::getBits (int n, Guint* val) {
+bool GfxShadingBitBuf::getBits (int n, unsigned* val) {
     int x;
 
     if (nBits >= n) {
@@ -2273,7 +2273,7 @@ GBool GfxShadingBitBuf::getBits (int n, Guint* val) {
         while (n > 0) {
             if ((bitBuf = str->getChar ()) == EOF) {
                 nBits = 0;
-                return gFalse;
+                return false;
             }
             if (n >= 8) {
                 x = (x << 8) | bitBuf;
@@ -2287,7 +2287,7 @@ GBool GfxShadingBitBuf::getBits (int n, Guint* val) {
         }
     }
     *val = x;
-    return gTrue;
+    return true;
 }
 
 void GfxShadingBitBuf::flushBits () {
@@ -2353,8 +2353,8 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
     GfxGouraudVertex* verticesA;
     int (*trianglesA)[3];
     int nCompsA, nVerticesA, nTrianglesA, vertSize, triSize;
-    Guint x, y, flag;
-    Guint c[gfxColorMaxComps];
+    unsigned x, y, flag;
+    unsigned c[gfxColorMaxComps];
     GfxShadingBitBuf* bitBuf;
     Object obj1, obj2;
     int i, j, k, state;
@@ -2649,11 +2649,11 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
     double cMul[gfxColorMaxComps];
     GfxPatch *patchesA, *p;
     int nCompsA, nPatchesA, patchesSize, nPts, nColors;
-    Guint flag;
+    unsigned flag;
     double x[16], y[16];
-    Guint xi, yi;
+    unsigned xi, yi;
     double c[4][gfxColorMaxComps];
-    Guint ci;
+    unsigned ci;
     GfxShadingBitBuf* bitBuf;
     Object obj1, obj2;
     int i, j;
@@ -3190,14 +3190,14 @@ GfxImageColorMap::GfxImageColorMap (
     GfxIndexedColorSpace* indexedCS;
     GfxSeparationColorSpace* sepCS;
     int maxPixel, indexHigh;
-    Guchar* indexedLookup;
+    unsigned char* indexedLookup;
     Function* sepFunc;
     Object obj;
     double x[gfxColorMaxComps];
     double y[gfxColorMaxComps];
     int i, j, k;
 
-    ok = gTrue;
+    ok = true;
 
     // bits per component and color space
     bits = bitsA;
@@ -3304,7 +3304,7 @@ GfxImageColorMap::GfxImageColorMap (
 err2:
     obj.free ();
 err1:
-    ok = gFalse;
+    ok = false;
 }
 
 GfxImageColorMap::GfxImageColorMap (GfxImageColorMap* colorMap) {
@@ -3347,7 +3347,7 @@ GfxImageColorMap::GfxImageColorMap (GfxImageColorMap* colorMap) {
         decodeLow[i] = colorMap->decodeLow[i];
         decodeRange[i] = colorMap->decodeRange[i];
     }
-    ok = gTrue;
+    ok = true;
 }
 
 GfxImageColorMap::~GfxImageColorMap () {
@@ -3360,7 +3360,7 @@ GfxImageColorMap::~GfxImageColorMap () {
     }
 }
 
-void GfxImageColorMap::getGray (Guchar* x, GfxGray* gray) {
+void GfxImageColorMap::getGray (unsigned char* x, GfxGray* gray) {
     GfxColor color;
     int i;
 
@@ -3374,7 +3374,7 @@ void GfxImageColorMap::getGray (Guchar* x, GfxGray* gray) {
     }
 }
 
-void GfxImageColorMap::getRGB (Guchar* x, GfxRGB* rgb) {
+void GfxImageColorMap::getRGB (unsigned char* x, GfxRGB* rgb) {
     GfxColor color;
     int i;
 
@@ -3388,7 +3388,7 @@ void GfxImageColorMap::getRGB (Guchar* x, GfxRGB* rgb) {
     }
 }
 
-void GfxImageColorMap::getCMYK (Guchar* x, GfxCMYK* cmyk) {
+void GfxImageColorMap::getCMYK (unsigned char* x, GfxCMYK* cmyk) {
     GfxColor color;
     int i;
 
@@ -3402,7 +3402,7 @@ void GfxImageColorMap::getCMYK (Guchar* x, GfxCMYK* cmyk) {
     }
 }
 
-void GfxImageColorMap::getColor (Guchar* x, GfxColor* color) {
+void GfxImageColorMap::getColor (unsigned char* x, GfxColor* color) {
     int maxPixel, i;
 
     if (bits <= 8) { maxPixel = (1 << bits) - 1; }
@@ -3415,7 +3415,7 @@ void GfxImageColorMap::getColor (Guchar* x, GfxColor* color) {
     }
 }
 
-void GfxImageColorMap::getGrayByteLine (Guchar* in, Guchar* out, int n) {
+void GfxImageColorMap::getGrayByteLine (unsigned char* in, unsigned char* out, int n) {
     GfxColor color;
     GfxGray gray;
     int i, j;
@@ -3438,7 +3438,7 @@ void GfxImageColorMap::getGrayByteLine (Guchar* in, Guchar* out, int n) {
     }
 }
 
-void GfxImageColorMap::getRGBByteLine (Guchar* in, Guchar* out, int n) {
+void GfxImageColorMap::getRGBByteLine (unsigned char* in, unsigned char* out, int n) {
     GfxColor color;
     GfxRGB rgb;
     int i, j;
@@ -3465,7 +3465,7 @@ void GfxImageColorMap::getRGBByteLine (Guchar* in, Guchar* out, int n) {
     }
 }
 
-void GfxImageColorMap::getCMYKByteLine (Guchar* in, Guchar* out, int n) {
+void GfxImageColorMap::getCMYKByteLine (unsigned char* in, unsigned char* out, int n) {
     GfxColor color;
     GfxCMYK cmyk;
     int i, j;
@@ -3502,12 +3502,12 @@ GfxSubpath::GfxSubpath (double x1, double y1) {
     size = 16;
     x = (double*)gmallocn (size, sizeof (double));
     y = (double*)gmallocn (size, sizeof (double));
-    curve = (GBool*)gmallocn (size, sizeof (GBool));
+    curve = (bool*)gmallocn (size, sizeof (bool));
     n = 1;
     x[0] = x1;
     y[0] = y1;
-    curve[0] = gFalse;
-    closed = gFalse;
+    curve[0] = false;
+    closed = false;
 }
 
 GfxSubpath::~GfxSubpath () {
@@ -3522,10 +3522,10 @@ GfxSubpath::GfxSubpath (GfxSubpath* subpath) {
     n = subpath->n;
     x = (double*)gmallocn (size, sizeof (double));
     y = (double*)gmallocn (size, sizeof (double));
-    curve = (GBool*)gmallocn (size, sizeof (GBool));
+    curve = (bool*)gmallocn (size, sizeof (bool));
     memcpy (x, subpath->x, n * sizeof (double));
     memcpy (y, subpath->y, n * sizeof (double));
-    memcpy (curve, subpath->curve, n * sizeof (GBool));
+    memcpy (curve, subpath->curve, n * sizeof (bool));
     closed = subpath->closed;
 }
 
@@ -3534,11 +3534,11 @@ void GfxSubpath::lineTo (double x1, double y1) {
         size *= 2;
         x = (double*)greallocn (x, size, sizeof (double));
         y = (double*)greallocn (y, size, sizeof (double));
-        curve = (GBool*)greallocn (curve, size, sizeof (GBool));
+        curve = (bool*)greallocn (curve, size, sizeof (bool));
     }
     x[n] = x1;
     y[n] = y1;
-    curve[n] = gFalse;
+    curve[n] = false;
     ++n;
 }
 
@@ -3548,7 +3548,7 @@ void GfxSubpath::curveTo (
         size *= 2;
         x = (double*)greallocn (x, size, sizeof (double));
         y = (double*)greallocn (y, size, sizeof (double));
-        curve = (GBool*)greallocn (curve, size, sizeof (GBool));
+        curve = (bool*)greallocn (curve, size, sizeof (bool));
     }
     x[n] = x1;
     y[n] = y1;
@@ -3556,14 +3556,14 @@ void GfxSubpath::curveTo (
     y[n + 1] = y2;
     x[n + 2] = x3;
     y[n + 2] = y3;
-    curve[n] = curve[n + 1] = gTrue;
-    curve[n + 2] = gFalse;
+    curve[n] = curve[n + 1] = true;
+    curve[n + 2] = false;
     n += 3;
 }
 
 void GfxSubpath::close () {
     if (x[n - 1] != x[0] || y[n - 1] != y[0]) { lineTo (x[0], y[0]); }
-    closed = gTrue;
+    closed = true;
 }
 
 void GfxSubpath::offset (double dx, double dy) {
@@ -3576,7 +3576,7 @@ void GfxSubpath::offset (double dx, double dy) {
 }
 
 GfxPath::GfxPath () {
-    justMoved = gFalse;
+    justMoved = false;
     size = 16;
     n = 0;
     firstX = firstY = 0;
@@ -3592,7 +3592,7 @@ GfxPath::~GfxPath () {
 
 // Used for copy().
 GfxPath::GfxPath (
-    GBool justMoved1, double firstX1, double firstY1, GfxSubpath** subpaths1,
+    bool justMoved1, double firstX1, double firstY1, GfxSubpath** subpaths1,
     int n1, int size1) {
     int i;
 
@@ -3606,7 +3606,7 @@ GfxPath::GfxPath (
 }
 
 void GfxPath::moveTo (double x, double y) {
-    justMoved = gTrue;
+    justMoved = true;
     firstX = x;
     firstY = y;
 }
@@ -3624,7 +3624,7 @@ void GfxPath::lineTo (double x, double y) {
                 subpaths[n - 1]->getLastX (), subpaths[n - 1]->getLastY ());
         }
         ++n;
-        justMoved = gFalse;
+        justMoved = false;
     }
     subpaths[n - 1]->lineTo (x, y);
 }
@@ -3643,7 +3643,7 @@ void GfxPath::curveTo (
                 subpaths[n - 1]->getLastX (), subpaths[n - 1]->getLastY ());
         }
         ++n;
-        justMoved = gFalse;
+        justMoved = false;
     }
     subpaths[n - 1]->curveTo (x1, y1, x2, y2, x3, y3);
 }
@@ -3659,7 +3659,7 @@ void GfxPath::close () {
         }
         subpaths[n] = new GfxSubpath (firstX, firstY);
         ++n;
-        justMoved = gFalse;
+        justMoved = false;
     }
     subpaths[n - 1]->close ();
 }
@@ -3675,7 +3675,7 @@ void GfxPath::append (GfxPath* path) {
     for (i = 0; i < path->n; ++i) {
         subpaths[n++] = path->subpaths[i]->copy ();
     }
-    justMoved = gFalse;
+    justMoved = false;
 }
 
 void GfxPath::offset (double dx, double dy) {
@@ -3690,7 +3690,7 @@ void GfxPath::offset (double dx, double dy) {
 
 GfxState::GfxState (
     double hDPIA, double vDPIA, PDFRectangle* pageBox, int rotateA,
-    GBool upsideDown) {
+    bool upsideDown) {
     double kx, ky;
 
     hDPI = hDPIA;
@@ -3752,8 +3752,8 @@ GfxState::GfxState (
     blendMode = gfxBlendNormal;
     fillOpacity = 1;
     strokeOpacity = 1;
-    fillOverprint = gFalse;
-    strokeOverprint = gFalse;
+    fillOverprint = false;
+    strokeOverprint = false;
     overprintMode = 0;
     transfer[0] = transfer[1] = transfer[2] = transfer[3] = NULL;
 
@@ -3765,7 +3765,7 @@ GfxState::GfxState (
     lineJoin = 0;
     lineCap = 0;
     miterLimit = 10;
-    strokeAdjust = gFalse;
+    strokeAdjust = false;
 
     font = NULL;
     fontSize = 0;
@@ -3812,7 +3812,7 @@ GfxState::~GfxState () {
 }
 
 // Used for copy();
-GfxState::GfxState (GfxState* state, GBool copyPath) {
+GfxState::GfxState (GfxState* state, bool copyPath) {
     int i;
 
     memcpy (this, state, sizeof (GfxState));
@@ -4186,7 +4186,7 @@ GfxState* GfxState::restore () {
     return oldState;
 }
 
-GBool GfxState::parseBlendMode (Object* obj, GfxBlendMode* mode) {
+bool GfxState::parseBlendMode (Object* obj, GfxBlendMode* mode) {
     Object obj2;
     int i, j;
 
@@ -4194,31 +4194,31 @@ GBool GfxState::parseBlendMode (Object* obj, GfxBlendMode* mode) {
         for (i = 0; i < nGfxBlendModeNames; ++i) {
             if (!strcmp (obj->getName (), gfxBlendModeNames[i].name)) {
                 *mode = gfxBlendModeNames[i].mode;
-                return gTrue;
+                return true;
             }
         }
-        return gFalse;
+        return false;
     }
     else if (obj->isArray ()) {
         for (i = 0; i < obj->arrayGetLength (); ++i) {
             obj->arrayGet (i, &obj2);
             if (!obj2.isName ()) {
                 obj2.free ();
-                return gFalse;
+                return false;
             }
             for (j = 0; j < nGfxBlendModeNames; ++j) {
                 if (!strcmp (obj2.getName (), gfxBlendModeNames[j].name)) {
                     obj2.free ();
                     *mode = gfxBlendModeNames[j].mode;
-                    return gTrue;
+                    return true;
                 }
             }
             obj2.free ();
         }
         *mode = gfxBlendNormal;
-        return gTrue;
+        return true;
     }
     else {
-        return gFalse;
+        return false;
     }
 }

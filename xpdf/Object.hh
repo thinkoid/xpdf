@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <goo/gtypes.hh>
 #include <goo/gmem.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
@@ -77,7 +76,7 @@ public:
     Object () : type (objNone) {}
 
     // Initialize an object.
-    Object* initBool (GBool boolnA) {
+    Object* initBool (bool boolnA) {
         initObj (objBool);
         booln = boolnA;
         return this;
@@ -142,34 +141,34 @@ public:
 
     // Type checking.
     ObjType getType () { return type; }
-    GBool isBool () { return type == objBool; }
-    GBool isInt () { return type == objInt; }
-    GBool isReal () { return type == objReal; }
-    GBool isNum () { return type == objInt || type == objReal; }
-    GBool isString () { return type == objString; }
-    GBool isName () { return type == objName; }
-    GBool isNull () { return type == objNull; }
-    GBool isArray () { return type == objArray; }
-    GBool isDict () { return type == objDict; }
-    GBool isStream () { return type == objStream; }
-    GBool isRef () { return type == objRef; }
-    GBool isCmd () { return type == objCmd; }
-    GBool isError () { return type == objError; }
-    GBool isEOF () { return type == objEOF; }
-    GBool isNone () { return type == objNone; }
+    bool isBool () { return type == objBool; }
+    bool isInt () { return type == objInt; }
+    bool isReal () { return type == objReal; }
+    bool isNum () { return type == objInt || type == objReal; }
+    bool isString () { return type == objString; }
+    bool isName () { return type == objName; }
+    bool isNull () { return type == objNull; }
+    bool isArray () { return type == objArray; }
+    bool isDict () { return type == objDict; }
+    bool isStream () { return type == objStream; }
+    bool isRef () { return type == objRef; }
+    bool isCmd () { return type == objCmd; }
+    bool isError () { return type == objError; }
+    bool isEOF () { return type == objEOF; }
+    bool isNone () { return type == objNone; }
 
     // Special type checking.
-    GBool isName (const char* nameA) {
+    bool isName (const char* nameA) {
         return type == objName && !strcmp (name, nameA);
     }
-    GBool isDict (const char* dictType);
-    GBool isStream (char* dictType);
-    GBool isCmd (const char* cmdA) {
+    bool isDict (const char* dictType);
+    bool isStream (char* dictType);
+    bool isCmd (const char* cmdA) {
         return type == objCmd && !strcmp (cmd, cmdA);
     }
 
     // Accessors.  NB: these assume object is of correct type.
-    GBool getBool () { return booln; }
+    bool getBool () { return booln; }
     int getInt () { return intg; }
     double getReal () { return real; }
     double getNum () { return type == objInt ? (double)intg : real; }
@@ -192,7 +191,7 @@ public:
     // Dict accessors.
     int dictGetLength ();
     void dictAdd (char* key, Object* val);
-    GBool dictIs (const char* dictType);
+    bool dictIs (const char* dictType);
     Object* dictLookup (const char* key, Object* obj, int recursion = 0);
     Object* dictLookupNF (const char* key, Object* obj);
     char* dictGetKey (int i);
@@ -200,7 +199,7 @@ public:
     Object* dictGetValNF (int i, Object* obj);
 
     // Stream accessors.
-    GBool streamIs (char* dictType);
+    bool streamIs (char* dictType);
     void streamReset ();
     void streamClose ();
     int streamGetChar ();
@@ -221,7 +220,7 @@ public:
 private:
     ObjType type;        // object type
     union {              // value for each type:
-        GBool booln;     //   boolean
+        bool booln;     //   boolean
         int intg;        //   integer
         double real;     //   real
         GString* string; //   string
@@ -267,11 +266,11 @@ inline int Object::dictGetLength () { return dict->getLength (); }
 
 inline void Object::dictAdd (char* key, Object* val) { dict->add (key, val); }
 
-inline GBool Object::dictIs (const char* dictType) {
+inline bool Object::dictIs (const char* dictType) {
     return dict->is (dictType);
 }
 
-inline GBool Object::isDict (const char* dictType) {
+inline bool Object::isDict (const char* dictType) {
     return type == objDict && dictIs (dictType);
 }
 
@@ -300,11 +299,11 @@ inline Object* Object::dictGetValNF (int i, Object* obj) {
 
 #include <xpdf/Stream.hh>
 
-inline GBool Object::streamIs (char* dictType) {
+inline bool Object::streamIs (char* dictType) {
     return stream->getDict ()->is (dictType);
 }
 
-inline GBool Object::isStream (char* dictType) {
+inline bool Object::isStream (char* dictType) {
     return type == objStream && streamIs (dictType);
 }
 

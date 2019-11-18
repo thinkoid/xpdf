@@ -49,7 +49,7 @@ Lexer::Lexer (XRef* xref, Stream* str) {
     streams = new Array (xref);
     streams->add (curStr.copy (&obj));
     strPtr = 0;
-    freeArray = gTrue;
+    freeArray = true;
     curStr.streamReset ();
 }
 
@@ -58,12 +58,12 @@ Lexer::Lexer (XRef* xref, Object* obj) {
 
     if (obj->isStream ()) {
         streams = new Array (xref);
-        freeArray = gTrue;
+        freeArray = true;
         streams->add (obj->copy (&obj2));
     }
     else {
         streams = obj->getArray ();
-        freeArray = gFalse;
+        freeArray = false;
     }
     strPtr = 0;
     if (streams->getLength () > 0) {
@@ -104,7 +104,7 @@ int Lexer::lookChar () {
 Object* Lexer::getObj (Object* obj) {
     char* p;
     int c, c2;
-    GBool comment, neg, done;
+    bool comment, neg, done;
     int numParen;
     int xi;
     double xf, scale;
@@ -112,14 +112,14 @@ Object* Lexer::getObj (Object* obj) {
     int n, m;
 
     // skip whitespace and comments
-    comment = gFalse;
+    comment = false;
     while (1) {
         if ((c = getChar ()) == EOF) { return obj->initEOF (); }
         if (comment) {
-            if (c == '\r' || c == '\n') comment = gFalse;
+            if (c == '\r' || c == '\n') comment = false;
         }
         else if (c == '%') {
-            comment = gTrue;
+            comment = true;
         }
         else if (specialChars[c] != 1) {
             break;
@@ -141,9 +141,9 @@ Object* Lexer::getObj (Object* obj) {
     case '9':
     case '-':
     case '.':
-        neg = gFalse;
+        neg = false;
         xf = xi = 0;
-        if (c == '-') { neg = gTrue; }
+        if (c == '-') { neg = true; }
         else if (c == '.') {
             goto doReal;
         }
@@ -193,7 +193,7 @@ Object* Lexer::getObj (Object* obj) {
         p = tokBuf;
         n = 0;
         numParen = 1;
-        done = gFalse;
+        done = false;
         s = NULL;
         do {
             c2 = EOF;
@@ -205,7 +205,7 @@ Object* Lexer::getObj (Object* obj) {
       case '\n':
 #endif
                 error (errSyntaxError, getPos (), "Unterminated string");
-                done = gTrue;
+                done = true;
                 break;
 
             case '(':
@@ -214,7 +214,7 @@ Object* Lexer::getObj (Object* obj) {
                 break;
 
             case ')':
-                if (--numParen == 0) { done = gTrue; }
+                if (--numParen == 0) { done = true; }
                 else {
                     c2 = c;
                 }
@@ -257,7 +257,7 @@ Object* Lexer::getObj (Object* obj) {
                 case '\n': break;
                 case EOF:
                     error (errSyntaxError, getPos (), "Unterminated string");
-                    done = gTrue;
+                    done = true;
                     break;
                 default: c2 = c; break;
                 }
@@ -454,10 +454,10 @@ Object* Lexer::getObj (Object* obj) {
         }
         *p = '\0';
         if (tokBuf[0] == 't' && !strcmp (tokBuf, "true")) {
-            obj->initBool (gTrue);
+            obj->initBool (true);
         }
         else if (tokBuf[0] == 'f' && !strcmp (tokBuf, "false")) {
-            obj->initBool (gFalse);
+            obj->initBool (false);
         }
         else if (tokBuf[0] == 'n' && !strcmp (tokBuf, "null")) {
             obj->initNull ();
@@ -484,6 +484,6 @@ void Lexer::skipToNextLine () {
     }
 }
 
-GBool Lexer::isSpace (int c) {
+bool Lexer::isSpace (int c) {
     return c >= 0 && c <= 0xff && specialChars[c] == 1;
 }

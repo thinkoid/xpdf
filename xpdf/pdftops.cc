@@ -33,37 +33,37 @@
 
 static int firstPage = 1;
 static int lastPage = 0;
-static GBool level1 = gFalse;
-static GBool level1Sep = gFalse;
-static GBool level2 = gFalse;
-static GBool level2Sep = gFalse;
-static GBool level3 = gFalse;
-static GBool level3Sep = gFalse;
-static GBool doEPS = gFalse;
-static GBool doForm = gFalse;
+static bool level1 = false;
+static bool level1Sep = false;
+static bool level2 = false;
+static bool level2Sep = false;
+static bool level3 = false;
+static bool level3Sep = false;
+static bool doEPS = false;
+static bool doForm = false;
 #if OPI_SUPPORT
-static GBool doOPI = gFalse;
+static bool doOPI = false;
 #endif
-static GBool noEmbedT1Fonts = gFalse;
-static GBool noEmbedTTFonts = gFalse;
-static GBool noEmbedCIDPSFonts = gFalse;
-static GBool noEmbedCIDTTFonts = gFalse;
-static GBool preload = gFalse;
+static bool noEmbedT1Fonts = false;
+static bool noEmbedTTFonts = false;
+static bool noEmbedCIDPSFonts = false;
+static bool noEmbedCIDTTFonts = false;
+static bool preload = false;
 static char paperSize[15] = "";
 static int paperWidth = 0;
 static int paperHeight = 0;
-static GBool noCrop = gFalse;
-static GBool expand = gFalse;
-static GBool noShrink = gFalse;
-static GBool noCenter = gFalse;
-static GBool pageCrop = gFalse;
-static GBool duplex = gFalse;
+static bool noCrop = false;
+static bool expand = false;
+static bool noShrink = false;
+static bool noCenter = false;
+static bool pageCrop = false;
+static bool duplex = false;
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
-static GBool quiet = gFalse;
+static bool quiet = false;
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to print" },
@@ -126,7 +126,7 @@ int main (int argc, char* argv[]) {
     PSOutMode mode;
     GString *ownerPW, *userPW;
     PSOutputDev* psOut;
-    GBool ok;
+    bool ok;
     const char* p;
     int exitCode;
 
@@ -205,11 +205,11 @@ int main (int argc, char* argv[]) {
         if (paperWidth) { globalParams->setPSPaperWidth (paperWidth); }
         if (paperHeight) { globalParams->setPSPaperHeight (paperHeight); }
     }
-    if (noCrop) { globalParams->setPSCrop (gFalse); }
-    if (pageCrop) { globalParams->setPSUseCropBoxAsPage (gTrue); }
-    if (expand) { globalParams->setPSExpandSmaller (gTrue); }
-    if (noShrink) { globalParams->setPSShrinkLarger (gFalse); }
-    if (noCenter) { globalParams->setPSCenter (gFalse); }
+    if (noCrop) { globalParams->setPSCrop (false); }
+    if (pageCrop) { globalParams->setPSUseCropBoxAsPage (true); }
+    if (expand) { globalParams->setPSExpandSmaller (true); }
+    if (noShrink) { globalParams->setPSShrinkLarger (false); }
+    if (noCenter) { globalParams->setPSCenter (false); }
     if (duplex) { globalParams->setPSDuplex (duplex); }
     if (level1 || level1Sep || level2 || level2Sep || level3 || level3Sep) {
         globalParams->setPSLevel (level);
@@ -287,7 +287,7 @@ int main (int argc, char* argv[]) {
         doc->displayPages (
             psOut, firstPage, lastPage, 72, 72, 0,
             !globalParams->getPSUseCropBoxAsPage (), globalParams->getPSCrop (),
-            gTrue);
+            true);
     }
     else {
         delete psOut;

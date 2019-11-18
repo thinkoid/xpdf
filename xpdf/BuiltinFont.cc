@@ -31,7 +31,7 @@ BuiltinFontWidths::BuiltinFontWidths (BuiltinFontWidth* widths, int sizeA) {
 
 BuiltinFontWidths::~BuiltinFontWidths () { gfree (tab); }
 
-GBool BuiltinFontWidths::getWidth (const char* name, Gushort* width) {
+bool BuiltinFontWidths::getWidth (const char* name, unsigned short* width) {
     int h;
     BuiltinFontWidth* p;
 
@@ -39,10 +39,10 @@ GBool BuiltinFontWidths::getWidth (const char* name, Gushort* width) {
     for (p = tab[h]; p; p = p->next) {
         if (!strcmp (p->name, name)) {
             *width = p->width;
-            return gTrue;
+            return true;
         }
     }
-    return gFalse;
+    return false;
 }
 
 int BuiltinFontWidths::hash (const char* name) {

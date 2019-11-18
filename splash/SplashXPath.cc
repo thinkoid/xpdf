@@ -27,7 +27,7 @@ struct SplashXPathPoint {
 
 struct SplashXPathAdjust {
     int firstPt, lastPt;  // range of points
-    GBool vert;           // vertical or horizontal hint
+    bool vert;           // vertical or horizontal hint
     SplashCoord x0a, x0b, // hint boundaries
         xma, xmb, x1a, x1b;
     SplashCoord x0, x1, xm; // adjusted coordinates
@@ -52,7 +52,7 @@ inline void SplashXPath::transform (
 
 SplashXPath::SplashXPath (
     SplashPath* path, SplashCoord* matrix, SplashCoord flatness,
-    GBool closeSubpaths) {
+    bool closeSubpaths) {
     SplashXPathPoint* pts;
     SplashCoord x0, y0, x1, y1, x2, y2, x3, y3, xsp, ysp;
     SplashCoord xMinFP, xMaxFP, yMinFP, yMaxFP;
@@ -181,12 +181,12 @@ void SplashXPath::strokeAdjust (
         x3 = pts[hint->ctrl1 + 1].x;
         y3 = pts[hint->ctrl1 + 1].y;
         if (x0 == x1 && x2 == x3) {
-            adjusts[i].vert = gTrue;
+            adjusts[i].vert = true;
             adj0 = x0;
             adj1 = x2;
         }
         else if (y0 == y1 && y2 == y3) {
-            adjusts[i].vert = gFalse;
+            adjusts[i].vert = false;
             adj0 = y0;
             adj1 = y2;
         }
@@ -279,7 +279,7 @@ void SplashXPath::grow (int nSegs) {
 void SplashXPath::addCurve (
     SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
     SplashCoord x2, SplashCoord y2, SplashCoord x3, SplashCoord y3,
-    SplashCoord flatness, GBool first, GBool last, GBool end0, GBool end1) {
+    SplashCoord flatness, bool first, bool last, bool end0, bool end1) {
     SplashCoord cx[splashMaxCurveSplits + 1][3];
     SplashCoord cy[splashMaxCurveSplits + 1][3];
     int cNext[splashMaxCurveSplits + 1];

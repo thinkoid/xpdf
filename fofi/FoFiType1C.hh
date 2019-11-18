@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <fofi/FoFiBase.hh>
 
 class GString;
@@ -47,7 +46,7 @@ struct Type1CTopDict {
     int paintType;
     int charstringType;
     double fontMatrix[6];
-    GBool hasFontMatrix; // CID fonts are allowed to put their
+    bool hasFontMatrix; // CID fonts are allowed to put their
                          //   FontMatrix in the FD instead of the
                          //   top dict
     int uniqueID;
@@ -73,7 +72,7 @@ struct Type1CTopDict {
 
 struct Type1CPrivateDict {
     double fontMatrix[6];
-    GBool hasFontMatrix;
+    bool hasFontMatrix;
     int blueValues[type1CMaxBlueValues];
     int nBlueValues;
     int otherBlues[type1CMaxOtherBlues];
@@ -86,29 +85,29 @@ struct Type1CPrivateDict {
     int blueShift;
     int blueFuzz;
     double stdHW;
-    GBool hasStdHW;
+    bool hasStdHW;
     double stdVW;
-    GBool hasStdVW;
+    bool hasStdVW;
     double stemSnapH[type1CMaxStemSnap];
     int nStemSnapH;
     double stemSnapV[type1CMaxStemSnap];
     int nStemSnapV;
-    GBool forceBold;
-    GBool hasForceBold;
+    bool forceBold;
+    bool hasForceBold;
     double forceBoldThreshold;
     int languageGroup;
     double expansionFactor;
     int initialRandomSeed;
     int subrsOffset;
     double defaultWidthX;
-    GBool defaultWidthXFP;
+    bool defaultWidthXFP;
     double nominalWidthX;
-    GBool nominalWidthXFP;
+    bool nominalWidthXFP;
 };
 
 struct Type1COp {
-    GBool isNum; // true -> number, false -> operator
-    GBool isFP;  // true -> floating point number, false -> int
+    bool isNum; // true -> number, false -> operator
+    bool isFP;  // true -> floating point number, false -> int
     union {
         double num; // if num is true
         int op;     // if num is false
@@ -118,8 +117,8 @@ struct Type1COp {
 struct Type1CEexecBuf {
     FoFiOutputFunc outputFunc;
     void* outputStream;
-    GBool ascii; // ASCII encoding?
-    Gushort r1;  // eexec encryption key
+    bool ascii; // ASCII encoding?
+    unsigned short r1;  // eexec encryption key
     int line;    // number of eexec chars left on current line
 };
 
@@ -162,7 +161,7 @@ public:
     // otherwise it will be left as binary data.  If <psName> is non-NULL,
     // it will be used as the PostScript font name.
     void convertToType1 (
-        const char* psName, const char** newEncoding, GBool ascii,
+        const char* psName, const char** newEncoding, bool ascii,
         FoFiOutputFunc outputFunc, void* outputStream);
 
     // Convert to a Type 0 CIDFont, suitable for embedding in a
@@ -191,32 +190,32 @@ public:
         void* outputStream);
 
 private:
-    FoFiType1C (char* fileA, int lenA, GBool freeFileDataA);
+    FoFiType1C (char* fileA, int lenA, bool freeFileDataA);
     void eexecCvtGlyph (
         Type1CEexecBuf* eb, const char* glyphName, int offset, int nBytes,
         Type1CIndex* subrIdx, Type1CPrivateDict* pDict);
     void cvtGlyph (
         int offset, int nBytes, GString* charBuf, Type1CIndex* subrIdx,
-        Type1CPrivateDict* pDict, GBool top);
+        Type1CPrivateDict* pDict, bool top);
     void
-    cvtGlyphWidth (GBool useOp, GString* charBuf, Type1CPrivateDict* pDict);
-    void cvtNum (double x, GBool isFP, GString* charBuf);
+    cvtGlyphWidth (bool useOp, GString* charBuf, Type1CPrivateDict* pDict);
+    void cvtNum (double x, bool isFP, GString* charBuf);
     void eexecWrite (Type1CEexecBuf* eb, const char* s);
-    void eexecWriteCharstring (Type1CEexecBuf* eb, Guchar* s, int n);
+    void eexecWriteCharstring (Type1CEexecBuf* eb, unsigned char* s, int n);
     void writePSString (char* s, FoFiOutputFunc outputFunc, void* outputStream);
-    GBool parse ();
+    bool parse ();
     void readTopDict ();
     void readFD (int offset, int length, Type1CPrivateDict* pDict);
     void readPrivateDict (int offset, int length, Type1CPrivateDict* pDict);
     void readFDSelect ();
     void buildEncoding ();
-    GBool readCharset ();
-    int getOp (int pos, GBool charstring, GBool* ok);
+    bool readCharset ();
+    int getOp (int pos, bool charstring, bool* ok);
     int getDeltaIntArray (int* arr, int maxLen);
     int getDeltaFPArray (double* arr, int maxLen);
-    void getIndex (int pos, Type1CIndex* idx, GBool* ok);
-    void getIndexVal (Type1CIndex* idx, int i, Type1CIndexVal* val, GBool* ok);
-    char* getString (int sid, char* buf, GBool* ok);
+    void getIndex (int pos, Type1CIndex* idx, bool* ok);
+    void getIndexVal (Type1CIndex* idx, int i, Type1CIndexVal* val, bool* ok);
+    char* getString (int sid, char* buf, bool* ok);
 
     GString* name;
     char** encoding;
@@ -232,17 +231,17 @@ private:
 
     int nGlyphs;
     int nFDs;
-    Guchar* fdSelect;
-    Gushort* charset;
+    unsigned char* fdSelect;
+    unsigned short* charset;
     int gsubrBias;
 
-    GBool parsedOk;
+    bool parsedOk;
 
     Type1COp ops[49]; // operands and operator
     int nOps;         // number of operands
     int nHints;       // number of hints for the current glyph
-    GBool firstOp;    // true if we haven't hit the first op yet
-    GBool openPath;   // true if there is an unclosed path
+    bool firstOp;    // true if we haven't hit the first op yet
+    bool openPath;   // true if there is an unclosed path
 };
 
 #endif

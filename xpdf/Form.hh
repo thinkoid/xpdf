@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 
 class Gfx;
 class FormField;
@@ -26,7 +25,7 @@ public:
 
     virtual const char* getType () = 0;
 
-    virtual void draw (int pageNum, Gfx* gfx, GBool printing) = 0;
+    virtual void draw (int pageNum, Gfx* gfx, bool printing) = 0;
 
     virtual int getNumFields () = 0;
     virtual FormField* getField (int idx) = 0;

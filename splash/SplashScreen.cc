@@ -52,7 +52,7 @@ struct cmpDistancesFunctor {
 // threshold matrix using recursive tesselation.  Gamma correction
 // (gamma = 1 / 1.33) is also computed here.
 SplashScreen::SplashScreen (SplashScreenParams* params) {
-    Guchar u;
+    unsigned char u;
     int black, white, i;
 
     if (!params) { params = &defaultParams; }
@@ -63,12 +63,12 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
 
     switch (params->type) {
     case splashScreenDispersed:
-        mat = (Guchar*)gmallocn (size * size, sizeof (Guchar));
+        mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
         buildDispersedMatrix (size / 2, size / 2, 1, size / 2, 1);
         break;
 
     case splashScreenClustered:
-        mat = (Guchar*)gmallocn (size * size, sizeof (Guchar));
+        mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
         buildClusteredMatrix ();
         break;
 
@@ -78,7 +78,7 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
             size <<= 1;
             ++log2Size;
         }
-        mat = (Guchar*)gmallocn (size * size, sizeof (Guchar));
+        mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
         buildSCDMatrix (params->dotRadius);
         break;
     }
@@ -96,9 +96,9 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
         u = splashRound (
             (SplashCoord)255.0 *
             splashPow ((SplashCoord)mat[i] / 255.0, params->gamma));
-        if (u < black) { u = (Guchar)black; }
+        if (u < black) { u = (unsigned char)black; }
         else if (u >= white) {
-            u = (Guchar)white;
+            u = (unsigned char)white;
         }
         mat[i] = u;
         if (u < minVal) { minVal = u; }
@@ -130,7 +130,7 @@ void SplashScreen::buildDispersedMatrix (
 void SplashScreen::buildClusteredMatrix () {
     SplashCoord* dist;
     SplashCoord u, v, d;
-    Guchar val;
+    unsigned char val;
     int size2, x, y, x1, y1, i;
 
     size2 = size >> 1;
@@ -343,8 +343,8 @@ SplashScreen::SplashScreen (SplashScreen* screen) {
     size = screen->size;
     sizeM1 = screen->sizeM1;
     log2Size = screen->log2Size;
-    mat = (Guchar*)gmallocn (size * size, sizeof (Guchar));
-    memcpy (mat, screen->mat, size * size * sizeof (Guchar));
+    mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
+    memcpy (mat, screen->mat, size * size * sizeof (unsigned char));
     minVal = screen->minVal;
     maxVal = screen->maxVal;
 }

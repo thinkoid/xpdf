@@ -21,7 +21,6 @@
 #include <dirent.h>
 #define NAMLEN(d) strlen ((d)->d_name)
 
-#include <goo/gtypes.hh>
 
 class GString;
 
@@ -42,7 +41,7 @@ extern GString* appendToPath (GString* path, const char* fileName);
 extern GString* grabPath (const char* fileName);
 
 // Is this an absolute path or file name?
-extern GBool isAbsolutePath (const char* path);
+extern bool isAbsolutePath (const char* path);
 
 // Make this path absolute by prepending current directory (if path is
 // relative) or prepending user's directory (if path starts with '~').
@@ -58,14 +57,14 @@ extern time_t getModTime (const char* fileName);
 // should be done to the returned file pointer; the file may be
 // reopened later for reading, but not for writing.  The <mode> string
 // should be "w" or "wb".  Returns true on success.
-extern GBool
+extern bool
 openTempFile (GString** name, FILE** f, const char* mode);
 
 // Create a directory.  Returns true on success.
-extern GBool createDir (char* path, int mode);
+extern bool createDir (char* path, int mode);
 
 // Execute <command>.  Returns true on success.
-extern GBool executeCommand (char* cmd);
+extern bool executeCommand (char* cmd);
 
 // Open a file.  On Windows, this converts the path from UTF-8 to
 // UCS-2 and calls _wfopen (if available).  On other OSes, this simply
@@ -91,26 +90,26 @@ extern GFileOffset gftell (FILE* f);
 
 class GDirEntry {
 public:
-    GDirEntry (const char* dirPath, char* nameA, GBool doStat);
+    GDirEntry (const char* dirPath, char* nameA, bool doStat);
     ~GDirEntry ();
     GString* getName () { return name; }
-    GBool isDir () { return dir; }
+    bool isDir () { return dir; }
 
 private:
     GString* name; // dir/file name
-    GBool dir;     // is it a directory?
+    bool dir;     // is it a directory?
 };
 
 class GDir {
 public:
-    GDir (char* name, GBool doStatA = gTrue);
+    GDir (char* name, bool doStatA = true);
     ~GDir ();
     GDirEntry* getNextEntry ();
     void rewind ();
 
 private:
     GString* path; // directory path
-    GBool doStat;  // call stat() for each entry?
+    bool doStat;  // call stat() for each entry?
     DIR* dir;      // the DIR structure from opendir()
 };
 

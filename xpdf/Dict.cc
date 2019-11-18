@@ -103,7 +103,7 @@ int Dict::hash (const char* key) {
     return (int)(h % (2 * size - 1));
 }
 
-GBool Dict::is (const char* type) {
+bool Dict::is (const char* type) {
     DictEntry* e;
 
     return (e = find ("Type")) && e->val.isName (type);

@@ -25,7 +25,7 @@ SplashFontFile::SplashFontFile (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBufA
 #else
-    const char* fileNameA, GBool deleteFileA
+    const char* fileNameA, bool deleteFileA
 #endif
 ) {
     id = idA;

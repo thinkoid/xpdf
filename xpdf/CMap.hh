@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/CharTypes.hh>
 
 class GString;
@@ -47,7 +46,7 @@ public:
 
     // Return true if this CMap matches the specified <collectionA>, and
     // <cMapNameA>.
-    GBool match (GString* collectionA, GString* cMapNameA);
+    bool match (GString* collectionA, GString* cMapNameA);
 
     // Return the CID corresponding to the character code starting at
     // <s>, which contains <len> bytes.  Sets *<c> to the char code, and
@@ -64,12 +63,12 @@ private:
     void useCMap (CMapCache* cache, char* useName);
     void useCMap (CMapCache* cache, Object* obj);
     void copyVector (CMapVectorEntry* dest, CMapVectorEntry* src);
-    void addCIDs (Guint start, Guint end, Guint nBytes, CID firstCID);
+    void addCIDs (unsigned start, unsigned end, unsigned nBytes, CID firstCID);
     void freeCMapVector (CMapVectorEntry* vec);
 
     GString* collection;
     GString* cMapName;
-    GBool isIdent;           // true if this CMap is an identity mapping,
+    bool isIdent;           // true if this CMap is an identity mapping,
                              //   or is based on one (via usecmap)
     int wMode;               // writing mode (0=horizontal, 1=vertical)
     CMapVectorEntry* vector; // vector for first byte (NULL for

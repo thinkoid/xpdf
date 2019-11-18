@@ -37,7 +37,7 @@ public:
     ~Catalog ();
 
     // Is catalog valid?
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
     // Get number of pages.
     int getNumPages () { return numPages; }
@@ -107,10 +107,10 @@ private:
     Form* form;             // parsed form
     Object ocProperties;    // OCProperties dictionary
     GList* embeddedFiles;   // embedded file list [EmbeddedFile]
-    GBool ok;               // true if catalog is valid
+    bool ok;               // true if catalog is valid
 
     Object* findDestInTree (Object* tree, GString* name, Object* obj);
-    GBool readPageTree (Object* catDict);
+    bool readPageTree (Object* catDict);
     int countPageTree (Object* pagesObj);
     void loadPage (int pg);
     void loadPage2 (int pg, int relPg, PageTreeNode* node);

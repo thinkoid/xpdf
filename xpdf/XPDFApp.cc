@@ -159,7 +159,7 @@ XPDFApp::XPDFApp (int* argc, char* argv[]) {
   XSetErrorHandler(&xErrorHandler);
 #endif
 
-    fullScreen = gFalse;
+    fullScreen = false;
     remoteAtom = None;
     remoteViewer = NULL;
     remoteWin = None;
@@ -179,9 +179,9 @@ void XPDFApp::getResources () {
     geometry =
         resources.geometry ? new GString (resources.geometry) : (GString*)NULL;
     title = resources.title ? new GString (resources.title) : (GString*)NULL;
-    installCmap = (GBool)resources.installCmap;
+    installCmap = (bool)resources.installCmap;
     rgbCubeSize = resources.rgbCubeSize;
-    reverseVideo = (GBool)resources.reverseVideo;
+    reverseVideo = (bool)resources.reverseVideo;
     if (reverseVideo) {
         paperRGB[0] = paperRGB[1] = paperRGB[2] = 0;
         paperPixel = BlackPixel (display, screenNum);
@@ -277,7 +277,7 @@ XPDFViewer* XPDFApp::openAtDest (
 }
 
 XPDFViewer*
-XPDFApp::reopen (XPDFViewer* viewer, PDFDoc* doc, int page, GBool fullScreenA) {
+XPDFApp::reopen (XPDFViewer* viewer, PDFDoc* doc, int page, bool fullScreenA) {
     int i;
 
     for (i = 0; i < viewers->getLength (); ++i) {
@@ -303,7 +303,7 @@ XPDFApp::reopen (XPDFViewer* viewer, PDFDoc* doc, int page, GBool fullScreenA) {
     return viewer;
 }
 
-void XPDFApp::close (XPDFViewer* viewer, GBool closeLast) {
+void XPDFApp::close (XPDFViewer* viewer, bool closeLast) {
     int i;
 
     if (viewers->getLength () == 1) {
@@ -346,7 +346,7 @@ void XPDFApp::setRemoteName (char* remoteName) {
     remoteXWin = XGetSelectionOwner (display, remoteAtom);
 }
 
-GBool XPDFApp::remoteServerRunning () { return remoteXWin != None; }
+bool XPDFApp::remoteServerRunning () { return remoteXWin != None; }
 
 void XPDFApp::remoteExec (char* cmd) {
     char cmd2[remoteCmdSize];
@@ -359,22 +359,22 @@ void XPDFApp::remoteExec (char* cmd) {
     cmd2[n + 1] = '\0';
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
-        (Guchar*)cmd2, n + 2);
+        (unsigned char*)cmd2, n + 2);
     XFlush (display);
 }
 
-void XPDFApp::remoteOpen (GString* fileName, int page, GBool raise) {
+void XPDFApp::remoteOpen (GString* fileName, int page, bool raise) {
     char cmd[remoteCmdSize];
 
     sprintf (cmd, "openFileAtPage(%.200s,%d)\n", fileName->c_str (), page);
     if (raise) { strcat (cmd, "raise\n"); }
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
-        (Guchar*)cmd, strlen (cmd) + 1);
+        (unsigned char*)cmd, strlen (cmd) + 1);
     XFlush (display);
 }
 
-void XPDFApp::remoteOpenAtDest (GString* fileName, GString* dest, GBool raise) {
+void XPDFApp::remoteOpenAtDest (GString* fileName, GString* dest, bool raise) {
     char cmd[remoteCmdSize];
 
     sprintf (
@@ -383,32 +383,32 @@ void XPDFApp::remoteOpenAtDest (GString* fileName, GString* dest, GBool raise) {
     if (raise) { strcat (cmd, "raise\n"); }
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
-        (Guchar*)cmd, strlen (cmd) + 1);
+        (unsigned char*)cmd, strlen (cmd) + 1);
     XFlush (display);
 }
 
-void XPDFApp::remoteReload (GBool raise) {
+void XPDFApp::remoteReload (bool raise) {
     char cmd[remoteCmdSize];
 
     strcpy (cmd, "reload\n");
     if (raise) { strcat (cmd, "raise\n"); }
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
-        (Guchar*)cmd, strlen (cmd) + 1);
+        (unsigned char*)cmd, strlen (cmd) + 1);
     XFlush (display);
 }
 
 void XPDFApp::remoteRaise () {
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
-        (Guchar*)"raise\n", 7);
+        (unsigned char*)"raise\n", 7);
     XFlush (display);
 }
 
 void XPDFApp::remoteQuit () {
     XChangeProperty (
         display, remoteXWin, remoteAtom, remoteAtom, 8, PropModeReplace,
-        (Guchar*)"quit\n", 6);
+        (unsigned char*)"quit\n", 6);
     XFlush (display);
 }
 
@@ -418,7 +418,7 @@ void XPDFApp::remoteMsgCbk (
     char *cmd, *p0, *p1;
     Atom type;
     int format;
-    Gulong size, remain;
+    size_t size, remain;
     GString* cmdStr;
 
     if (event->xproperty.atom != app->remoteAtom) {
@@ -430,7 +430,7 @@ void XPDFApp::remoteMsgCbk (
     if (XGetWindowProperty (
             app->display, XtWindow (app->remoteWin), app->remoteAtom, 0,
             remoteCmdSize / 4, True, app->remoteAtom, &type, &format, &size,
-            &remain, (Guchar**)&cmd) != Success) {
+            &remain, (unsigned char**)&cmd) != Success) {
         return;
     }
     if (!cmd) { return; }

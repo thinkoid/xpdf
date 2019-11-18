@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/OutputDev.hh>
 
@@ -31,24 +30,24 @@ public:
 
     // Does this device use upside-down coordinates?
     // (Upside-down means (0,0) is the top left corner of the page.)
-    virtual GBool upsideDown () { return gTrue; }
+    virtual bool upsideDown () { return true; }
 
     // Does this device use drawChar() or drawString()?
-    virtual GBool useDrawChar () { return gTrue; }
+    virtual bool useDrawChar () { return true; }
 
     // Does this device use tilingPatternFill()?  If this returns false,
     // tiling pattern fills will be reduced to a series of other drawing
     // operations.
-    virtual GBool useTilingPatternFill () { return gTrue; }
+    virtual bool useTilingPatternFill () { return true; }
 
     // Does this device use functionShadedFill(), axialShadedFill(), and
     // radialShadedFill()?  If this returns false, these shaded fills
     // will be reduced to a series of other drawing operations.
-    virtual GBool useShadedFills () { return gTrue; }
+    virtual bool useShadedFills () { return true; }
 
     // Does this device use beginType3Char/endType3Char?  Otherwise,
     // text in Type 3 fonts will be drawn with drawChar/drawString.
-    virtual GBool interpretType3Chars () { return gTrue; }
+    virtual bool interpretType3Chars () { return true; }
 
     //----- initialization and control
 
@@ -66,10 +65,10 @@ public:
         GfxState* state, Gfx* gfx, Object* strRef, int paintType, Dict* resDict,
         double* mat, double* bbox, int x0, int y0, int x1, int y1, double xStep,
         double yStep);
-    virtual GBool
+    virtual bool
     functionShadedFill (GfxState* state, GfxFunctionShading* shading);
-    virtual GBool axialShadedFill (GfxState* state, GfxAxialShading* shading);
-    virtual GBool radialShadedFill (GfxState* state, GfxRadialShading* shading);
+    virtual bool axialShadedFill (GfxState* state, GfxAxialShading* shading);
+    virtual bool radialShadedFill (GfxState* state, GfxRadialShading* shading);
 
     //----- path clipping
     virtual void clip (GfxState* state);
@@ -78,7 +77,7 @@ public:
     //----- text drawing
     virtual void beginStringOp (GfxState* state);
     virtual void endStringOp (GfxState* state);
-    virtual GBool beginType3Char (
+    virtual bool beginType3Char (
         GfxState* state, double x, double y, double dx, double dy,
         CharCode code, Unicode* u, int uLen);
     virtual void endType3Char (GfxState* state);
@@ -86,47 +85,47 @@ public:
     //----- image drawing
     virtual void drawImageMask (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GBool invert, GBool inlineImg, GBool interpolate);
+        bool invert, bool inlineImg, bool interpolate);
     virtual void drawImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
-        GfxImageColorMap* colorMap, int* maskColors, GBool inlineImg,
-        GBool interpolate);
+        GfxImageColorMap* colorMap, int* maskColors, bool inlineImg,
+        bool interpolate);
     virtual void drawMaskedImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
         GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth,
-        int maskHeight, GBool maskInvert, GBool interpolate);
+        int maskHeight, bool maskInvert, bool interpolate);
     virtual void drawSoftMaskedImage (
         GfxState* state, Object* ref, Stream* str, int width, int height,
         GfxImageColorMap* colorMap, Stream* maskStr, int maskWidth,
-        int maskHeight, GfxImageColorMap* maskColorMap, GBool interpolate);
+        int maskHeight, GfxImageColorMap* maskColorMap, bool interpolate);
 
     //----- transparency groups and soft masks
     virtual void beginTransparencyGroup (
         GfxState* state, double* bbox, GfxColorSpace* blendingColorSpace,
-        GBool isolated, GBool knockout, GBool forSoftMask);
+        bool isolated, bool knockout, bool forSoftMask);
 
     //----- special access
 
     // Returns true if the operations performed since the last call to
     // clearStats() are all monochrome (black or white).
-    GBool isMonochrome () { return mono; }
+    bool isMonochrome () { return mono; }
 
     // Returns true if the operations performed since the last call to
     // clearStats() are all gray.
-    GBool isGray () { return gray; }
+    bool isGray () { return gray; }
 
     // Returns true if the operations performed since the last call to
     // clearStats() included any transparency.
-    GBool usesTransparency () { return transparency; }
+    bool usesTransparency () { return transparency; }
 
     // Returns true if the operations performed since the last call to
     // clearStats() included any image mask fills with a pattern color
     // space.
-    GBool usesPatternImageMask () { return patternImgMask; }
+    bool usesPatternImageMask () { return patternImgMask; }
 
     // Returns true if the operations performed since the last call to
     // clearStats() are all rasterizable by GDI calls in GDIOutputDev.
-    GBool isAllGDI () { return gdi; }
+    bool isAllGDI () { return gdi; }
 
     // Clear the stats used by the above functions.
     void clearStats ();
@@ -136,11 +135,11 @@ private:
         GfxColorSpace* colorSpace, GfxColor* color, double opacity,
         GfxBlendMode blendMode);
 
-    GBool mono;
-    GBool gray;
-    GBool transparency;
-    GBool patternImgMask;
-    GBool gdi;
+    bool mono;
+    bool gray;
+    bool transparency;
+    bool patternImgMask;
+    bool gdi;
 };
 
 #endif

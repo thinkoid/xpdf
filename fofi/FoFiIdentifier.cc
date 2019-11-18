@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <goo/gtypes.hh>
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
@@ -28,22 +27,22 @@ public:
 
     // Read a big-endian unsigned 16-bit integer.  Fills in *val and
     // returns true if successful.
-    virtual GBool getU16BE (int pos, int* val) = 0;
+    virtual bool getU16BE (int pos, int* val) = 0;
 
     // Read a big-endian unsigned 32-bit integer.  Fills in *val and
     // returns true if successful.
-    virtual GBool getU32BE (int pos, Guint* val) = 0;
+    virtual bool getU32BE (int pos, unsigned* val) = 0;
 
     // Read a little-endian unsigned 32-bit integer.  Fills in *val and
     // returns true if successful.
-    virtual GBool getU32LE (int pos, Guint* val) = 0;
+    virtual bool getU32LE (int pos, unsigned* val) = 0;
 
     // Read a big-endian unsigned <size>-byte integer, where 1 <= size
     // <= 4.  Fills in *val and returns true if successful.
-    virtual GBool getUVarBE (int pos, int size, Guint* val) = 0;
+    virtual bool getUVarBE (int pos, int size, unsigned* val) = 0;
 
     // Compare against a string.  Returns true if equal.
-    virtual GBool cmp (int pos, const char* s) = 0;
+    virtual bool cmp (int pos, const char* s) = 0;
 };
 
 //------------------------------------------------------------------------
@@ -53,11 +52,11 @@ public:
     static MemReader* make (char* bufA, int lenA);
     virtual ~MemReader ();
     virtual int getByte (int pos);
-    virtual GBool getU16BE (int pos, int* val);
-    virtual GBool getU32BE (int pos, Guint* val);
-    virtual GBool getU32LE (int pos, Guint* val);
-    virtual GBool getUVarBE (int pos, int size, Guint* val);
-    virtual GBool cmp (int pos, const char* s);
+    virtual bool getU16BE (int pos, int* val);
+    virtual bool getU32BE (int pos, unsigned* val);
+    virtual bool getU32LE (int pos, unsigned* val);
+    virtual bool getUVarBE (int pos, int size, unsigned* val);
+    virtual bool cmp (int pos, const char* s);
 
 private:
     MemReader (char* bufA, int lenA);
@@ -82,40 +81,40 @@ int MemReader::getByte (int pos) {
     return buf[pos] & 0xff;
 }
 
-GBool MemReader::getU16BE (int pos, int* val) {
-    if (pos < 0 || pos > len - 2) { return gFalse; }
+bool MemReader::getU16BE (int pos, int* val) {
+    if (pos < 0 || pos > len - 2) { return false; }
     *val = ((buf[pos] & 0xff) << 8) + (buf[pos + 1] & 0xff);
-    return gTrue;
+    return true;
 }
 
-GBool MemReader::getU32BE (int pos, Guint* val) {
-    if (pos < 0 || pos > len - 4) { return gFalse; }
+bool MemReader::getU32BE (int pos, unsigned* val) {
+    if (pos < 0 || pos > len - 4) { return false; }
     *val = ((buf[pos] & 0xff) << 24) + ((buf[pos + 1] & 0xff) << 16) +
            ((buf[pos + 2] & 0xff) << 8) + (buf[pos + 3] & 0xff);
-    return gTrue;
+    return true;
 }
 
-GBool MemReader::getU32LE (int pos, Guint* val) {
-    if (pos < 0 || pos > len - 4) { return gFalse; }
+bool MemReader::getU32LE (int pos, unsigned* val) {
+    if (pos < 0 || pos > len - 4) { return false; }
     *val = (buf[pos] & 0xff) + ((buf[pos + 1] & 0xff) << 8) +
            ((buf[pos + 2] & 0xff) << 16) + ((buf[pos + 3] & 0xff) << 24);
-    return gTrue;
+    return true;
 }
 
-GBool MemReader::getUVarBE (int pos, int size, Guint* val) {
+bool MemReader::getUVarBE (int pos, int size, unsigned* val) {
     int i;
 
-    if (size < 1 || size > 4 || pos < 0 || pos > len - size) { return gFalse; }
+    if (size < 1 || size > 4 || pos < 0 || pos > len - size) { return false; }
     *val = 0;
     for (i = 0; i < size; ++i) { *val = (*val << 8) + (buf[pos + i] & 0xff); }
-    return gTrue;
+    return true;
 }
 
-GBool MemReader::cmp (int pos, const char* s) {
+bool MemReader::cmp (int pos, const char* s) {
     int n;
 
     n = (int)strlen (s);
-    if (pos < 0 || len < n || pos > len - n) { return gFalse; }
+    if (pos < 0 || len < n || pos > len - n) { return false; }
     return !memcmp (buf + pos, s, n);
 }
 
@@ -126,15 +125,15 @@ public:
     static FileReader* make (const char* fileName);
     virtual ~FileReader ();
     virtual int getByte (int pos);
-    virtual GBool getU16BE (int pos, int* val);
-    virtual GBool getU32BE (int pos, Guint* val);
-    virtual GBool getU32LE (int pos, Guint* val);
-    virtual GBool getUVarBE (int pos, int size, Guint* val);
-    virtual GBool cmp (int pos, const char* s);
+    virtual bool getU16BE (int pos, int* val);
+    virtual bool getU32BE (int pos, unsigned* val);
+    virtual bool getU32LE (int pos, unsigned* val);
+    virtual bool getUVarBE (int pos, int size, unsigned* val);
+    virtual bool cmp (int pos, const char* s);
 
 private:
     FileReader (FILE* fA);
-    GBool fillBuf (int pos, int len);
+    bool fillBuf (int pos, int len);
 
     FILE* f;
     char buf[1024];
@@ -161,59 +160,59 @@ int FileReader::getByte (int pos) {
     return buf[pos - bufPos] & 0xff;
 }
 
-GBool FileReader::getU16BE (int pos, int* val) {
-    if (!fillBuf (pos, 2)) { return gFalse; }
+bool FileReader::getU16BE (int pos, int* val) {
+    if (!fillBuf (pos, 2)) { return false; }
     *val = ((buf[pos - bufPos] & 0xff) << 8) + (buf[pos - bufPos + 1] & 0xff);
-    return gTrue;
+    return true;
 }
 
-GBool FileReader::getU32BE (int pos, Guint* val) {
-    if (!fillBuf (pos, 4)) { return gFalse; }
+bool FileReader::getU32BE (int pos, unsigned* val) {
+    if (!fillBuf (pos, 4)) { return false; }
     *val = ((buf[pos - bufPos] & 0xff) << 24) +
            ((buf[pos - bufPos + 1] & 0xff) << 16) +
            ((buf[pos - bufPos + 2] & 0xff) << 8) +
            (buf[pos - bufPos + 3] & 0xff);
-    return gTrue;
+    return true;
 }
 
-GBool FileReader::getU32LE (int pos, Guint* val) {
-    if (!fillBuf (pos, 4)) { return gFalse; }
+bool FileReader::getU32LE (int pos, unsigned* val) {
+    if (!fillBuf (pos, 4)) { return false; }
     *val = (buf[pos - bufPos] & 0xff) + ((buf[pos - bufPos + 1] & 0xff) << 8) +
            ((buf[pos - bufPos + 2] & 0xff) << 16) +
            ((buf[pos - bufPos + 3] & 0xff) << 24);
-    return gTrue;
+    return true;
 }
 
-GBool FileReader::getUVarBE (int pos, int size, Guint* val) {
+bool FileReader::getUVarBE (int pos, int size, unsigned* val) {
     int i;
 
-    if (size < 1 || size > 4 || !fillBuf (pos, size)) { return gFalse; }
+    if (size < 1 || size > 4 || !fillBuf (pos, size)) { return false; }
     *val = 0;
     for (i = 0; i < size; ++i) {
         *val = (*val << 8) + (buf[pos - bufPos + i] & 0xff);
     }
-    return gTrue;
+    return true;
 }
 
-GBool FileReader::cmp (int pos, const char* s) {
+bool FileReader::cmp (int pos, const char* s) {
     int n;
 
     n = (int)strlen (s);
-    if (!fillBuf (pos, n)) { return gFalse; }
+    if (!fillBuf (pos, n)) { return false; }
     return !memcmp (buf - bufPos + pos, s, n);
 }
 
-GBool FileReader::fillBuf (int pos, int len) {
+bool FileReader::fillBuf (int pos, int len) {
     if (pos < 0 || len < 0 || len > (int)sizeof (buf) ||
         pos > INT_MAX - (int)sizeof (buf)) {
-        return gFalse;
+        return false;
     }
-    if (pos >= bufPos && pos + len <= bufPos + bufLen) { return gTrue; }
-    if (fseek (f, pos, SEEK_SET)) { return gFalse; }
+    if (pos >= bufPos && pos + len <= bufPos + bufLen) { return true; }
+    if (fseek (f, pos, SEEK_SET)) { return false; }
     bufPos = pos;
     bufLen = (int)fread (buf, 1, sizeof (buf), f);
-    if (bufLen < len) { return gFalse; }
-    return gTrue;
+    if (bufLen < len) { return false; }
+    return true;
 }
 
 //------------------------------------------------------------------------
@@ -223,15 +222,15 @@ public:
     static StreamReader* make (int (*getCharA) (void* data), void* dataA);
     virtual ~StreamReader ();
     virtual int getByte (int pos);
-    virtual GBool getU16BE (int pos, int* val);
-    virtual GBool getU32BE (int pos, Guint* val);
-    virtual GBool getU32LE (int pos, Guint* val);
-    virtual GBool getUVarBE (int pos, int size, Guint* val);
-    virtual GBool cmp (int pos, const char* s);
+    virtual bool getU16BE (int pos, int* val);
+    virtual bool getU32BE (int pos, unsigned* val);
+    virtual bool getU32LE (int pos, unsigned* val);
+    virtual bool getUVarBE (int pos, int size, unsigned* val);
+    virtual bool cmp (int pos, const char* s);
 
 private:
     StreamReader (int (*getCharA) (void* data), void* dataA);
-    GBool fillBuf (int pos, int len);
+    bool fillBuf (int pos, int len);
 
     int (*getChar) (void* data);
     void* data;
@@ -259,56 +258,56 @@ int StreamReader::getByte (int pos) {
     return buf[pos - bufPos] & 0xff;
 }
 
-GBool StreamReader::getU16BE (int pos, int* val) {
-    if (!fillBuf (pos, 2)) { return gFalse; }
+bool StreamReader::getU16BE (int pos, int* val) {
+    if (!fillBuf (pos, 2)) { return false; }
     *val = ((buf[pos - bufPos] & 0xff) << 8) + (buf[pos - bufPos + 1] & 0xff);
-    return gTrue;
+    return true;
 }
 
-GBool StreamReader::getU32BE (int pos, Guint* val) {
-    if (!fillBuf (pos, 4)) { return gFalse; }
+bool StreamReader::getU32BE (int pos, unsigned* val) {
+    if (!fillBuf (pos, 4)) { return false; }
     *val = ((buf[pos - bufPos] & 0xff) << 24) +
            ((buf[pos - bufPos + 1] & 0xff) << 16) +
            ((buf[pos - bufPos + 2] & 0xff) << 8) +
            (buf[pos - bufPos + 3] & 0xff);
-    return gTrue;
+    return true;
 }
 
-GBool StreamReader::getU32LE (int pos, Guint* val) {
-    if (!fillBuf (pos, 4)) { return gFalse; }
+bool StreamReader::getU32LE (int pos, unsigned* val) {
+    if (!fillBuf (pos, 4)) { return false; }
     *val = (buf[pos - bufPos] & 0xff) + ((buf[pos - bufPos + 1] & 0xff) << 8) +
            ((buf[pos - bufPos + 2] & 0xff) << 16) +
            ((buf[pos - bufPos + 3] & 0xff) << 24);
-    return gTrue;
+    return true;
 }
 
-GBool StreamReader::getUVarBE (int pos, int size, Guint* val) {
+bool StreamReader::getUVarBE (int pos, int size, unsigned* val) {
     int i;
 
-    if (size < 1 || size > 4 || !fillBuf (pos, size)) { return gFalse; }
+    if (size < 1 || size > 4 || !fillBuf (pos, size)) { return false; }
     *val = 0;
     for (i = 0; i < size; ++i) {
         *val = (*val << 8) + (buf[pos - bufPos + i] & 0xff);
     }
-    return gTrue;
+    return true;
 }
 
-GBool StreamReader::cmp (int pos, const char* s) {
+bool StreamReader::cmp (int pos, const char* s) {
     int n;
 
     n = (int)strlen (s);
-    if (!fillBuf (pos, n)) { return gFalse; }
+    if (!fillBuf (pos, n)) { return false; }
     return !memcmp (buf - bufPos + pos, s, n);
 }
 
-GBool StreamReader::fillBuf (int pos, int len) {
+bool StreamReader::fillBuf (int pos, int len) {
     int c;
 
     if (pos < 0 || len < 0 || len > (int)sizeof (buf) ||
         pos > INT_MAX - (int)sizeof (buf)) {
-        return gFalse;
+        return false;
     }
-    if (pos < bufPos) { return gFalse; }
+    if (pos < bufPos) { return false; }
 
     // if requested region will not fit in the current buffer...
     if (pos + len > bufPos + (int)sizeof (buf)) {
@@ -326,7 +325,7 @@ GBool StreamReader::fillBuf (int pos, int len) {
             bufPos += bufLen;
             bufLen = 0;
             while (bufPos < pos) {
-                if ((c = (*getChar) (data)) < 0) { return gFalse; }
+                if ((c = (*getChar) (data)) < 0) { return false; }
                 ++bufPos;
             }
         }
@@ -334,11 +333,11 @@ GBool StreamReader::fillBuf (int pos, int len) {
 
     // read the rest of the requested data
     while (bufPos + bufLen < pos + len) {
-        if ((c = (*getChar) (data)) < 0) { return gFalse; }
+        if ((c = (*getChar) (data)) < 0) { return false; }
         buf[bufLen++] = (char)c;
     }
 
-    return gTrue;
+    return true;
 }
 
 //------------------------------------------------------------------------
@@ -390,7 +389,7 @@ FoFiIdentifier::identifyStream (int (*getChar) (void* data), void* data) {
 }
 
 static FoFiIdentifierType identify (Reader* reader) {
-    Guint n;
+    unsigned n;
 
     //----- PFA
     if (reader->cmp (0, "%!PS-AdobeFont-1") || reader->cmp (0, "%!FontType1")) {
@@ -442,14 +441,14 @@ static FoFiIdentifierType identify (Reader* reader) {
 
 static FoFiIdentifierType identifyOpenType (Reader* reader) {
     FoFiIdentifierType type;
-    Guint offset;
+    unsigned offset;
     int nTables, i;
 
     if (!reader->getU16BE (4, &nTables)) { return fofiIdUnknown; }
     for (i = 0; i < nTables; ++i) {
         if (reader->cmp (12 + i * 16, "CFF ")) {
             if (reader->getU32BE (12 + i * 16 + 8, &offset) &&
-                offset < (Guint)INT_MAX) {
+                offset < (unsigned)INT_MAX) {
                 type = identifyCFF (reader, (int)offset);
                 if (type == fofiIdCFF8Bit) { type = fofiIdOpenTypeCFF8Bit; }
                 else if (type == fofiIdCFFCID) {
@@ -464,7 +463,7 @@ static FoFiIdentifierType identifyOpenType (Reader* reader) {
 }
 
 static FoFiIdentifierType identifyCFF (Reader* reader, int start) {
-    Guint offset0, offset1;
+    unsigned offset0, offset1;
     int hdrSize, offSize0, offSize1, pos, endPos, b0, n, i;
 
     //----- read the header
@@ -487,7 +486,7 @@ static FoFiIdentifierType identifyCFF (Reader* reader, int start) {
             return fofiIdUnknown;
         }
         if (!reader->getUVarBE (pos + 3 + n * offSize1, offSize1, &offset1) ||
-            offset1 > (Guint)INT_MAX) {
+            offset1 > (unsigned)INT_MAX) {
             return fofiIdUnknown;
         }
         pos += 3 + (n + 1) * offSize1 + (int)offset1 - 1;
@@ -500,9 +499,9 @@ static FoFiIdentifierType identifyCFF (Reader* reader, int start) {
         return fofiIdUnknown;
     }
     if (!reader->getUVarBE (pos + 3, offSize1, &offset0) ||
-        offset0 > (Guint)INT_MAX ||
+        offset0 > (unsigned)INT_MAX ||
         !reader->getUVarBE (pos + 3 + offSize1, offSize1, &offset1) ||
-        offset1 > (Guint)INT_MAX || offset0 > offset1) {
+        offset1 > (unsigned)INT_MAX || offset0 > offset1) {
         return fofiIdUnknown;
     }
     pos = pos + 3 + (n + 1) * offSize1 + (int)offset0 - 1;
@@ -558,12 +557,12 @@ GList* FoFiIdentifier::getFontList (char* fileName) {
 }
 
 static GList* getTTCFontList (FILE* f) {
-    Guchar buf[12];
-    Guchar* buf2;
+    unsigned char buf[12];
+    unsigned char* buf2;
     int fileLength, nFonts;
     int tabDirOffset, nTables, nameTabOffset, nNames, stringsOffset;
     int stringPlatform, stringLength, stringOffset;
-    GBool stringUnicode;
+    bool stringUnicode;
     int i, j;
     GList* ret;
 
@@ -590,7 +589,7 @@ static GList* getTTCFontList (FILE* f) {
             tabDirOffset + 12 + 16 * nTables > fileLength) {
             goto err2;
         }
-        buf2 = (Guchar*)gmallocn (nTables, 16);
+        buf2 = (unsigned char*)gmallocn (nTables, 16);
         if ((int)fread (buf2, 1, 16 * nTables, f) != 16 * nTables) {
             goto err3;
         }
@@ -619,7 +618,7 @@ static GList* getTTCFontList (FILE* f) {
             nameTabOffset + stringsOffset < 0) {
             goto err2;
         }
-        buf2 = (Guchar*)gmallocn (nNames, 12);
+        buf2 = (unsigned char*)gmallocn (nNames, 12);
         if ((int)fread (buf2, 1, 12 * nNames, f) != 12 * nNames) { goto err3; }
         for (j = 0; j < nNames; ++j) {
             if (buf2[12 * j + 6] == 0 && // 0x0004 = full name
@@ -639,7 +638,7 @@ static GList* getTTCFontList (FILE* f) {
             stringOffset + stringLength > fileLength) {
             goto err2;
         }
-        buf2 = (Guchar*)gmalloc (stringLength);
+        buf2 = (unsigned char*)gmalloc (stringLength);
         fseek (f, stringOffset, SEEK_SET);
         if ((int)fread (buf2, 1, stringLength, f) != stringLength) {
             goto err3;
@@ -662,8 +661,8 @@ err1:
 }
 
 static GList* getDfontFontList (FILE* f) {
-    Guchar buf[16];
-    Guchar* resMap;
+    unsigned char buf[16];
+    unsigned char* resMap;
     int fileLength, resMapOffset, resMapLength;
     int resTypeListOffset, resNameListOffset, nTypes;
     int refListOffset, nFonts, nameOffset, nameLen;
@@ -686,7 +685,7 @@ static GList* getDfontFontList (FILE* f) {
         // sanity check - this probably isn't a dfont file
         goto err1;
     }
-    resMap = (Guchar*)gmalloc (resMapLength);
+    resMap = (unsigned char*)gmalloc (resMapLength);
     fseek (f, resMapOffset, SEEK_SET);
     if ((int)fread ((char*)resMap, 1, resMapLength, f) != resMapLength) {
         goto err2;

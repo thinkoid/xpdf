@@ -13,7 +13,6 @@
 
 #include <defs.hh>
 
-#include <goo/gtypes.hh>
 
 class Stream;
 
@@ -29,10 +28,10 @@ public:
     void reset ();
     int getContextSize () { return contextSize; }
     void copyFrom (JArithmeticDecoderStats* stats);
-    void setEntry (Guint cx, int i, int mps);
+    void setEntry (unsigned cx, int i, int mps);
 
 private:
-    Guchar* cxTab; // cxTab[cx] = (i[cx] << 1) + mps[cx]
+    unsigned char* cxTab; // cxTab[cx] = (i[cx] << 1) + mps[cx]
     int contextSize;
 
     friend class JArithmeticDecoder;
@@ -50,12 +49,12 @@ public:
     void setStream (Stream* strA) {
         str = strA;
         dataLen = 0;
-        limitStream = gFalse;
+        limitStream = false;
     }
     void setStream (Stream* strA, int dataLenA) {
         str = strA;
         dataLen = dataLenA;
-        limitStream = gTrue;
+        limitStream = true;
     }
 
     // Start decoding on a new stream.  This fills the byte buffers and
@@ -72,39 +71,39 @@ public:
     void cleanup ();
 
     // Decode one bit.
-    int decodeBit (Guint context, JArithmeticDecoderStats* stats);
+    int decodeBit (unsigned context, JArithmeticDecoderStats* stats);
 
     // Decode eight bits.
-    int decodeByte (Guint context, JArithmeticDecoderStats* stats);
+    int decodeByte (unsigned context, JArithmeticDecoderStats* stats);
 
     // Returns false for OOB, otherwise sets *<x> and returns true.
-    GBool decodeInt (int* x, JArithmeticDecoderStats* stats);
+    bool decodeInt (int* x, JArithmeticDecoderStats* stats);
 
-    Guint decodeIAID (Guint codeLen, JArithmeticDecoderStats* stats);
+    unsigned decodeIAID (unsigned codeLen, JArithmeticDecoderStats* stats);
 
     void resetByteCounter () { nBytesRead = 0; }
-    Guint getByteCounter () { return nBytesRead; }
+    unsigned getByteCounter () { return nBytesRead; }
 
 private:
-    Guint readByte ();
+    unsigned readByte ();
     int decodeIntBit (JArithmeticDecoderStats* stats);
     void byteIn ();
 
-    static Guint qeTab[47];
+    static unsigned qeTab[47];
     static int nmpsTab[47];
     static int nlpsTab[47];
     static int switchTab[47];
 
-    Guint buf0, buf1;
-    Guint c, a;
+    unsigned buf0, buf1;
+    unsigned c, a;
     int ct;
 
-    Guint prev; // for the integer decoder
+    unsigned prev; // for the integer decoder
 
     Stream* str;
-    Guint nBytesRead;
+    unsigned nBytesRead;
     int dataLen;
-    GBool limitStream;
+    bool limitStream;
     int readBuf;
 };
 

@@ -69,7 +69,7 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
                         if (obj1.arrayGetNF (i, &obj2)->isRef ()) {
                             ref1 = obj2.getRef ();
                             if ((ocg = findOCG (&ref1))) {
-                                ocg->setState (gFalse);
+                                ocg->setState (false);
                             }
                             else {
                                 error (
@@ -124,25 +124,25 @@ OptionalContentGroup* OptionalContent::findOCG (Ref* ref) {
     return NULL;
 }
 
-GBool OptionalContent::evalOCObject (Object* obj, GBool* visible) {
+bool OptionalContent::evalOCObject (Object* obj, bool* visible) {
     OptionalContentGroup* ocg;
     int policy;
     Ref ref;
     Object obj2, obj3, obj4, obj5;
     int i;
 
-    if (obj->isNull ()) { return gFalse; }
+    if (obj->isNull ()) { return false; }
     if (obj->isRef ()) {
         ref = obj->getRef ();
         if ((ocg = findOCG (&ref))) {
             *visible = ocg->getState ();
-            return gTrue;
+            return true;
         }
     }
     obj->fetch (xref, &obj2);
     if (!obj2.isDict ("OCMD")) {
         obj2.free ();
-        return gFalse;
+        return false;
     }
     if (obj2.dictLookup ("VE", &obj3)->isArray ()) {
         *visible = evalOCVisibilityExpr (&obj3, 0);
@@ -181,7 +181,7 @@ GBool OptionalContent::evalOCObject (Object* obj, GBool* visible) {
                 obj4.free ();
                 obj3.free ();
                 obj2.free ();
-                return gFalse;
+                return false;
             }
             for (i = 0; i < obj4.arrayGetLength (); ++i) {
                 obj4.arrayGetNF (i, &obj5);
@@ -192,7 +192,7 @@ GBool OptionalContent::evalOCObject (Object* obj, GBool* visible) {
                         obj4.free ();
                         obj3.free ();
                         obj2.free ();
-                        return gFalse;
+                        return false;
                     }
                     switch (policy) {
                     case ocPolicyAllOn:
@@ -216,21 +216,21 @@ GBool OptionalContent::evalOCObject (Object* obj, GBool* visible) {
         obj3.free ();
     }
     obj2.free ();
-    return gTrue;
+    return true;
 }
 
-GBool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
+bool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
     OptionalContentGroup* ocg;
     Object expr2, op, obj;
     Ref ref;
-    GBool ret;
+    bool ret;
     int i;
 
     if (recursion > visibilityExprRecursionLimit) {
         error (
             errSyntaxError, -1,
             "Loop detected in optional content visibility expression");
-        return gTrue;
+        return true;
     }
     if (expr->isRef ()) {
         ref = expr->getRef ();
@@ -242,7 +242,7 @@ GBool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
             errSyntaxError, -1,
             "Invalid optional content visibility expression");
         expr2.free ();
-        return gTrue;
+        return true;
     }
     expr2.arrayGet (0, &op);
     if (op.isName ("Not")) {
@@ -255,11 +255,11 @@ GBool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
             error (
                 errSyntaxError, -1,
                 "Invalid optional content visibility expression");
-            ret = gTrue;
+            ret = true;
         }
     }
     else if (op.isName ("And")) {
-        ret = gTrue;
+        ret = true;
         for (i = 1; i < expr2.arrayGetLength () && ret; ++i) {
             expr2.arrayGetNF (i, &obj);
             ret = evalOCVisibilityExpr (&obj, recursion + 1);
@@ -267,7 +267,7 @@ GBool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
         }
     }
     else if (op.isName ("Or")) {
-        ret = gFalse;
+        ret = false;
         for (i = 1; i < expr2.arrayGetLength () && !ret; ++i) {
             expr2.arrayGetNF (i, &obj);
             ret = evalOCVisibilityExpr (&obj, recursion + 1);
@@ -278,7 +278,7 @@ GBool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
         error (
             errSyntaxError, -1,
             "Invalid optional content visibility expression");
-        ret = gTrue;
+        ret = true;
     }
     op.free ();
     expr2.free ();
@@ -336,12 +336,12 @@ OptionalContentGroup::OptionalContentGroup (
     name = nameA;
     viewState = viewStateA;
     printState = printStateA;
-    state = gTrue;
+    state = true;
 }
 
 OptionalContentGroup::~OptionalContentGroup () { delete name; }
 
-GBool OptionalContentGroup::matches (Ref* refA) {
+bool OptionalContentGroup::matches (Ref* refA) {
     return refA->num == ref.num && refA->gen == ref.gen;
 }
 

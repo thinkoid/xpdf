@@ -41,9 +41,9 @@ SplashPath::SplashPath (SplashPath* path) {
     length = path->length;
     size = path->size;
     pts = (SplashPathPoint*)gmallocn (size, sizeof (SplashPathPoint));
-    flags = (Guchar*)gmallocn (size, sizeof (Guchar));
+    flags = (unsigned char*)gmallocn (size, sizeof (unsigned char));
     memcpy (pts, path->pts, length * sizeof (SplashPathPoint));
-    memcpy (flags, path->flags, length * sizeof (Guchar));
+    memcpy (flags, path->flags, length * sizeof (unsigned char));
     curSubpath = path->curSubpath;
     if (path->hints) {
         hintsLength = hintsSize = path->hintsLength;
@@ -68,7 +68,7 @@ void SplashPath::grow (int nPts) {
         if (size == 0) { size = 32; }
         while (size < length + nPts) { size *= 2; }
         pts = (SplashPathPoint*)greallocn (pts, size, sizeof (SplashPathPoint));
-        flags = (Guchar*)greallocn (flags, size, sizeof (Guchar));
+        flags = (unsigned char*)greallocn (flags, size, sizeof (unsigned char));
     }
 }
 
@@ -126,7 +126,7 @@ SplashError SplashPath::curveTo (
     return splashOk;
 }
 
-SplashError SplashPath::close (GBool force) {
+SplashError SplashPath::close (bool force) {
     if (noCurrentPoint ()) { return splashErrNoCurPt; }
     if (force || curSubpath == length - 1 ||
         pts[length - 1].x != pts[curSubpath].x ||
@@ -162,9 +162,9 @@ void SplashPath::offset (SplashCoord dx, SplashCoord dy) {
     }
 }
 
-GBool SplashPath::getCurPt (SplashCoord* x, SplashCoord* y) {
-    if (noCurrentPoint ()) { return gFalse; }
+bool SplashPath::getCurPt (SplashCoord* x, SplashCoord* y) {
+    if (noCurrentPoint ()) { return false; }
     *x = pts[length - 1].x;
     *y = pts[length - 1].y;
-    return gTrue;
+    return true;
 }

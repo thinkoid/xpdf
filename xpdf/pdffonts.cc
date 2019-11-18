@@ -39,13 +39,13 @@ static void scanFont (GfxFont* font, PDFDoc* doc);
 
 static int firstPage = 1;
 static int lastPage = 0;
-static GBool showFontLoc = gFalse;
-static GBool showFontLocPS = gFalse;
+static bool showFontLoc = false;
+static bool showFontLocPS = false;
 static char ownerPassword[33] = "\001";
 static char userPassword[33] = "\001";
 static char cfgFileName[256] = "";
-static GBool printVersion = gFalse;
-static GBool printHelp = gFalse;
+static bool printVersion = false;
+static bool printHelp = false;
 
 static ArgDesc argDesc[] = {
     { "-f", argInt, &firstPage, 0, "first page to examine" },
@@ -80,7 +80,7 @@ int main (int argc, char* argv[]) {
     PDFDoc* doc;
     GString* fileName;
     GString *ownerPW, *userPW;
-    GBool ok;
+    bool ok;
     Page* page;
     Dict* resDict;
     Annots* annots;
@@ -315,7 +315,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
     Ref fontRef, embRef;
     Object fontObj, toUnicodeObj;
     GString* name;
-    GBool emb, subset, hasToUnicode;
+    bool emb, subset, hasToUnicode;
     GfxFontLoc* loc;
     int i;
 
@@ -332,13 +332,13 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
     name = font->getName ();
 
     // check for an embedded font
-    if (font->getType () == fontType3) { emb = gTrue; }
+    if (font->getType () == fontType3) { emb = true; }
     else {
         emb = font->getEmbeddedFontID (&embRef);
     }
 
     // look for a ToUnicode map
-    hasToUnicode = gFalse;
+    hasToUnicode = false;
     if (doc->getXRef ()
             ->fetch (fontRef.num, fontRef.gen, &fontObj)
             ->isDict ()) {
@@ -350,7 +350,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
 
     // check for a font subset name: capital letters followed by a '+'
     // sign
-    subset = gFalse;
+    subset = false;
     if (name) {
         for (i = 0; i < name->getLength (); ++i) {
             if (name->getChar (i) < 'A' || name->getChar (i) > 'Z') { break; }

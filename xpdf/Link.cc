@@ -179,7 +179,7 @@ LinkDest::LinkDest (Array* a) {
 
     // initialize fields
     left = bottom = right = top = zoom = 0;
-    ok = gFalse;
+    ok = false;
 
     // get page
     if (a->getLength () < 2) {
@@ -190,12 +190,12 @@ LinkDest::LinkDest (Array* a) {
     a->getNF (0, &obj1);
     if (obj1.isInt ()) {
         pageNum = obj1.getInt () + 1;
-        pageIsRef = gFalse;
+        pageIsRef = false;
     }
     else if (obj1.isRef ()) {
         pageRef.num = obj1.getRefNum ();
         pageRef.gen = obj1.getRefGen ();
-        pageIsRef = gTrue;
+        pageIsRef = true;
     }
     else {
         error (errSyntaxWarning, -1, "Bad annotation destination");
@@ -209,12 +209,12 @@ LinkDest::LinkDest (Array* a) {
     // XYZ link
     if (obj1.isName ("XYZ")) {
         kind = destXYZ;
-        if (a->getLength () < 3) { changeLeft = gFalse; }
+        if (a->getLength () < 3) { changeLeft = false; }
         else {
             a->get (2, &obj2);
-            if (obj2.isNull ()) { changeLeft = gFalse; }
+            if (obj2.isNull ()) { changeLeft = false; }
             else if (obj2.isNum ()) {
-                changeLeft = gTrue;
+                changeLeft = true;
                 left = obj2.getNum ();
             }
             else {
@@ -225,12 +225,12 @@ LinkDest::LinkDest (Array* a) {
             }
             obj2.free ();
         }
-        if (a->getLength () < 4) { changeTop = gFalse; }
+        if (a->getLength () < 4) { changeTop = false; }
         else {
             a->get (3, &obj2);
-            if (obj2.isNull ()) { changeTop = gFalse; }
+            if (obj2.isNull ()) { changeTop = false; }
             else if (obj2.isNum ()) {
-                changeTop = gTrue;
+                changeTop = true;
                 top = obj2.getNum ();
             }
             else {
@@ -241,12 +241,12 @@ LinkDest::LinkDest (Array* a) {
             }
             obj2.free ();
         }
-        if (a->getLength () < 5) { changeZoom = gFalse; }
+        if (a->getLength () < 5) { changeZoom = false; }
         else {
             a->get (4, &obj2);
-            if (obj2.isNull ()) { changeZoom = gFalse; }
+            if (obj2.isNull ()) { changeZoom = false; }
             else if (obj2.isNum ()) {
-                changeZoom = gTrue;
+                changeZoom = true;
                 zoom = obj2.getNum ();
             }
             else {
@@ -281,10 +281,10 @@ LinkDest::LinkDest (Array* a) {
         kind = destFitH;
         if (a->get (2, &obj2)->isNum ()) {
             top = obj2.getNum ();
-            changeTop = gTrue;
+            changeTop = true;
         }
         else if (obj2.isNull ()) {
-            changeTop = gFalse;
+            changeTop = false;
         }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
@@ -304,10 +304,10 @@ LinkDest::LinkDest (Array* a) {
         kind = destFitV;
         if (a->get (2, &obj2)->isNum ()) {
             left = obj2.getNum ();
-            changeLeft = gTrue;
+            changeLeft = true;
         }
         else if (obj2.isNull ()) {
-            changeLeft = gFalse;
+            changeLeft = false;
         }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
@@ -373,10 +373,10 @@ LinkDest::LinkDest (Array* a) {
         kind = destFitBH;
         if (a->get (2, &obj2)->isNum ()) {
             top = obj2.getNum ();
-            changeTop = gTrue;
+            changeTop = true;
         }
         else if (obj2.isNull ()) {
-            changeTop = gFalse;
+            changeTop = false;
         }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
@@ -396,10 +396,10 @@ LinkDest::LinkDest (Array* a) {
         kind = destFitBV;
         if (a->get (2, &obj2)->isNum ()) {
             left = obj2.getNum ();
-            changeLeft = gTrue;
+            changeLeft = true;
         }
         else if (obj2.isNull ()) {
-            changeLeft = gFalse;
+            changeLeft = false;
         }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
@@ -415,7 +415,7 @@ LinkDest::LinkDest (Array* a) {
     }
 
     obj1.free ();
-    ok = gTrue;
+    ok = true;
     return;
 
 err1:
@@ -439,7 +439,7 @@ LinkDest::LinkDest (LinkDest* dest) {
     changeLeft = dest->changeLeft;
     changeTop = dest->changeTop;
     changeZoom = dest->changeZoom;
-    ok = gTrue;
+    ok = true;
 }
 
 //------------------------------------------------------------------------
@@ -721,7 +721,7 @@ LinkHide::LinkHide (Object* fieldsObj, Object* hideFlagObj) {
     if (hideFlagObj->isBool ()) { hideFlag = hideFlagObj->getBool (); }
     else {
         error (errSyntaxError, -1, "Hide action H value is wrong type");
-        hideFlag = gFalse;
+        hideFlag = false;
     }
 }
 
@@ -744,7 +744,7 @@ Link::Link (Dict* dict, GString* baseURI) {
     double t;
 
     action = NULL;
-    ok = gFalse;
+    ok = false;
 
     // get rectangle
     if (!dict->lookup ("Rect", &obj1)->isArray ()) {
@@ -802,7 +802,7 @@ Link::Link (Dict* dict, GString* baseURI) {
     obj1.free ();
 
     // check for bad action
-    if (action) { ok = gTrue; }
+    if (action) { ok = true; }
 
     return;
 
@@ -875,11 +875,11 @@ LinkAction* Links::find (double x, double y) {
     return NULL;
 }
 
-GBool Links::onLink (double x, double y) {
+bool Links::onLink (double x, double y) {
     int i;
 
     for (i = 0; i < numLinks; ++i) {
-        if (links[i]->inRect (x, y)) return gTrue;
+        if (links[i]->inRect (x, y)) return true;
     }
-    return gFalse;
+    return false;
 }

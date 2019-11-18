@@ -77,9 +77,9 @@ class Annot {
 public:
     Annot (PDFDoc* docA, Dict* dict, Ref* refA);
     ~Annot ();
-    GBool isOk () { return ok; }
+    bool isOk () { return ok; }
 
-    void draw (Gfx* gfx, GBool printing);
+    void draw (Gfx* gfx, bool printing);
 
     GString* getType () { return type; }
     double getXMin () { return xMin; }
@@ -93,7 +93,7 @@ public:
 
     AnnotBorderStyle* getBorderStyle () { return borderStyle; }
 
-    GBool match (Ref* refA) {
+    bool match (Ref* refA) {
         return ref.num == refA->num && ref.gen == refA->gen;
     }
 
@@ -105,14 +105,14 @@ private:
     void generatePolygonAppearance ();
     void setLineStyle (AnnotBorderStyle* bs, double* lineWidth);
     void setStrokeColor (double* color, int nComps);
-    GBool setFillColor (Object* colorObj);
+    bool setFillColor (Object* colorObj);
     AnnotLineEndType parseLineEndType (Object* obj);
     void adjustLineEndpoint (
         AnnotLineEndType lineEnd, double x, double y, double dx, double dy,
         double w, double* tx, double* ty);
     void drawLineArrow (
         AnnotLineEndType lineEnd, double x, double y, double dx, double dy,
-        double w, GBool fill);
+        double w, bool fill);
     void drawCircle (double cx, double cy, double r, const char* cmd);
     void drawCircleTopLeft (double cx, double cy, double r);
     void drawCircleBottomRight (double cx, double cy, double r);
@@ -127,10 +127,10 @@ private:
     GString* appearBuf;
     double xMin, yMin, // annotation rectangle
         xMax, yMax;
-    Guint flags;
+    unsigned flags;
     AnnotBorderStyle* borderStyle;
     Object ocObj; // optional content entry
-    GBool ok;
+    bool ok;
 };
 
 //------------------------------------------------------------------------

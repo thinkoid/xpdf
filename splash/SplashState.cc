@@ -29,7 +29,7 @@ int splashColorModeNComps[] = { 1, 1, 3, 3
 };
 
 SplashState::SplashState (
-    int width, int height, GBool vectorAntialias,
+    int width, int height, bool vectorAntialias,
     SplashScreenParams* screenParams) {
     SplashColor color;
     int i;
@@ -55,29 +55,29 @@ SplashState::SplashState (
     lineDash = NULL;
     lineDashLength = 0;
     lineDashPhase = 0;
-    strokeAdjust = gFalse;
+    strokeAdjust = false;
     clip = new SplashClip (0, 0, width, height);
-    clipIsShared = gFalse;
+    clipIsShared = false;
     softMask = NULL;
-    deleteSoftMask = gFalse;
-    inNonIsolatedGroup = gFalse;
-    inKnockoutGroup = gFalse;
+    deleteSoftMask = false;
+    inNonIsolatedGroup = false;
+    inKnockoutGroup = false;
     for (i = 0; i < 256; ++i) {
-        rgbTransferR[i] = (Guchar)i;
-        rgbTransferG[i] = (Guchar)i;
-        rgbTransferB[i] = (Guchar)i;
-        grayTransfer[i] = (Guchar)i;
-        cmykTransferC[i] = (Guchar)i;
-        cmykTransferM[i] = (Guchar)i;
-        cmykTransferY[i] = (Guchar)i;
-        cmykTransferK[i] = (Guchar)i;
+        rgbTransferR[i] = (unsigned char)i;
+        rgbTransferG[i] = (unsigned char)i;
+        rgbTransferB[i] = (unsigned char)i;
+        grayTransfer[i] = (unsigned char)i;
+        cmykTransferC[i] = (unsigned char)i;
+        cmykTransferM[i] = (unsigned char)i;
+        cmykTransferY[i] = (unsigned char)i;
+        cmykTransferK[i] = (unsigned char)i;
     }
     overprintMask = 0xffffffff;
     next = NULL;
 }
 
 SplashState::SplashState (
-    int width, int height, GBool vectorAntialias, SplashScreen* screenA) {
+    int width, int height, bool vectorAntialias, SplashScreen* screenA) {
     SplashColor color;
     int i;
 
@@ -102,22 +102,22 @@ SplashState::SplashState (
     lineDash = NULL;
     lineDashLength = 0;
     lineDashPhase = 0;
-    strokeAdjust = gFalse;
+    strokeAdjust = false;
     clip = new SplashClip (0, 0, width, height);
-    clipIsShared = gFalse;
+    clipIsShared = false;
     softMask = NULL;
-    deleteSoftMask = gFalse;
-    inNonIsolatedGroup = gFalse;
-    inKnockoutGroup = gFalse;
+    deleteSoftMask = false;
+    inNonIsolatedGroup = false;
+    inKnockoutGroup = false;
     for (i = 0; i < 256; ++i) {
-        rgbTransferR[i] = (Guchar)i;
-        rgbTransferG[i] = (Guchar)i;
-        rgbTransferB[i] = (Guchar)i;
-        grayTransfer[i] = (Guchar)i;
-        cmykTransferC[i] = (Guchar)i;
-        cmykTransferM[i] = (Guchar)i;
-        cmykTransferY[i] = (Guchar)i;
-        cmykTransferK[i] = (Guchar)i;
+        rgbTransferR[i] = (unsigned char)i;
+        rgbTransferG[i] = (unsigned char)i;
+        rgbTransferB[i] = (unsigned char)i;
+        grayTransfer[i] = (unsigned char)i;
+        cmykTransferC[i] = (unsigned char)i;
+        cmykTransferM[i] = (unsigned char)i;
+        cmykTransferY[i] = (unsigned char)i;
+        cmykTransferK[i] = (unsigned char)i;
     }
     overprintMask = 0xffffffff;
     next = NULL;
@@ -150,9 +150,9 @@ SplashState::SplashState (SplashState* state) {
     lineDashPhase = state->lineDashPhase;
     strokeAdjust = state->strokeAdjust;
     clip = state->clip;
-    clipIsShared = gTrue;
+    clipIsShared = true;
     softMask = state->softMask;
-    deleteSoftMask = gFalse;
+    deleteSoftMask = false;
     inNonIsolatedGroup = state->inNonIsolatedGroup;
     inKnockoutGroup = state->inKnockoutGroup;
     memcpy (rgbTransferR, state->rgbTransferR, 256);
@@ -210,7 +210,7 @@ void SplashState::clipResetToRect (
     SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1) {
     if (clipIsShared) {
         clip = clip->copy ();
-        clipIsShared = gFalse;
+        clipIsShared = false;
     }
     clip->resetToRect (x0, y0, x1, y1);
 }
@@ -219,15 +219,15 @@ SplashError SplashState::clipToRect (
     SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1) {
     if (clipIsShared) {
         clip = clip->copy ();
-        clipIsShared = gFalse;
+        clipIsShared = false;
     }
     return clip->clipToRect (x0, y0, x1, y1);
 }
 
-SplashError SplashState::clipToPath (SplashPath* path, GBool eo) {
+SplashError SplashState::clipToPath (SplashPath* path, bool eo) {
     if (clipIsShared) {
         clip = clip->copy ();
-        clipIsShared = gFalse;
+        clipIsShared = false;
     }
     return clip->clipToPath (path, matrix, flatness, eo);
 }
@@ -235,11 +235,11 @@ SplashError SplashState::clipToPath (SplashPath* path, GBool eo) {
 void SplashState::setSoftMask (SplashBitmap* softMaskA) {
     if (deleteSoftMask) { delete softMask; }
     softMask = softMaskA;
-    deleteSoftMask = gTrue;
+    deleteSoftMask = true;
 }
 
 void SplashState::setTransfer (
-    Guchar* red, Guchar* green, Guchar* blue, Guchar* gray) {
+    unsigned char* red, unsigned char* green, unsigned char* blue, unsigned char* gray) {
     int i;
 
     memcpy (rgbTransferR, red, 256);

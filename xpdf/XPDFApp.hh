@@ -14,7 +14,6 @@
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object
-#include <goo/gtypes.hh>
 #include <splash/SplashTypes.hh>
 
 class GString;
@@ -42,36 +41,36 @@ public:
         GString* fileName, GString* dest, GString* ownerPassword = NULL,
         GString* userPassword = NULL);
     XPDFViewer*
-    reopen (XPDFViewer* viewer, PDFDoc* doc, int page, GBool fullScreenA);
-    void close (XPDFViewer* viewer, GBool closeLast);
+    reopen (XPDFViewer* viewer, PDFDoc* doc, int page, bool fullScreenA);
+    void close (XPDFViewer* viewer, bool closeLast);
     void quit ();
 
     void run ();
 
     //----- remote server
     void setRemoteName (char* remoteName);
-    GBool remoteServerRunning ();
+    bool remoteServerRunning ();
     void remoteExec (char* cmd);
-    void remoteOpen (GString* fileName, int page, GBool raise);
-    void remoteOpenAtDest (GString* fileName, GString* dest, GBool raise);
-    void remoteReload (GBool raise);
+    void remoteOpen (GString* fileName, int page, bool raise);
+    void remoteOpenAtDest (GString* fileName, GString* dest, bool raise);
+    void remoteReload (bool raise);
     void remoteRaise ();
     void remoteQuit ();
 
     //----- resource/option values
     GString* getGeometry () { return geometry; }
     GString* getTitle () { return title; }
-    GBool getInstallCmap () { return installCmap; }
+    bool getInstallCmap () { return installCmap; }
     int getRGBCubeSize () { return rgbCubeSize; }
-    GBool getReverseVideo () { return reverseVideo; }
+    bool getReverseVideo () { return reverseVideo; }
     SplashColorPtr getPaperRGB () { return paperRGB; }
-    Gulong getPaperPixel () { return paperPixel; }
-    Gulong getMattePixel (GBool fullScreenA) {
+    size_t getPaperPixel () { return paperPixel; }
+    size_t getMattePixel (bool fullScreenA) {
         return fullScreenA ? fullScreenMattePixel : mattePixel;
     }
     GString* getInitialZoom () { return initialZoom; }
-    void setFullScreen (GBool fullScreenA) { fullScreen = fullScreenA; }
-    GBool getFullScreen () { return fullScreen; }
+    void setFullScreen (bool fullScreenA) { fullScreen = fullScreenA; }
+    bool getFullScreen () { return fullScreen; }
 
     XtAppContext getAppContext () { return appContext; }
     Widget getAppShell () { return appShell; }
@@ -95,15 +94,15 @@ private:
     //----- resource/option values
     GString* geometry;
     GString* title;
-    GBool installCmap;
+    bool installCmap;
     int rgbCubeSize;
-    GBool reverseVideo;
+    bool reverseVideo;
     SplashColor paperRGB;
-    Gulong paperPixel;
-    Gulong mattePixel;
-    Gulong fullScreenMattePixel;
+    size_t paperPixel;
+    size_t mattePixel;
+    size_t fullScreenMattePixel;
     GString* initialZoom;
-    GBool fullScreen;
+    bool fullScreen;
 };
 
 #endif
