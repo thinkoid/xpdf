@@ -25,12 +25,6 @@ const char* objTypeNames[numObjTypes] = {
     "dictionary", "stream",  "ref",  "cmd",    "error", "eof",  "none"
 };
 
-#ifdef DEBUG_MEM
-int Object::numAlloc[numObjTypes] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-#endif
-
 Object* Object::initArray (XRef* xref) {
     initObj (objArray);
     array = new Array (xref);
@@ -67,9 +61,6 @@ Object* Object::copy (Object* obj) {
     case objCmd: obj->cmd = copyString (cmd); break;
     default: break;
     }
-#ifdef DEBUG_MEM
-    ++numAlloc[type];
-#endif
     return obj;
 }
 
@@ -95,9 +86,6 @@ void Object::free () {
     case objCmd: gfree (cmd); break;
     default: break;
     }
-#ifdef DEBUG_MEM
-    --numAlloc[type];
-#endif
     type = objNone;
 }
 
@@ -145,21 +133,4 @@ void Object::print (FILE* f) {
     case objEOF: fprintf (f, "<EOF>"); break;
     case objNone: fprintf (f, "<none>"); break;
     }
-}
-
-void Object::memCheck (FILE* f) {
-#ifdef DEBUG_MEM
-    int i;
-    int t;
-
-    t = 0;
-    for (i = 0; i < numObjTypes; ++i) t += numAlloc[i];
-    if (t > 0) {
-        fprintf (f, "Allocated objects:\n");
-        for (i = 0; i < numObjTypes; ++i) {
-            if (numAlloc[i] > 0)
-                fprintf (f, "  %-20s: %6d\n", objTypeNames[i], numAlloc[i]);
-        }
-    }
-#endif
 }

@@ -290,10 +290,6 @@ err1:
     delete globalParams;
 err0:
 
-    // check for memory leaks
-    Object::memCheck (stderr);
-    gMemReport (stderr);
-
     return exitCode;
 }
 

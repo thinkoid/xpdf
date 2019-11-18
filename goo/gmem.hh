@@ -48,15 +48,6 @@ extern void gfree (void* p);
  */
 extern void gMemError (const char* msg);
 
-#ifdef DEBUG_MEM
-/*
- * Report on unfreed memory.
- */
-extern void gMemReport (FILE* f);
-#else
-#define gMemReport(f)
-#endif
-
 /*
  * Allocate memory and copy a string into it.
  */

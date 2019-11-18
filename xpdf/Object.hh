@@ -64,11 +64,7 @@ enum ObjType {
 // Object
 //------------------------------------------------------------------------
 
-#ifdef DEBUG_MEM
-#define initObj(t) ++numAlloc[type = t]
-#else
 #define initObj(t) type = t
-#endif
 
 class Object {
 public:
@@ -214,9 +210,6 @@ public:
     const char* getTypeName ();
     void print (FILE* f = stdout);
 
-    // Memory testing.
-    static void memCheck (FILE* f);
-
 private:
     ObjType type;        // object type
     union {              // value for each type:
@@ -231,11 +224,6 @@ private:
         Ref ref;         //   indirect reference
         char* cmd;       //   command
     };
-
-#ifdef DEBUG_MEM
-    static int                 // number of each type of object
-        numAlloc[numObjTypes]; //   currently allocated
-#endif
 };
 
 //------------------------------------------------------------------------

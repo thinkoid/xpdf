@@ -280,11 +280,7 @@ done2:
 done1:
     delete app;
     delete globalParams;
-
-    // check for memory leaks
 done0:
-    Object::memCheck (stderr);
-    gMemReport (stderr);
 
     return exitCode;
 }
