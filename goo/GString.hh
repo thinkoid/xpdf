@@ -41,8 +41,6 @@ public:
     explicit GString (const std::string& str) : std::string (str) {}
     explicit GString (std::string&& str) : std::string (std::move (str)) {}
 
-    const std::string& toStr () const { return *this; }
-
     // Create a string from <lengthA> chars at <sA>.  This string
     // can contain null characters.
     GString (const char* sA, int lengthA)
