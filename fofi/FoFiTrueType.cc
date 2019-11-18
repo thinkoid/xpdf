@@ -13,7 +13,6 @@
 
 #include <algorithm>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GHash.hh>
 
@@ -472,8 +471,8 @@ FoFiTrueType::FoFiTrueType (
 }
 
 FoFiTrueType::~FoFiTrueType () {
-    gfree (tables);
-    gfree (cmaps);
+    free (tables);
+    free (cmaps);
     if (nameToGID) { delete nameToGID; }
 }
 
@@ -1055,7 +1054,7 @@ void FoFiTrueType::writeTTF (
     missingOS2 = seekTable ("OS/2") < 0;
 
     // read the loca table, check to see if it's sorted
-    locaTable = (TrueTypeLoca*)gmallocn (nGlyphs + 1, sizeof (TrueTypeLoca));
+    locaTable = (TrueTypeLoca*)calloc (nGlyphs + 1, sizeof (TrueTypeLoca));
     unsortedLoca = false;
     i = seekTable ("loca");
     pos = tables[i].offset;
@@ -1210,7 +1209,7 @@ void FoFiTrueType::writeTTF (
     if (name) {
         n = (int)strlen (name);
         newNameLen = (6 + 4 * 12 + 2 * (3 * n + 7) + 3) & ~3;
-        newNameTab = (char*)gmalloc (newNameLen);
+        newNameTab = (char*)malloc (newNameLen);
         memset (newNameTab, 0, newNameLen);
         newNameTab[0] = 0; // format selector
         newNameTab[1] = 0;
@@ -1256,7 +1255,7 @@ void FoFiTrueType::writeTTF (
     // construct the new cmap table
     if (codeToGID) {
         newCmapLen = 44 + 256 * 2;
-        newCmapTab = (char*)gmalloc (newCmapLen);
+        newCmapTab = (char*)malloc (newCmapLen);
         newCmapTab[0] = 0; // table version number = 0
         newCmapTab[1] = 0;
         newCmapTab[2] = 0; // number of encoding tables = 1
@@ -1325,14 +1324,14 @@ void FoFiTrueType::writeTTF (
         i = seekTable ("hhea");
         pos = tables[i].offset;
         newHHEALen = 36;
-        newHHEATab = (char*)gmalloc (newHHEALen);
+        newHHEATab = (char*)malloc (newHHEALen);
         for (i = 0; i < newHHEALen; ++i) { newHHEATab[i] = getU8 (pos++, &ok); }
         newHHEATab[34] = nGlyphs >> 8;
         newHHEATab[35] = nGlyphs & 0xff;
         i = seekTable ("hmtx");
         pos = tables[i].offset;
         newHMTXLen = 4 * nGlyphs;
-        newHMTXTab = (char*)gmalloc (newHMTXLen);
+        newHMTXTab = (char*)malloc (newHMTXLen);
         advWidth = 0;
         for (i = 0; i < nHMetrics; ++i) {
             advWidth = getU16BE (pos, &ok);
@@ -1367,7 +1366,7 @@ void FoFiTrueType::writeTTF (
     nNewTables = nTables - nZeroLengthTables - nBogusTables +
                  (missingCmap ? 1 : 0) + (missingName ? 1 : 0) +
                  (missingPost ? 1 : 0) + (missingOS2 ? 1 : 0);
-    newTables = (TrueTypeTable*)gmallocn (nNewTables, sizeof (TrueTypeTable));
+    newTables = (TrueTypeTable*)calloc (nNewTables, sizeof (TrueTypeTable));
     j = 0;
     for (i = 0; i < nTables; ++i) {
         if (tables[i].len > 0 && (tables[i].tag & 0xe0000000) &&
@@ -1475,7 +1474,7 @@ void FoFiTrueType::writeTTF (
     }
 
     // write the table directory
-    tableDir = (char*)gmalloc (12 + nNewTables * 16);
+    tableDir = (char*)malloc (12 + nNewTables * 16);
     tableDir[0] = 0x00; // sfnt version
     tableDir[1] = 0x01;
     tableDir[2] = 0x00;
@@ -1618,14 +1617,14 @@ void FoFiTrueType::writeTTF (
         }
     }
 
-    gfree (newHMTXTab);
-    gfree (newHHEATab);
-    gfree (newCmapTab);
-    gfree (newNameTab);
-    gfree (tableDir);
-    gfree (newTables);
+    free (newHMTXTab);
+    free (newHHEATab);
+    free (newCmapTab);
+    free (newNameTab);
+    free (tableDir);
+    free (newTables);
 done1:
-    gfree (locaTable);
+    free (locaTable);
 }
 
 void FoFiTrueType::cvtEncoding (
@@ -1768,7 +1767,7 @@ void FoFiTrueType::cvtSfnts (
     // Distiller), so we drop any glyph descriptions of 12 or fewer
     // bytes -- an empty glyph description generates an empty glyph with
     // no errors
-    locaTable = (TrueTypeLoca*)gmallocn (nGlyphs + 1, sizeof (TrueTypeLoca));
+    locaTable = (TrueTypeLoca*)calloc (nGlyphs + 1, sizeof (TrueTypeLoca));
     i = seekTable ("loca");
     pos = tables[i].offset;
     i = seekTable ("glyf");
@@ -1807,7 +1806,7 @@ void FoFiTrueType::cvtSfnts (
     }
 
     // construct the new 'loca' table
-    locaData = (unsigned char*)gmallocn (nGlyphs + 1, (locaFmt ? 4 : 2));
+    locaData = (unsigned char*)calloc (nGlyphs + 1, (locaFmt ? 4 : 2));
     for (i = 0; i <= nGlyphs; ++i) {
         pos = locaTable[i].newOffset;
         if (locaFmt) {
@@ -1891,7 +1890,7 @@ void FoFiTrueType::cvtSfnts (
             }
             else if (needVerticalMetrics && i == t42VmtxTable) {
                 length = 4 + (nGlyphs - 1) * 2;
-                vmtxTab = (unsigned char*)gmalloc (length);
+                vmtxTab = (unsigned char*)malloc (length);
                 vmtxTab[0] = advance / 256;
                 vmtxTab[1] = advance % 256;
                 for (j = 2; j < length; j += 2) {
@@ -2022,9 +2021,9 @@ void FoFiTrueType::cvtSfnts (
     // end the sfnts array
     (*outputFunc) (outputStream, "] def\n", 6);
 
-    gfree (locaData);
-    gfree (locaTable);
-    if (vmtxTab) { gfree (vmtxTab); }
+    free (locaData);
+    free (locaTable);
+    if (vmtxTab) { free (vmtxTab); }
 }
 
 void FoFiTrueType::dumpString (
@@ -2107,7 +2106,7 @@ void FoFiTrueType::parse (int fontNum, bool allowHeadlessCFF) {
     // read the table directory
     nTables = getU16BE (offset + pos + 4, &parsedOk);
     if (!parsedOk) { return; }
-    tables = (TrueTypeTable*)gmallocn (nTables, sizeof (TrueTypeTable));
+    tables = (TrueTypeTable*)calloc (nTables, sizeof (TrueTypeTable));
     pos += 12;
     j = 0;
     for (i = 0; i < nTables; ++i) {
@@ -2155,7 +2154,7 @@ void FoFiTrueType::parse (int fontNum, bool allowHeadlessCFF) {
         nCmaps = getU16BE (pos, &parsedOk);
         pos += 2;
         if (!parsedOk) { return; }
-        cmaps = (TrueTypeCmap*)gmallocn (nCmaps, sizeof (TrueTypeCmap));
+        cmaps = (TrueTypeCmap*)calloc (nCmaps, sizeof (TrueTypeCmap));
         for (j = 0; j < nCmaps; ++j) {
             cmaps[j].platform = getU16BE (pos, &parsedOk);
             cmaps[j].encoding = getU16BE (pos + 2, &parsedOk);

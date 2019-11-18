@@ -8,8 +8,7 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstring>
 #include <splash/SplashMath.hh>
 #include <splash/SplashGlyphBitmap.hh>
 #include <splash/SplashFontFile.hh>
@@ -75,8 +74,8 @@ void SplashFont::initCache () {
          cacheSets * cacheAssoc * glyphSize > splashFontCacheSize;
          cacheSets >>= 1)
         ;
-    cache = (unsigned char*)gmallocn (cacheSets * cacheAssoc, glyphSize);
-    cacheTags = (SplashFontCacheTag*)gmallocn (
+    cache = (unsigned char*)calloc (cacheSets * cacheAssoc, glyphSize);
+    cacheTags = (SplashFontCacheTag*)calloc (
         cacheSets * cacheAssoc, sizeof (SplashFontCacheTag));
     for (i = 0; i < cacheSets * cacheAssoc; ++i) {
         cacheTags[i].mru = i & (cacheAssoc - 1);
@@ -85,8 +84,8 @@ void SplashFont::initCache () {
 
 SplashFont::~SplashFont () {
     fontFile->decRefCnt ();
-    if (cache) { gfree (cache); }
-    if (cacheTags) { gfree (cacheTags); }
+    if (cache) { free (cache); }
+    if (cacheTags) { free (cacheTags); }
 }
 
 bool SplashFont::getGlyph (
@@ -160,6 +159,6 @@ bool SplashFont::getGlyph (
     *bitmap = bitmap2;
     bitmap->data = p;
     bitmap->freeData = false;
-    if (bitmap2.freeData) { gfree (bitmap2.data); }
+    if (bitmap2.freeData) { free (bitmap2.data); }
     return true;
 }

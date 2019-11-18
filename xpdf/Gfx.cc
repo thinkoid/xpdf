@@ -8,12 +8,11 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <math.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstdio>
+#include <cstddef>
+#include <cstring>
+#include <cmath>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <xpdf/GlobalParams.hh>
@@ -814,7 +813,7 @@ void Gfx::opSetDash (Object args[], int numArgs) {
     length = a->getLength ();
     if (length == 0) { dash = NULL; }
     else {
-        dash = (double*)gmallocn (length, sizeof (double));
+        dash = (double*)calloc (length, sizeof (double));
         for (i = 0; i < length; ++i) {
             dash[i] = a->get (i, &obj)->getNum ();
             obj.free ();
@@ -4284,11 +4283,11 @@ Stream* Gfx::buildImageStream () {
             obj.free ();
         }
         else {
-            key = copyString (obj.getName ());
+            key = strdup (obj.getName ());
             obj.free ();
             parser->getObj (&obj);
             if (obj.isEOF () || obj.isError ()) {
-                gfree (key);
+                free (key);
                 break;
             }
             dict.dictAdd (key, &obj);
@@ -4605,7 +4604,7 @@ void Gfx::drawAnnot (
         out->updateLineWidth (state);
         borderStyle->getDash (&dash, &dashLength);
         if (borderStyle->getType () == annotBorderDashed && dashLength > 0) {
-            dash2 = (double*)gmallocn (dashLength, sizeof (double));
+            dash2 = (double*)calloc (dashLength, sizeof (double));
             memcpy (dash2, dash, dashLength * sizeof (double));
             state->setLineDash (dash2, dashLength, 0);
             out->updateLineDash (state);

@@ -11,10 +11,9 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
-#include <goo/gmem.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 
@@ -94,7 +93,7 @@ public:
     }
     Object* initName (const char* nameA) {
         initObj (objName);
-        name = copyString (nameA);
+        name = strdup (nameA);
         return this;
     }
     Object* initNull () {
@@ -113,7 +112,7 @@ public:
     }
     Object* initCmd (char* cmdA) {
         initObj (objCmd);
-        cmd = copyString (cmdA);
+        cmd = strdup (cmdA);
         return this;
     }
     Object* initError () {

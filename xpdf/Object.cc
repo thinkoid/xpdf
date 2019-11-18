@@ -8,7 +8,9 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
+#include <cstddef>
+#include <cstdlib>
+
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
@@ -54,11 +56,11 @@ Object* Object::copy (Object* obj) {
     *obj = *this;
     switch (type) {
     case objString: obj->string = string->copy (); break;
-    case objName: obj->name = copyString (name); break;
+    case objName: obj->name = strdup (name); break;
     case objArray: array->incRef (); break;
     case objDict: dict->incRef (); break;
     case objStream: stream->incRef (); break;
-    case objCmd: obj->cmd = copyString (cmd); break;
+    case objCmd: obj->cmd = strdup (cmd); break;
     default: break;
     }
     return obj;
@@ -73,7 +75,7 @@ Object* Object::fetch (XRef* xref, Object* obj, int recursion) {
 void Object::free () {
     switch (type) {
     case objString: delete string; break;
-    case objName: gfree (name); break;
+    case objName: std::free (name); break;
     case objArray:
         if (!array->decRef ()) { delete array; }
         break;
@@ -83,7 +85,7 @@ void Object::free () {
     case objStream:
         if (!stream->decRef ()) { delete stream; }
         break;
-    case objCmd: gfree (cmd); break;
+    case objCmd: std::free (cmd); break;
     default: break;
     }
     type = objNone;

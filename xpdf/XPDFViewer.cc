@@ -8,13 +8,12 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 #include <X11/xpm.h>
-#include <goo/gmem.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
@@ -366,7 +365,7 @@ XPDFViewer::~XPDFViewer () {
     if (aboutVersionFont) { XmFontListFree (aboutVersionFont); }
     if (aboutFixedFont) { XmFontListFree (aboutFixedFont); }
     closeWindow ();
-    if (outlineLabels) { gfree (outlineLabels); }
+    if (outlineLabels) { free (outlineLabels); }
 }
 
 void XPDFViewer::open (GString* fileName, int pageA, GString* destName) {
@@ -2635,7 +2634,7 @@ void XPDFViewer::setupOutline () {
         for (i = 0; i < outlineLabelsLength; ++i) {
             XtDestroyWidget (outlineLabels[i]);
         }
-        gfree (outlineLabels);
+        free (outlineLabels);
         outlineLabels = NULL;
         outlineLabelsLength = outlineLabelsSize = 0;
     }
@@ -2706,7 +2705,7 @@ void XPDFViewer::setupOutlineItems (
         XmStringFree (s);
         if (outlineLabelsLength == outlineLabelsSize) {
             outlineLabelsSize += 64;
-            outlineLabels = (Widget*)greallocn (
+            outlineLabels = (Widget*)reallocarray (
                 outlineLabels, outlineLabelsSize, sizeof (Widget*));
         }
         outlineLabels[outlineLabelsLength++] = label;

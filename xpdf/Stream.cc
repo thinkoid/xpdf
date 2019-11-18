@@ -8,14 +8,13 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <climits>
 #include <unistd.h>
-#include <string.h>
-#include <ctype.h>
-#include <goo/gmem.hh>
+#include <cstring>
+#include <cctype>
 #include <goo/gfile.hh>
 #include <defs.hh>
 #include <xpdf/Error.hh>
@@ -303,10 +302,10 @@ ImageStream::ImageStream (Stream* strA, int widthA, int nCompsA, int nBitsA) {
     nVals = width * nComps;
     inputLineSize = (nVals * nBits + 7) >> 3;
     if (nVals > INT_MAX / nBits - 7) {
-        // force a call to gmallocn(-1,...), which will throw an exception
+        // force a call to calloc(-1,...), which will throw an exception
         inputLineSize = -1;
     }
-    inputLine = (char*)gmallocn (inputLineSize, sizeof (char));
+    inputLine = (char*)calloc (inputLineSize, sizeof (char));
     if (nBits == 8) { imgLine = (unsigned char*)inputLine; }
     else {
         if (nBits == 1) { imgLineSize = (nVals + 7) & ~7; }
@@ -314,17 +313,17 @@ ImageStream::ImageStream (Stream* strA, int widthA, int nCompsA, int nBitsA) {
             imgLineSize = nVals;
         }
         if (width > INT_MAX / nComps) {
-            // force a call to gmallocn(-1,...), which will throw an exception
+            // force a call to calloc(-1,...), which will throw an exception
             imgLineSize = -1;
         }
-        imgLine = (unsigned char*)gmallocn (imgLineSize, sizeof (unsigned char));
+        imgLine = (unsigned char*)calloc (imgLineSize, sizeof (unsigned char));
     }
     imgIdx = nVals;
 }
 
 ImageStream::~ImageStream () {
-    if (imgLine != (unsigned char*)inputLine) { gfree (imgLine); }
-    gfree (inputLine);
+    if (imgLine != (unsigned char*)inputLine) { free (imgLine); }
+    free (inputLine);
 }
 
 void ImageStream::reset () { str->reset (); }
@@ -414,14 +413,14 @@ StreamPredictor::StreamPredictor (
         nVals >= (INT_MAX - 7) / nBits) { // check for overflow in rowBytes
         return;
     }
-    predLine = (unsigned char*)gmalloc (rowBytes);
+    predLine = (unsigned char*)malloc (rowBytes);
 
     reset ();
 
     ok = true;
 }
 
-StreamPredictor::~StreamPredictor () { gfree (predLine); }
+StreamPredictor::~StreamPredictor () { free (predLine); }
 
 void StreamPredictor::reset () {
     memset (predLine, 0, rowBytes);
@@ -1227,8 +1226,8 @@ CCITTFaxStream::CCITTFaxStream (
     // ---> max codingLine size = columns + 1
     // refLine has one extra guard entry at the end
     // ---> max refLine size = columns + 2
-    codingLine = (int*)gmallocn (columns + 1, sizeof (int));
-    refLine = (int*)gmallocn (columns + 2, sizeof (int));
+    codingLine = (int*)calloc (columns + 1, sizeof (int));
+    refLine = (int*)calloc (columns + 2, sizeof (int));
 
     eof = false;
     row = 0;
@@ -1243,8 +1242,8 @@ CCITTFaxStream::CCITTFaxStream (
 
 CCITTFaxStream::~CCITTFaxStream () {
     delete str;
-    gfree (refLine);
-    gfree (codingLine);
+    free (refLine);
+    free (codingLine);
 }
 
 void CCITTFaxStream::reset () {
@@ -1994,7 +1993,7 @@ void DCTStream::reset () {
             return;
         }
         for (i = 0; i < numComps; ++i) {
-            frameBuf[i] = (int*)gmallocn (bufWidth * bufHeight, sizeof (int));
+            frameBuf[i] = (int*)calloc (bufWidth * bufHeight, sizeof (int));
             memset (frameBuf[i], 0, bufWidth * bufHeight * sizeof (int));
         }
 
@@ -2016,7 +2015,7 @@ void DCTStream::reset () {
     else {
         // allocate a buffer for one row of MCUs
         bufWidth = ((width + mcuWidth - 1) / mcuWidth) * mcuWidth;
-        rowBuf = (unsigned char*)gmallocn (numComps * mcuHeight, bufWidth);
+        rowBuf = (unsigned char*)calloc (numComps * mcuHeight, bufWidth);
         rowBufPtr = rowBufEnd = rowBuf;
 
         // initialize counters
@@ -2031,10 +2030,10 @@ void DCTStream::close () {
     int i;
 
     for (i = 0; i < 4; ++i) {
-        gfree (frameBuf[i]);
+        free (frameBuf[i]);
         frameBuf[i] = NULL;
     }
-    gfree (rowBuf);
+    free (rowBuf);
     rowBuf = NULL;
     FilterStream::close ();
 }
@@ -3434,9 +3433,9 @@ FlateStream::FlateStream (
 }
 
 FlateStream::~FlateStream () {
-    if (litCodeTab.codes != fixedLitCodeTab.codes) { gfree (litCodeTab.codes); }
+    if (litCodeTab.codes != fixedLitCodeTab.codes) { free (litCodeTab.codes); }
     if (distCodeTab.codes != fixedDistCodeTab.codes) {
-        gfree (distCodeTab.codes);
+        free (distCodeTab.codes);
     }
     if (pred) { delete pred; }
     delete str;
@@ -3617,10 +3616,10 @@ bool FlateStream::startBlock () {
     int check;
 
     // free the code tables from the previous block
-    if (litCodeTab.codes != fixedLitCodeTab.codes) { gfree (litCodeTab.codes); }
+    if (litCodeTab.codes != fixedLitCodeTab.codes) { free (litCodeTab.codes); }
     litCodeTab.codes = NULL;
     if (distCodeTab.codes != fixedDistCodeTab.codes) {
-        gfree (distCodeTab.codes);
+        free (distCodeTab.codes);
     }
     distCodeTab.codes = NULL;
 
@@ -3747,12 +3746,12 @@ bool FlateStream::readDynamicCodes () {
     compHuffmanCodes (codeLengths, numLitCodes, &litCodeTab);
     compHuffmanCodes (codeLengths + numLitCodes, numDistCodes, &distCodeTab);
 
-    gfree (codeLenCodeTab.codes);
+    free (codeLenCodeTab.codes);
     return true;
 
 err:
     error (errSyntaxError, getPos (), "Bad dynamic code table in flate stream");
-    gfree (codeLenCodeTab.codes);
+    free (codeLenCodeTab.codes);
     return false;
 }
 
@@ -3769,7 +3768,7 @@ void FlateStream::compHuffmanCodes (int* lengths, int n, FlateHuffmanTab* tab) {
 
     // allocate the table
     tabSize = 1 << tab->maxLen;
-    tab->codes = (FlateCode*)gmallocn (tabSize, sizeof (FlateCode));
+    tab->codes = (FlateCode*)calloc (tabSize, sizeof (FlateCode));
 
     // clear the table
     for (i = 0; i < tabSize; ++i) {
@@ -3846,11 +3845,11 @@ EOFStream::~EOFStream () { delete str; }
 
 BufStream::BufStream (Stream* strA, int bufSizeA) : FilterStream (strA) {
     bufSize = bufSizeA;
-    buf = (int*)gmallocn (bufSize, sizeof (int));
+    buf = (int*)calloc (bufSize, sizeof (int));
 }
 
 BufStream::~BufStream () {
-    gfree (buf);
+    free (buf);
     delete str;
 }
 

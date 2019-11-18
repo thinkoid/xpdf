@@ -8,10 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
 
 #include <goo/GString.hh>
 
@@ -393,7 +393,7 @@ char* PDFDoc::getEmbeddedFileMem (int idx, int* size) {
             *size = 0;
             return NULL;
         }
-        buf = (char*)grealloc (buf, bufSize + sizeInc);
+        buf = (char*)realloc (buf, bufSize + sizeInc);
         n = strObj.streamGetBlock (buf + bufSize, sizeInc);
         bufSize += n;
     } while (n == sizeInc);

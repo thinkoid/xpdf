@@ -8,16 +8,15 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
 #ifdef ENABLE_PLUGINS
 #include <dlfcn.h>
 #endif
 
 #include <paper.h>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>

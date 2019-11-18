@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <fofi/FoFiEncodings.hh>
 
 //------------------------------------------------------------------------

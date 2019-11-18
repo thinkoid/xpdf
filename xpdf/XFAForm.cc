@@ -445,7 +445,7 @@ Unicode* XFAFormField::utf8ToUnicode (GString* s, int* length) {
     while (i < s->getLength ()) {
         if (n == size) {
             size = size ? size * 2 : 16;
-            u = (Unicode*)greallocn (u, size, sizeof (Unicode));
+            u = (Unicode*)reallocarray (u, size, sizeof (Unicode));
         }
         c0 = s->getChar (i++) & 0xff;
         if (c0 <= 0x7f) { u[n++] = c0; }
@@ -688,14 +688,14 @@ void XFAFormField::draw (
     // create the appearance stream
     appearDict.initDict (xfaForm->doc->getXRef ());
     appearDict.dictAdd (
-        copyString ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (copyString ("Subtype"), obj1.initName ("Form"));
+        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
     obj1.initArray (xfaForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (w));
     obj1.arrayAdd (obj2.initReal (h));
-    appearDict.dictAdd (copyString ("BBox"), &obj1);
+    appearDict.dictAdd (strdup ("BBox"), &obj1);
     obj1.initArray (xfaForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (mat[0]));
     obj1.arrayAdd (obj2.initReal (mat[1]));
@@ -703,10 +703,10 @@ void XFAFormField::draw (
     obj1.arrayAdd (obj2.initReal (mat[3]));
     obj1.arrayAdd (obj2.initReal (mat[4]));
     obj1.arrayAdd (obj2.initReal (mat[5]));
-    appearDict.dictAdd (copyString ("Matrix"), &obj1);
+    appearDict.dictAdd (strdup ("Matrix"), &obj1);
     if (xfaForm->resourceDict.isDict ()) {
         appearDict.dictAdd (
-            copyString ("Resources"), xfaForm->resourceDict.copy (&obj1));
+            strdup ("Resources"), xfaForm->resourceDict.copy (&obj1));
     }
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);

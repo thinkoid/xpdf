@@ -8,11 +8,11 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stddef.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstddef>
+#include <cstdarg>
 #include <signal.h>
-#include <math.h>
+#include <cmath>
 
 #include <goo/GString.hh>
 #include <goo/GList.hh>
@@ -864,7 +864,7 @@ PSFontFileInfo::~PSFontFileInfo () {
     delete psName;
     if (extFileName) { delete extFileName; }
     if (encoding) { delete encoding; }
-    if (codeToGID) { gfree (codeToGID); }
+    if (codeToGID) { free (codeToGID); }
 }
 
 //------------------------------------------------------------------------
@@ -1252,8 +1252,8 @@ PSOutputDev::~PSOutputDev () {
     if (embFontList) { delete embFontList; }
     deleteGList (fontInfo, PSFontInfo);
     deleteGHash (fontFileInfo, PSFontFileInfo);
-    gfree (imgIDs);
-    gfree (formIDs);
+    free (imgIDs);
+    free (formIDs);
     if (xobjStack) { delete xobjStack; }
     while (customColors) {
         cc = customColors;
@@ -2214,7 +2214,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1CFont (GfxFont* font, Ref* id) {
                 psName->c_str (), NULL, true, outputFunc, outputStream);
             delete ffT1C;
         }
-        gfree (fontBuf);
+        free (fontBuf);
     }
 
     // ending comment
@@ -2264,7 +2264,7 @@ PSOutputDev::setupEmbeddedOpenTypeT1CFont (GfxFont* font, Ref* id) {
             }
             delete ffTT;
         }
-        gfree (fontBuf);
+        free (fontBuf);
     }
 
     // ending comment
@@ -2289,7 +2289,7 @@ PSOutputDev::setupEmbeddedTrueTypeFont (GfxFont* font, Ref* id) {
     // get the code-to-GID mapping
     if (!(fontBuf = font->readEmbFontFile (xref, &fontLen))) { return NULL; }
     if (!(ffTT = FoFiTrueType::make (fontBuf, fontLen, 0))) {
-        gfree (fontBuf);
+        free (fontBuf);
         return NULL;
     }
     codeToGID = ((Gfx8BitFont*)font)->getCodeToGIDMap (ffTT);
@@ -2301,9 +2301,9 @@ PSOutputDev::setupEmbeddedTrueTypeFont (GfxFont* font, Ref* id) {
             ff->embFontID.gen == id->gen && ff->codeToGIDLen == 256 &&
             !memcmp (ff->codeToGID, codeToGID, 256 * sizeof (int))) {
             fontFileInfo->killIter (&iter);
-            gfree (codeToGID);
+            free (codeToGID);
             delete ffTT;
-            gfree (fontBuf);
+            free (fontBuf);
             return ff;
         }
     }
@@ -2325,7 +2325,7 @@ PSOutputDev::setupEmbeddedTrueTypeFont (GfxFont* font, Ref* id) {
             : (char**)NULL,
         codeToGID, outputFunc, outputStream);
     delete ffTT;
-    gfree (fontBuf);
+    free (fontBuf);
 
     // ending comment
     writePS ("%%EndResource\n");
@@ -2359,7 +2359,7 @@ PSFontFileInfo* PSOutputDev::setupExternalTrueTypeFont (
             !ff->extFileName->cmp (fileName) && ff->codeToGIDLen == 256 &&
             !memcmp (ff->codeToGID, codeToGID, 256 * sizeof (int))) {
             fontFileInfo->killIter (&iter);
-            gfree (codeToGID);
+            free (codeToGID);
             delete ffTT;
             return ff;
         }
@@ -2437,7 +2437,7 @@ PSOutputDev::setupEmbeddedCIDType0Font (GfxFont* font, Ref* id) {
             }
             delete ffT1C;
         }
-        gfree (fontBuf);
+        free (fontBuf);
     }
 
     // ending comment
@@ -2504,7 +2504,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedCIDTrueTypeFont (
             }
             delete ffTT;
         }
-        gfree (fontBuf);
+        free (fontBuf);
     }
 
     // ending comment
@@ -2513,7 +2513,7 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedCIDTrueTypeFont (
     ff = new PSFontFileInfo (psName, font->getType (), psFontFileEmbedded);
     ff->embFontID = *id;
     if (codeToGIDLen) {
-        ff->codeToGID = (int*)gmallocn (codeToGIDLen, sizeof (int));
+        ff->codeToGID = (int*)calloc (codeToGIDLen, sizeof (int));
         memcpy (ff->codeToGID, codeToGID, codeToGIDLen * sizeof (int));
         ff->codeToGIDLen = codeToGIDLen;
     }
@@ -2566,7 +2566,7 @@ PSFontFileInfo* PSOutputDev::setupExternalCIDTrueTypeFont (
     else {
         codeToGIDLen = ctu->getLength ();
     }
-    codeToGID = (int*)gmallocn (codeToGIDLen, sizeof (int));
+    codeToGID = (int*)calloc (codeToGIDLen, sizeof (int));
     for (code = 0; code < codeToGIDLen; ++code) {
         if (ctu->mapToUnicode (code, uBuf, 8) > 0) {
             codeToGID[code] = ffTT->mapCodeToGID (cmap, uBuf[0]);
@@ -2585,7 +2585,7 @@ PSFontFileInfo* PSOutputDev::setupExternalCIDTrueTypeFont (
             ff->codeToGIDLen == codeToGIDLen && ff->codeToGID &&
             !memcmp (ff->codeToGID, codeToGID, codeToGIDLen * sizeof (int))) {
             fontFileInfo->killIter (&iter);
-            gfree (codeToGID);
+            free (codeToGID);
             delete ffTT;
             return ff;
         }
@@ -2597,7 +2597,7 @@ PSFontFileInfo* PSOutputDev::setupExternalCIDTrueTypeFont (
             errSyntaxError, -1,
             "TrueType font '{0:s}' does not allow embedding",
             font->getName () ? font->getName ()->c_str () : "(unnamed)");
-        gfree (codeToGID);
+        free (codeToGID);
         delete ffTT;
         return NULL;
     }
@@ -2690,7 +2690,7 @@ PSOutputDev::setupEmbeddedOpenTypeCFFFont (GfxFont* font, Ref* id) {
             }
             delete ffTT;
         }
-        gfree (fontBuf);
+        free (fontBuf);
     }
 
     // ending comment
@@ -2699,7 +2699,7 @@ PSOutputDev::setupEmbeddedOpenTypeCFFFont (GfxFont* font, Ref* id) {
     ff = new PSFontFileInfo (psName, font->getType (), psFontFileEmbedded);
     ff->embFontID = *id;
     if ((n = ((GfxCIDFont*)font)->getCIDToGIDLen ())) {
-        ff->codeToGID = (int*)gmallocn (n, sizeof (int));
+        ff->codeToGID = (int*)calloc (n, sizeof (int));
         memcpy (
             ff->codeToGID, ((GfxCIDFont*)font)->getCIDToGID (),
             n * sizeof (int));
@@ -2878,7 +2878,7 @@ void PSOutputDev::setupImages (Dict* resDict) {
                                 else {
                                     imgIDSize *= 2;
                                 }
-                                imgIDs = (Ref*)greallocn (
+                                imgIDs = (Ref*)reallocarray (
                                     imgIDs, imgIDSize, sizeof (Ref));
                             }
                             imgIDs[imgIDLen++] = imgID;
@@ -3086,7 +3086,7 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
         else {
             formIDSize *= 2;
         }
-        formIDs = (Ref*)greallocn (formIDs, formIDSize, sizeof (Ref));
+        formIDs = (Ref*)reallocarray (formIDs, formIDSize, sizeof (Ref));
     }
     formIDs[formIDLen++] = strRef->getRef ();
 
@@ -4588,7 +4588,7 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
     len = s->getLength ();
     s2 = new GString ();
     dxdySize = font->isCIDFont () ? 8 : s->getLength ();
-    dxdy = (double*)gmallocn (2 * dxdySize, sizeof (double));
+    dxdy = (double*)calloc (2 * dxdySize, sizeof (double));
     originX0 = originY0 = 0; // make gcc happy
     while (len > 0) {
         n = font->getNextChar (
@@ -4616,7 +4616,7 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
             if (uMap) {
                 if (nChars + uLen > dxdySize) {
                     do { dxdySize *= 2; } while (nChars + uLen > dxdySize);
-                    dxdy = (double*)greallocn (
+                    dxdy = (double*)reallocarray (
                         dxdy, 2 * dxdySize, sizeof (double));
                 }
                 for (i = 0; i < uLen; ++i) {
@@ -4633,7 +4633,7 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
             else {
                 if (nChars + 1 > dxdySize) {
                     dxdySize *= 2;
-                    dxdy = (double*)greallocn (
+                    dxdy = (double*)reallocarray (
                         dxdy, 2 * dxdySize, sizeof (double));
                 }
                 s2->append ((char)((code >> 8) & 0xff));
@@ -4674,7 +4674,7 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
             writePSFmt ("{0:.6g} {1:.6g} rmoveto\n", tOriginX0, tOriginY0);
         }
     }
-    gfree (dxdy);
+    free (dxdy);
     delete s2;
 
     if (state->getRender () & 4) { haveTextClip = true; }
@@ -4900,7 +4900,7 @@ void PSOutputDev::doImageL1Sep (
         width, -height, height);
 
     // allocate a line buffer
-    lineBuf = (unsigned char*)gmallocn (width, 4);
+    lineBuf = (unsigned char*)calloc (width, 4);
 
     // set up to process the data stream
     imgStr = new ImageStream (
@@ -4939,7 +4939,7 @@ void PSOutputDev::doImageL1Sep (
 
     str->close ();
     delete imgStr;
-    gfree (lineBuf);
+    free (lineBuf);
 }
 
 void PSOutputDev::doImageL2 (
@@ -4972,10 +4972,10 @@ void PSOutputDev::doImageL2 (
         rects0Len = rects1Len = rectsOutLen = 0;
         rectsSize = rectsOutSize = 64;
         rects0 =
-            (PSOutImgClipRect*)gmallocn (rectsSize, sizeof (PSOutImgClipRect));
+            (PSOutImgClipRect*)calloc (rectsSize, sizeof (PSOutImgClipRect));
         rects1 =
-            (PSOutImgClipRect*)gmallocn (rectsSize, sizeof (PSOutImgClipRect));
-        rectsOut = (PSOutImgClipRect*)gmallocn (
+            (PSOutImgClipRect*)calloc (rectsSize, sizeof (PSOutImgClipRect));
+        rectsOut = (PSOutImgClipRect*)calloc (
             rectsOutSize, sizeof (PSOutImgClipRect));
         for (y = 0; y < height; ++y) {
             if (!(line = imgStr->getLine ())) { break; }
@@ -5020,7 +5020,7 @@ void PSOutputDev::doImageL2 (
                 if (emitRect) {
                     if (rectsOutLen == rectsOutSize) {
                         rectsOutSize *= 2;
-                        rectsOut = (PSOutImgClipRect*)greallocn (
+                        rectsOut = (PSOutImgClipRect*)reallocarray (
                             rectsOut, rectsOutSize, sizeof (PSOutImgClipRect));
                     }
                     rectsOut[rectsOutLen].x0 = rects0[i].x0;
@@ -5033,9 +5033,9 @@ void PSOutputDev::doImageL2 (
                 if (addRect || extendRect) {
                     if (rects1Len == rectsSize) {
                         rectsSize *= 2;
-                        rects0 = (PSOutImgClipRect*)greallocn (
+                        rects0 = (PSOutImgClipRect*)reallocarray (
                             rects0, rectsSize, sizeof (PSOutImgClipRect));
-                        rects1 = (PSOutImgClipRect*)greallocn (
+                        rects1 = (PSOutImgClipRect*)reallocarray (
                             rects1, rectsSize, sizeof (PSOutImgClipRect));
                     }
                     rects1[rects1Len].x0 = x0;
@@ -5078,7 +5078,7 @@ void PSOutputDev::doImageL2 (
         for (i = 0; i < rects0Len; ++i) {
             if (rectsOutLen == rectsOutSize) {
                 rectsOutSize *= 2;
-                rectsOut = (PSOutImgClipRect*)greallocn (
+                rectsOut = (PSOutImgClipRect*)reallocarray (
                     rectsOut, rectsOutSize, sizeof (PSOutImgClipRect));
             }
             rectsOut[rectsOutLen].x0 = rects0[i].x0;
@@ -5095,9 +5095,9 @@ void PSOutputDev::doImageL2 (
                 rectsOut[i].y1 - rectsOut[i].y0);
         }
         writePS ("pop pop pdfImClip\n");
-        gfree (rectsOut);
-        gfree (rects0);
-        gfree (rects1);
+        free (rectsOut);
+        free (rects0);
+        free (rects1);
         delete imgStr;
         str->close ();
 
@@ -5109,10 +5109,10 @@ void PSOutputDev::doImageL2 (
         rects0Len = rects1Len = rectsOutLen = 0;
         rectsSize = rectsOutSize = 64;
         rects0 =
-            (PSOutImgClipRect*)gmallocn (rectsSize, sizeof (PSOutImgClipRect));
+            (PSOutImgClipRect*)calloc (rectsSize, sizeof (PSOutImgClipRect));
         rects1 =
-            (PSOutImgClipRect*)gmallocn (rectsSize, sizeof (PSOutImgClipRect));
-        rectsOut = (PSOutImgClipRect*)gmallocn (
+            (PSOutImgClipRect*)calloc (rectsSize, sizeof (PSOutImgClipRect));
+        rectsOut = (PSOutImgClipRect*)calloc (
             rectsOutSize, sizeof (PSOutImgClipRect));
         maskXor = maskInvert ? 1 : 0;
         for (y = 0; y < maskHeight; ++y) {
@@ -5144,7 +5144,7 @@ void PSOutputDev::doImageL2 (
                 if (emitRect) {
                     if (rectsOutLen == rectsOutSize) {
                         rectsOutSize *= 2;
-                        rectsOut = (PSOutImgClipRect*)greallocn (
+                        rectsOut = (PSOutImgClipRect*)reallocarray (
                             rectsOut, rectsOutSize, sizeof (PSOutImgClipRect));
                     }
                     rectsOut[rectsOutLen].x0 = rects0[i].x0;
@@ -5157,9 +5157,9 @@ void PSOutputDev::doImageL2 (
                 if (addRect || extendRect) {
                     if (rects1Len == rectsSize) {
                         rectsSize *= 2;
-                        rects0 = (PSOutImgClipRect*)greallocn (
+                        rects0 = (PSOutImgClipRect*)reallocarray (
                             rects0, rectsSize, sizeof (PSOutImgClipRect));
-                        rects1 = (PSOutImgClipRect*)greallocn (
+                        rects1 = (PSOutImgClipRect*)reallocarray (
                             rects1, rectsSize, sizeof (PSOutImgClipRect));
                     }
                     rects1[rects1Len].x0 = x0;
@@ -5186,7 +5186,7 @@ void PSOutputDev::doImageL2 (
         for (i = 0; i < rects0Len; ++i) {
             if (rectsOutLen == rectsOutSize) {
                 rectsOutSize *= 2;
-                rectsOut = (PSOutImgClipRect*)greallocn (
+                rectsOut = (PSOutImgClipRect*)reallocarray (
                     rectsOut, rectsOutSize, sizeof (PSOutImgClipRect));
             }
             rectsOut[rectsOutLen].x0 = rects0[i].x0;
@@ -5203,9 +5203,9 @@ void PSOutputDev::doImageL2 (
                 rectsOut[i].y1 - rectsOut[i].y0);
         }
         writePS ("pop pop pdfImClip\n");
-        gfree (rectsOut);
-        gfree (rects0);
-        gfree (rects1);
+        free (rectsOut);
+        free (rects0);
+        free (rects1);
         delete imgStr;
         maskStr->close ();
     }

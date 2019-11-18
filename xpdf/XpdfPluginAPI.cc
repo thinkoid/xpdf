@@ -10,7 +10,6 @@
 
 #ifdef ENABLE_PLUGINS
 
-#include <goo/gmem.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/PDFDoc.hh>
@@ -20,7 +19,7 @@
 //------------------------------------------------------------------------
 
 //~ This should use a pool of Objects; change xpdfFreeObj to match.
-static Object* allocObj () { return (Object*)gmalloc (sizeof (Object)); }
+static Object* allocObj () { return (Object*)malloc (sizeof (Object)); }
 
 //------------------------------------------------------------------------
 // Document access functions
@@ -152,18 +151,18 @@ XpdfObject _xpdfDictGet (XpdfObject obj, char* key) {
 
 void _xpdfFreeObj (XpdfObject obj) {
     ((Object*)obj)->free ();
-    gfree (obj);
+    free (obj);
 }
 
 //------------------------------------------------------------------------
 // Memory allocation functions
 //------------------------------------------------------------------------
 
-void* _xpdfMalloc (int size) { return gmalloc (size); }
+void* _xpdfMalloc (int size) { return malloc (size); }
 
-void* _xpdfRealloc (void* p, int size) { return grealloc (p, size); }
+void* _xpdfRealloc (void* p, int size) { return realloc (p, size); }
 
-void _xpdfFree (void* p) { gfree (p); }
+void _xpdfFree (void* p) { free (p); }
 
 //------------------------------------------------------------------------
 // Security handlers

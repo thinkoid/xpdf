@@ -7,17 +7,16 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
 #ifdef DEBUG_FP_LINUX
 #include <fenv.h>
 #include <fpu_control.h>
 #endif
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
-#include <goo/gmem.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>

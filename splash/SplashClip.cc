@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstring>
 #include <splash/SplashErrorCodes.hh>
 #include <splash/SplashPath.hh>
 #include <splash/SplashXPath.hh>
@@ -49,7 +48,7 @@ SplashClip::SplashClip (
     scanners = NULL;
     length = size = 0;
     if ((w = hardXMax + 1) <= 0) { w = 1; }
-    buf = (unsigned char*)gmalloc (w);
+    buf = (unsigned char*)malloc (w);
 }
 
 SplashClip::SplashClip (SplashClip* clip) {
@@ -71,17 +70,17 @@ SplashClip::SplashClip (SplashClip* clip) {
     intBoundsStrokeAdjust = clip->intBoundsStrokeAdjust;
     length = clip->length;
     size = clip->size;
-    paths = (SplashXPath**)gmallocn (size, sizeof (SplashXPath*));
-    eo = (unsigned char*)gmallocn (size, sizeof (unsigned char));
+    paths = (SplashXPath**)calloc (size, sizeof (SplashXPath*));
+    eo = (unsigned char*)calloc (size, sizeof (unsigned char));
     scanners =
-        (SplashXPathScanner**)gmallocn (size, sizeof (SplashXPathScanner*));
+        (SplashXPathScanner**)calloc (size, sizeof (SplashXPathScanner*));
     for (i = 0; i < length; ++i) {
         paths[i] = clip->paths[i]->copy ();
         eo[i] = clip->eo[i];
         scanners[i] = new SplashXPathScanner (paths[i], eo[i], yMinI, yMaxI);
     }
     if ((w = splashCeil (xMax)) <= 0) { w = 1; }
-    buf = (unsigned char*)gmalloc (w);
+    buf = (unsigned char*)malloc (w);
 }
 
 SplashClip::~SplashClip () {
@@ -91,19 +90,19 @@ SplashClip::~SplashClip () {
         delete paths[i];
         delete scanners[i];
     }
-    gfree (paths);
-    gfree (eo);
-    gfree (scanners);
-    gfree (buf);
+    free (paths);
+    free (eo);
+    free (scanners);
+    free (buf);
 }
 
 void SplashClip::grow (int nPaths) {
     if (length + nPaths > size) {
         if (size == 0) { size = 32; }
         while (size < length + nPaths) { size *= 2; }
-        paths = (SplashXPath**)greallocn (paths, size, sizeof (SplashXPath*));
-        eo = (unsigned char*)greallocn (eo, size, sizeof (unsigned char));
-        scanners = (SplashXPathScanner**)greallocn (
+        paths = (SplashXPath**)reallocarray (paths, size, sizeof (SplashXPath*));
+        eo = (unsigned char*)reallocarray (eo, size, sizeof (unsigned char));
+        scanners = (SplashXPathScanner**)reallocarray (
             scanners, size, sizeof (SplashXPathScanner*));
     }
 }
@@ -116,10 +115,10 @@ void SplashClip::resetToRect (
         delete paths[i];
         delete scanners[i];
     }
-    gfree (paths);
-    gfree (eo);
-    gfree (scanners);
-    gfree (buf);
+    free (paths);
+    free (eo);
+    free (scanners);
+    free (buf);
     paths = NULL;
     eo = NULL;
     scanners = NULL;
@@ -143,7 +142,7 @@ void SplashClip::resetToRect (
     }
     intBoundsValid = false;
     if ((w = splashCeil (xMax)) <= 0) { w = 1; }
-    buf = (unsigned char*)gmalloc (w);
+    buf = (unsigned char*)malloc (w);
 }
 
 SplashError SplashClip::clipToRect (

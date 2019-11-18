@@ -7,13 +7,12 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
-#include <goo/gmem.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>

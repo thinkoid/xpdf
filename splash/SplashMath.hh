@@ -14,7 +14,7 @@
 #if USE_FIXEDPONT
 #include <goo/FixedPoint.hh>
 #else
-#include <math.h>
+#include <cmath>
 #endif
 #include <splash/SplashTypes.hh>
 

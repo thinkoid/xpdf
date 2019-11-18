@@ -6,7 +6,7 @@
 //
 //========================================================================
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <xpdf/CharTypes.hh>
 #include <xpdf/UnicodeTypeTable.hh>
 

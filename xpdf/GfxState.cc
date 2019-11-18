@@ -8,10 +8,9 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
-#include <math.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstddef>
+#include <cmath>
+#include <cstring>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>
@@ -930,14 +929,14 @@ GfxIndexedColorSpace::GfxIndexedColorSpace (
     GfxColorSpace* baseA, int indexHighA) {
     base = baseA;
     indexHigh = indexHighA;
-    lookup = (unsigned char*)gmallocn (
+    lookup = (unsigned char*)calloc (
         (indexHigh + 1) * base->getNComps (), sizeof (unsigned char));
     overprintMask = base->getOverprintMask ();
 }
 
 GfxIndexedColorSpace::~GfxIndexedColorSpace () {
     delete base;
-    gfree (lookup);
+    free (lookup);
 }
 
 GfxColorSpace* GfxIndexedColorSpace::copy () {
@@ -2322,10 +2321,10 @@ GfxGouraudTriangleShading::GfxGouraudTriangleShading (
 
     nVertices = shading->nVertices;
     vertices =
-        (GfxGouraudVertex*)gmallocn (nVertices, sizeof (GfxGouraudVertex));
+        (GfxGouraudVertex*)calloc (nVertices, sizeof (GfxGouraudVertex));
     memcpy (vertices, shading->vertices, nVertices * sizeof (GfxGouraudVertex));
     nTriangles = shading->nTriangles;
-    triangles = (int (*)[3])gmallocn (nTriangles * 3, sizeof (int));
+    triangles = (int (*)[3])calloc (nTriangles * 3, sizeof (int));
     memcpy (triangles, shading->triangles, nTriangles * 3 * sizeof (int));
     nComps = shading->nComps;
     nFuncs = shading->nFuncs;
@@ -2335,8 +2334,8 @@ GfxGouraudTriangleShading::GfxGouraudTriangleShading (
 GfxGouraudTriangleShading::~GfxGouraudTriangleShading () {
     int i;
 
-    gfree (vertices);
-    gfree (triangles);
+    free (vertices);
+    free (triangles);
     for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
 }
 
@@ -2487,7 +2486,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
         if (i < nCompsA) { break; }
         if (nVerticesA == vertSize) {
             vertSize = (vertSize == 0) ? 16 : 2 * vertSize;
-            verticesA = (GfxGouraudVertex*)greallocn (
+            verticesA = (GfxGouraudVertex*)reallocarray (
                 verticesA, vertSize, sizeof (GfxGouraudVertex));
         }
         verticesA[nVerticesA].x = xMin + xMul * (double)x;
@@ -2502,7 +2501,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
             else if (state == 2 || flag > 0) {
                 if (nTrianglesA == triSize) {
                     triSize = (triSize == 0) ? 16 : 2 * triSize;
-                    trianglesA = (int (*)[3])greallocn (
+                    trianglesA = (int (*)[3])reallocarray (
                         trianglesA, triSize * 3, sizeof (int));
                 }
                 if (state == 2) {
@@ -2532,7 +2531,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
     if (typeA == 5) {
         nRows = nVerticesA / vertsPerRow;
         nTrianglesA = (nRows - 1) * 2 * (vertsPerRow - 1);
-        trianglesA = (int (*)[3])gmallocn (nTrianglesA * 3, sizeof (int));
+        trianglesA = (int (*)[3])calloc (nTrianglesA * 3, sizeof (int));
         k = 0;
         for (i = 0; i < nRows - 1; ++i) {
             for (j = 0; j < vertsPerRow - 1; ++j) {
@@ -2623,7 +2622,7 @@ GfxPatchMeshShading::GfxPatchMeshShading (GfxPatchMeshShading* shading)
     int i;
 
     nPatches = shading->nPatches;
-    patches = (GfxPatch*)gmallocn (nPatches, sizeof (GfxPatch));
+    patches = (GfxPatch*)calloc (nPatches, sizeof (GfxPatch));
     memcpy (patches, shading->patches, nPatches * sizeof (GfxPatch));
     nComps = shading->nComps;
     nFuncs = shading->nFuncs;
@@ -2633,7 +2632,7 @@ GfxPatchMeshShading::GfxPatchMeshShading (GfxPatchMeshShading* shading)
 GfxPatchMeshShading::~GfxPatchMeshShading () {
     int i;
 
-    gfree (patches);
+    free (patches);
     for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
 }
 
@@ -2806,7 +2805,7 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
         if (nPatchesA == patchesSize) {
             patchesSize = (patchesSize == 0) ? 16 : 2 * patchesSize;
             patchesA =
-                (GfxPatch*)greallocn (patchesA, patchesSize, sizeof (GfxPatch));
+                (GfxPatch*)reallocarray (patchesA, patchesSize, sizeof (GfxPatch));
         }
         p = &patchesA[nPatchesA];
         if (typeA == 6) {
@@ -3245,7 +3244,7 @@ GfxImageColorMap::GfxImageColorMap (
     // decode mapping to each possible image pixel component value.
     for (k = 0; k < nComps; ++k) {
         lookup[k] =
-            (GfxColorComp*)gmallocn (maxPixel + 1, sizeof (GfxColorComp));
+            (GfxColorComp*)calloc (maxPixel + 1, sizeof (GfxColorComp));
         for (i = 0; i <= maxPixel; ++i) {
             lookup[k][i] =
                 dblToCol (decodeLow[k] + (i * decodeRange[k]) / maxPixel);
@@ -3269,7 +3268,7 @@ GfxImageColorMap::GfxImageColorMap (
         colorSpace2->getDefaultRanges (x, y, indexHigh);
         for (k = 0; k < nComps2; ++k) {
             lookup2[k] =
-                (GfxColorComp*)gmallocn (maxPixel + 1, sizeof (GfxColorComp));
+                (GfxColorComp*)calloc (maxPixel + 1, sizeof (GfxColorComp));
         }
         for (i = 0; i <= maxPixel; ++i) {
             j = (int)(decodeLow[0] + (i * decodeRange[0]) / maxPixel + 0.5);
@@ -3290,7 +3289,7 @@ GfxImageColorMap::GfxImageColorMap (
         sepFunc = sepCS->getFunc ();
         for (k = 0; k < nComps2; ++k) {
             lookup2[k] =
-                (GfxColorComp*)gmallocn (maxPixel + 1, sizeof (GfxColorComp));
+                (GfxColorComp*)calloc (maxPixel + 1, sizeof (GfxColorComp));
         }
         for (i = 0; i <= maxPixel; ++i) {
             x[0] = decodeLow[0] + (i * decodeRange[0]) / maxPixel;
@@ -3324,13 +3323,13 @@ GfxImageColorMap::GfxImageColorMap (GfxImageColorMap* colorMap) {
         n = 256;
     }
     for (k = 0; k < nComps; ++k) {
-        lookup[k] = (GfxColorComp*)gmallocn (n, sizeof (GfxColorComp));
+        lookup[k] = (GfxColorComp*)calloc (n, sizeof (GfxColorComp));
         memcpy (lookup[k], colorMap->lookup[k], n * sizeof (GfxColorComp));
     }
     if (colorSpace->getMode () == csIndexed) {
         colorSpace2 = ((GfxIndexedColorSpace*)colorSpace)->getBase ();
         for (k = 0; k < nComps2; ++k) {
-            lookup2[k] = (GfxColorComp*)gmallocn (n, sizeof (GfxColorComp));
+            lookup2[k] = (GfxColorComp*)calloc (n, sizeof (GfxColorComp));
             memcpy (
                 lookup2[k], colorMap->lookup2[k], n * sizeof (GfxColorComp));
         }
@@ -3338,7 +3337,7 @@ GfxImageColorMap::GfxImageColorMap (GfxImageColorMap* colorMap) {
     else if (colorSpace->getMode () == csSeparation) {
         colorSpace2 = ((GfxSeparationColorSpace*)colorSpace)->getAlt ();
         for (k = 0; k < nComps2; ++k) {
-            lookup2[k] = (GfxColorComp*)gmallocn (n, sizeof (GfxColorComp));
+            lookup2[k] = (GfxColorComp*)calloc (n, sizeof (GfxColorComp));
             memcpy (
                 lookup2[k], colorMap->lookup2[k], n * sizeof (GfxColorComp));
         }
@@ -3355,8 +3354,8 @@ GfxImageColorMap::~GfxImageColorMap () {
 
     delete colorSpace;
     for (i = 0; i < gfxColorMaxComps; ++i) {
-        gfree (lookup[i]);
-        gfree (lookup2[i]);
+        free (lookup[i]);
+        free (lookup2[i]);
     }
 }
 
@@ -3500,9 +3499,9 @@ void GfxImageColorMap::getCMYKByteLine (unsigned char* in, unsigned char* out, i
 
 GfxSubpath::GfxSubpath (double x1, double y1) {
     size = 16;
-    x = (double*)gmallocn (size, sizeof (double));
-    y = (double*)gmallocn (size, sizeof (double));
-    curve = (bool*)gmallocn (size, sizeof (bool));
+    x = (double*)calloc (size, sizeof (double));
+    y = (double*)calloc (size, sizeof (double));
+    curve = (bool*)calloc (size, sizeof (bool));
     n = 1;
     x[0] = x1;
     y[0] = y1;
@@ -3511,18 +3510,18 @@ GfxSubpath::GfxSubpath (double x1, double y1) {
 }
 
 GfxSubpath::~GfxSubpath () {
-    gfree (x);
-    gfree (y);
-    gfree (curve);
+    free (x);
+    free (y);
+    free (curve);
 }
 
 // Used for copy().
 GfxSubpath::GfxSubpath (GfxSubpath* subpath) {
     size = subpath->size;
     n = subpath->n;
-    x = (double*)gmallocn (size, sizeof (double));
-    y = (double*)gmallocn (size, sizeof (double));
-    curve = (bool*)gmallocn (size, sizeof (bool));
+    x = (double*)calloc (size, sizeof (double));
+    y = (double*)calloc (size, sizeof (double));
+    curve = (bool*)calloc (size, sizeof (bool));
     memcpy (x, subpath->x, n * sizeof (double));
     memcpy (y, subpath->y, n * sizeof (double));
     memcpy (curve, subpath->curve, n * sizeof (bool));
@@ -3532,9 +3531,9 @@ GfxSubpath::GfxSubpath (GfxSubpath* subpath) {
 void GfxSubpath::lineTo (double x1, double y1) {
     if (n >= size) {
         size *= 2;
-        x = (double*)greallocn (x, size, sizeof (double));
-        y = (double*)greallocn (y, size, sizeof (double));
-        curve = (bool*)greallocn (curve, size, sizeof (bool));
+        x = (double*)reallocarray (x, size, sizeof (double));
+        y = (double*)reallocarray (y, size, sizeof (double));
+        curve = (bool*)reallocarray (curve, size, sizeof (bool));
     }
     x[n] = x1;
     y[n] = y1;
@@ -3546,9 +3545,9 @@ void GfxSubpath::curveTo (
     double x1, double y1, double x2, double y2, double x3, double y3) {
     if (n + 3 > size) {
         size *= 2;
-        x = (double*)greallocn (x, size, sizeof (double));
-        y = (double*)greallocn (y, size, sizeof (double));
-        curve = (bool*)greallocn (curve, size, sizeof (bool));
+        x = (double*)reallocarray (x, size, sizeof (double));
+        y = (double*)reallocarray (y, size, sizeof (double));
+        curve = (bool*)reallocarray (curve, size, sizeof (bool));
     }
     x[n] = x1;
     y[n] = y1;
@@ -3580,14 +3579,14 @@ GfxPath::GfxPath () {
     size = 16;
     n = 0;
     firstX = firstY = 0;
-    subpaths = (GfxSubpath**)gmallocn (size, sizeof (GfxSubpath*));
+    subpaths = (GfxSubpath**)calloc (size, sizeof (GfxSubpath*));
 }
 
 GfxPath::~GfxPath () {
     int i;
 
     for (i = 0; i < n; ++i) delete subpaths[i];
-    gfree (subpaths);
+    free (subpaths);
 }
 
 // Used for copy().
@@ -3601,7 +3600,7 @@ GfxPath::GfxPath (
     firstY = firstY1;
     size = size1;
     n = n1;
-    subpaths = (GfxSubpath**)gmallocn (size, sizeof (GfxSubpath*));
+    subpaths = (GfxSubpath**)calloc (size, sizeof (GfxSubpath*));
     for (i = 0; i < n; ++i) subpaths[i] = subpaths1[i]->copy ();
 }
 
@@ -3616,7 +3615,7 @@ void GfxPath::lineTo (double x, double y) {
         if (n >= size) {
             size *= 2;
             subpaths =
-                (GfxSubpath**)greallocn (subpaths, size, sizeof (GfxSubpath*));
+                (GfxSubpath**)reallocarray (subpaths, size, sizeof (GfxSubpath*));
         }
         if (justMoved) { subpaths[n] = new GfxSubpath (firstX, firstY); }
         else {
@@ -3635,7 +3634,7 @@ void GfxPath::curveTo (
         if (n >= size) {
             size *= 2;
             subpaths =
-                (GfxSubpath**)greallocn (subpaths, size, sizeof (GfxSubpath*));
+                (GfxSubpath**)reallocarray (subpaths, size, sizeof (GfxSubpath*));
         }
         if (justMoved) { subpaths[n] = new GfxSubpath (firstX, firstY); }
         else {
@@ -3655,7 +3654,7 @@ void GfxPath::close () {
         if (n >= size) {
             size *= 2;
             subpaths =
-                (GfxSubpath**)greallocn (subpaths, size, sizeof (GfxSubpath*));
+                (GfxSubpath**)reallocarray (subpaths, size, sizeof (GfxSubpath*));
         }
         subpaths[n] = new GfxSubpath (firstX, firstY);
         ++n;
@@ -3670,7 +3669,7 @@ void GfxPath::append (GfxPath* path) {
     if (n + path->n > size) {
         size = n + path->n;
         subpaths =
-            (GfxSubpath**)greallocn (subpaths, size, sizeof (GfxSubpath*));
+            (GfxSubpath**)reallocarray (subpaths, size, sizeof (GfxSubpath*));
     }
     for (i = 0; i < path->n; ++i) {
         subpaths[n++] = path->subpaths[i]->copy ();
@@ -3804,7 +3803,7 @@ GfxState::~GfxState () {
     for (i = 0; i < 4; ++i) {
         if (transfer[i]) { delete transfer[i]; }
     }
-    gfree (lineDash);
+    free (lineDash);
     if (path) {
         // this gets set to NULL by restore()
         delete path;
@@ -3826,7 +3825,7 @@ GfxState::GfxState (GfxState* state, bool copyPath) {
         if (transfer[i]) { transfer[i] = state->transfer[i]->copy (); }
     }
     if (lineDashLength > 0) {
-        lineDash = (double*)gmallocn (lineDashLength, sizeof (double));
+        lineDash = (double*)calloc (lineDashLength, sizeof (double));
         memcpy (lineDash, state->lineDash, lineDashLength * sizeof (double));
     }
     if (copyPath) { path = state->path->copy (); }
@@ -4002,7 +4001,7 @@ void GfxState::setTransfer (Function** funcs) {
 }
 
 void GfxState::setLineDash (double* dash, int length, double start) {
-    if (lineDash) gfree (lineDash);
+    if (lineDash) free (lineDash);
     lineDash = dash;
     lineDashLength = length;
     lineDashStart = start;

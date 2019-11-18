@@ -13,7 +13,6 @@
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 
@@ -72,7 +71,7 @@ XPDFCoreTile::XPDFCoreTile (int xDestA, int yDestA)
 
 XPDFCoreTile::~XPDFCoreTile () {
     if (image) {
-        gfree (image->data);
+        free (image->data);
         image->data = NULL;
         XDestroyImage (image);
     }
@@ -810,7 +809,7 @@ void XPDFCore::setupX (bool installCmap, int rgbCubeSizeA) {
             }
             if (rgbCubeSize >= 2) {
                 m = rgbCubeSize * rgbCubeSize * rgbCubeSize;
-                xcolors = (XColor*)gmallocn (m, sizeof (XColor));
+                xcolors = (XColor*)calloc (m, sizeof (XColor));
                 n = 0;
                 for (r = 0; r < rgbCubeSize; ++r) {
                     for (g = 0; g < rgbCubeSize; ++g) {
@@ -825,7 +824,7 @@ void XPDFCore::setupX (bool installCmap, int rgbCubeSizeA) {
                     }
                 }
                 XStoreColors (display, colormap, xcolors, m);
-                gfree (xcolors);
+                free (xcolors);
             }
             else {
                 rgbCubeSize = 1;
@@ -1206,7 +1205,7 @@ void XPDFCore::updateTileData (
         h = tile->yMax - tile->yMin;
         image =
             XCreateImage (display, visual, depth, ZPixmap, 0, NULL, w, h, 8, 0);
-        image->data = (char*)gmallocn (h, image->bytes_per_line);
+        image->data = (char*)calloc (h, image->bytes_per_line);
         tile->image = image;
     }
     else {
@@ -1282,9 +1281,9 @@ void XPDFCore::updateTileData (
     }
     else {
         // do Floyd-Steinberg dithering on the whole bitmap
-        errDownR = (int*)gmallocn (width + 2, sizeof (int));
-        errDownG = (int*)gmallocn (width + 2, sizeof (int));
-        errDownB = (int*)gmallocn (width + 2, sizeof (int));
+        errDownR = (int*)calloc (width + 2, sizeof (int));
+        errDownG = (int*)calloc (width + 2, sizeof (int));
+        errDownB = (int*)calloc (width + 2, sizeof (int));
         errRightR = errRightG = errRightB = 0;
         errDownRightR = errDownRightG = errDownRightB = 0;
         memset (errDownR, 0, (width + 2) * sizeof (int));
@@ -1354,9 +1353,9 @@ void XPDFCore::updateTileData (
                 p += 3;
             }
         }
-        gfree (errDownR);
-        gfree (errDownG);
-        gfree (errDownB);
+        free (errDownR);
+        free (errDownG);
+        free (errDownB);
     }
 }
 

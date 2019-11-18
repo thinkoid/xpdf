@@ -8,7 +8,6 @@
 
 #include <defs.hh>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GHash.hh>
 
@@ -35,7 +34,7 @@ GHash::GHash (bool deleteKeysA) {
 
     deleteKeys = deleteKeysA;
     size = 7;
-    tab = (GHashBucket**)gmallocn (size, sizeof (GHashBucket*));
+    tab = (GHashBucket**)calloc (size, sizeof (GHashBucket*));
     for (h = 0; h < size; ++h) { tab[h] = NULL; }
     len = 0;
 }
@@ -52,7 +51,7 @@ GHash::~GHash () {
             delete p;
         }
     }
-    gfree (tab);
+    free (tab);
 }
 
 void GHash::add (GString* key, void* val) {
@@ -266,7 +265,7 @@ void GHash::expand () {
     oldSize = size;
     oldTab = tab;
     size = 2 * size + 1;
-    tab = (GHashBucket**)gmallocn (size, sizeof (GHashBucket*));
+    tab = (GHashBucket**)calloc (size, sizeof (GHashBucket*));
     for (h = 0; h < size; ++h) { tab[h] = NULL; }
     for (i = 0; i < oldSize; ++i) {
         while (oldTab[i]) {
@@ -277,7 +276,7 @@ void GHash::expand () {
             tab[h] = p;
         }
     }
-    gfree (oldTab);
+    free (oldTab);
 }
 
 GHashBucket* GHash::find (GString* key, int* h) {

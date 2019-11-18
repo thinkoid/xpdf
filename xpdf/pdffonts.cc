@@ -7,15 +7,14 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <math.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
+#include <cmath>
+#include <climits>
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
-#include <goo/gmem.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
@@ -184,8 +183,8 @@ int main (int argc, char* argv[]) {
     exitCode = 0;
 
     // clean up
-    gfree (fonts);
-    gfree (seenObjs);
+    free (fonts);
+    free (seenObjs);
 err1:
     delete doc;
     delete globalParams;
@@ -208,10 +207,10 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
         if (seenObjsLen == seenObjsSize) {
             if (seenObjsSize <= INT_MAX - 32) { seenObjsSize += 32; }
             else {
-                // let greallocn throw an exception
+                // let reallocarray throw an exception
                 seenObjsSize = -1;
             }
-            seenObjs = (Ref*)greallocn (seenObjs, seenObjsSize, sizeof (Ref));
+            seenObjs = (Ref*)reallocarray (seenObjs, seenObjsSize, sizeof (Ref));
         }
         seenObjs[seenObjsLen++] = obj->getRef ();
     }
@@ -400,10 +399,10 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
     if (fontsLen == fontsSize) {
         if (fontsSize <= INT_MAX - 32) { fontsSize += 32; }
         else {
-            // let greallocn throw an exception
+            // let reallocarray throw an exception
             fontsSize = -1;
         }
-        fonts = (Ref*)greallocn (fonts, fontsSize, sizeof (Ref));
+        fonts = (Ref*)reallocarray (fonts, fontsSize, sizeof (Ref));
     }
     fonts[fontsLen++] = *font->getID ();
 }

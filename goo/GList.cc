@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstring>
 #include <goo/GList.hh>
 
 //------------------------------------------------------------------------
@@ -19,19 +18,19 @@
 
 GList::GList () {
     size = 8;
-    data = (void**)gmallocn (size, sizeof (void*));
+    data = (void**)calloc (size, sizeof (void*));
     length = 0;
     inc = 0;
 }
 
 GList::GList (int sizeA) {
     size = sizeA ? sizeA : 8;
-    data = (void**)gmallocn (size, sizeof (void*));
+    data = (void**)calloc (size, sizeof (void*));
     length = 0;
     inc = 0;
 }
 
-GList::~GList () { gfree (data); }
+GList::~GList () { free (data); }
 
 GList* GList::copy () {
     GList* ret;
@@ -95,10 +94,10 @@ void GList::reverse () {
 
 void GList::expand () {
     size += (inc > 0) ? inc : size;
-    data = (void**)greallocn (data, size, sizeof (void*));
+    data = (void**)reallocarray (data, size, sizeof (void*));
 }
 
 void GList::shrink () {
     size -= (inc > 0) ? inc : size / 2;
-    data = (void**)greallocn (data, size, sizeof (void*));
+    data = (void**)reallocarray (data, size, sizeof (void*));
 }

@@ -7,7 +7,7 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdlib.h>
+#include <cstdlib>
 #include <xpdf/FontEncodingTables.hh>
 #include <xpdf/BuiltinFontTables.hh>
 

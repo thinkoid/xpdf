@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <math.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cmath>
 #include <goo/GList.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
@@ -61,7 +60,7 @@ AnnotBorderStyle::AnnotBorderStyle (
 }
 
 AnnotBorderStyle::~AnnotBorderStyle () {
-    if (dash) { gfree (dash); }
+    if (dash) { free (dash); }
 }
 
 //------------------------------------------------------------------------
@@ -167,7 +166,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         obj2.free ();
         if (obj1.dictLookup ("D", &obj2)->isArray ()) {
             borderDashLength = obj2.arrayGetLength ();
-            borderDash = (double*)gmallocn (borderDashLength, sizeof (double));
+            borderDash = (double*)calloc (borderDashLength, sizeof (double));
             for (i = 0; i < borderDashLength; ++i) {
                 if (obj2.arrayGet (i, &obj3)->isNum ()) {
                     borderDash[i] = obj3.getNum ();
@@ -192,7 +191,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
                     if (obj1.arrayGet (3, &obj2)->isArray ()) {
                         borderType = annotBorderDashed;
                         borderDashLength = obj2.arrayGetLength ();
-                        borderDash = (double*)gmallocn (
+                        borderDash = (double*)calloc (
                             borderDashLength, sizeof (double));
                         for (i = 0; i < borderDashLength; ++i) {
                             if (obj2.arrayGet (i, &obj3)->isNum ()) {
@@ -328,7 +327,7 @@ void Annot::generateLineAppearance () {
     //----- check for transparency
     if (annotObj.dictLookup ("CA", &obj1)->isNum ()) {
         gfxStateDict.initDict (doc->getXRef ());
-        gfxStateDict.dictAdd (copyString ("ca"), obj1.copy (&obj2));
+        gfxStateDict.dictAdd (strdup ("ca"), obj1.copy (&obj2));
         appearBuf->append ("/GS1 gs\n");
     }
     obj1.free ();
@@ -470,20 +469,20 @@ void Annot::generateLineAppearance () {
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
     appearDict.dictAdd (
-        copyString ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (copyString ("Subtype"), obj1.initName ("Form"));
+        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
     obj1.initArray (doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (copyString ("BBox"), &obj1);
+    appearDict.dictAdd (strdup ("BBox"), &obj1);
     if (gfxStateDict.isDict ()) {
         obj1.initDict (doc->getXRef ());
         obj2.initDict (doc->getXRef ());
-        obj2.dictAdd (copyString ("GS1"), &gfxStateDict);
-        obj1.dictAdd (copyString ("ExtGState"), &obj2);
-        appearDict.dictAdd (copyString ("Resources"), &obj1);
+        obj2.dictAdd (strdup ("GS1"), &gfxStateDict);
+        obj1.dictAdd (strdup ("ExtGState"), &obj2);
+        appearDict.dictAdd (strdup ("Resources"), &obj1);
     }
 
     //----- build the appearance stream
@@ -513,7 +512,7 @@ void Annot::generatePolyLineAppearance () {
     //----- check for transparency
     if (annotObj.dictLookup ("CA", &obj1)->isNum ()) {
         gfxStateDict.initDict (doc->getXRef ());
-        gfxStateDict.dictAdd (copyString ("ca"), obj1.copy (&obj2));
+        gfxStateDict.dictAdd (strdup ("ca"), obj1.copy (&obj2));
         appearBuf->append ("/GS1 gs\n");
     }
     obj1.free ();
@@ -562,20 +561,20 @@ void Annot::generatePolyLineAppearance () {
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
     appearDict.dictAdd (
-        copyString ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (copyString ("Subtype"), obj1.initName ("Form"));
+        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
     obj1.initArray (doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (copyString ("BBox"), &obj1);
+    appearDict.dictAdd (strdup ("BBox"), &obj1);
     if (gfxStateDict.isDict ()) {
         obj1.initDict (doc->getXRef ());
         obj2.initDict (doc->getXRef ());
-        obj2.dictAdd (copyString ("GS1"), &gfxStateDict);
-        obj1.dictAdd (copyString ("ExtGState"), &obj2);
-        appearDict.dictAdd (copyString ("Resources"), &obj1);
+        obj2.dictAdd (strdup ("GS1"), &gfxStateDict);
+        obj1.dictAdd (strdup ("ExtGState"), &obj2);
+        appearDict.dictAdd (strdup ("Resources"), &obj1);
     }
 
     //----- build the appearance stream
@@ -604,7 +603,7 @@ void Annot::generatePolygonAppearance () {
     //----- check for transparency
     if (annotObj.dictLookup ("CA", &obj1)->isNum ()) {
         gfxStateDict.initDict (doc->getXRef ());
-        gfxStateDict.dictAdd (copyString ("ca"), obj1.copy (&obj2));
+        gfxStateDict.dictAdd (strdup ("ca"), obj1.copy (&obj2));
         appearBuf->append ("/GS1 gs\n");
     }
     obj1.free ();
@@ -650,20 +649,20 @@ void Annot::generatePolygonAppearance () {
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
     appearDict.dictAdd (
-        copyString ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (copyString ("Subtype"), obj1.initName ("Form"));
+        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
     obj1.initArray (doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (copyString ("BBox"), &obj1);
+    appearDict.dictAdd (strdup ("BBox"), &obj1);
     if (gfxStateDict.isDict ()) {
         obj1.initDict (doc->getXRef ());
         obj2.initDict (doc->getXRef ());
-        obj2.dictAdd (copyString ("GS1"), &gfxStateDict);
-        obj1.dictAdd (copyString ("ExtGState"), &obj2);
-        appearDict.dictAdd (copyString ("Resources"), &obj1);
+        obj2.dictAdd (strdup ("GS1"), &gfxStateDict);
+        obj1.dictAdd (strdup ("ExtGState"), &obj2);
+        appearDict.dictAdd (strdup ("Resources"), &obj1);
     }
 
     //----- build the appearance stream
@@ -1047,7 +1046,7 @@ Annots::Annots (PDFDoc* docA, Object* annotsObj) {
                     if (annot->isOk ()) {
                         if (nAnnots >= size) {
                             size += 16;
-                            annots = (Annot**)greallocn (
+                            annots = (Annot**)reallocarray (
                                 annots, size, sizeof (Annot*));
                         }
                         annots[nAnnots++] = annot;
@@ -1067,7 +1066,7 @@ Annots::~Annots () {
     int i;
 
     for (i = 0; i < nAnnots; ++i) { delete annots[i]; }
-    gfree (annots);
+    free (annots);
 }
 
 void Annots::generateAnnotAppearances () {

@@ -8,11 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
+#include <cmath>
 #include <goo/GList.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Dict.hh>
@@ -232,7 +231,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict) {
     }
 
     //----- buffer
-    sBuf = (double*)gmallocn (1 << m, sizeof (double));
+    sBuf = (double*)calloc (1 << m, sizeof (double));
 
     //----- get the stream
     if (!funcObj->isStream ()) {
@@ -264,7 +263,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict) {
         obj2.free ();
     }
     obj1.free ();
-    idxOffset = (int*)gmallocn (1 << m, sizeof (int));
+    idxOffset = (int*)calloc (1 << m, sizeof (int));
     for (i = 0; i < (1 << m); ++i) {
         idx = 0;
         for (j = m - 1, t = i; j >= 1; --j, t <<= 1) {
@@ -363,7 +362,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict) {
     //----- samples
     nSamples = n;
     for (i = 0; i < m; ++i) nSamples *= sampleSize[i];
-    samples = (double*)gmallocn (nSamples, sizeof (double));
+    samples = (double*)calloc (nSamples, sizeof (double));
     buf = 0;
     bits = 0;
     bitMask = (sampleBits < 32) ? ((1 << sampleBits) - 1) : 0xffffffffU;
@@ -411,18 +410,18 @@ err1:
 }
 
 SampledFunction::~SampledFunction () {
-    if (idxOffset) { gfree (idxOffset); }
-    if (samples) { gfree (samples); }
-    if (sBuf) { gfree (sBuf); }
+    if (idxOffset) { free (idxOffset); }
+    if (samples) { free (samples); }
+    if (sBuf) { free (sBuf); }
 }
 
 SampledFunction::SampledFunction (SampledFunction* func) {
     memcpy (this, func, sizeof (SampledFunction));
-    idxOffset = (int*)gmallocn (1 << m, sizeof (int));
+    idxOffset = (int*)calloc (1 << m, sizeof (int));
     memcpy (idxOffset, func->idxOffset, (1 << m) * (int)sizeof (int));
-    samples = (double*)gmallocn (nSamples, sizeof (double));
+    samples = (double*)calloc (nSamples, sizeof (double));
     memcpy (samples, func->samples, nSamples * sizeof (double));
-    sBuf = (double*)gmallocn (1 << m, sizeof (double));
+    sBuf = (double*)calloc (1 << m, sizeof (double));
 }
 
 void SampledFunction::transform (double* in, double* out) {
@@ -643,10 +642,10 @@ StitchingFunction::StitchingFunction (
         goto err1;
     }
     k = obj1.arrayGetLength ();
-    funcs = (Function**)gmallocn (k, sizeof (Function*));
-    bounds = (double*)gmallocn (k + 1, sizeof (double));
-    encode = (double*)gmallocn (2 * k, sizeof (double));
-    scale = (double*)gmallocn (k, sizeof (double));
+    funcs = (Function**)calloc (k, sizeof (Function*));
+    bounds = (double*)calloc (k + 1, sizeof (double));
+    encode = (double*)calloc (2 * k, sizeof (double));
+    scale = (double*)calloc (k, sizeof (double));
     for (i = 0; i < k; ++i) { funcs[i] = NULL; }
     for (i = 0; i < k; ++i) {
         if (!(funcs[i] =
@@ -733,13 +732,13 @@ StitchingFunction::StitchingFunction (StitchingFunction* func) {
     int i;
 
     memcpy (this, func, sizeof (StitchingFunction));
-    funcs = (Function**)gmallocn (k, sizeof (Function*));
+    funcs = (Function**)calloc (k, sizeof (Function*));
     for (i = 0; i < k; ++i) { funcs[i] = func->funcs[i]->copy (); }
-    bounds = (double*)gmallocn (k + 1, sizeof (double));
+    bounds = (double*)calloc (k + 1, sizeof (double));
     memcpy (bounds, func->bounds, (k + 1) * sizeof (double));
-    encode = (double*)gmallocn (2 * k, sizeof (double));
+    encode = (double*)calloc (2 * k, sizeof (double));
     memcpy (encode, func->encode, 2 * k * sizeof (double));
-    scale = (double*)gmallocn (k, sizeof (double));
+    scale = (double*)calloc (k, sizeof (double));
     memcpy (scale, func->scale, k * sizeof (double));
     ok = true;
 }
@@ -752,10 +751,10 @@ StitchingFunction::~StitchingFunction () {
             if (funcs[i]) { delete funcs[i]; }
         }
     }
-    gfree (funcs);
-    gfree (bounds);
-    gfree (encode);
-    gfree (scale);
+    free (funcs);
+    free (bounds);
+    free (encode);
+    free (scale);
 }
 
 void StitchingFunction::transform (double* in, double* out) {
@@ -911,12 +910,12 @@ err1:
 PostScriptFunction::PostScriptFunction (PostScriptFunction* func) {
     memcpy (this, func, sizeof (PostScriptFunction));
     codeString = func->codeString->copy ();
-    code = (PSCode*)gmallocn (codeSize, sizeof (PSCode));
+    code = (PSCode*)calloc (codeSize, sizeof (PSCode));
     memcpy (code, func->code, codeSize * sizeof (PSCode));
 }
 
 PostScriptFunction::~PostScriptFunction () {
-    gfree (code);
+    free (code);
     if (codeString) { delete codeString; }
 }
 
@@ -1067,7 +1066,7 @@ void PostScriptFunction::addCode (int* codePtr, int op) {
         else {
             codeSize = 16;
         }
-        code = (PSCode*)greallocn (code, codeSize, sizeof (PSCode));
+        code = (PSCode*)reallocarray (code, codeSize, sizeof (PSCode));
     }
     code[*codePtr].op = op;
     ++(*codePtr);
@@ -1079,7 +1078,7 @@ void PostScriptFunction::addCodeI (int* codePtr, int op, int x) {
         else {
             codeSize = 16;
         }
-        code = (PSCode*)greallocn (code, codeSize, sizeof (PSCode));
+        code = (PSCode*)reallocarray (code, codeSize, sizeof (PSCode));
     }
     code[*codePtr].op = op;
     code[*codePtr].val.i = x;
@@ -1092,7 +1091,7 @@ void PostScriptFunction::addCodeD (int* codePtr, int op, double x) {
         else {
             codeSize = 16;
         }
-        code = (PSCode*)greallocn (code, codeSize, sizeof (PSCode));
+        code = (PSCode*)reallocarray (code, codeSize, sizeof (PSCode));
     }
     code[*codePtr].op = op;
     code[*codePtr].val.d = x;

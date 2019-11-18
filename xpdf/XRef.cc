@@ -8,12 +8,14 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <ctype.h>
-#include <limits.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
+#include <cctype>
+#include <climits>
+
+#include <iostream>
+
 #include <goo/gfile.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
@@ -61,10 +63,10 @@ private:
 XRefPosSet::XRefPosSet () {
     size = 16;
     len = 0;
-    tab = (GFileOffset*)gmallocn (size, sizeof (GFileOffset));
+    tab = (GFileOffset*)calloc (size, sizeof (GFileOffset));
 }
 
-XRefPosSet::~XRefPosSet () { gfree (tab); }
+XRefPosSet::~XRefPosSet () { free (tab); }
 
 void XRefPosSet::add (GFileOffset pos) {
     int i;
@@ -73,10 +75,12 @@ void XRefPosSet::add (GFileOffset pos) {
     if (i < len && tab[i] == pos) { return; }
     if (len == size) {
         if (size > INT_MAX / 2) {
-            gMemError ("Integer overflow in XRefPosSet::add()");
+            std::cerr << "Integer overflow in XRefPosSet::add()" << std::endl;
+            std::exit (1);
         }
+
         size *= 2;
-        tab = (GFileOffset*)greallocn (tab, size, sizeof (GFileOffset));
+        tab = (GFileOffset*)reallocarray (tab, size, sizeof (GFileOffset));
     }
     if (i < len) {
         memmove (&tab[i + 1], &tab[i], (len - i) * sizeof (GFileOffset));
@@ -179,8 +183,8 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         goto err1;
     }
     objs = new Object[nObjects];
-    objNums = (int*)gmallocn (nObjects, sizeof (int));
-    offsets = (int*)gmallocn (nObjects, sizeof (int));
+    objNums = (int*)calloc (nObjects, sizeof (int));
+    offsets = (int*)calloc (nObjects, sizeof (int));
 
     // parse the header: object numbers and offsets
     objStr.streamReset ();
@@ -194,7 +198,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
             obj1.free ();
             obj2.free ();
             delete parser;
-            gfree (offsets);
+            free (offsets);
             goto err2;
         }
         objNums[i] = obj1.getInt ();
@@ -204,7 +208,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         if (objNums[i] < 0 || offsets[i] < 0 ||
             (i > 0 && offsets[i] < offsets[i - 1])) {
             delete parser;
-            gfree (offsets);
+            free (offsets);
             goto err2;
         }
     }
@@ -234,7 +238,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         delete parser;
     }
 
-    gfree (offsets);
+    free (offsets);
     ok = true;
 
 err2:
@@ -250,7 +254,7 @@ ObjectStream::~ObjectStream () {
         for (i = 0; i < nObjects; ++i) { objs[i].free (); }
         delete[] objs;
     }
-    gfree (objNums);
+    free (objNums);
 }
 
 Object* ObjectStream::getObject (int objIdx, int objNum, Object* obj) {
@@ -343,9 +347,9 @@ XRef::~XRef () {
     for (i = 0; i < xrefCacheSize; ++i) {
         if (cache[i].num >= 0) { cache[i].obj.free (); }
     }
-    gfree (entries);
+    free (entries);
     trailerDict.free ();
-    if (streamEnds) { gfree (streamEnds); }
+    if (streamEnds) { free (streamEnds); }
     for (i = 0; i < objStrCacheSize; ++i) {
         if (objStrs[i]) { delete objStrs[i]; }
     }
@@ -476,7 +480,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
                 ;
             if (newSize < 0) { goto err1; }
             entries =
-                (XRefEntry*)greallocn (entries, newSize, sizeof (XRefEntry));
+                (XRefEntry*)reallocarray (entries, newSize, sizeof (XRefEntry));
             for (i = size; i < newSize; ++i) {
                 entries[i].offset = (GFileOffset)-1;
                 entries[i].type = xrefEntryFree;
@@ -595,7 +599,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     obj.free ();
     if (newSize < 0) { goto err1; }
     if (newSize > size) {
-        entries = (XRefEntry*)greallocn (entries, newSize, sizeof (XRefEntry));
+        entries = (XRefEntry*)reallocarray (entries, newSize, sizeof (XRefEntry));
         for (i = size; i < newSize; ++i) {
             entries[i].offset = (GFileOffset)-1;
             entries[i].type = xrefEntryFree;
@@ -682,7 +686,7 @@ bool XRef::readXRefStreamSection (Stream* xrefStr, int* w, int first, int n) {
              first + n > newSize && newSize > 0; newSize <<= 1)
             ;
         if (newSize < 0) { return false; }
-        entries = (XRefEntry*)greallocn (entries, newSize, sizeof (XRefEntry));
+        entries = (XRefEntry*)reallocarray (entries, newSize, sizeof (XRefEntry));
         for (i = size; i < newSize; ++i) {
             entries[i].offset = (GFileOffset)-1;
             entries[i].type = xrefEntryFree;
@@ -744,7 +748,7 @@ bool XRef::constructXRef () {
     int i;
     bool gotRoot;
 
-    gfree (entries);
+    free (entries);
     size = 0;
     entries = NULL;
 
@@ -804,7 +808,7 @@ bool XRef::constructXRef () {
                                             "Bad object number");
                                         return false;
                                     }
-                                    entries = (XRefEntry*)greallocn (
+                                    entries = (XRefEntry*)reallocarray (
                                         entries, newSize, sizeof (XRefEntry));
                                     for (i = size; i < newSize; ++i) {
                                         entries[i].offset = (GFileOffset)-1;
@@ -828,7 +832,7 @@ bool XRef::constructXRef () {
         else if (!strncmp (p, "endstream", 9)) {
             if (streamEndsLen == streamEndsSize) {
                 streamEndsSize += 64;
-                streamEnds = (GFileOffset*)greallocn (
+                streamEnds = (GFileOffset*)reallocarray (
                     streamEnds, streamEndsSize, sizeof (GFileOffset));
             }
             streamEnds[streamEndsLen++] = pos;

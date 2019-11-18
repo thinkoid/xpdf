@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
+#include <cstddef>
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
@@ -81,10 +81,10 @@ Object* Parser::getObj (
                 shift ();
             }
             else {
-                key = copyString (buf1.getName ());
+                key = strdup (buf1.getName ());
                 shift ();
                 if (buf1.isEOF () || buf1.isError ()) {
-                    gfree (key);
+                    free (key);
                     break;
                 }
                 obj->dictAdd (

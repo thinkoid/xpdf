@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <math.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cmath>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <xpdf/Error.hh>
@@ -387,7 +386,7 @@ Unicode* AcroFormField::getName (int* length) {
 
     u = name->getUnicode ();
     n = name->getLength ();
-    ret = (Unicode*)gmallocn (n, sizeof (Unicode));
+    ret = (Unicode*)calloc (n, sizeof (Unicode));
     memcpy (ret, u, n * sizeof (Unicode));
     *length = n;
     return ret;
@@ -404,7 +403,7 @@ Unicode* AcroFormField::getValue (int* length) {
     if (obj1.isName ()) {
         s = obj1.getName ();
         n = (int)strlen (s);
-        u = (Unicode*)gmallocn (n, sizeof (Unicode));
+        u = (Unicode*)calloc (n, sizeof (Unicode));
         for (i = 0; i < n; ++i) { u[i] = s[i] & 0xff; }
         *length = n;
         return u;
@@ -412,7 +411,7 @@ Unicode* AcroFormField::getValue (int* length) {
     else if (obj1.isString ()) {
         ts = new TextString (obj1.getString ());
         n = ts->getLength ();
-        u = (Unicode*)gmallocn (n, sizeof (Unicode));
+        u = (Unicode*)calloc (n, sizeof (Unicode));
         memcpy (u, ts->getUnicode (), n * sizeof (Unicode));
         *length = n;
         delete ts;
@@ -631,7 +630,7 @@ void AcroFormField::drawNewAppearance (
         obj2.free ();
         if (obj1.dictLookup ("D", &obj2)->isArray ()) {
             borderDashLength = obj2.arrayGetLength ();
-            borderDash = (double*)gmallocn (borderDashLength, sizeof (double));
+            borderDash = (double*)calloc (borderDashLength, sizeof (double));
             for (i = 0; i < borderDashLength; ++i) {
                 if (obj2.arrayGet (i, &obj3)->isNum ()) {
                     borderDash[i] = obj3.getNum ();
@@ -656,7 +655,7 @@ void AcroFormField::drawNewAppearance (
                     if (obj1.arrayGet (3, &obj2)->isArray ()) {
                         borderType = annotBorderDashed;
                         borderDashLength = obj2.arrayGetLength ();
-                        borderDash = (double*)gmallocn (
+                        borderDash = (double*)calloc (
                             borderDashLength, sizeof (double));
                         for (i = 0; i < borderDashLength; ++i) {
                             if (obj2.arrayGet (i, &obj3)->isNum ()) {
@@ -793,7 +792,7 @@ void AcroFormField::drawNewAppearance (
             obj1.free ();
         }
     }
-    gfree (borderDash);
+    free (borderDash);
 
     // get the resource dictionary
     fieldLookup ("DR", &drObj);
@@ -950,7 +949,7 @@ void AcroFormField::drawNewAppearance (
             if (fieldObj.dictLookup ("Opt", &obj1)->isArray ()) {
                 nOptions = obj1.arrayGetLength ();
                 // get the option text
-                text = (GString**)gmallocn (nOptions, sizeof (GString*));
+                text = (GString**)calloc (nOptions, sizeof (GString*));
                 for (i = 0; i < nOptions; ++i) {
                     text[i] = NULL;
                     obj1.arrayGet (i, &obj2);
@@ -967,7 +966,7 @@ void AcroFormField::drawNewAppearance (
                     if (!text[i]) { text[i] = new GString (); }
                 }
                 // get the selected option(s)
-                selection = (bool*)gmallocn (nOptions, sizeof (bool));
+                selection = (bool*)calloc (nOptions, sizeof (bool));
                 //~ need to use the I field in addition to the V field
                 fieldLookup ("V", &obj2);
                 for (i = 0; i < nOptions; ++i) {
@@ -1001,8 +1000,8 @@ void AcroFormField::drawNewAppearance (
                     text, selection, nOptions, topIdx, da, fontDict, quadding,
                     xMin, yMin, xMax, yMax, borderWidth);
                 for (i = 0; i < nOptions; ++i) { delete text[i]; }
-                gfree (text);
-                gfree (selection);
+                free (text);
+                free (selection);
             }
             obj1.free ();
         }
@@ -1020,18 +1019,18 @@ void AcroFormField::drawNewAppearance (
     // build the appearance stream dictionary
     appearDict.initDict (acroForm->doc->getXRef ());
     appearDict.dictAdd (
-        copyString ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (copyString ("Subtype"), obj1.initName ("Form"));
+        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
     obj1.initArray (acroForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (copyString ("BBox"), &obj1);
+    appearDict.dictAdd (strdup ("BBox"), &obj1);
 
     // set the resource dictionary
     if (drObj.isDict ()) {
-        appearDict.dictAdd (copyString ("Resources"), drObj.copy (&obj1));
+        appearDict.dictAdd (strdup ("Resources"), drObj.copy (&obj1));
     }
     drObj.free ();
 

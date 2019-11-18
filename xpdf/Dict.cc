@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstddef>
+#include <cstring>
 #include <xpdf/Object.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Dict.hh>
@@ -31,8 +30,8 @@ Dict::Dict (XRef* xrefA) {
     xref = xrefA;
     size = 8;
     length = 0;
-    entries = (DictEntry*)gmallocn (size, sizeof (DictEntry));
-    hashTab = (DictEntry**)gmallocn (2 * size - 1, sizeof (DictEntry*));
+    entries = (DictEntry*)calloc (size, sizeof (DictEntry));
+    hashTab = (DictEntry**)calloc (2 * size - 1, sizeof (DictEntry*));
     memset (hashTab, 0, (2 * size - 1) * sizeof (DictEntry*));
     ref = 1;
 }
@@ -41,11 +40,11 @@ Dict::~Dict () {
     int i;
 
     for (i = 0; i < length; ++i) {
-        gfree (entries[i].key);
+        free (entries[i].key);
         entries[i].val.free ();
     }
-    gfree (entries);
-    gfree (hashTab);
+    free (entries);
+    free (hashTab);
 }
 
 void Dict::add (char* key, Object* val) {
@@ -55,7 +54,7 @@ void Dict::add (char* key, Object* val) {
     if ((e = find (key))) {
         e->val.free ();
         e->val = *val;
-        gfree (key);
+        free (key);
     }
     else {
         if (length == size) { expand (); }
@@ -72,9 +71,9 @@ void Dict::expand () {
     int h, i;
 
     size *= 2;
-    entries = (DictEntry*)greallocn (entries, size, sizeof (DictEntry));
+    entries = (DictEntry*)reallocarray (entries, size, sizeof (DictEntry));
     hashTab =
-        (DictEntry**)greallocn (hashTab, 2 * size - 1, sizeof (DictEntry*));
+        (DictEntry**)reallocarray (hashTab, 2 * size - 1, sizeof (DictEntry*));
     memset (hashTab, 0, (2 * size - 1) * sizeof (DictEntry*));
     for (i = 0; i < length; ++i) {
         h = hash (entries[i].key);

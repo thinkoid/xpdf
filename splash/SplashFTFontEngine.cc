@@ -12,7 +12,6 @@
 
 #include <iostream>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/gfile.hh>
 
@@ -212,7 +211,7 @@ SplashFontFile* SplashFTFontEngine::loadCIDFont (
         fileName, deleteFile,
 #endif
         cidToGIDMap, nCIDs);
-    if (!ret) { gfree (cidToGIDMap); }
+    if (!ret) { free (cidToGIDMap); }
     return ret;
 }
 
@@ -292,7 +291,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
             codeToGID ? codeToGIDLen : nCIDs);
     }
     delete ff;
-    if (!ret) { gfree (cidToGIDMap); }
+    if (!ret) { free (cidToGIDMap); }
     return ret;
 }
 

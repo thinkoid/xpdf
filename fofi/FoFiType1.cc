@@ -8,9 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
 #include <fofi/FoFiEncodings.hh>
 #include <fofi/FoFiType1.hh>
 
@@ -47,10 +48,10 @@ FoFiType1::FoFiType1 (char* fileA, int lenA, bool freeFileDataA)
 FoFiType1::~FoFiType1 () {
     int i;
 
-    if (name) { gfree (name); }
+    if (name) { free (name); }
     if (encoding && encoding != (char**)fofiType1StandardEncoding) {
-        for (i = 0; i < 256; ++i) { gfree (encoding[i]); }
-        gfree (encoding);
+        for (i = 0; i < 256; ++i) { free (encoding[i]); }
+        free (encoding);
     }
 }
 
@@ -186,7 +187,7 @@ void FoFiType1::parse () {
             buf[255] = '\0';
             if ((p = strchr (buf + 9, '/')) &&
                 (p = strtok (p + 1, " \t\n\r"))) {
-                name = copyString (p);
+                name = strdup (p);
             }
             line = getNextLine (line);
 
@@ -198,7 +199,7 @@ void FoFiType1::parse () {
             encoding = (char**)fofiType1StandardEncoding;
         }
         else if (!encoding && !strncmp (line, "/Encoding 256 array", 19)) {
-            encoding = (char**)gmallocn (256, sizeof (char*));
+            encoding = (char**)calloc (256, sizeof (char*));
             for (j = 0; j < 256; ++j) { encoding[j] = NULL; }
             for (j = 0, line = getNextLine (line);
                  j < 300 && line && (line1 = getNextLine (line));
@@ -236,7 +237,7 @@ void FoFiType1::parse () {
                         if (code >= 0 && code < 256) {
                             c = *p2;
                             *p2 = '\0';
-                            encoding[code] = copyString (p);
+                            encoding[code] = strdup (p);
                             *p2 = c;
                         }
                         for (p = p2; *p == ' ' || *p == '\t'; ++p)
@@ -293,7 +294,7 @@ void FoFiType1::undoPFB () {
 
     ok = true;
     if (getU8 (0, &ok) != 0x80 || !ok) { return; }
-    file2 = (unsigned char*)gmalloc (len);
+    file2 = (unsigned char*)malloc (len);
     pos1 = pos2 = 0;
     while (getU8 (pos1, &ok) == 0x80 && ok) {
         type = getU8 (pos1 + 1, &ok);
@@ -305,7 +306,7 @@ void FoFiType1::undoPFB () {
         pos1 += segLen;
         pos2 += segLen;
     }
-    if (freeFileData) { gfree (fileData); }
+    if (freeFileData) { free (fileData); }
     file = fileData = file2;
     freeFileData = true;
     len = pos2;

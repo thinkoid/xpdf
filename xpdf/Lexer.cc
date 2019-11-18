@@ -8,10 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
+#include <cctype>
 #include <xpdf/Lexer.hh>
 #include <xpdf/Error.hh>
 

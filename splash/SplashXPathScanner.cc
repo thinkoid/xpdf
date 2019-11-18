@@ -13,7 +13,6 @@
 
 #include <algorithm>
 
-#include <goo/gmem.hh>
 #include <goo/GList.hh>
 
 #include <splash/SplashMath.hh>

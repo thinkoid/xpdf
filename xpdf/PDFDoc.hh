@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
+#include <cstdio>
 #include <xpdf/XRef.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/Page.hh>

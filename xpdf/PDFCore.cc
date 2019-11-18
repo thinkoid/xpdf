@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <math.h>
+#include <cmath>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <xpdf/GlobalParams.hh>
@@ -114,7 +114,7 @@ PDFCore::~PDFCore () {
     for (i = 0; i < pdfHistorySize; ++i) {
         if (history[i].fileName) { delete history[i].fileName; }
     }
-    gfree (pageY);
+    free (pageY);
     deleteGList (pages, PDFCorePage);
     delete out;
 }
@@ -445,7 +445,7 @@ void PDFCore::update (
         dpi = dpiA;
         if (continuousMode) {
             maxPageW = totalDocH = 0;
-            pageY = (int*)greallocn (pageY, doc->getNumPages (), sizeof (int));
+            pageY = (int*)reallocarray (pageY, doc->getNumPages (), sizeof (int));
             for (i = 1; i <= doc->getNumPages (); ++i) {
                 pageY[i - 1] = totalDocH;
                 w = (int)((doc->getPageCropWidth (i) * dpi) / 72 + 0.5);
@@ -1592,12 +1592,12 @@ bool PDFCore::find (
 
     // convert to Unicode
     len = (int)strlen (s);
-    u = (Unicode*)gmallocn (len, sizeof (Unicode));
+    u = (Unicode*)calloc (len, sizeof (Unicode));
     for (i = 0; i < len; ++i) { u[i] = (Unicode) (s[i] & 0xff); }
 
     ret = findU (u, len, caseSensitive, next, backward, wholeWord, onePageOnly);
 
-    gfree (u);
+    free (u);
     return ret;
 }
 

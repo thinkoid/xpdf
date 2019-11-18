@@ -8,8 +8,9 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstring>
+#include <cstdlib>
+
 #include <xpdf/NameToCharCode.hh>
 
 //------------------------------------------------------------------------
@@ -26,7 +27,7 @@ NameToCharCode::NameToCharCode () {
 
     size = 31;
     len = 0;
-    tab = (NameToCharCodeEntry*)gmallocn (size, sizeof (NameToCharCodeEntry));
+    tab = (NameToCharCodeEntry*)calloc (size, sizeof (NameToCharCodeEntry));
     for (i = 0; i < size; ++i) { tab[i].name = NULL; }
 }
 
@@ -34,9 +35,9 @@ NameToCharCode::~NameToCharCode () {
     int i;
 
     for (i = 0; i < size; ++i) {
-        if (tab[i].name) { gfree (tab[i].name); }
+        if (tab[i].name) { free (tab[i].name); }
     }
-    gfree (tab);
+    free (tab);
 }
 
 void NameToCharCode::add (const char* name, CharCode c) {
@@ -49,7 +50,7 @@ void NameToCharCode::add (const char* name, CharCode c) {
         oldTab = tab;
         size = 2 * size + 1;
         tab =
-            (NameToCharCodeEntry*)gmallocn (size, sizeof (NameToCharCodeEntry));
+            (NameToCharCodeEntry*)calloc (size, sizeof (NameToCharCodeEntry));
         for (h = 0; h < size; ++h) { tab[h].name = NULL; }
         for (i = 0; i < oldSize; ++i) {
             if (oldTab[i].name) {
@@ -60,7 +61,7 @@ void NameToCharCode::add (const char* name, CharCode c) {
                 tab[h] = oldTab[i];
             }
         }
-        gfree (oldTab);
+        free (oldTab);
     }
 
     // add the new name
@@ -68,7 +69,7 @@ void NameToCharCode::add (const char* name, CharCode c) {
     while (tab[h].name && strcmp (tab[h].name, name)) {
         if (++h == size) { h = 0; }
     }
-    if (!tab[h].name) { tab[h].name = copyString (name); }
+    if (!tab[h].name) { tab[h].name = strdup (name); }
     tab[h].c = c;
 
     ++len;

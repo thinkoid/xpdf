@@ -8,9 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <limits.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstdlib>
+#include <climits>
+
 #include <fofi/FoFiBase.hh>
 
 //------------------------------------------------------------------------
@@ -24,7 +25,7 @@ FoFiBase::FoFiBase (char* fileA, int lenA, bool freeFileDataA) {
 }
 
 FoFiBase::~FoFiBase () {
-    if (freeFileData) { gfree (fileData); }
+    if (freeFileData) { free (fileData); }
 }
 
 char* FoFiBase::readFile (const char* fileName, int* fileLen) {
@@ -40,9 +41,9 @@ char* FoFiBase::readFile (const char* fileName, int* fileLen) {
         return NULL;
     }
     fseek (f, 0, SEEK_SET);
-    buf = (char*)gmalloc (n);
+    buf = (char*)malloc (n);
     if ((int)fread (buf, 1, n, f) != n) {
-        gfree (buf);
+        free (buf);
         fclose (f);
         return NULL;
     }

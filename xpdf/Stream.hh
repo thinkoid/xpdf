@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
+#include <cstdio>
 #include <goo/gfile.hh>
 #include <xpdf/Object.hh>
 

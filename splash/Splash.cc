@@ -8,10 +8,9 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstring>
+#include <climits>
 #include <splash/SplashErrorCodes.hh>
 #include <splash/SplashMath.hh>
 #include <splash/SplashBitmap.hh>
@@ -1895,7 +1894,7 @@ Splash::Splash (
     inShading = false;
     state = new SplashState (
         bitmap->width, bitmap->height, vectorAntialias, screenParams);
-    scanBuf = (unsigned char*)gmalloc (bitmap->width);
+    scanBuf = (unsigned char*)malloc (bitmap->width);
     if (vectorAntialias) {
         for (i = 0; i <= 255; ++i) {
             aaGamma[i] = (unsigned char)splashRound (
@@ -1918,7 +1917,7 @@ Splash::Splash (
     inShading = false;
     state = new SplashState (
         bitmap->width, bitmap->height, vectorAntialias, screenA);
-    scanBuf = (unsigned char*)gmalloc (bitmap->width);
+    scanBuf = (unsigned char*)malloc (bitmap->width);
     if (vectorAntialias) {
         for (i = 0; i <= 255; ++i) {
             aaGamma[i] = (unsigned char)splashRound (
@@ -1934,7 +1933,7 @@ Splash::Splash (
 Splash::~Splash () {
     while (state->next) { restoreState (); }
     delete state;
-    gfree (scanBuf);
+    free (scanBuf);
 }
 
 //------------------------------------------------------------------------
@@ -2991,7 +2990,7 @@ Splash::fillChar (SplashCoord x, SplashCoord y, int c, SplashFont* font) {
     yFrac = splashFloor ((yt - y0) * splashFontFraction);
     if (!font->getGlyph (c, xFrac, yFrac, &glyph)) { return splashErrNoGlyph; }
     err = fillGlyph2 (x0, y0, &glyph);
-    if (glyph.freeData) { gfree (glyph.data); }
+    if (glyph.freeData) { free (glyph.data); }
     return err;
 }
 
@@ -3324,7 +3323,7 @@ void Splash::upscaleMask (
     mi5 = -det * (mat[0] * mat[5] - mat[1] * mat[4]) * srcHeight;
 
     // grab the image
-    unscaledImage = (unsigned char*)gmallocn (srcWidth, srcHeight);
+    unscaledImage = (unsigned char*)calloc (srcWidth, srcHeight);
     for (y = 0, p = unscaledImage; y < srcHeight; ++y, p += srcWidth) {
         (*src) (srcData, p);
         for (x = 0; x < srcWidth; ++x) { p[x] *= 255; }
@@ -3389,7 +3388,7 @@ void Splash::upscaleMask (
         (this->*pipe.run) (&pipe, xMinI, xMaxI - 1, y, scanBuf + xMinI, NULL);
     }
 
-    gfree (unscaledImage);
+    free (unscaledImage);
 }
 
 // The glyphMode flag is not currently used, but may be useful if the
@@ -3718,8 +3717,8 @@ void Splash::scaleMaskYdXd (
     xq = srcWidth % scaledWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmalloc (srcWidth);
-    pixBuf = (unsigned*)gmallocn (srcWidth, sizeof (int));
+    lineBuf = (unsigned char*)malloc (srcWidth);
+    pixBuf = (unsigned*)calloc (srcWidth, sizeof (int));
 
     // init y scale Bresenham
     yt = 0;
@@ -3771,8 +3770,8 @@ void Splash::scaleMaskYdXd (
         }
     }
 
-    gfree (pixBuf);
-    gfree (lineBuf);
+    free (pixBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleMaskYdXu (
@@ -3794,8 +3793,8 @@ void Splash::scaleMaskYdXu (
     xq = scaledWidth % srcWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmalloc (srcWidth);
-    pixBuf = (unsigned*)gmallocn (srcWidth, sizeof (int));
+    lineBuf = (unsigned char*)malloc (srcWidth);
+    pixBuf = (unsigned*)calloc (srcWidth, sizeof (int));
 
     // init y scale Bresenham
     yt = 0;
@@ -3842,8 +3841,8 @@ void Splash::scaleMaskYdXu (
         }
     }
 
-    gfree (pixBuf);
-    gfree (lineBuf);
+    free (pixBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleMaskYuXd (
@@ -3864,7 +3863,7 @@ void Splash::scaleMaskYuXd (
     xq = srcWidth % scaledWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmalloc (srcWidth);
+    lineBuf = (unsigned char*)malloc (srcWidth);
 
     // init y scale Bresenham
     yt = 0;
@@ -3917,7 +3916,7 @@ void Splash::scaleMaskYuXd (
         destPtr0 += yStep * scaledWidth;
     }
 
-    gfree (lineBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleMaskYuXu (
@@ -3938,7 +3937,7 @@ void Splash::scaleMaskYuXu (
     xq = scaledWidth % srcWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmalloc (srcWidth);
+    lineBuf = (unsigned char*)malloc (srcWidth);
 
     // init y scale Bresenham
     yt = 0;
@@ -3988,7 +3987,7 @@ void Splash::scaleMaskYuXu (
         destPtr0 += yStep * scaledWidth;
     }
 
-    gfree (lineBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleMaskYuXuI (
@@ -4005,8 +4004,8 @@ void Splash::scaleMaskYuXuI (
     xr = (SplashCoord)srcWidth / (SplashCoord)scaledWidth;
 
     // allocate buffers
-    lineBuf0 = (unsigned char*)gmalloc (scaledWidth);
-    lineBuf1 = (unsigned char*)gmalloc (scaledWidth);
+    lineBuf0 = (unsigned char*)malloc (scaledWidth);
+    lineBuf1 = (unsigned char*)malloc (scaledWidth);
 
     // read first two rows
     (*src) (srcData, lineBuf0);
@@ -4081,8 +4080,8 @@ void Splash::scaleMaskYuXuI (
         }
     }
 
-    gfree (lineBuf1);
-    gfree (lineBuf0);
+    free (lineBuf1);
+    free (lineBuf0);
 }
 
 void Splash::blitMask (
@@ -4375,9 +4374,9 @@ void Splash::upscaleImage (
     else {
         rowSize = srcWidth * nComps;
     }
-    unscaledImage = (SplashColorPtr)gmallocn (srcHeight, rowSize);
+    unscaledImage = (SplashColorPtr)calloc (srcHeight, rowSize);
     if (srcAlpha) {
-        unscaledAlpha = (unsigned char*)gmallocn (srcHeight, srcWidth);
+        unscaledAlpha = (unsigned char*)calloc (srcHeight, srcWidth);
         for (y = 0, p = unscaledImage, alphaPtr = unscaledAlpha; y < srcHeight;
              ++y, p += rowSize, alphaPtr += srcWidth) {
             (*src) (srcData, p, alphaPtr);
@@ -4392,7 +4391,7 @@ void Splash::upscaleImage (
     }
 
     // draw it
-    pixelBuf = (SplashColorPtr)gmallocn (xMaxI - xMinI, nComps);
+    pixelBuf = (SplashColorPtr)calloc (xMaxI - xMinI, nComps);
     pipeInit (
         &pipe, NULL, (unsigned char)splashRound (state->fillAlpha * 255), true,
         false);
@@ -4477,9 +4476,9 @@ void Splash::upscaleImage (
             &pipe, xMinI, xMaxI - 1, y, scanBuf + xMinI, pixelBuf);
     }
 
-    gfree (pixelBuf);
-    gfree (unscaledImage);
-    gfree (unscaledAlpha);
+    free (pixelBuf);
+    free (unscaledImage);
+    free (unscaledAlpha);
 }
 
 void Splash::arbitraryTransformImage (
@@ -4691,7 +4690,7 @@ void Splash::arbitraryTransformImage (
         }
     }
 
-    pixelBuf = (SplashColorPtr)gmallocn (xMax - xMin + 1, bitmapComps);
+    pixelBuf = (SplashColorPtr)calloc (xMax - xMin + 1, bitmapComps);
 
     // scan all pixels inside the target region
     for (i = 0; i < nSections; ++i) {
@@ -4752,7 +4751,7 @@ void Splash::arbitraryTransformImage (
         }
     }
 
-    gfree (pixelBuf);
+    free (pixelBuf);
     delete scaledImg;
 }
 
@@ -4822,11 +4821,11 @@ void Splash::scaleImageYdXd (
     xq = srcWidth % scaledWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmallocn (srcWidth, nComps);
-    pixBuf = (unsigned*)gmallocn (srcWidth, nComps * sizeof (int));
+    lineBuf = (unsigned char*)calloc (srcWidth, nComps);
+    pixBuf = (unsigned*)calloc (srcWidth, nComps * sizeof (int));
     if (srcAlpha) {
-        alphaLineBuf = (unsigned char*)gmalloc (srcWidth);
-        alphaPixBuf = (unsigned*)gmallocn (srcWidth, sizeof (int));
+        alphaLineBuf = (unsigned char*)malloc (srcWidth);
+        alphaPixBuf = (unsigned*)calloc (srcWidth, sizeof (int));
     }
     else {
         alphaLineBuf = NULL;
@@ -4957,10 +4956,10 @@ void Splash::scaleImageYdXd (
         }
     }
 
-    gfree (alphaPixBuf);
-    gfree (alphaLineBuf);
-    gfree (pixBuf);
-    gfree (lineBuf);
+    free (alphaPixBuf);
+    free (alphaLineBuf);
+    free (pixBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleImageYdXu (
@@ -4984,11 +4983,11 @@ void Splash::scaleImageYdXu (
     xq = scaledWidth % srcWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmallocn (srcWidth, nComps);
-    pixBuf = (unsigned*)gmallocn (srcWidth, nComps * sizeof (int));
+    lineBuf = (unsigned char*)calloc (srcWidth, nComps);
+    pixBuf = (unsigned*)calloc (srcWidth, nComps * sizeof (int));
     if (srcAlpha) {
-        alphaLineBuf = (unsigned char*)gmalloc (srcWidth);
-        alphaPixBuf = (unsigned*)gmallocn (srcWidth, sizeof (int));
+        alphaLineBuf = (unsigned char*)malloc (srcWidth);
+        alphaPixBuf = (unsigned*)calloc (srcWidth, sizeof (int));
     }
     else {
         alphaLineBuf = NULL;
@@ -5079,10 +5078,10 @@ void Splash::scaleImageYdXu (
         }
     }
 
-    gfree (alphaPixBuf);
-    gfree (alphaLineBuf);
-    gfree (pixBuf);
-    gfree (lineBuf);
+    free (alphaPixBuf);
+    free (alphaLineBuf);
+    free (pixBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleImageYuXd (
@@ -5105,8 +5104,8 @@ void Splash::scaleImageYuXd (
     xq = srcWidth % scaledWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmallocn (srcWidth, nComps);
-    if (srcAlpha) { alphaLineBuf = (unsigned char*)gmalloc (srcWidth); }
+    lineBuf = (unsigned char*)calloc (srcWidth, nComps);
+    if (srcAlpha) { alphaLineBuf = (unsigned char*)malloc (srcWidth); }
     else {
         alphaLineBuf = NULL;
     }
@@ -5208,8 +5207,8 @@ void Splash::scaleImageYuXd (
         if (srcAlpha) { destAlphaPtr0 += yStep * scaledWidth; }
     }
 
-    gfree (alphaLineBuf);
-    gfree (lineBuf);
+    free (alphaLineBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleImageYuXu (
@@ -5232,8 +5231,8 @@ void Splash::scaleImageYuXu (
     xq = scaledWidth % srcWidth;
 
     // allocate buffers
-    lineBuf = (unsigned char*)gmallocn (srcWidth, nComps);
-    if (srcAlpha) { alphaLineBuf = (unsigned char*)gmalloc (srcWidth); }
+    lineBuf = (unsigned char*)calloc (srcWidth, nComps);
+    if (srcAlpha) { alphaLineBuf = (unsigned char*)malloc (srcWidth); }
     else {
         alphaLineBuf = NULL;
     }
@@ -5332,8 +5331,8 @@ void Splash::scaleImageYuXu (
         if (srcAlpha) { destAlphaPtr0 += yStep * scaledWidth; }
     }
 
-    gfree (alphaLineBuf);
-    gfree (lineBuf);
+    free (alphaLineBuf);
+    free (lineBuf);
 }
 
 void Splash::scaleImageYuXuI (
@@ -5351,11 +5350,11 @@ void Splash::scaleImageYuXuI (
     xr = (SplashCoord)srcWidth / (SplashCoord)scaledWidth;
 
     // allocate buffers
-    lineBuf0 = (unsigned char*)gmallocn (scaledWidth, nComps);
-    lineBuf1 = (unsigned char*)gmallocn (scaledWidth, nComps);
+    lineBuf0 = (unsigned char*)calloc (scaledWidth, nComps);
+    lineBuf1 = (unsigned char*)calloc (scaledWidth, nComps);
     if (srcAlpha) {
-        alphaLineBuf0 = (unsigned char*)gmalloc (scaledWidth);
-        alphaLineBuf1 = (unsigned char*)gmalloc (scaledWidth);
+        alphaLineBuf0 = (unsigned char*)malloc (scaledWidth);
+        alphaLineBuf1 = (unsigned char*)malloc (scaledWidth);
     }
     else {
         alphaLineBuf0 = NULL;
@@ -5480,10 +5479,10 @@ void Splash::scaleImageYuXuI (
         }
     }
 
-    gfree (alphaLineBuf1);
-    gfree (alphaLineBuf0);
-    gfree (lineBuf1);
-    gfree (lineBuf0);
+    free (alphaLineBuf1);
+    free (alphaLineBuf0);
+    free (lineBuf1);
+    free (lineBuf0);
 }
 
 void Splash::vertFlipImage (
@@ -5493,7 +5492,7 @@ void Splash::vertFlipImage (
     int w;
 
     w = width * nComps;
-    lineBuf = (unsigned char*)gmalloc (w);
+    lineBuf = (unsigned char*)malloc (w);
     for (p0 = img->data, p1 = img->data + (height - 1) * w; p0 < p1;
          p0 += w, p1 -= w) {
         memcpy (lineBuf, p0, w);
@@ -5508,7 +5507,7 @@ void Splash::vertFlipImage (
             memcpy (p1, lineBuf, width);
         }
     }
-    gfree (lineBuf);
+    free (lineBuf);
 }
 
 void Splash::horizFlipImage (
@@ -5518,7 +5517,7 @@ void Splash::horizFlipImage (
     int w, x, y, i;
 
     w = width * nComps;
-    lineBuf = (unsigned char*)gmalloc (w);
+    lineBuf = (unsigned char*)malloc (w);
     for (y = 0, p0 = img->data; y < height; ++y, p0 += img->rowSize) {
         memcpy (lineBuf, p0, w);
         p1 = p0;
@@ -5537,7 +5536,7 @@ void Splash::horizFlipImage (
             for (x = 0; x < width; ++x) { *p1++ = *p2--; }
         }
     }
-    gfree (lineBuf);
+    free (lineBuf);
 }
 
 void Splash::blitImage (

@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstring>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
@@ -51,7 +50,7 @@ UnicodeMap* UnicodeMap::parse (GString* encodingNameA) {
     map = new UnicodeMap (encodingNameA->copy ());
 
     size = 8;
-    map->ranges = (UnicodeMapRange*)gmallocn (size, sizeof (UnicodeMapRange));
+    map->ranges = (UnicodeMapRange*)calloc (size, sizeof (UnicodeMapRange));
     eMapsSize = 0;
 
     line = 1;
@@ -66,7 +65,7 @@ UnicodeMap* UnicodeMap::parse (GString* encodingNameA) {
             if (nBytes <= 4) {
                 if (map->len == size) {
                     size *= 2;
-                    map->ranges = (UnicodeMapRange*)greallocn (
+                    map->ranges = (UnicodeMapRange*)reallocarray (
                         map->ranges, size, sizeof (UnicodeMapRange));
                 }
                 range = &map->ranges[map->len];
@@ -79,7 +78,7 @@ UnicodeMap* UnicodeMap::parse (GString* encodingNameA) {
             else if (tok2 == tok1) {
                 if (map->eMapsLen == eMapsSize) {
                     eMapsSize += 16;
-                    map->eMaps = (UnicodeMapExt*)greallocn (
+                    map->eMaps = (UnicodeMapExt*)reallocarray (
                         map->eMaps, eMapsSize, sizeof (UnicodeMapExt));
                 }
                 eMap = &map->eMaps[map->eMapsLen];
@@ -150,8 +149,8 @@ UnicodeMap::UnicodeMap (
 
 UnicodeMap::~UnicodeMap () {
     delete encodingName;
-    if (kind == unicodeMapUser && ranges) { gfree (ranges); }
-    if (eMaps) { gfree (eMaps); }
+    if (kind == unicodeMapUser && ranges) { free (ranges); }
+    if (eMaps) { free (eMaps); }
 }
 
 void UnicodeMap::incRefCnt () { ++refCnt; }

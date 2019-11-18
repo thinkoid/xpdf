@@ -12,7 +12,6 @@
 #include FT_OUTLINE_H
 #include FT_SIZES_H
 #include FT_GLYPH_H
-#include <goo/gmem.hh>
 #include <splash/SplashMath.hh>
 #include <splash/SplashGlyphBitmap.hh>
 #include <splash/SplashPath.hh>
@@ -185,7 +184,7 @@ bool SplashFTFont::makeGlyph (
     else {
         rowSize = (bitmap->w + 7) >> 3;
     }
-    bitmap->data = (unsigned char*)gmallocn (bitmap->h, rowSize);
+    bitmap->data = (unsigned char*)calloc (bitmap->h, rowSize);
     bitmap->freeData = true;
     for (i = 0, p = bitmap->data, q = slot->bitmap.buffer; i < bitmap->h;
          ++i, p += rowSize, q += slot->bitmap.pitch) {

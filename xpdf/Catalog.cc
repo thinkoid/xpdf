@@ -8,10 +8,9 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <stddef.h>
-#include <limits.h>
-#include <goo/gmem.hh>
+#include <cstring>
+#include <cstddef>
+#include <climits>
 #include <goo/gfile.hh>
 #include <goo/GList.hh>
 #include <xpdf/Object.hh>
@@ -181,8 +180,8 @@ Catalog::~Catalog () {
         for (i = 0; i < numPages; ++i) {
             if (pages[i]) { delete pages[i]; }
         }
-        gfree (pages);
-        gfree (pageRefs);
+        free (pages);
+        free (pageRefs);
     }
     dests.free ();
     nameTree.free ();
@@ -391,8 +390,8 @@ bool Catalog::readPageTree (Object* catDict) {
     pageTree = new PageTreeNode (topPagesRef.getRef (), numPages, NULL);
     topPagesObj.free ();
     topPagesRef.free ();
-    pages = (Page**)greallocn (pages, numPages, sizeof (Page*));
-    pageRefs = (Ref*)greallocn (pageRefs, numPages, sizeof (Ref));
+    pages = (Page**)reallocarray (pages, numPages, sizeof (Page*));
+    pageRefs = (Ref*)reallocarray (pageRefs, numPages, sizeof (Ref));
     for (i = 0; i < numPages; ++i) {
         pages[i] = NULL;
         pageRefs[i].num = -1;
@@ -555,11 +554,11 @@ void Catalog::readEmbeddedFileList (Dict* catDict) {
     obj1.free ();
 
     // look for file attachment annotations
-    touchedObjs = (char*)gmalloc (xref->getNumObjects ());
+    touchedObjs = (char*)malloc (xref->getNumObjects ());
     memset (touchedObjs, 0, xref->getNumObjects ());
     readFileAttachmentAnnots (catDict->lookupNF ("Pages", &obj1), touchedObjs);
     obj1.free ();
-    gfree (touchedObjs);
+    free (touchedObjs);
 }
 
 void Catalog::readEmbeddedFileTree (Object* node) {

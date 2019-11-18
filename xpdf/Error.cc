@@ -8,9 +8,9 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stddef.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstddef>
+#include <cstdarg>
 #include <goo/GString.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>

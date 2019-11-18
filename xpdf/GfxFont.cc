@@ -17,7 +17,6 @@
 
 #include <algorithm>
 
-#include <goo/gmem.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Dict.hh>
@@ -777,7 +776,7 @@ char* GfxFont::readEmbFontFile (XRef* xref, int* len) {
             error (errSyntaxError, -1, "Embedded font file is too large");
             break;
         }
-        buf = (char*)grealloc (buf, size + 4096);
+        buf = (char*)realloc (buf, size + 4096);
         n = str->getBlock (buf + size, 4096);
         size += n;
     } while (n == 4096);
@@ -992,7 +991,7 @@ Gfx8BitFont::Gfx8BitFont (
                     baseEncFromFontFile = true;
                 }
             }
-            gfree (buf);
+            free (buf);
         }
     }
     else if (type == fontType1C && embFontID.num >= 0) {
@@ -1007,7 +1006,7 @@ Gfx8BitFont::Gfx8BitFont (
                     baseEncFromFontFile = true;
                 }
             }
-            gfree (buf);
+            free (buf);
         }
     }
 
@@ -1029,7 +1028,7 @@ Gfx8BitFont::Gfx8BitFont (
     for (i = 0; i < 256; ++i) {
         enc[i] = (char*)baseEnc[i];
         if ((encFree[i] = baseEncFromFontFile) && enc[i]) {
-            enc[i] = copyString (baseEnc[i]);
+            enc[i] = strdup (baseEnc[i]);
         }
     }
 
@@ -1057,8 +1056,8 @@ Gfx8BitFont::Gfx8BitFont (
                 if (obj3.isInt ()) { code = obj3.getInt (); }
                 else if (obj3.isName ()) {
                     if (code >= 0 && code < 256) {
-                        if (encFree[code]) { gfree (enc[code]); }
-                        enc[code] = copyString (obj3.getName ());
+                        if (encFree[code]) { free (enc[code]); }
+                        enc[code] = strdup (obj3.getName ());
                         encFree[code] = true;
                     }
                     ++code;
@@ -1283,7 +1282,7 @@ Gfx8BitFont::~Gfx8BitFont () {
     int i;
 
     for (i = 0; i < 256; ++i) {
-        if (encFree[i] && enc[i]) { gfree (enc[i]); }
+        if (encFree[i] && enc[i]) { free (enc[i]); }
     }
     ctu->decRefCnt ();
     if (charProcs.isDict ()) { charProcs.free (); }
@@ -1316,7 +1315,7 @@ int* Gfx8BitFont::getCodeToGIDMap (FoFiTrueType* ff) {
     Unicode u;
     int code, i, n;
 
-    map = (int*)gmallocn (256, sizeof (int));
+    map = (int*)calloc (256, sizeof (int));
     for (i = 0; i < 256; ++i) { map[i] = 0; }
 
     // To match up with the Adobe-defined behaviour, we choose a cmap
@@ -1610,13 +1609,13 @@ GfxCIDFont::GfxCIDFont (
         if (obj1.isStream ()) {
             cidToGIDLen = 0;
             i = 64;
-            cidToGID = (int*)gmallocn (i, sizeof (int));
+            cidToGID = (int*)calloc (i, sizeof (int));
             obj1.streamReset ();
             while ((c1 = obj1.streamGetChar ()) != EOF &&
                    (c2 = obj1.streamGetChar ()) != EOF) {
                 if (cidToGIDLen == i) {
                     i *= 2;
-                    cidToGID = (int*)greallocn (cidToGID, i, sizeof (int));
+                    cidToGID = (int*)reallocarray (cidToGID, i, sizeof (int));
                 }
                 cidToGID[cidToGIDLen++] = (c1 << 8) + c2;
             }
@@ -1648,7 +1647,7 @@ GfxCIDFont::GfxCIDFont (
                 if (obj1.arrayGet (i + 2, &obj4)->isNum ()) {
                     if (widths.nExceps == excepsSize) {
                         excepsSize += 16;
-                        widths.exceps = (GfxFontCIDWidthExcep*)greallocn (
+                        widths.exceps = (GfxFontCIDWidthExcep*)reallocarray (
                             widths.exceps, excepsSize,
                             sizeof (GfxFontCIDWidthExcep));
                     }
@@ -1669,7 +1668,7 @@ GfxCIDFont::GfxCIDFont (
                 if (widths.nExceps + obj3.arrayGetLength () > excepsSize) {
                     excepsSize =
                         (widths.nExceps + obj3.arrayGetLength () + 15) & ~15;
-                    widths.exceps = (GfxFontCIDWidthExcep*)greallocn (
+                    widths.exceps = (GfxFontCIDWidthExcep*)reallocarray (
                         widths.exceps, excepsSize,
                         sizeof (GfxFontCIDWidthExcep));
                 }
@@ -1733,7 +1732,7 @@ GfxCIDFont::GfxCIDFont (
                     obj1.arrayGet (i + 4, &obj6)->isNum ()) {
                     if (widths.nExcepsV == excepsSize) {
                         excepsSize += 16;
-                        widths.excepsV = (GfxFontCIDWidthExcepV*)greallocn (
+                        widths.excepsV = (GfxFontCIDWidthExcepV*)reallocarray (
                             widths.excepsV, excepsSize,
                             sizeof (GfxFontCIDWidthExcepV));
                     }
@@ -1760,7 +1759,7 @@ GfxCIDFont::GfxCIDFont (
                     excepsSize =
                         (widths.nExcepsV + obj3.arrayGetLength () / 3 + 15) &
                         ~15;
-                    widths.excepsV = (GfxFontCIDWidthExcepV*)greallocn (
+                    widths.excepsV = (GfxFontCIDWidthExcepV*)reallocarray (
                         widths.excepsV, excepsSize,
                         sizeof (GfxFontCIDWidthExcepV));
                 }
@@ -1823,9 +1822,9 @@ GfxCIDFont::~GfxCIDFont () {
     if (collection) { delete collection; }
     if (cMap) { cMap->decRefCnt (); }
     if (ctu) { ctu->decRefCnt (); }
-    gfree (widths.exceps);
-    gfree (widths.excepsV);
-    if (cidToGID) { gfree (cidToGID); }
+    free (widths.exceps);
+    free (widths.excepsV);
+    if (cidToGID) { free (cidToGID); }
 }
 
 int GfxCIDFont::getNextChar (
@@ -1928,7 +1927,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
     Ref r;
 
     numFonts = fontDict->getLength ();
-    fonts = (GfxFont**)gmallocn (numFonts, sizeof (GfxFont*));
+    fonts = (GfxFont**)calloc (numFonts, sizeof (GfxFont*));
     for (i = 0; i < numFonts; ++i) {
         fontDict->getValNF (i, &obj1);
         obj1.fetch (xref, &obj2);
@@ -1966,7 +1965,7 @@ GfxFontDict::~GfxFontDict () {
     for (i = 0; i < numFonts; ++i) {
         if (fonts[i]) { delete fonts[i]; }
     }
-    gfree (fonts);
+    free (fonts);
 }
 
 GfxFont* GfxFontDict::lookup (const char* tag) {

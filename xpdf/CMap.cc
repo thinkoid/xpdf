@@ -8,11 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 #include <xpdf/Error.hh>
@@ -196,7 +195,7 @@ CMap::CMap (GString* collectionA, GString* cMapNameA) {
     cMapName = cMapNameA;
     isIdent = false;
     wMode = 0;
-    vector = (CMapVectorEntry*)gmallocn (256, sizeof (CMapVectorEntry));
+    vector = (CMapVectorEntry*)calloc (256, sizeof (CMapVectorEntry));
     for (i = 0; i < 256; ++i) {
         vector[i].isVector = false;
         vector[i].cid = 0;
@@ -251,7 +250,7 @@ void CMap::copyVector (CMapVectorEntry* dest, CMapVectorEntry* src) {
             if (!dest[i].isVector) {
                 dest[i].isVector = true;
                 dest[i].vector =
-                    (CMapVectorEntry*)gmallocn (256, sizeof (CMapVectorEntry));
+                    (CMapVectorEntry*)calloc (256, sizeof (CMapVectorEntry));
                 for (j = 0; j < 256; ++j) {
                     dest[i].vector[j].isVector = false;
                     dest[i].vector[j].cid = 0;
@@ -284,7 +283,7 @@ void CMap::addCIDs (unsigned start, unsigned end, unsigned nBytes, CID firstCID)
             if (!vec[byte].isVector) {
                 vec[byte].isVector = true;
                 vec[byte].vector =
-                    (CMapVectorEntry*)gmallocn (256, sizeof (CMapVectorEntry));
+                    (CMapVectorEntry*)calloc (256, sizeof (CMapVectorEntry));
                 for (k = 0; k < 256; ++k) {
                     vec[byte].vector[k].isVector = false;
                     vec[byte].vector[k].cid = 0;
@@ -319,7 +318,7 @@ void CMap::freeCMapVector (CMapVectorEntry* vec) {
     for (i = 0; i < 256; ++i) {
         if (vec[i].isVector) { freeCMapVector (vec[i].vector); }
     }
-    gfree (vec);
+    free (vec);
 }
 
 void CMap::incRefCnt () { ++refCnt; }

@@ -8,9 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <limits.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstdlib>
+#include <climits>
+
 #include <splash/SplashErrorCodes.hh>
 #include <splash/SplashBitmap.hh>
 
@@ -57,12 +58,12 @@ SplashBitmap::SplashBitmap (
         rowSize += rowPad - 1;
         rowSize -= rowSize % rowPad;
     }
-    data = (SplashColorPtr)gmallocn (height, rowSize);
+    data = (SplashColorPtr)calloc (height, rowSize);
     if (!topDown) {
         data += (height - 1) * rowSize;
         rowSize = -rowSize;
     }
-    if (alphaA) { alpha = (unsigned char*)gmallocn (width, height); }
+    if (alphaA) { alpha = (unsigned char*)calloc (width, height); }
     else {
         alpha = NULL;
     }
@@ -70,12 +71,12 @@ SplashBitmap::SplashBitmap (
 
 SplashBitmap::~SplashBitmap () {
     if (data) {
-        if (rowSize < 0) { gfree (data + (height - 1) * rowSize); }
+        if (rowSize < 0) { free (data + (height - 1) * rowSize); }
         else {
-            gfree (data);
+            free (data);
         }
     }
-    gfree (alpha);
+    free (alpha);
 }
 
 SplashError SplashBitmap::writePNMFile (const char* fileName) {

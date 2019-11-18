@@ -8,11 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <ctype.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cctype>
 #include <defs.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GfxState.hh>
@@ -21,16 +20,16 @@
 #include <xpdf/ImageOutputDev.hh>
 
 ImageOutputDev::ImageOutputDev (char* fileRootA, bool dumpJPEGA) {
-    fileRoot = copyString (fileRootA);
-    fileName = (char*)gmalloc ((int)strlen (fileRoot) + 20);
+    fileRoot = strdup (fileRootA);
+    fileName = (char*)malloc ((int)strlen (fileRoot) + 20);
     dumpJPEG = dumpJPEGA;
     imgNum = 0;
     ok = true;
 }
 
 ImageOutputDev::~ImageOutputDev () {
-    gfree (fileName);
-    gfree (fileRoot);
+    free (fileName);
+    free (fileRoot);
 }
 
 void ImageOutputDev::tilingPatternFill (

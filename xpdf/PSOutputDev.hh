@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
+#include <cstddef>
 #include <defs.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/GlobalParams.hh>

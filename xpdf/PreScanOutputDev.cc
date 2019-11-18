@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <math.h>
+#include <cmath>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/Gfx.hh>

@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstddef>
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>
 
@@ -29,7 +28,7 @@ Array::~Array () {
     int i;
 
     for (i = 0; i < length; ++i) elems[i].free ();
-    gfree (elems);
+    free (elems);
 }
 
 void Array::add (Object* elem) {
@@ -38,7 +37,7 @@ void Array::add (Object* elem) {
         else {
             size *= 2;
         }
-        elems = (Object*)greallocn (elems, size, sizeof (Object));
+        elems = (Object*)reallocarray (elems, size, sizeof (Object));
     }
     elems[length] = *elem;
     ++length;

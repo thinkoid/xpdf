@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
+#include <cstdio>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/OutputDev.hh>
 

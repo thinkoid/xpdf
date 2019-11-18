@@ -7,15 +7,14 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <time.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstring>
+#include <ctime>
+#include <cmath>
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
-#include <goo/gmem.hh>
 #include <goo/gfile.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>

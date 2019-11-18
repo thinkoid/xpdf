@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstring>
 #include <xpdf/FontEncodingTables.hh>
 #include <xpdf/BuiltinFont.hh>
 
@@ -20,7 +19,7 @@ BuiltinFontWidths::BuiltinFontWidths (BuiltinFontWidth* widths, int sizeA) {
     int i, h;
 
     size = sizeA;
-    tab = (BuiltinFontWidth**)gmallocn (size, sizeof (BuiltinFontWidth*));
+    tab = (BuiltinFontWidth**)calloc (size, sizeof (BuiltinFontWidth*));
     for (i = 0; i < size; ++i) { tab[i] = NULL; }
     for (i = 0; i < sizeA; ++i) {
         h = hash (widths[i].name);
@@ -29,7 +28,7 @@ BuiltinFontWidths::BuiltinFontWidths (BuiltinFontWidth* widths, int sizeA) {
     }
 }
 
-BuiltinFontWidths::~BuiltinFontWidths () { gfree (tab); }
+BuiltinFontWidths::~BuiltinFontWidths () { free (tab); }
 
 bool BuiltinFontWidths::getWidth (const char* name, unsigned short* width) {
     int h;

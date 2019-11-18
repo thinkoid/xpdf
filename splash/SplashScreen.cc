@@ -13,7 +13,6 @@
 
 #include <algorithm>
 
-#include <goo/gmem.hh>
 
 #include <splash/SplashMath.hh>
 #include <splash/SplashScreen.hh>
@@ -63,12 +62,12 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
 
     switch (params->type) {
     case splashScreenDispersed:
-        mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
+        mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
         buildDispersedMatrix (size / 2, size / 2, 1, size / 2, 1);
         break;
 
     case splashScreenClustered:
-        mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
+        mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
         buildClusteredMatrix ();
         break;
 
@@ -78,7 +77,7 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
             size <<= 1;
             ++log2Size;
         }
-        mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
+        mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
         buildSCDMatrix (params->dotRadius);
         break;
     }
@@ -141,7 +140,7 @@ void SplashScreen::buildClusteredMatrix () {
     }
 
     // build the distance matrix
-    dist = (SplashCoord*)gmallocn (size * size2, sizeof (SplashCoord));
+    dist = (SplashCoord*)calloc (size * size2, sizeof (SplashCoord));
     for (y = 0; y < size2; ++y) {
         for (x = 0; x < size2; ++x) {
             if (x + y < size2 - 1) {
@@ -192,7 +191,7 @@ void SplashScreen::buildClusteredMatrix () {
         }
     }
 
-    gfree (dist);
+    free (dist);
 }
 
 // Compute the distance between two points on a toroid.
@@ -225,7 +224,7 @@ void SplashScreen::buildSCDMatrix (int r) {
 
     // generate the random space-filling curve
     pts =
-        (SplashScreenPoint*)gmallocn (size * size, sizeof (SplashScreenPoint));
+        (SplashScreenPoint*)calloc (size * size, sizeof (SplashScreenPoint));
     i = 0;
     for (y = 0; y < size; ++y) {
         for (x = 0; x < size; ++x) {
@@ -246,7 +245,7 @@ void SplashScreen::buildSCDMatrix (int r) {
     }
 
     // construct the circle template
-    tmpl = (char*)gmallocn ((r + 1) * (r + 1), sizeof (char));
+    tmpl = (char*)calloc ((r + 1) * (r + 1), sizeof (char));
     for (y = 0; y <= r; ++y) {
         for (x = 0; x <= r; ++x) {
             tmpl[y * (r + 1) + x] = (x * y <= r * r) ? 1 : 0;
@@ -254,7 +253,7 @@ void SplashScreen::buildSCDMatrix (int r) {
     }
 
     // mark all grid cells as free
-    grid = (char*)gmallocn (size * size, sizeof (char));
+    grid = (char*)calloc (size * size, sizeof (char));
     for (y = 0; y < size; ++y) {
         for (x = 0; x < size; ++x) { grid[(y << log2Size) + x] = 0; }
     }
@@ -262,14 +261,14 @@ void SplashScreen::buildSCDMatrix (int r) {
     // walk the space-filling curve, adding dots
     dotsLen = 0;
     dotsSize = 32;
-    dots = (SplashScreenPoint*)gmallocn (dotsSize, sizeof (SplashScreenPoint));
+    dots = (SplashScreenPoint*)calloc (dotsSize, sizeof (SplashScreenPoint));
     for (i = 0; i < size * size; ++i) {
         x = pts[i].x;
         y = pts[i].y;
         if (!grid[(y << log2Size) + x]) {
             if (dotsLen == dotsSize) {
                 dotsSize *= 2;
-                dots = (SplashScreenPoint*)greallocn (
+                dots = (SplashScreenPoint*)reallocarray (
                     dots, dotsSize, sizeof (SplashScreenPoint));
             }
             dots[dotsLen++] = pts[i];
@@ -290,12 +289,12 @@ void SplashScreen::buildSCDMatrix (int r) {
         }
     }
 
-    gfree (tmpl);
-    gfree (grid);
+    free (tmpl);
+    free (grid);
 
     // assign each cell to a dot, compute distance to center of dot
-    region = (int*)gmallocn (size * size, sizeof (int));
-    dist = (int*)gmallocn (size * size, sizeof (int));
+    region = (int*)calloc (size * size, sizeof (int));
+    dist = (int*)calloc (size * size, sizeof (int));
     for (y = 0; y < size; ++y) {
         for (x = 0; x < size; ++x) {
             iMin = 0;
@@ -332,21 +331,21 @@ void SplashScreen::buildSCDMatrix (int r) {
         }
     }
 
-    gfree (pts);
-    gfree (region);
-    gfree (dist);
+    free (pts);
+    free (region);
+    free (dist);
 
-    gfree (dots);
+    free (dots);
 }
 
 SplashScreen::SplashScreen (SplashScreen* screen) {
     size = screen->size;
     sizeM1 = screen->sizeM1;
     log2Size = screen->log2Size;
-    mat = (unsigned char*)gmallocn (size * size, sizeof (unsigned char));
+    mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
     memcpy (mat, screen->mat, size * size * sizeof (unsigned char));
     minVal = screen->minVal;
     maxVal = screen->maxVal;
 }
 
-SplashScreen::~SplashScreen () { gfree (mat); }
+SplashScreen::~SplashScreen () { free (mat); }

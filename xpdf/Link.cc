@@ -8,9 +8,8 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstddef>
+#include <cstring>
 #include <goo/GString.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
@@ -843,7 +842,7 @@ Links::Links (Object* annots, GString* baseURI) {
                         if (numLinks >= size) {
                             size += 16;
                             links =
-                                (Link**)greallocn (links, size, sizeof (Link*));
+                                (Link**)reallocarray (links, size, sizeof (Link*));
                         }
                         links[numLinks++] = link;
                     }
@@ -863,7 +862,7 @@ Links::~Links () {
     int i;
 
     for (i = 0; i < numLinks; ++i) delete links[i];
-    gfree (links);
+    free (links);
 }
 
 LinkAction* Links::find (double x, double y) {

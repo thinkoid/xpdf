@@ -13,7 +13,6 @@
 
 #include <algorithm>
 
-#include <goo/gmem.hh>
 
 #include <splash/SplashMath.hh>
 #include <splash/SplashPath.hh>
@@ -59,7 +58,7 @@ SplashXPath::SplashXPath (
     int curSubpath, i;
 
     // transform the points
-    pts = (SplashXPathPoint*)gmallocn (path->length, sizeof (SplashXPathPoint));
+    pts = (SplashXPathPoint*)calloc (path->length, sizeof (SplashXPathPoint));
     for (i = 0; i < path->length; ++i) {
         transform (
             matrix, path->pts[i].x, path->pts[i].y, &pts[i].x, &pts[i].y);
@@ -125,7 +124,7 @@ SplashXPath::SplashXPath (
         }
     }
 
-    gfree (pts);
+    free (pts);
 
     std::sort (segs, segs + length, SplashXPathSeg::cmpY);
 
@@ -169,7 +168,7 @@ void SplashXPath::strokeAdjust (
     int i, j;
 
     // set up the stroke adjustment hints
-    adjusts = (SplashXPathAdjust*)gmallocn (nHints, sizeof (SplashXPathAdjust));
+    adjusts = (SplashXPathAdjust*)calloc (nHints, sizeof (SplashXPathAdjust));
     for (i = 0; i < nHints; ++i) {
         hint = &hints[i];
         x0 = pts[hint->ctrl0].x;
@@ -251,13 +250,13 @@ void SplashXPath::strokeAdjust (
     }
 
 done:
-    gfree (adjusts);
+    free (adjusts);
 }
 
 SplashXPath::SplashXPath (SplashXPath* xPath) {
     length = xPath->length;
     size = xPath->size;
-    segs = (SplashXPathSeg*)gmallocn (size, sizeof (SplashXPathSeg));
+    segs = (SplashXPathSeg*)calloc (size, sizeof (SplashXPathSeg));
     memcpy (segs, xPath->segs, length * sizeof (SplashXPathSeg));
     xMin = xPath->xMin;
     yMin = xPath->yMin;
@@ -265,14 +264,14 @@ SplashXPath::SplashXPath (SplashXPath* xPath) {
     yMax = xPath->yMax;
 }
 
-SplashXPath::~SplashXPath () { gfree (segs); }
+SplashXPath::~SplashXPath () { free (segs); }
 
 // Add space for <nSegs> more segments
 void SplashXPath::grow (int nSegs) {
     if (length + nSegs > size) {
         if (size == 0) { size = 32; }
         while (size < length + nSegs) { size *= 2; }
-        segs = (SplashXPathSeg*)greallocn (segs, size, sizeof (SplashXPathSeg));
+        segs = (SplashXPathSeg*)reallocarray (segs, size, sizeof (SplashXPathSeg));
     }
 }
 

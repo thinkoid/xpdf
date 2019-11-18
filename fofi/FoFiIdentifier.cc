@@ -8,10 +8,9 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstring>
+#include <climits>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <fofi/FoFiIdentifier.hh>
@@ -589,7 +588,7 @@ static GList* getTTCFontList (FILE* f) {
             tabDirOffset + 12 + 16 * nTables > fileLength) {
             goto err2;
         }
-        buf2 = (unsigned char*)gmallocn (nTables, 16);
+        buf2 = (unsigned char*)calloc (nTables, 16);
         if ((int)fread (buf2, 1, 16 * nTables, f) != 16 * nTables) {
             goto err3;
         }
@@ -603,7 +602,7 @@ static GList* getTTCFontList (FILE* f) {
                 break;
             }
         }
-        gfree (buf2);
+        free (buf2);
         if (j >= nTables) { goto err2; }
         if (nameTabOffset < 0 || nameTabOffset + 6 < 0 ||
             nameTabOffset + 6 > fileLength) {
@@ -618,7 +617,7 @@ static GList* getTTCFontList (FILE* f) {
             nameTabOffset + stringsOffset < 0) {
             goto err2;
         }
-        buf2 = (unsigned char*)gmallocn (nNames, 12);
+        buf2 = (unsigned char*)calloc (nNames, 12);
         if ((int)fread (buf2, 1, 12 * nNames, f) != 12 * nNames) { goto err3; }
         for (j = 0; j < nNames; ++j) {
             if (buf2[12 * j + 6] == 0 && // 0x0004 = full name
@@ -633,12 +632,12 @@ static GList* getTTCFontList (FILE* f) {
         stringLength = (buf2[12 * j + 8] << 8) | buf2[12 * j + 9];
         stringOffset = nameTabOffset + stringsOffset +
                        ((buf2[12 * j + 10] << 8) | buf2[12 * j + 11]);
-        gfree (buf2);
+        free (buf2);
         if (stringOffset < 0 || stringOffset + stringLength < 0 ||
             stringOffset + stringLength > fileLength) {
             goto err2;
         }
-        buf2 = (unsigned char*)gmalloc (stringLength);
+        buf2 = (unsigned char*)malloc (stringLength);
         fseek (f, stringOffset, SEEK_SET);
         if ((int)fread (buf2, 1, stringLength, f) != stringLength) {
             goto err3;
@@ -648,12 +647,12 @@ static GList* getTTCFontList (FILE* f) {
             for (j = 0; j < stringLength; ++j) { buf2[j] = buf2[2 * j + 1]; }
         }
         ret->append (new GString ((char*)buf2, stringLength));
-        gfree (buf2);
+        free (buf2);
     }
     return ret;
 
 err3:
-    gfree (buf2);
+    free (buf2);
 err2:
     deleteGList (ret, GString);
 err1:
@@ -685,7 +684,7 @@ static GList* getDfontFontList (FILE* f) {
         // sanity check - this probably isn't a dfont file
         goto err1;
     }
-    resMap = (unsigned char*)gmalloc (resMapLength);
+    resMap = (unsigned char*)malloc (resMapLength);
     fseek (f, resMapOffset, SEEK_SET);
     if ((int)fread ((char*)resMap, 1, resMapLength, f) != resMapLength) {
         goto err2;
@@ -722,13 +721,13 @@ static GList* getDfontFontList (FILE* f) {
         if (offset + 1 + nameLen > resMapLength) { goto err3; }
         ret->append (new GString ((char*)resMap + offset + 1, nameLen));
     }
-    gfree (resMap);
+    free (resMap);
     return ret;
 
 err3:
     deleteGList (ret, GString);
 err2:
-    gfree (resMap);
+    free (resMap);
 err1:
     return NULL;
 }

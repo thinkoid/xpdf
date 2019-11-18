@@ -7,8 +7,7 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdlib.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
 #include <xpdf/XPDFTreeP.hh>
 
 //------------------------------------------------------------------------
@@ -559,7 +558,7 @@ static void initConstraint (
     XPDFTreeConstraint c;
 
     c = XPDFTreeCPart (newWidget);
-    c->e = (XPDFTreeEntry*)gmalloc (sizeof (XPDFTreeEntry));
+    c->e = (XPDFTreeEntry*)malloc (sizeof (XPDFTreeEntry));
     c->e->widget = newWidget;
     c->e->children = NULL;
     c->e->next = NULL;
@@ -587,7 +586,7 @@ static void deleteSubtree (Widget widget) {
     else {
         deleteChildFromList (c->e, &w->tree.root);
     }
-    gfree (c->e);
+    free (c->e);
     c->e = NULL;
 }
 

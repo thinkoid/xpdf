@@ -7,7 +7,7 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef DEBUG_FP_LINUX
 #include <fenv.h>
@@ -15,7 +15,6 @@
 #endif
 
 #include <goo/parseargs.hh>
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 
 #include <xpdf/GlobalParams.hh>

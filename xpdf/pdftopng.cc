@@ -7,11 +7,10 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <png.h>
 #include <goo/parseargs.hh>
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Object.hh>

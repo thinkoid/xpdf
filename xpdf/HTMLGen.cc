@@ -22,9 +22,8 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <png.h>
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <splash/SplashBitmap.hh>
@@ -338,7 +337,7 @@ int HTMLGen::convertPage (
     pr (writeHTML, htmlStream, "<style type=\"text/css\">\n");
     pr (writeHTML, htmlStream, ".txt { white-space:nowrap; }\n");
     fonts = text->getFonts ();
-    fontScales = (double*)gmallocn (fonts->getLength (), sizeof (double));
+    fontScales = (double*)calloc (fonts->getLength (), sizeof (double));
     for (i = 0; i < fonts->getLength (); ++i) {
         font = (TextFontInfo*)fonts->get (i);
         s = getFontDefn (font, &fontScales[i]);
@@ -473,7 +472,7 @@ int HTMLGen::convertPage (
             }
         }
     }
-    gfree (fontScales);
+    free (fontScales);
     delete text;
     deleteGList (cols, TextColumn);
 

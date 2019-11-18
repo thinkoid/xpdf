@@ -8,11 +8,10 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <unistd.h>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 
 #include <splash/SplashMath.hh>
@@ -263,7 +262,7 @@ SplashFontFile* SplashFontEngine::loadTrueTypeFont (
             fontNum, codeToGID, codeToGIDLen);
     }
 
-    if (!fontFile) { gfree (codeToGID); }
+    if (!fontFile) { free (codeToGID); }
 
 #if !LOAD_FONTS_FROM_MEM
     // delete the (temporary) font file -- with Unix hard link

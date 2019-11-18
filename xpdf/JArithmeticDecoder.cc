@@ -18,11 +18,11 @@
 
 JArithmeticDecoderStats::JArithmeticDecoderStats (int contextSizeA) {
     contextSize = contextSizeA;
-    cxTab = (unsigned char*)gmallocn (contextSize, sizeof (unsigned char));
+    cxTab = (unsigned char*)calloc (contextSize, sizeof (unsigned char));
     reset ();
 }
 
-JArithmeticDecoderStats::~JArithmeticDecoderStats () { gfree (cxTab); }
+JArithmeticDecoderStats::~JArithmeticDecoderStats () { free (cxTab); }
 
 JArithmeticDecoderStats* JArithmeticDecoderStats::copy () {
     JArithmeticDecoderStats* stats;

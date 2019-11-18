@@ -8,7 +8,6 @@
 
 #include <defs.hh>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <xpdf/Error.hh>

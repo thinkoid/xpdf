@@ -8,9 +8,9 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <math.h>
-#include <limits.h>
+#include <cstring>
+#include <cmath>
+#include <climits>
 #include <goo/gfile.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
@@ -552,8 +552,8 @@ T3FontCache::T3FontCache (
          cacheSets * cacheAssoc * glyphSize > type3FontCacheSize;
          cacheSets >>= 1)
         ;
-    cacheData = (unsigned char*)gmallocn (cacheSets * cacheAssoc, glyphSize);
-    cacheTags = (T3FontCacheTag*)gmallocn (
+    cacheData = (unsigned char*)calloc (cacheSets * cacheAssoc, glyphSize);
+    cacheTags = (T3FontCacheTag*)calloc (
         cacheSets * cacheAssoc, sizeof (T3FontCacheTag));
     for (i = 0; i < cacheSets * cacheAssoc; ++i) {
         cacheTags[i].mru = i & (cacheAssoc - 1);
@@ -561,8 +561,8 @@ T3FontCache::T3FontCache (
 }
 
 T3FontCache::~T3FontCache () {
-    gfree (cacheData);
-    gfree (cacheTags);
+    free (cacheData);
+    free (cacheTags);
 }
 
 struct T3GlyphStack {
@@ -1319,7 +1319,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
         case fontCIDType0COT:
             if (((GfxCIDFont*)gfxFont)->getCIDToGID ()) {
                 n = ((GfxCIDFont*)gfxFont)->getCIDToGIDLen ();
-                codeToGID = (int*)gmallocn (n, sizeof (int));
+                codeToGID = (int*)calloc (n, sizeof (int));
                 memcpy (
                     codeToGID, ((GfxCIDFont*)gfxFont)->getCIDToGID (),
                     n * sizeof (int));
@@ -1351,7 +1351,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             if (fontLoc->locType == gfxFontLocEmbedded) {
                 if (((GfxCIDFont*)gfxFont)->getCIDToGID ()) {
                     n = ((GfxCIDFont*)gfxFont)->getCIDToGIDLen ();
-                    codeToGID = (int*)gmallocn (n, sizeof (int));
+                    codeToGID = (int*)calloc (n, sizeof (int));
                     memcpy (
                         codeToGID, ((GfxCIDFont*)gfxFont)->getCIDToGID (),
                         n * sizeof (int));
@@ -1386,7 +1386,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                             else {
                                 n = ctu->getLength ();
                             }
-                            codeToGID = (int*)gmallocn (n, sizeof (int));
+                            codeToGID = (int*)calloc (n, sizeof (int));
                             for (code = 0; code < n; ++code) {
                                 if (ctu->mapToUnicode (code, uBuf, 8) > 0) {
                                     codeToGID[code] =
@@ -2453,7 +2453,7 @@ void SplashOutputDev::drawImage (
         switch (colorMode) {
         case splashModeMono1:
         case splashModeMono8:
-            imgData.lookup = (SplashColorPtr)gmalloc (n);
+            imgData.lookup = (SplashColorPtr)malloc (n);
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getGray (&pix, &gray);
@@ -2462,7 +2462,7 @@ void SplashOutputDev::drawImage (
             break;
         case splashModeRGB8:
         case splashModeBGR8:
-            imgData.lookup = (SplashColorPtr)gmallocn (n, 3);
+            imgData.lookup = (SplashColorPtr)calloc (n, 3);
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getRGB (&pix, &rgb);
@@ -2473,7 +2473,7 @@ void SplashOutputDev::drawImage (
             break;
 #if SPLASH_CMYK
         case splashModeCMYK8:
-            imgData.lookup = (SplashColorPtr)gmallocn (n, 4);
+            imgData.lookup = (SplashColorPtr)calloc (n, 4);
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getCMYK (&pix, &cmyk);
@@ -2505,7 +2505,7 @@ void SplashOutputDev::drawImage (
         }
     }
 
-    gfree (imgData.lookup);
+    free (imgData.lookup);
     delete imgData.imgStr;
     str->close ();
 }
@@ -2712,7 +2712,7 @@ void SplashOutputDev::drawMaskedImage (
             switch (colorMode) {
             case splashModeMono1:
             case splashModeMono8:
-                imgData.lookup = (SplashColorPtr)gmalloc (n);
+                imgData.lookup = (SplashColorPtr)malloc (n);
                 for (i = 0; i < n; ++i) {
                     pix = (unsigned char)i;
                     colorMap->getGray (&pix, &gray);
@@ -2721,7 +2721,7 @@ void SplashOutputDev::drawMaskedImage (
                 break;
             case splashModeRGB8:
             case splashModeBGR8:
-                imgData.lookup = (SplashColorPtr)gmallocn (n, 3);
+                imgData.lookup = (SplashColorPtr)calloc (n, 3);
                 for (i = 0; i < n; ++i) {
                     pix = (unsigned char)i;
                     colorMap->getRGB (&pix, &rgb);
@@ -2732,7 +2732,7 @@ void SplashOutputDev::drawMaskedImage (
                 break;
 #if SPLASH_CMYK
             case splashModeCMYK8:
-                imgData.lookup = (SplashColorPtr)gmallocn (n, 4);
+                imgData.lookup = (SplashColorPtr)calloc (n, 4);
                 for (i = 0; i < n; ++i) {
                     pix = (unsigned char)i;
                     colorMap->getCMYK (&pix, &cmyk);
@@ -2758,7 +2758,7 @@ void SplashOutputDev::drawMaskedImage (
             interpolate);
 
         delete maskBitmap;
-        gfree (imgData.lookup);
+        free (imgData.lookup);
         delete imgData.imgStr;
         str->close ();
     }
@@ -2811,7 +2811,7 @@ void SplashOutputDev::drawSoftMaskedImage (
     imgMaskData.height = maskHeight;
     imgMaskData.y = 0;
     n = 1 << maskColorMap->getBits ();
-    imgMaskData.lookup = (SplashColorPtr)gmalloc (n);
+    imgMaskData.lookup = (SplashColorPtr)malloc (n);
     for (i = 0; i < n; ++i) {
         pix = (unsigned char)i;
         maskColorMap->getGray (&pix, &gray);
@@ -2827,7 +2827,7 @@ void SplashOutputDev::drawSoftMaskedImage (
         mat, interpolate);
     delete imgMaskData.imgStr;
     maskStr->close ();
-    gfree (imgMaskData.lookup);
+    free (imgMaskData.lookup);
     delete maskSplash;
     splash->setSoftMask (maskBitmap);
 
@@ -2851,7 +2851,7 @@ void SplashOutputDev::drawSoftMaskedImage (
         switch (colorMode) {
         case splashModeMono1:
         case splashModeMono8:
-            imgData.lookup = (SplashColorPtr)gmalloc (n);
+            imgData.lookup = (SplashColorPtr)malloc (n);
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getGray (&pix, &gray);
@@ -2860,7 +2860,7 @@ void SplashOutputDev::drawSoftMaskedImage (
             break;
         case splashModeRGB8:
         case splashModeBGR8:
-            imgData.lookup = (SplashColorPtr)gmallocn (n, 3);
+            imgData.lookup = (SplashColorPtr)calloc (n, 3);
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getRGB (&pix, &rgb);
@@ -2871,7 +2871,7 @@ void SplashOutputDev::drawSoftMaskedImage (
             break;
 #if SPLASH_CMYK
         case splashModeCMYK8:
-            imgData.lookup = (SplashColorPtr)gmallocn (n, 4);
+            imgData.lookup = (SplashColorPtr)calloc (n, 4);
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getCMYK (&pix, &cmyk);
@@ -2896,7 +2896,7 @@ void SplashOutputDev::drawSoftMaskedImage (
         &imageSrc, &imgData, srcMode, false, width, height, mat, interpolate);
 
     splash->setSoftMask (NULL);
-    gfree (imgData.lookup);
+    free (imgData.lookup);
     delete imgData.imgStr;
     str->close ();
 }
@@ -3429,7 +3429,7 @@ SplashFont* SplashOutputDev::getFont (GString* name, SplashCoord* textMatA) {
                 delete id;
                 return NULL;
             }
-            codeToGID = (int*)gmallocn (256, sizeof (int));
+            codeToGID = (int*)calloc (256, sizeof (int));
             for (i = 0; i < 256; ++i) {
                 codeToGID[i] = 0;
                 if (winAnsiEncoding[i] &&

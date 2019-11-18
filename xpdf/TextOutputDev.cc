@@ -8,12 +8,11 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
-#include <ctype.h>
-#include <goo/gmem.hh>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cmath>
+#include <cctype>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <defs.hh>
@@ -447,9 +446,9 @@ TextWord::TextWord (
 
     rot = rotA;
     len = lenA;
-    text = (Unicode*)gmallocn (len, sizeof (Unicode));
-    edge = (double*)gmallocn (len + 1, sizeof (double));
-    charPos = (int*)gmallocn (len + 1, sizeof (int));
+    text = (Unicode*)calloc (len, sizeof (Unicode));
+    edge = (double*)calloc (len + 1, sizeof (double));
+    charPos = (int*)calloc (len + 1, sizeof (int));
     switch (rot) {
     case 0:
     default:
@@ -524,18 +523,18 @@ TextWord::TextWord (
 
 TextWord::TextWord (TextWord* word) {
     *this = *word;
-    text = (Unicode*)gmallocn (len, sizeof (Unicode));
+    text = (Unicode*)calloc (len, sizeof (Unicode));
     memcpy (text, word->text, len * sizeof (Unicode));
-    edge = (double*)gmallocn (len + 1, sizeof (double));
+    edge = (double*)calloc (len + 1, sizeof (double));
     memcpy (edge, word->edge, (len + 1) * sizeof (double));
-    charPos = (int*)gmallocn (len + 1, sizeof (int));
+    charPos = (int*)calloc (len + 1, sizeof (int));
     memcpy (charPos, word->charPos, (len + 1) * sizeof (int));
 }
 
 TextWord::~TextWord () {
-    gfree (text);
-    gfree (edge);
-    gfree (charPos);
+    free (text);
+    free (edge);
+    free (charPos);
 }
 
 // This is used to append a clipped character to a word.
@@ -544,9 +543,9 @@ void TextWord::appendChar (TextChar* ch) {
     if (ch->xMax > xMax) { xMax = ch->xMax; }
     if (ch->yMin < yMin) { yMin = ch->yMin; }
     if (ch->yMax > yMax) { yMax = ch->yMax; }
-    text = (Unicode*)greallocn (text, len + 1, sizeof (Unicode));
-    edge = (double*)greallocn (edge, len + 2, sizeof (double));
-    charPos = (int*)greallocn (charPos, len + 2, sizeof (int));
+    text = (Unicode*)reallocarray (text, len + 1, sizeof (Unicode));
+    edge = (double*)reallocarray (edge, len + 2, sizeof (double));
+    charPos = (int*)reallocarray (charPos, len + 2, sizeof (int));
     text[len] = ch->c;
     charPos[len] = ch->charPos;
     charPos[len + 1] = ch->charPos + ch->charLen;
@@ -676,8 +675,8 @@ TextLine::TextLine (
         len += word->len;
         if (word->spaceAfter) { ++len; }
     }
-    text = (Unicode*)gmallocn (len, sizeof (Unicode));
-    edge = (double*)gmallocn (len + 1, sizeof (double));
+    text = (Unicode*)calloc (len, sizeof (Unicode));
+    edge = (double*)calloc (len + 1, sizeof (double));
     j = 0;
     for (i = 0; i < words->getLength (); ++i) {
         word = (TextWord*)words->get (i);
@@ -700,8 +699,8 @@ TextLine::TextLine (
 
 TextLine::~TextLine () {
     deleteGList (words, TextWord);
-    gfree (text);
-    gfree (edge);
+    free (text);
+    free (edge);
 }
 
 double TextLine::getBaseline () {
@@ -869,7 +868,7 @@ void TextPage::clear () {
     curFontSize = 0;
     curRot = 0;
     nTinyChars = 0;
-    gfree (actualText);
+    free (actualText);
     actualText = NULL;
     actualTextLen = 0;
     actualTextNBytes = 0;
@@ -1115,8 +1114,8 @@ void TextPage::addChar (
 void TextPage::incCharCount (int nChars) { charPos += nChars; }
 
 void TextPage::beginActualText (GfxState* state, Unicode* u, int uLen) {
-    if (actualText) { gfree (actualText); }
-    actualText = (Unicode*)gmallocn (uLen, sizeof (Unicode));
+    if (actualText) { free (actualText); }
+    actualText = (Unicode*)calloc (uLen, sizeof (Unicode));
     memcpy (actualText, u, uLen * sizeof (Unicode));
     actualTextLen = uLen;
     actualTextNBytes = 0;
@@ -1135,7 +1134,7 @@ void TextPage::endActualText (GfxState* state) {
             state, actualTextX0, actualTextY0, actualTextX1 - actualTextX0,
             actualTextY1 - actualTextY0, 0, actualTextNBytes, u, actualTextLen);
     }
-    gfree (u);
+    free (u);
     actualText = NULL;
     actualTextLen = 0;
     actualTextNBytes = false;
@@ -1323,8 +1322,8 @@ void TextPage::writePhysLayout (
   dumpColumns(columns);
 #endif
 
-    out = (GString**)gmallocn (ph, sizeof (GString*));
-    outLen = (int*)gmallocn (ph, sizeof (int));
+    out = (GString**)calloc (ph, sizeof (GString*));
+    outLen = (int*)calloc (ph, sizeof (int));
     for (i = 0; i < ph; ++i) {
         out[i] = NULL;
         outLen[i] = 0;
@@ -1362,8 +1361,8 @@ void TextPage::writePhysLayout (
         (*outputFunc) (outputStream, eol, eolLen);
     }
 
-    gfree (out);
-    gfree (outLen);
+    free (out);
+    free (outLen);
 
     deleteGList (columns, TextColumn);
 }
@@ -2332,8 +2331,8 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
     yMinI = (int)floor (yMin / splitPrecision) - 1;
     xMaxI = (int)floor (xMax / splitPrecision) + 1;
     yMaxI = (int)floor (yMax / splitPrecision) + 1;
-    horizProfile = (int*)gmallocn (yMaxI - yMinI + 1, sizeof (int));
-    vertProfile = (int*)gmallocn (xMaxI - xMinI + 1, sizeof (int));
+    horizProfile = (int*)calloc (yMaxI - yMinI + 1, sizeof (int));
+    vertProfile = (int*)calloc (xMaxI - xMinI + 1, sizeof (int));
     memset (horizProfile, 0, (yMaxI - yMinI + 1) * sizeof (int));
     memset (vertProfile, 0, (xMaxI - xMinI + 1) * sizeof (int));
     for (i = 0; i < charsA->getLength (); ++i) {
@@ -2619,8 +2618,8 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
         }
     }
 
-    gfree (horizProfile);
-    gfree (vertProfile);
+    free (horizProfile);
+    free (vertProfile);
 
     tagBlock (blk);
 
@@ -3519,7 +3518,7 @@ bool TextPage::findText (
 
     // convert the search string to uppercase
     if (!caseSensitive) {
-        s2 = (Unicode*)gmallocn (len, sizeof (Unicode));
+        s2 = (Unicode*)calloc (len, sizeof (Unicode));
         for (i = 0; i < len; ++i) { s2[i] = unicodeToUpper (s[i]); }
     }
     else {
@@ -3606,7 +3605,7 @@ bool TextPage::findText (
                 m = line->len;
                 if (!caseSensitive) {
                     if (m > txtSize) {
-                        txt = (Unicode*)greallocn (txt, m, sizeof (Unicode));
+                        txt = (Unicode*)reallocarray (txt, m, sizeof (Unicode));
                         txtSize = m;
                     }
                     for (k = 0; k < m; ++k) {
@@ -3703,8 +3702,8 @@ bool TextPage::findText (
     }
 
     if (!caseSensitive) {
-        gfree (s2);
-        gfree (txt);
+        free (s2);
+        free (txt);
     }
 
     if (found) {
@@ -3788,8 +3787,8 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     unrotateChars (chars2, rot);
     delete chars2;
 
-    out = (GString**)gmallocn (ph, sizeof (GString*));
-    outLen = (int*)gmallocn (ph, sizeof (int));
+    out = (GString**)calloc (ph, sizeof (GString*));
+    outLen = (int*)calloc (ph, sizeof (int));
     for (i = 0; i < ph; ++i) {
         out[i] = NULL;
         outLen[i] = 0;
@@ -3827,8 +3826,8 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
         if (ph > 1) { ret->append (eol, eolLen); }
     }
 
-    gfree (out);
-    gfree (outLen);
+    free (out);
+    free (outLen);
     deleteGList (columns, TextColumn);
     uMap->decRefCnt ();
 

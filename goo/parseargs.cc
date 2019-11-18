@@ -6,11 +6,11 @@
  * Copyright 1996-2003 Glyph & Cog, LLC
  */
 
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstdio>
+#include <cstddef>
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
 #include <goo/parseargs.hh>
 
 static ArgDesc* findArg (ArgDesc* args, char* arg);

@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <stddef.h>
+#include <cstddef>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/GfxState.hh>

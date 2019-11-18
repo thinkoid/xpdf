@@ -8,8 +8,7 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstring>
 #include <splash/SplashPattern.hh>
 #include <splash/SplashScreen.hh>
 #include <splash/SplashClip.hh>
@@ -139,7 +138,7 @@ SplashState::SplashState (SplashState* state) {
     if (state->lineDash) {
         lineDashLength = state->lineDashLength;
         lineDash =
-            (SplashCoord*)gmallocn (lineDashLength, sizeof (SplashCoord));
+            (SplashCoord*)calloc (lineDashLength, sizeof (SplashCoord));
         memcpy (
             lineDash, state->lineDash, lineDashLength * sizeof (SplashCoord));
     }
@@ -171,7 +170,7 @@ SplashState::~SplashState () {
     delete strokePattern;
     delete fillPattern;
     delete screen;
-    gfree (lineDash);
+    free (lineDash);
     if (!clipIsShared) { delete clip; }
     if (deleteSoftMask && softMask) { delete softMask; }
 }
@@ -193,11 +192,11 @@ void SplashState::setScreen (SplashScreen* screenA) {
 
 void SplashState::setLineDash (
     SplashCoord* lineDashA, int lineDashLengthA, SplashCoord lineDashPhaseA) {
-    gfree (lineDash);
+    free (lineDash);
     lineDashLength = lineDashLengthA;
     if (lineDashLength > 0) {
         lineDash =
-            (SplashCoord*)gmallocn (lineDashLength, sizeof (SplashCoord));
+            (SplashCoord*)calloc (lineDashLength, sizeof (SplashCoord));
         memcpy (lineDash, lineDashA, lineDashLength * sizeof (SplashCoord));
     }
     else {

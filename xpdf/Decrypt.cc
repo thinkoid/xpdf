@@ -8,8 +8,7 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstring>
 #include <xpdf/Decrypt.hh>
 
 static void
@@ -233,7 +232,7 @@ bool Decrypt::makeFileKey2 (
     bool ok;
 
     // generate file key
-    buf = (unsigned char*)gmalloc (72 + fileID->getLength ());
+    buf = (unsigned char*)malloc (72 + fileID->getLength ());
     if (userPassword) {
         len = userPassword->getLength ();
         if (len < 32) {
@@ -293,7 +292,7 @@ bool Decrypt::makeFileKey2 (
         ok = false;
     }
 
-    gfree (buf);
+    free (buf);
     return ok;
 }
 

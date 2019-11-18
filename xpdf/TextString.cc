@@ -8,8 +8,7 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstring>
 #include <goo/GString.hh>
 #include <xpdf/PDFDocEncoding.hh>
 #include <xpdf/TextString.hh>
@@ -30,7 +29,7 @@ TextString::TextString (GString* s) {
 TextString::TextString (TextString* s) {
     len = size = s->len;
     if (len) {
-        u = (Unicode*)gmallocn (size, sizeof (Unicode));
+        u = (Unicode*)calloc (size, sizeof (Unicode));
         memcpy (u, s->u, len * sizeof (Unicode));
     }
     else {
@@ -38,7 +37,7 @@ TextString::TextString (TextString* s) {
     }
 }
 
-TextString::~TextString () { gfree (u); }
+TextString::~TextString () { free (u); }
 
 TextString* TextString::append (Unicode c) {
     expand (1);
@@ -131,7 +130,7 @@ void TextString::expand (int delta) {
     else {
         size = newLen;
     }
-    u = (Unicode*)greallocn (u, size, sizeof (Unicode));
+    u = (Unicode*)reallocarray (u, size, sizeof (Unicode));
 }
 
 GString* TextString::toPDFTextString () {

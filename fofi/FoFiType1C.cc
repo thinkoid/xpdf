@@ -8,10 +8,9 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 #include <goo/GString.hh>
 #include <fofi/FoFiEncodings.hh>
 #include <fofi/FoFiType1C.hh>
@@ -64,15 +63,15 @@ FoFiType1C::~FoFiType1C () {
     if (name) { delete name; }
     if (encoding && encoding != (char**)fofiType1StandardEncoding &&
         encoding != (char**)fofiType1ExpertEncoding) {
-        for (i = 0; i < 256; ++i) { gfree (encoding[i]); }
-        gfree (encoding);
+        for (i = 0; i < 256; ++i) { free (encoding[i]); }
+        free (encoding);
     }
-    if (privateDicts) { gfree (privateDicts); }
-    if (fdSelect) { gfree (fdSelect); }
+    if (privateDicts) { free (privateDicts); }
+    if (fdSelect) { free (fdSelect); }
     if (charset && charset != fofiType1CISOAdobeCharset &&
         charset != fofiType1CExpertCharset &&
         charset != fofiType1CExpertSubsetCharset) {
-        gfree (charset);
+        free (charset);
     }
 }
 
@@ -109,7 +108,7 @@ int* FoFiType1C::getCIDToGIDMap (int* nCIDs) {
         if (charset[i] > n) { n = charset[i]; }
     }
     ++n;
-    map = (int*)gmallocn (n, sizeof (int));
+    map = (int*)calloc (n, sizeof (int));
     memset (map, 0, n * sizeof (int));
     for (i = 0; i < nGlyphs; ++i) { map[charset[i]] = i; }
     *nCIDs = n;
@@ -494,7 +493,7 @@ void FoFiType1C::convertToCIDType0 (
     // compute the CID count and build the CID-to-GID mapping
     if (codeMap) {
         nCIDs = nCodes;
-        cidMap = (int*)gmallocn (nCIDs, sizeof (int));
+        cidMap = (int*)calloc (nCIDs, sizeof (int));
         for (i = 0; i < nCodes; ++i) {
             if (codeMap[i] >= 0 && codeMap[i] < nGlyphs) {
                 cidMap[i] = codeMap[i];
@@ -509,19 +508,19 @@ void FoFiType1C::convertToCIDType0 (
         for (i = 0; i < nGlyphs; ++i) {
             if (charset[i] >= nCIDs) { nCIDs = charset[i] + 1; }
         }
-        cidMap = (int*)gmallocn (nCIDs, sizeof (int));
+        cidMap = (int*)calloc (nCIDs, sizeof (int));
         for (i = 0; i < nCIDs; ++i) { cidMap[i] = -1; }
         for (i = 0; i < nGlyphs; ++i) { cidMap[charset[i]] = i; }
     }
     else {
         nCIDs = nGlyphs;
-        cidMap = (int*)gmallocn (nCIDs, sizeof (int));
+        cidMap = (int*)calloc (nCIDs, sizeof (int));
         for (i = 0; i < nCIDs; ++i) { cidMap[i] = i; }
     }
 
     // build the charstrings
     charStrings = new GString ();
-    charStringOffsets = (int*)gmallocn (nCIDs + 1, sizeof (int));
+    charStringOffsets = (int*)calloc (nCIDs + 1, sizeof (int));
     for (i = 0; i < nCIDs; ++i) {
         charStringOffsets[i] = charStrings->getLength ();
         if ((gid = cidMap[i]) >= 0) {
@@ -858,9 +857,9 @@ void FoFiType1C::convertToCIDType0 (
         (*outputFunc) (outputStream, "\n", 1);
     }
 
-    gfree (charStringOffsets);
+    free (charStringOffsets);
     delete charStrings;
-    gfree (cidMap);
+    free (cidMap);
 }
 
 void FoFiType1C::convertToType0 (
@@ -878,7 +877,7 @@ void FoFiType1C::convertToType0 (
     // compute the CID count and build the CID-to-GID mapping
     if (codeMap) {
         nCIDs = nCodes;
-        cidMap = (int*)gmallocn (nCIDs, sizeof (int));
+        cidMap = (int*)calloc (nCIDs, sizeof (int));
         for (i = 0; i < nCodes; ++i) {
             if (codeMap[i] >= 0 && codeMap[i] < nGlyphs) {
                 cidMap[i] = codeMap[i];
@@ -893,13 +892,13 @@ void FoFiType1C::convertToType0 (
         for (i = 0; i < nGlyphs; ++i) {
             if (charset[i] >= nCIDs) { nCIDs = charset[i] + 1; }
         }
-        cidMap = (int*)gmallocn (nCIDs, sizeof (int));
+        cidMap = (int*)calloc (nCIDs, sizeof (int));
         for (i = 0; i < nCIDs; ++i) { cidMap[i] = -1; }
         for (i = 0; i < nGlyphs; ++i) { cidMap[charset[i]] = i; }
     }
     else {
         nCIDs = nGlyphs;
-        cidMap = (int*)gmallocn (nCIDs, sizeof (int));
+        cidMap = (int*)calloc (nCIDs, sizeof (int));
         for (i = 0; i < nCIDs; ++i) { cidMap[i] = i; }
     }
 
@@ -1225,7 +1224,7 @@ void FoFiType1C::convertToType0 (
     (*outputFunc) (
         outputStream, "FontName currentdict end definefont pop\n", 40);
 
-    gfree (cidMap);
+    free (cidMap);
 }
 
 void FoFiType1C::eexecCvtGlyph (
@@ -2096,7 +2095,7 @@ bool FoFiType1C::parse () {
         if (topDict.fdArrayOffset == 0) {
             nFDs = 1;
             privateDicts =
-                (Type1CPrivateDict*)gmalloc (sizeof (Type1CPrivateDict));
+                (Type1CPrivateDict*)malloc (sizeof (Type1CPrivateDict));
             readPrivateDict (0, 0, &privateDicts[0]);
         }
         else {
@@ -2104,7 +2103,7 @@ bool FoFiType1C::parse () {
             if (!parsedOk) { return false; }
             nFDs = fdIdx.len;
             privateDicts =
-                (Type1CPrivateDict*)gmallocn (nFDs, sizeof (Type1CPrivateDict));
+                (Type1CPrivateDict*)calloc (nFDs, sizeof (Type1CPrivateDict));
             for (i = 0; i < nFDs; ++i) {
                 getIndexVal (&fdIdx, i, &val, &parsedOk);
                 if (!parsedOk) { return false; }
@@ -2116,7 +2115,7 @@ bool FoFiType1C::parse () {
     }
     else {
         nFDs = 1;
-        privateDicts = (Type1CPrivateDict*)gmalloc (sizeof (Type1CPrivateDict));
+        privateDicts = (Type1CPrivateDict*)malloc (sizeof (Type1CPrivateDict));
         readPrivateDict (
             topDict.privateOffset, topDict.privateSize, &privateDicts[0]);
     }
@@ -2404,7 +2403,7 @@ void FoFiType1C::readPrivateDict (
 void FoFiType1C::readFDSelect () {
     int fdSelectFmt, pos, nRanges, gid0, gid1, fd, i, j;
 
-    fdSelect = (unsigned char*)gmalloc (nGlyphs);
+    fdSelect = (unsigned char*)malloc (nGlyphs);
     if (topDict.fdSelectOffset == 0) {
         for (i = 0; i < nGlyphs; ++i) { fdSelect[i] = 0; }
     }
@@ -2457,7 +2456,7 @@ void FoFiType1C::buildEncoding () {
         encoding = (char**)fofiType1ExpertEncoding;
     }
     else {
-        encoding = (char**)gmallocn (256, sizeof (char*));
+        encoding = (char**)calloc (256, sizeof (char*));
         for (i = 0; i < 256; ++i) { encoding[i] = NULL; }
         pos = topDict.encodingOffset;
         encFormat = getU8 (pos++, &parsedOk);
@@ -2469,9 +2468,9 @@ void FoFiType1C::buildEncoding () {
             for (i = 1; i < nCodes; ++i) {
                 c = getU8 (pos++, &parsedOk);
                 if (!parsedOk) { return; }
-                if (encoding[c]) { gfree (encoding[c]); }
+                if (encoding[c]) { free (encoding[c]); }
                 encoding[c] =
-                    copyString (getString (charset[i], buf, &parsedOk));
+                    strdup (getString (charset[i], buf, &parsedOk));
             }
         }
         else if ((encFormat & 0x7f) == 1) {
@@ -2484,8 +2483,8 @@ void FoFiType1C::buildEncoding () {
                 if (!parsedOk) { return; }
                 for (j = 0; j <= nLeft && nCodes < nGlyphs; ++j) {
                     if (c < 256) {
-                        if (encoding[c]) { gfree (encoding[c]); }
-                        encoding[c] = copyString (
+                        if (encoding[c]) { free (encoding[c]); }
+                        encoding[c] = strdup (
                             getString (charset[nCodes], buf, &parsedOk));
                     }
                     ++nCodes;
@@ -2506,8 +2505,8 @@ void FoFiType1C::buildEncoding () {
                 sid = getU16BE (pos, &parsedOk);
                 pos += 2;
                 if (!parsedOk) { return; }
-                if (encoding[c]) { gfree (encoding[c]); }
-                encoding[c] = copyString (getString (sid, buf, &parsedOk));
+                if (encoding[c]) { free (encoding[c]); }
+                encoding[c] = strdup (getString (sid, buf, &parsedOk));
             }
         }
     }
@@ -2525,7 +2524,7 @@ bool FoFiType1C::readCharset () {
         charset = fofiType1CExpertSubsetCharset;
     }
     else {
-        charset = (unsigned short*)gmallocn (nGlyphs, sizeof (unsigned short));
+        charset = (unsigned short*)calloc (nGlyphs, sizeof (unsigned short));
         for (i = 0; i < nGlyphs; ++i) { charset[i] = 0; }
         pos = topDict.charsetOffset;
         charsetFormat = getU8 (pos++, &parsedOk);
@@ -2562,7 +2561,7 @@ bool FoFiType1C::readCharset () {
             }
         }
         if (!parsedOk) {
-            gfree (charset);
+            free (charset);
             charset = NULL;
             return false;
         }

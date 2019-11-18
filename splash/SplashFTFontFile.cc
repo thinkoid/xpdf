@@ -8,7 +8,6 @@
 
 #include <defs.hh>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <splash/SplashFTFontEngine.hh>
 #include <splash/SplashFTFont.hh>
@@ -40,7 +39,7 @@ SplashFontFile* SplashFTFontFile::loadType1Font (
 #endif
         return NULL;
     }
-    codeToGIDA = (int*)gmallocn (256, sizeof (int));
+    codeToGIDA = (int*)calloc (256, sizeof (int));
     for (i = 0; i < 256; ++i) {
         codeToGIDA[i] = 0;
         if ((name = encA[i])) {
@@ -144,7 +143,7 @@ SplashFTFontFile::SplashFTFontFile (
 
 SplashFTFontFile::~SplashFTFontFile () {
     if (face) { FT_Done_Face (face); }
-    if (codeToGID) { gfree (codeToGID); }
+    if (codeToGID) { free (codeToGID); }
 }
 
 SplashFont*

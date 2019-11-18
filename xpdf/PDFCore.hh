@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <splash/SplashTypes.hh>
 #include <xpdf/CharTypes.hh>
 

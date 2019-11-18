@@ -7,7 +7,7 @@
 //========================================================================
 
 #include <defs.hh>
-#include <stdlib.h>
+#include <cstdlib>
 #include <xpdf/FontEncodingTables.hh>
 
 const char* macRomanEncoding[256] = { NULL,

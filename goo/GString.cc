@@ -17,7 +17,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <goo/gmem.hh>
 #include <goo/GString.hh>
 
 namespace {
@@ -215,14 +214,14 @@ GString* GString::appendfv (const char* fmt, va_list argList) {
                     if (argsLen == argsSize) {
                         argsSize *= 2;
                         if (args == argsBuf) {
-                            args = (GooStringFormatArg*)gmallocn (
+                            args = (GooStringFormatArg*)calloc (
                                 argsSize, sizeof (GooStringFormatArg));
                             memcpy (
                                 args, argsBuf,
                                 argsLen * sizeof (GooStringFormatArg));
                         }
                         else {
-                            args = (GooStringFormatArg*)greallocn (
+                            args = (GooStringFormatArg*)reallocarray (
                                 args, argsSize, sizeof (GooStringFormatArg));
                         }
                     }
@@ -500,7 +499,7 @@ GString* GString::appendfv (const char* fmt, va_list argList) {
         }
     }
 
-    if (args != argsBuf) { gfree (args); }
+    if (args != argsBuf) { free (args); }
 
     return this;
 }

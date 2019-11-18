@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 
 #include <goo/GString.hh>

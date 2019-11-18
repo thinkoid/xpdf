@@ -6,10 +6,9 @@
 
 #include <defs.hh>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
@@ -169,15 +168,15 @@ ZxDoc* ZxDoc::loadFile (const char* fileName) {
         return NULL;
     }
     fseek (f, 0, SEEK_SET);
-    data = (char*)gmalloc (dataLen);
+    data = (char*)malloc (dataLen);
     if (fread (data, 1, dataLen, f) != dataLen) {
         fclose (f);
-        gfree (data);
+        free (data);
         return NULL;
     }
     fclose (f);
     doc = loadMem (data, dataLen);
-    gfree (data);
+    free (data);
     return doc;
 }
 

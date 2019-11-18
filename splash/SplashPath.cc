@@ -8,8 +8,9 @@
 
 #include <defs.hh>
 
-#include <string.h>
-#include <goo/gmem.hh>
+#include <cstring>
+#include <cstdlib>
+
 #include <splash/SplashErrorCodes.hh>
 #include <splash/SplashPath.hh>
 
@@ -40,14 +41,14 @@ SplashPath::SplashPath () {
 SplashPath::SplashPath (SplashPath* path) {
     length = path->length;
     size = path->size;
-    pts = (SplashPathPoint*)gmallocn (size, sizeof (SplashPathPoint));
-    flags = (unsigned char*)gmallocn (size, sizeof (unsigned char));
+    pts = (SplashPathPoint*)calloc (size, sizeof (SplashPathPoint));
+    flags = (unsigned char*)calloc (size, sizeof (unsigned char));
     memcpy (pts, path->pts, length * sizeof (SplashPathPoint));
     memcpy (flags, path->flags, length * sizeof (unsigned char));
     curSubpath = path->curSubpath;
     if (path->hints) {
         hintsLength = hintsSize = path->hintsLength;
-        hints = (SplashPathHint*)gmallocn (hintsSize, sizeof (SplashPathHint));
+        hints = (SplashPathHint*)calloc (hintsSize, sizeof (SplashPathHint));
         memcpy (hints, path->hints, hintsLength * sizeof (SplashPathHint));
     }
     else {
@@ -57,9 +58,9 @@ SplashPath::SplashPath (SplashPath* path) {
 }
 
 SplashPath::~SplashPath () {
-    gfree (pts);
-    gfree (flags);
-    gfree (hints);
+    free (pts);
+    free (flags);
+    free (hints);
 }
 
 // Add space for <nPts> more points.
@@ -67,8 +68,8 @@ void SplashPath::grow (int nPts) {
     if (length + nPts > size) {
         if (size == 0) { size = 32; }
         while (size < length + nPts) { size *= 2; }
-        pts = (SplashPathPoint*)greallocn (pts, size, sizeof (SplashPathPoint));
-        flags = (unsigned char*)greallocn (flags, size, sizeof (unsigned char));
+        pts = (SplashPathPoint*)reallocarray (pts, size, sizeof (SplashPathPoint));
+        flags = (unsigned char*)reallocarray (flags, size, sizeof (unsigned char));
     }
 }
 
@@ -143,7 +144,7 @@ void SplashPath::addStrokeAdjustHint (
     int ctrl0, int ctrl1, int firstPt, int lastPt) {
     if (hintsLength == hintsSize) {
         hintsSize = hintsLength ? 2 * hintsLength : 8;
-        hints = (SplashPathHint*)greallocn (
+        hints = (SplashPathHint*)reallocarray (
             hints, hintsSize, sizeof (SplashPathHint));
     }
     hints[hintsLength].ctrl0 = ctrl0;
