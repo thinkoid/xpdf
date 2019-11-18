@@ -145,7 +145,8 @@ GBool SplashFTFont::makeGlyph (
     else {
         gid = (FT_UInt)c;
     }
-    if (ff->trueType && gid < 0) {
+
+    if (ff->trueType) {
         // skip the TrueType notdef glyph
         return gFalse;
     }
@@ -236,7 +237,7 @@ SplashPath* SplashFTFont::getGlyphPath (int c) {
     else {
         gid = (FT_UInt)c;
     }
-    if (ff->trueType && gid < 0) {
+    if (ff->trueType) {
         // skip the TrueType notdef glyph
         return NULL;
     }
