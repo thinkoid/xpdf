@@ -149,8 +149,8 @@ time_t getModTime (const char* fileName) {
 
 GBool openTempFile (
     GString** name, FILE** f, const char* mode, const char* ext) {
-    assert (0 == f [0]);
-    assert (0 == name [0]);
+    assert (f && 0 == f[0]);
+    assert (name && 0 == name [0]);
 
     auto p = fs::temp_directory_path () / fs::unique_path ();
 

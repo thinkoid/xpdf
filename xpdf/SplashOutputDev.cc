@@ -1075,8 +1075,8 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
     GString* fontBuf;
     FILE* extFontFile;
 #else
-    GString *tmpFileName, *fileName;
-    FILE* tmpFile;
+    GString *tmpFileName = 0, *fileName = 0;
+    FILE* tmpFile = 0;
 #endif
     char blk[4096];
     int* codeToGID;
@@ -1095,8 +1095,8 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 #if LOAD_FONTS_FROM_MEM
     fontBuf = NULL;
 #else
-    tmpFileName = NULL;
-    fileName = NULL;
+    tmpFileName = 0;
+    fileName = 0;
 #endif
     substIdx = -1;
 

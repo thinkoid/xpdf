@@ -112,8 +112,8 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf2;
 #else
-    GString* tmpFileName;
-    FILE* tmpFile;
+    GString* tmpFileName = 0;
+    FILE* tmpFile = 0;
 #endif
     SplashFontFile* ret;
 
@@ -137,7 +137,6 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
             delete fontBuf2;
         }
 #else
-        tmpFileName = NULL;
         if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
             delete ff;
             return NULL;
@@ -226,8 +225,8 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf2;
 #else
-    GString* tmpFileName;
-    FILE* tmpFile;
+    GString* tmpFileName = 0;
+    FILE* tmpFile = 0;
 #endif
     char* cffStart;
     int cffLength;
@@ -257,7 +256,6 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
             delete fontBuf2;
         }
 #else
-        tmpFileName = NULL;
         if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
             delete ff;
             return NULL;
@@ -307,8 +305,8 @@ SplashFontFile* SplashFTFontEngine::loadTrueTypeFont (
 #if LOAD_FONTS_FROM_MEM
     GString* fontBuf2;
 #else
-    GString* tmpFileName;
-    FILE* tmpFile;
+    GString* tmpFileName = 0;
+    FILE* tmpFile = 0;
 #endif
     SplashFontFile* ret;
 
@@ -324,7 +322,6 @@ SplashFontFile* SplashFTFontEngine::loadTrueTypeFont (
     fontBuf2 = new GString;
     ff->writeTTF (&gstringWrite, fontBuf2);
 #else
-    tmpFileName = NULL;
     if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
         delete ff;
         return NULL;
