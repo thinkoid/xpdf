@@ -147,16 +147,11 @@ time_t getModTime (const char* fileName) {
     return statBuf.st_mtime;
 }
 
-GBool openTempFile (
-    GString** name, FILE** f, const char* mode, const char* ext) {
+GBool openTempFile (GString** name, FILE** f, const char* mode) {
     assert (f && 0 == f[0]);
     assert (name && 0 == name [0]);
 
     auto p = fs::temp_directory_path () / fs::unique_path ();
-
-    if (ext && ext [0]) {
-        p += ext;
-    }
 
     if (FILE* pf = fopen (p.native ().c_str (), mode)) {
         try {

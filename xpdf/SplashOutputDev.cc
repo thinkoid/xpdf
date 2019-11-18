@@ -1150,7 +1150,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             strObj.streamClose ();
             strObj.free ();
 #else
-            if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
+            if (!openTempFile (&tmpFileName, &tmpFile, "wb")) {
                 error (errIO, -1, "Couldn't create temporary font file");
                 delete fontLoc;
                 goto err2;

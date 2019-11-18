@@ -59,7 +59,7 @@ extern time_t getModTime (const char* fileName);
 // reopened later for reading, but not for writing.  The <mode> string
 // should be "w" or "wb".  Returns true on success.
 extern GBool
-openTempFile (GString** name, FILE** f, const char* mode, const char* ext);
+openTempFile (GString** name, FILE** f, const char* mode);
 
 // Create a directory.  Returns true on success.
 extern GBool createDir (char* path, int mode);

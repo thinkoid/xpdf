@@ -8,21 +8,24 @@
 
 #include <defs.hh>
 
-#include <stdio.h>
 #include <unistd.h>
+
+#include <iostream>
 
 #include <goo/gmem.hh>
 #include <goo/GString.hh>
 #include <goo/gfile.hh>
+
 #include <fofi/FoFiTrueType.hh>
 #include <fofi/FoFiType1C.hh>
+
 #include <splash/SplashFTFontFile.hh>
 #include <splash/SplashFTFontEngine.hh>
 
 #include FT_MODULE_H
 
 #ifdef FT_CFF_DRIVER_H
-#include FT_CFF_DRIVER_H
+#  include FT_CFF_DRIVER_H
 #endif
 
 //------------------------------------------------------------------------
@@ -137,7 +140,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeT1CFont (
             delete fontBuf2;
         }
 #else
-        if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
+        if (!openTempFile (&tmpFileName, &tmpFile, "wb")) {
             delete ff;
             return NULL;
         }
@@ -256,7 +259,7 @@ SplashFontFile* SplashFTFontEngine::loadOpenTypeCFFFont (
             delete fontBuf2;
         }
 #else
-        if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
+        if (!openTempFile (&tmpFileName, &tmpFile, "wb")) {
             delete ff;
             return NULL;
         }
@@ -322,7 +325,7 @@ SplashFontFile* SplashFTFontEngine::loadTrueTypeFont (
     fontBuf2 = new GString;
     ff->writeTTF (&gstringWrite, fontBuf2);
 #else
-    if (!openTempFile (&tmpFileName, &tmpFile, "wb", NULL)) {
+    if (!openTempFile (&tmpFileName, &tmpFile, "wb")) {
         delete ff;
         return NULL;
     }
