@@ -94,7 +94,7 @@ private:
         double xMin, double yMin, double xMax, double yMax, double border);
     void drawListBox (
         GString** text, bool* selection, int nOptions, int topIdx, GString* da,
-        GfxFontDict* fontDict, bool quadding, double xMin, double yMin,
+        GfxFontDict* fontDict, int quadding, double xMin, double yMin,
         double xMax, double yMax, double border);
     void getNextLine (
         GString* text, int start, GfxFont* font, double fontSize, double wMax,

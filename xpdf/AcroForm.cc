@@ -1475,7 +1475,7 @@ void AcroFormField::drawText (
 // Draw the variable text or caption for a field.
 void AcroFormField::drawListBox (
     GString** text, bool* selection, int nOptions, int topIdx, GString* da,
-    GfxFontDict* fontDict, bool quadding, double xMin, double yMin,
+    GfxFontDict* fontDict, int quadding, double xMin, double yMin,
     double xMax, double yMax, double border) {
     GList* daToks;
     GString* tok;
