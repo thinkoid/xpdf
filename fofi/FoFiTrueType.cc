@@ -1708,7 +1708,6 @@ void FoFiTrueType::cvtSfnts (
     bool needVerticalMetrics, int* maxUsedGlyph) {
     unsigned char headData[54];
     TrueTypeLoca* locaTable;
-    unsigned char* locaData;
     TrueTypeTable newTables[nT42Tables];
     unsigned char tableDir[12 + nT42Tables * 16];
     bool ok;
@@ -1805,19 +1804,22 @@ void FoFiTrueType::cvtSfnts (
         }
     }
 
-    // construct the new 'loca' table
-    locaData = (unsigned char*)calloc (nGlyphs + 1, (locaFmt ? 4 : 2));
+    size_t n = size_t (nGlyphs) + 1;
+    n <<= locaFmt ? 2 : 1;
+
+    std::vector< char > locaData (n, 0);
+
     for (i = 0; i <= nGlyphs; ++i) {
         pos = locaTable[i].newOffset;
         if (locaFmt) {
-            locaData[4 * i] = (unsigned char) (pos >> 24);
-            locaData[4 * i + 1] = (unsigned char) (pos >> 16);
-            locaData[4 * i + 2] = (unsigned char) (pos >> 8);
+            locaData[4 * i]     = (unsigned char)(pos >> 24);
+            locaData[4 * i + 1] = (unsigned char)(pos >> 16);
+            locaData[4 * i + 2] = (unsigned char)(pos >> 8);
             locaData[4 * i + 3] = (unsigned char)pos;
         }
         else {
-            locaData[2 * i] = (unsigned char) (pos >> 9);
-            locaData[2 * i + 1] = (unsigned char) (pos >> 1);
+            locaData[2 * i]     = (unsigned char)(pos >> 9);
+            locaData[2 * i + 1] = (unsigned char)(pos >> 1);
         }
     }
 
@@ -1853,8 +1855,8 @@ void FoFiTrueType::cvtSfnts (
             checksum = computeTableChecksum (headData, 54);
         }
         else if (i == t42LocaTable) {
-            length = (nGlyphs + 1) * (locaFmt ? 4 : 2);
-            checksum = computeTableChecksum (locaData, length);
+            checksum = computeTableChecksum (
+                reinterpret_cast< unsigned char* >(locaData.data ()), locaData.size ());
         }
         else if (i == t42GlyfTable) {
             length = 0;
@@ -1982,8 +1984,9 @@ void FoFiTrueType::cvtSfnts (
             dumpString (headData, 54, outputFunc, outputStream);
         }
         else if (i == t42LocaTable) {
-            length = (nGlyphs + 1) * (locaFmt ? 4 : 2);
-            dumpString (locaData, length, outputFunc, outputStream);
+            dumpString (
+                reinterpret_cast< unsigned char* > (locaData.data ()),
+                locaData.size (), outputFunc, outputStream);
         }
         else if (i == t42GlyfTable) {
             glyfPos = tables[seekTable ("glyf")].offset;
@@ -2021,7 +2024,7 @@ void FoFiTrueType::cvtSfnts (
     // end the sfnts array
     (*outputFunc) (outputStream, "] def\n", 6);
 
-    free (locaData);
+    // free (locaData);
     free (locaTable);
     if (vmtxTab) { free (vmtxTab); }
 }
@@ -2053,27 +2056,33 @@ void FoFiTrueType::dumpString (
     (*outputFunc) (outputStream, "00>\n", 4);
 }
 
-unsigned FoFiTrueType::computeTableChecksum (unsigned char* data, int length) {
-    unsigned checksum, word;
-    int i;
+unsigned
+FoFiTrueType::computeTableChecksum (const unsigned char* xs, size_t n) const {
+    unsigned x = 0;
 
-    checksum = 0;
-    for (i = 0; i + 3 < length; i += 4) {
-        word = ((data[i] & 0xff) << 24) + ((data[i + 1] & 0xff) << 16) +
-               ((data[i + 2] & 0xff) << 8) + (data[i + 3] & 0xff);
-        checksum += word;
+    for (size_t i = 0; i + 3 < n; i += 4) {
+        x +=
+            ((xs[i]     & 0xff) << 24) +
+            ((xs[i + 1] & 0xff) << 16) +
+            ((xs[i + 2] & 0xff) <<  8) +
+             (xs[i + 3] & 0xff);
     }
-    if (length & 3) {
-        word = 0;
-        i = length & ~3;
-        switch (length & 3) {
-        case 3: word |= (data[i + 2] & 0xff) << 8;
-        case 2: word |= (data[i + 1] & 0xff) << 16;
-        case 1: word |= (data[i] & 0xff) << 24; break;
+
+    if (n & 3) {
+        unsigned word = 0;
+        size_t i = n & ~3;
+
+        switch (n & 3) {
+        case 3: word |= (xs[i + 2] & 0xff) << 8;
+        case 2: word |= (xs[i + 1] & 0xff) << 16;
+        case 1: word |= (xs[i]     & 0xff) << 24;
+            break;
         }
-        checksum += word;
+
+        x += word;
     }
-    return checksum;
+
+    return x;
 }
 
 void FoFiTrueType::parse (int fontNum, bool allowHeadlessCFF) {

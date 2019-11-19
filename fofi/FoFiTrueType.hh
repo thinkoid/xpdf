@@ -172,7 +172,10 @@ private:
         bool needVerticalMetrics, int* maxUsedGlyph);
     void dumpString (
         unsigned char* s, int length, FoFiOutputFunc outputFunc, void* outputStream);
-    unsigned computeTableChecksum (unsigned char* data, int length);
+
+    unsigned
+    computeTableChecksum (const unsigned char*, size_t) const;
+
     void parse (int fontNum, bool allowHeadlessCFF);
     void parseTTC (int fontNum, int* pos);
     void parseDfont (int fontNum, int* offset, int* pos);
