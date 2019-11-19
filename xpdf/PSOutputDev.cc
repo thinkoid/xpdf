@@ -2036,8 +2036,8 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1Font (GfxFont* font, Ref* id) {
                 writePSChar (hexChar[(start[i] >> 4) & 0x0f]);
                 writePSChar (hexChar[start[i] & 0x0f]);
             }
-#if 0 // this causes trouble for various PostScript printers             \
-      // if Length2 is incorrect (too small), font data gets chopped, so \
+#if 0 // this causes trouble for various PostScript printers
+      // if Length2 is incorrect (too small), font data gets chopped, so
       // we take a few extra characters from the trailer just in case
       length2 += length3 >= 8 ? 8 : length3;
 #endif

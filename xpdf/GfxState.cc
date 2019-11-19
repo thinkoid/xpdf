@@ -955,7 +955,6 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
     int indexHighA;
     Object obj1;
     int x;
-    char* s;
     int n, i, j;
 
     if (arr->getLength () != 4) {

@@ -26,6 +26,7 @@ public:
 
 protected:
     FoFiBase (char* fileA, int lenA, bool freeFileDataA);
+    // TODO: std buffer
     static char* readFile (const char* fileName, int* fileLen);
 
     // S = signed / U = unsigned

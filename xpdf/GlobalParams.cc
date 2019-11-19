@@ -84,7 +84,7 @@ static struct {
       0 },
     { "ZapfDingbats", "d050000l.pfb", NULL, "ZapfDingbats", "Zapf Dingbats",
       NULL, 0 },
-    { NULL }
+    { }
 };
 
 static const char* displayFontDirs[] = {

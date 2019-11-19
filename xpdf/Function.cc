@@ -29,6 +29,7 @@
 // Function
 //------------------------------------------------------------------------
 
+// TODO: the copy constructors
 Function::Function () {}
 
 Function::~Function () {}
@@ -426,9 +427,9 @@ SampledFunction::SampledFunction (SampledFunction* func) {
 
 void SampledFunction::transform (double* in, double* out) {
     double x;
-    int e[funcMaxInputs];
-    double efrac0[funcMaxInputs];
-    double efrac1[funcMaxInputs];
+    int e[funcMaxInputs] = { };
+    double efrac0[funcMaxInputs] = { };
+    double efrac1[funcMaxInputs] = { };
     int i, j, k, idx0, t;
 
     // check the cache

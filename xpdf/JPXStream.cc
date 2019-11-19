@@ -3040,7 +3040,7 @@ void JPXStream::inverseTransform (JPXTileComp* tileComp) {
                             cover (96);
                             if (tileComp->transform == 0) {
                                 cover (97);
-                                val &= -1 << (fracBits - tileComp->prec);
+                                val &= unsigned (-1) << (fracBits - tileComp->prec);
                             }
                         }
                         else {
@@ -3145,7 +3145,7 @@ void JPXStream::inverseTransformLevel (
                             if (qStyle == 0) {
                                 cover (76);
                                 if (tileComp->transform == 0) {
-                                    val &= -1 << (fracBits - tileComp->prec);
+                                    val &= unsigned (-1) << (fracBits - tileComp->prec);
                                 }
                             }
                             else {
@@ -3567,7 +3567,9 @@ bool JPXStream::readNBytes (int nBytes, bool signd, int* x) {
         y = (y << 8) + c;
     }
     if (signd) {
-        if (y & (1 << (8 * nBytes - 1))) { y |= -1 << (8 * nBytes); }
+        if (y & (1 << (8 * nBytes - 1))) {
+            y |= unsigned (-1) << (8 * nBytes);
+        }
     }
     *x = y;
     return true;

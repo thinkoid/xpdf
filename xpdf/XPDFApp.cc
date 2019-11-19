@@ -50,7 +50,7 @@ static String fallbackResources[] = {
     "*.TipLabel.background: LightYellow",
     "*.TipShell.borderWidth: 1",
     "*.TipShell.borderColor: black",
-    NULL
+    0
 };
 
 static XrmOptionDescRec xOpts[] = {

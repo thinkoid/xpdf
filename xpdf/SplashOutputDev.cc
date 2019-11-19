@@ -844,7 +844,7 @@ void SplashOutputDev::updateLineDash (GfxState* state) {
 }
 
 void SplashOutputDev::updateFlatness (GfxState* state) {
-#if 0 // Acrobat ignores the flatness setting, and always renders curves \
+#if 0 // Acrobat ignores the flatness setting, and always renders curves
       // with a fairly small flatness value
   splash->setFlatness(state->getFlatness());
 #endif
@@ -867,7 +867,7 @@ void SplashOutputDev::updateLineWidth (GfxState* state) {
 }
 
 void SplashOutputDev::updateStrokeAdjust (GfxState* state) {
-#if 0 // the SA parameter supposedly defaults to false, but Acrobat \
+#if 0 // the SA parameter supposedly defaults to false, but Acrobat
       // apparently hardwires it to true
   splash->setStrokeAdjust(state->getStrokeAdjust());
 #endif

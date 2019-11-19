@@ -1568,8 +1568,8 @@ bool JBIG2Stream::readSymbolDictSeg (
                         break;
                     }
                 }
-#if 0 //~ This special case was added about a year before the final draft \
-      //~ of the JBIG2 spec was released.  I have encountered some old    \
+#if 0 //~ This special case was added about a year before the final draft
+      //~ of the JBIG2 spec was released.  I have encountered some old
       //~ JBIG2 images that predate it.
     if (0) {
 #else
