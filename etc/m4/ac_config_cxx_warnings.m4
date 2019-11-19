@@ -6,7 +6,8 @@ WARNFLAGS=" -W -Wall \
 -Wno-deprecated-declarations \
 -Wno-empty-body \
 -Wno-unused-parameter \
--Wno-char-subscripts"
+-Wno-char-subscripts \
+-Wno-write-strings"
 
 CLANG_WARNFLAGS=" \
 -Wno-deprecated-register \
