@@ -11,10 +11,13 @@
 
 #include <defs.hh>
 
+#include <vector>
+
 #include <fofi/FoFiBase.hh>
 
 class GString;
 class GHash;
+
 struct TrueTypeTable;
 struct TrueTypeCmap;
 
@@ -170,11 +173,27 @@ private:
     void cvtSfnts (
         FoFiOutputFunc outputFunc, void* outputStream, GString* name,
         bool needVerticalMetrics, int* maxUsedGlyph);
-    void dumpString (
-        unsigned char* s, int length, FoFiOutputFunc outputFunc, void* outputStream);
+
+    void
+    dumpString (const unsigned char*, size_t, FoFiOutputFunc, void*);
+
+    void
+    dumpString (const std::vector< char >& xs, FoFiOutputFunc pfun,
+                void* pstream) {
+        return dumpString (
+            reinterpret_cast< const unsigned char* > (xs.data ()),
+            xs.size (), pfun, pstream);
+    }
 
     unsigned
     computeTableChecksum (const unsigned char*, size_t) const;
+
+    unsigned
+    checksum_of (const std::vector< char >& xs) const {
+        return computeTableChecksum (
+            reinterpret_cast< const unsigned char* > (xs.data ()),
+            xs.size ());
+    }
 
     void parse (int fontNum, bool allowHeadlessCFF);
     void parseTTC (int fontNum, int* pos);

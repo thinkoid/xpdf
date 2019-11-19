@@ -1855,8 +1855,7 @@ void FoFiTrueType::cvtSfnts (
             checksum = computeTableChecksum (headData, 54);
         }
         else if (i == t42LocaTable) {
-            checksum = computeTableChecksum (
-                reinterpret_cast< unsigned char* >(locaData.data ()), locaData.size ());
+            checksum = checksum_of (locaData);
         }
         else if (i == t42GlyfTable) {
             length = 0;
@@ -2030,30 +2029,36 @@ void FoFiTrueType::cvtSfnts (
 }
 
 void FoFiTrueType::dumpString (
-    unsigned char* s, int length, FoFiOutputFunc outputFunc, void* outputStream) {
+    const unsigned char* s, size_t n, FoFiOutputFunc pfun, void* pstream) {
     GString* buf;
-    int pad, i, j;
 
-    (*outputFunc) (outputStream, "<", 1);
-    for (i = 0; i < length; i += 32) {
-        for (j = 0; j < 32 && i + j < length; ++j) {
+    (*pfun) (pstream, "<", 1);
+
+    for (size_t i = 0; i < n; i += 32) {
+        for (size_t j = 0; j < 32 && i + j < n; ++j) {
             buf = GString::format ("{0:02x}", s[i + j] & 0xff);
-            (*outputFunc) (outputStream, buf->c_str (), buf->getLength ());
+            (*pfun) (pstream, buf->c_str (), buf->getLength ());
             delete buf;
         }
+
         if (i % (65536 - 32) == 65536 - 64) {
-            (*outputFunc) (outputStream, ">\n<", 3);
+            (*pfun) (pstream, ">\n<", 3);
         }
-        else if (i + 32 < length) {
-            (*outputFunc) (outputStream, "\n", 1);
+        else if (i + 32 < n) {
+            (*pfun) (pstream, "\n", 1);
         }
     }
-    if (length & 3) {
-        pad = 4 - (length & 3);
-        for (i = 0; i < pad; ++i) { (*outputFunc) (outputStream, "00", 2); }
+
+    if (n & 3) {
+        size_t pad = 4 - (n & 3);
+
+        for (size_t i = 0; i < pad; ++i) {
+            (*pfun) (pstream, "00", 2);
+        }
     }
+
     // add an extra zero byte because the Adobe Type 42 spec says so
-    (*outputFunc) (outputStream, "00>\n", 4);
+    (*pfun) (pstream, "00>\n", 4);
 }
 
 unsigned
@@ -2061,11 +2066,13 @@ FoFiTrueType::computeTableChecksum (const unsigned char* xs, size_t n) const {
     unsigned x = 0;
 
     for (size_t i = 0; i + 3 < n; i += 4) {
-        x +=
+        unsigned word =
             ((xs[i]     & 0xff) << 24) +
             ((xs[i + 1] & 0xff) << 16) +
             ((xs[i + 2] & 0xff) <<  8) +
              (xs[i + 3] & 0xff);
+
+        x += word;
     }
 
     if (n & 3) {
