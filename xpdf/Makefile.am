@@ -67,6 +67,7 @@ xpdf_SOURCES = $(SRCS)                          \
 	TextOutputDev.cc                            \
 	UnicodeTypeTable.cc                         \
 	XPDFApp.cc                                  \
+	XPDFAppRes.c                                \
 	XPDFCore.cc                                 \
 	XPDFTree.cc                                 \
 	XPDFViewer.cc                               \

@@ -10,10 +10,12 @@
 
 #include <goo/GString.hh>
 #include <goo/GList.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/XPDFViewer.hh>
 #include <xpdf/XPDFApp.hh>
-#include <defs.hh>
+
+#include <xpdf/XPDFAppRes.h>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION
@@ -29,94 +31,6 @@
 #define remoteCmdSize 512
 
 //------------------------------------------------------------------------
-
-static String fallbackResources[] = {
-    "*.zoomComboBox*fontList: "
-    "-*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1",
-    "*XmTextField.fontList: -*-courier-medium-r-normal--12-*-*-*-*-*-iso8859-1",
-    "*.fontList: -*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1",
-    "*XmTextField.translations: #override\\n"
-    "  Ctrl<Key>a:beginning-of-line()\\n"
-    "  Ctrl<Key>b:backward-character()\\n"
-    "  Ctrl<Key>d:delete-next-character()\\n"
-    "  Ctrl<Key>e:end-of-line()\\n"
-    "  Ctrl<Key>f:forward-character()\\n"
-    "  Ctrl<Key>u:beginning-of-line()delete-to-end-of-line()\\n"
-    "  Ctrl<Key>k:delete-to-end-of-line()\\n",
-    "*.toolTipEnable: True",
-    "*.toolTipPostDelay: 1500",
-    "*.toolTipPostDuration: 0",
-    "*.TipLabel.foreground: black",
-    "*.TipLabel.background: LightYellow",
-    "*.TipShell.borderWidth: 1",
-    "*.TipShell.borderColor: black",
-    0
-};
-
-static XrmOptionDescRec xOpts[] = {
-    { "-display", ".display", XrmoptionSepArg, NULL },
-    { "-foreground", "*Foreground", XrmoptionSepArg, NULL },
-    { "-fg", "*Foreground", XrmoptionSepArg, NULL },
-    { "-background", "*Background", XrmoptionSepArg, NULL },
-    { "-bg", "*Background", XrmoptionSepArg, NULL },
-    { "-geometry", ".geometry", XrmoptionSepArg, NULL },
-    { "-g", ".geometry", XrmoptionSepArg, NULL },
-    { "-font", "*.fontList", XrmoptionSepArg, NULL },
-    { "-fn", "*.fontList", XrmoptionSepArg, NULL },
-    { "-title", ".title", XrmoptionSepArg, NULL },
-    { "-cmap", ".installCmap", XrmoptionNoArg, (XPointer) "on" },
-    { "-rgb", ".rgbCubeSize", XrmoptionSepArg, NULL },
-    { "-rv", ".reverseVideo", XrmoptionNoArg, (XPointer) "true" },
-    { "-papercolor", ".paperColor", XrmoptionSepArg, NULL },
-    { "-mattecolor", ".matteColor", XrmoptionSepArg, NULL },
-    { "-z", ".initialZoom", XrmoptionSepArg, NULL }
-};
-
-#define nXOpts (sizeof (xOpts) / sizeof (XrmOptionDescRec))
-
-struct XPDFAppResources {
-    String geometry;
-    String title;
-    Bool installCmap;
-    int rgbCubeSize;
-    Bool reverseVideo;
-    String paperColor;
-    String matteColor;
-    String fullScreenMatteColor;
-    String initialZoom;
-};
-
-static Bool defInstallCmap = False;
-static int defRGBCubeSize = XPDF_RGBCUBE_MAX;
-static Bool defReverseVideo = False;
-
-static XtResource xResources[] = {
-    { "geometry", "Geometry", XtRString, sizeof (String),
-      XtOffsetOf (XPDFAppResources, geometry), XtRString, (XtPointer)NULL },
-    { "title", "Title", XtRString, sizeof (String),
-      XtOffsetOf (XPDFAppResources, title), XtRString, (XtPointer)NULL },
-    { "installCmap", "InstallCmap", XtRBool, sizeof (Bool),
-      XtOffsetOf (XPDFAppResources, installCmap), XtRBool,
-      (XtPointer)&defInstallCmap },
-    { "rgbCubeSize", "RgbCubeSize", XtRInt, sizeof (int),
-      XtOffsetOf (XPDFAppResources, rgbCubeSize), XtRInt,
-      (XtPointer)&defRGBCubeSize },
-    { "reverseVideo", "ReverseVideo", XtRBool, sizeof (Bool),
-      XtOffsetOf (XPDFAppResources, reverseVideo), XtRBool,
-      (XtPointer)&defReverseVideo },
-    { "paperColor", "PaperColor", XtRString, sizeof (String),
-      XtOffsetOf (XPDFAppResources, paperColor), XtRString, (XtPointer)NULL },
-    { "matteColor", "MatteColor", XtRString, sizeof (String),
-      XtOffsetOf (XPDFAppResources, matteColor), XtRString,
-      (XtPointer) "gray50" },
-    { "fullScreenMatteColor", "FullScreenMatteColor", XtRString,
-      sizeof (String), XtOffsetOf (XPDFAppResources, fullScreenMatteColor),
-      XtRString, (XtPointer) "black" },
-    { "initialZoom", "InitialZoom", XtRString, sizeof (String),
-      XtOffsetOf (XPDFAppResources, initialZoom), XtRString, (XtPointer)NULL }
-};
-
-#define nXResources (sizeof (xResources) / sizeof (XtResource))
 
 //------------------------------------------------------------------------
 // XPDFApp
@@ -137,8 +51,9 @@ static int xErrorHandler(Display *display, XErrorEvent *ev) {
 
 XPDFApp::XPDFApp (int* argc, char* argv[]) {
     appShell = XtAppInitialize (
-        &appContext, xpdfAppName, xOpts, nXOpts, argc, argv, fallbackResources,
-        NULL, 0);
+        &appContext, xpdfAppName, xOpts (), xOptsSize (), argc, argv,
+        fallbackResources (), NULL, 0);
+
     display = XtDisplay (appShell);
     screenNum = XScreenNumberOfScreen (XtScreen (appShell));
 #if XmVERSION > 1
@@ -175,13 +90,18 @@ void XPDFApp::getResources () {
     Colormap colormap;
 
     XtGetApplicationResources (
-        appShell, &resources, xResources, nXResources, NULL, 0);
-    geometry =
-        resources.geometry ? new GString (resources.geometry) : (GString*)NULL;
-    title = resources.title ? new GString (resources.title) : (GString*)NULL;
+        appShell, &resources, xResources (), xResourcesSize (), NULL, 0);
+
+    geometry = resources.geometry
+        ? new GString (resources.geometry) : (GString*)NULL;
+
+    title = resources.title
+        ? new GString (resources.title) : (GString*)NULL;
+
     installCmap = (bool)resources.installCmap;
     rgbCubeSize = resources.rgbCubeSize;
     reverseVideo = (bool)resources.reverseVideo;
+
     if (reverseVideo) {
         paperRGB[0] = paperRGB[1] = paperRGB[2] = 0;
         paperPixel = BlackPixel (display, screenNum);
@@ -190,7 +110,9 @@ void XPDFApp::getResources () {
         paperRGB[0] = paperRGB[1] = paperRGB[2] = 0xff;
         paperPixel = WhitePixel (display, screenNum);
     }
+
     XtVaGetValues (appShell, XmNcolormap, &colormap, NULL);
+
     if (resources.paperColor) {
         if (XAllocNamedColor (
                 display, colormap, resources.paperColor, &xcol, &xcol2)) {
