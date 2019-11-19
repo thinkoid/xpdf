@@ -46,7 +46,7 @@ static ArgDesc argDesc[] = {
     { "-help", argFlag, &printHelp, 0, "print usage information" },
     { "--help", argFlag, &printHelp, 0, "print usage information" },
     { "-?", argFlag, &printHelp, 0, "print usage information" },
-    { NULL }
+    { }
 };
 
 int main (int argc, char* argv[]) {
