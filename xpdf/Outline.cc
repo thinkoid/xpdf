@@ -10,6 +10,8 @@
 
 #include <goo/GString.hh>
 #include <goo/GList.hh>
+
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Link.hh>
 #include <xpdf/TextString.hh>

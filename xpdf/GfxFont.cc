@@ -143,7 +143,7 @@ GfxFontLoc::~GfxFontLoc () {
 // GfxFont
 //------------------------------------------------------------------------
 
-GfxFont* GfxFont::makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict) {
+GfxFont* GfxFont::makeFont (XRef* xref, const char* tagA, Ref idA, Dict* fontDict) {
     GString* nameA;
     Ref embFontIDA;
     GfxFontType typeA;
@@ -177,7 +177,8 @@ GfxFont* GfxFont::makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict) {
 }
 
 GfxFont::GfxFont (
-    char* tagA, Ref idA, GString* nameA, GfxFontType typeA, Ref embFontIDA) {
+    const char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
+    Ref embFontIDA) {
     ok = false;
     tag = new GString (tagA);
     id = idA;
@@ -794,8 +795,8 @@ char* GfxFont::readEmbFontFile (XRef* xref, int* len) {
 //------------------------------------------------------------------------
 
 Gfx8BitFont::Gfx8BitFont (
-    XRef* xref, char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
-    Ref embFontIDA, Dict* fontDict)
+    XRef* xref, const char* tagA, Ref idA, GString* nameA,
+    GfxFontType typeA, Ref embFontIDA, Dict* fontDict)
     : GfxFont (tagA, idA, nameA, typeA, embFontIDA) {
     GString* name2;
     BuiltinFont* builtinFont;
@@ -1486,8 +1487,8 @@ struct cmpWidthExcepVFunctor {
 };
 
 GfxCIDFont::GfxCIDFont (
-    XRef* xref, char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
-    Ref embFontIDA, Dict* fontDict)
+    XRef* xref, const char* tagA, Ref idA, GString* nameA,
+    GfxFontType typeA, Ref embFontIDA, Dict* fontDict)
     : GfxFont (tagA, idA, nameA, typeA, embFontIDA) {
     Dict* desFontDict;
     Object desFontDictObj;
@@ -1926,7 +1927,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
     Object obj1, obj2;
     Ref r;
 
-    numFonts = fontDict->getLength ();
+    numFonts = fontDict->size ();
     fonts = (GfxFont**)calloc (numFonts, sizeof (GfxFont*));
     for (i = 0; i < numFonts; ++i) {
         fontDict->getValNF (i, &obj1);
@@ -1944,7 +1945,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
                 }
             }
             fonts[i] = GfxFont::makeFont (
-                xref, fontDict->getKey (i), r, obj2.getDict ());
+                xref, fontDict->key_at (i), r, obj2.getDict ());
             if (fonts[i] && !fonts[i]->isOk ()) {
                 delete fonts[i];
                 fonts[i] = NULL;
