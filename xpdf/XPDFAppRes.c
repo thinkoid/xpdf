@@ -90,5 +90,5 @@ XtResource* xResources () {
 }
 
 size_t xResourcesSize () {
-    return sizeof (xResources) / sizeof (XtResource);
+    return sizeof (xResourcesData) / sizeof (XtResource);
 }
