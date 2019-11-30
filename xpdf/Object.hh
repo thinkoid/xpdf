@@ -6,8 +6,8 @@
 //
 //========================================================================
 
-#ifndef XPDF_XPDF_OBJECT_HH
-#define XPDF_XPDF_OBJECT_HH
+#ifndef OBJECT_H
+#define OBJECT_H
 
 #include <defs.hh>
 
@@ -17,10 +17,9 @@
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 
-#include <xpdf/Dict.hh>
-
 class XRef;
 class Array;
+class Dict;
 class Stream;
 
 //------------------------------------------------------------------------
@@ -102,10 +101,8 @@ public:
         return this;
     }
     Object* initArray (XRef* xref);
-
-    Object* initDict (XRef*);
-    Object* initDict (Dict*);
-
+    Object* initDict (XRef* xref);
+    Object* initDict (Dict* dictA);
     Object* initStream (Stream* streamA);
     Object* initRef (int numA, int genA) {
         initObj (objRef);
@@ -156,10 +153,9 @@ public:
     bool isNone () { return type == objNone; }
 
     // Special type checking.
-    bool isName (const char* nameA) const {
-        return type == objName && 0 == strcmp (name, nameA);
+    bool isName (const char* nameA) {
+        return type == objName && !strcmp (name, nameA);
     }
-
     bool isDict (const char* dictType);
     bool isStream (char* dictType);
     bool isCmd (const char* cmdA) {
@@ -193,7 +189,7 @@ public:
     bool dictIs (const char* dictType);
     Object* dictLookup (const char* key, Object* obj, int recursion = 0);
     Object* dictLookupNF (const char* key, Object* obj);
-    const char* dictGetKey (int i);
+    char* dictGetKey (int i);
     Object* dictGetVal (int i, Object* obj);
     Object* dictGetValNF (int i, Object* obj);
 
@@ -253,12 +249,12 @@ inline Object* Object::arrayGetNF (int i, Object* obj) {
 
 #include <xpdf/Dict.hh>
 
-inline int Object::dictGetLength () { return dict->size (); }
+inline int Object::dictGetLength () { return dict->getLength (); }
 
-inline void Object::dictAdd (char* key, Object* val) { dict->insert (key, val); }
+inline void Object::dictAdd (char* key, Object* val) { dict->add (key, val); }
 
 inline bool Object::dictIs (const char* dictType) {
-    return dict->type_is (dictType);
+    return dict->is (dictType);
 }
 
 inline bool Object::isDict (const char* dictType) {
@@ -274,19 +270,14 @@ inline Object* Object::dictLookupNF (const char* key, Object* obj) {
     return dict->lookupNF (key, obj);
 }
 
-inline const char* Object::dictGetKey (int n) {
-    assert (n >= 0);
-    return dict->key_at (n);
+inline char* Object::dictGetKey (int i) { return dict->getKey (i); }
+
+inline Object* Object::dictGetVal (int i, Object* obj) {
+    return dict->getVal (i, obj);
 }
 
-inline Object* Object::dictGetVal (int n, Object* pobj) {
-    assert (n >= 0);
-    return dict->fetch_at (n, pobj);
-}
-
-inline Object* Object::dictGetValNF (int n, Object* pobj) {
-    assert (n >= 0);
-    return dict->get_at (n, pobj);
+inline Object* Object::dictGetValNF (int i, Object* obj) {
+    return dict->getValNF (i, obj);
 }
 
 //------------------------------------------------------------------------
@@ -296,7 +287,7 @@ inline Object* Object::dictGetValNF (int n, Object* pobj) {
 #include <xpdf/Stream.hh>
 
 inline bool Object::streamIs (char* dictType) {
-    return stream->getDict ()->type_is (dictType);
+    return stream->getDict ()->is (dictType);
 }
 
 inline bool Object::isStream (char* dictType) {
@@ -327,4 +318,4 @@ inline void Object::streamSetPos (GFileOffset pos, int dir) {
 
 inline Dict* Object::streamGetDict () { return stream->getDict (); }
 
-#endif // XPDF_XPDF_OBJECT_HH
+#endif

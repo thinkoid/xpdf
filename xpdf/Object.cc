@@ -42,7 +42,7 @@ Object* Object::initDict (XRef* xref) {
 Object* Object::initDict (Dict* dictA) {
     initObj (objDict);
     dict = dictA;
-    dict->incref ();
+    dict->incRef ();
     return this;
 }
 
@@ -58,7 +58,7 @@ Object* Object::copy (Object* obj) {
     case objString: obj->string = string->copy (); break;
     case objName: obj->name = strdup (name); break;
     case objArray: array->incRef (); break;
-    case objDict: dict->incref (); break;
+    case objDict: dict->incRef (); break;
     case objStream: stream->incRef (); break;
     case objCmd: obj->cmd = strdup (cmd); break;
     default: break;
@@ -74,42 +74,20 @@ Object* Object::fetch (XRef* xref, Object* obj, int recursion) {
 
 void Object::free () {
     switch (type) {
-    case objString:
-        delete string;
+    case objString: delete string; break;
+    case objName: std::free (name); break;
+    case objArray:
+        if (!array->decRef ()) { delete array; }
         break;
-
-    case objName:
-        std::free (name);
+    case objDict:
+        if (!dict->decRef ()) { delete dict; }
         break;
-
-    case objArray: {
-        if (0 == array->decRef ()) {
-            delete array;
-        }
+    case objStream:
+        if (!stream->decRef ()) { delete stream; }
+        break;
+    case objCmd: std::free (cmd); break;
+    default: break;
     }
-        break;
-
-    case objDict: {
-        if (0 == dict->decref ()) {
-            delete dict;
-        }
-    }
-        break;
-
-    case objStream: {
-        if (!stream->decRef ()) {
-            delete stream;
-        }
-    }
-        break;
-
-    case objCmd:
-        std::free (cmd);
-        break;
-    default:
-        break;
-    }
-
     type = objNone;
 }
 

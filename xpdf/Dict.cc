@@ -10,112 +10,123 @@
 
 #include <cstddef>
 #include <cstring>
-
 #include <xpdf/Object.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Dict.hh>
 
-#include <range/v3/all.hpp>
+//------------------------------------------------------------------------
 
-namespace xpdf {
-namespace detail {
-
-template< typename T >
-inline auto make_c_array_guard (T* p) {
-    return std::unique_ptr< T, std::function< void(T*) > > (
-        p, [&](T* p) { if (p) free ((void*)p); });
+struct DictEntry {
+    char* key;
+    Object val;
+    DictEntry* next;
 };
 
-} // namespace detail
+//------------------------------------------------------------------------
+// Dict
+//------------------------------------------------------------------------
 
-dictionary_t::dictionary_t (XRef* p) : pxref_ (p), refcount_ (1U) { }
+Dict::Dict (XRef* xrefA) {
+    xref = xrefA;
+    size = 8;
+    length = 0;
+    entries = (DictEntry*)calloc (size, sizeof (DictEntry));
+    hashTab = (DictEntry**)calloc (2 * size - 1, sizeof (DictEntry*));
+    memset (hashTab, 0, (2 * size - 1) * sizeof (DictEntry*));
+    ref = 1;
+}
 
-void
-dictionary_t::insert (const char* s, Object* pobj) {
-    assert (s && s [0]);
-    assert (pobj);
+Dict::~Dict () {
+    int i;
 
-    auto guard = detail::make_c_array_guard (s);
+    for (i = 0; i < length; ++i) {
+        free (entries[i].key);
+        entries[i].val.free ();
+    }
+    free (entries);
+    free (hashTab);
+}
 
-    auto iter = ranges::find_if (xs_, [&](auto& xs) {
-        return std::get< 0 >(xs) == s;
-    });
+void Dict::add (char* key, Object* val) {
+    DictEntry* e;
+    int h;
 
-    auto deleter = [](Object& obj) { obj.free (); };
-
-    if (iter == xs_.end ()) {
-        xs_.emplace_back (s, object_resource (*pobj, deleter));
+    if ((e = find (key))) {
+        e->val.free ();
+        e->val = *val;
+        free (key);
     }
     else {
-        auto& val = std::get<1> (*iter);
-        val = object_resource (*pobj, deleter);
+        if (length == size) { expand (); }
+        h = hash (key);
+        entries[length].key = key;
+        entries[length].val = *val;
+        entries[length].next = hashTab[h];
+        hashTab[h] = &entries[length];
+        ++length;
     }
 }
 
-bool
-dictionary_t::type_is (const char* type) const {
-    return ranges::any_of (xs_, [&](auto& xs) {
-        const auto& [key, value] = xs;
-        return key == "Type" && value.get ().isName (type);
-    });
-}
+void Dict::expand () {
+    int h, i;
 
-Object*
-dictionary_t::fetch (const char* s, Object* pobj, int recursion) {
-    assert (s && s [0]);
-
-    auto iter = ranges::find_if (xs_, [&](auto& xs) {
-        return std::get< 0 >(xs) == s; });
-
-    assert (pobj);
-
-    if (iter == xs_.end ()) {
-        return pobj->initNull ();
+    size *= 2;
+    entries = (DictEntry*)reallocarray (entries, size, sizeof (DictEntry));
+    hashTab =
+        (DictEntry**)reallocarray (hashTab, 2 * size - 1, sizeof (DictEntry*));
+    memset (hashTab, 0, (2 * size - 1) * sizeof (DictEntry*));
+    for (i = 0; i < length; ++i) {
+        h = hash (entries[i].key);
+        entries[i].next = hashTab[h];
+        hashTab[h] = &entries[i];
     }
-
-    auto& val = std::get< 1 > (*iter);
-
-    assert (pxref_);
-    return val.get ().fetch (pxref_, pobj, recursion);
 }
 
-Object*
-dictionary_t::get (const char* s, Object* pobj) {
-    assert (s && s [0]);
+inline DictEntry* Dict::find (const char* key) {
+    DictEntry* e;
+    int h;
 
-    auto iter = ranges::find_if (xs_, [&](auto& xs) {
-        return std::get< 0 >(xs) == s; });
-
-    assert (pobj);
-
-    if (iter == xs_.end ()) {
-        return pobj->initNull ();
+    h = hash (key);
+    for (e = hashTab[h]; e; e = e->next) {
+        if (!strcmp (key, e->key)) { return e; }
     }
-
-    auto& val = std::get< 1 > (*iter);
-    return val.get ().copy (pobj);
+    return NULL;
 }
 
-const char*
-dictionary_t::key_at (size_t n) const {
-    return std::get< 0 > (xs_ [n]).c_str ();
+int Dict::hash (const char* key) {
+    const char* p;
+    unsigned int h;
+
+    h = 0;
+    for (p = key; *p; ++p) { h = 17 * h + (int)(*p & 0xff); }
+    return (int)(h % (2 * size - 1));
 }
 
-Object*
-dictionary_t::get_at (size_t n, Object* obj) {
-    assert (n < xs_.size ());
+bool Dict::is (const char* type) {
+    DictEntry* e;
 
-    auto& [key, value] = xs_ [n];
-    return value.get ().copy (obj);
+    return (e = find ("Type")) && e->val.isName (type);
 }
 
-Object*
-dictionary_t::fetch_at (size_t n, Object* obj) {
-    assert (pxref_);
-    assert (n < xs_.size ());
+Object* Dict::lookup (const char* key, Object* obj, int recursion) {
+    DictEntry* e;
 
-    auto& [key, value] = xs_ [n];
-    return value.get ().fetch (pxref_, obj);
+    return (e = find (key)) ? e->val.fetch (xref, obj, recursion)
+                            : obj->initNull ();
 }
 
-} // namespace xpdf
+Object* Dict::lookupNF (const char* key, Object* obj) {
+    DictEntry* e;
+
+    return (e = find (key)) ? e->val.copy (obj) : obj->initNull ();
+}
+
+char* Dict::getKey (int i) { return entries[i].key; }
+
+Object* Dict::getVal (int i, Object* obj) {
+    return entries[i].val.fetch (xref, obj);
+}
+
+Object* Dict::getValNF (int i, Object* obj) {
+    return entries[i].val.copy (obj);
+}

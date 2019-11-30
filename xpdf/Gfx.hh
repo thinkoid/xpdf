@@ -11,7 +11,6 @@
 
 #include <defs.hh>
 
-#include <xpdf/Dict.hh>
 #include <goo/gfile.hh>
 
 class GString;
@@ -21,6 +20,7 @@ class XRef;
 class Array;
 class Stream;
 class Parser;
+class Dict;
 class Function;
 class OutputDev;
 class GfxFontDict;

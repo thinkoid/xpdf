@@ -6,92 +6,66 @@
 //
 //========================================================================
 
-#ifndef XPDF_XPDF_DICT_HH
-#define XPDF_XPDF_DICT_HH
+#ifndef DICT_H
+#define DICT_H
 
 #include <defs.hh>
 
-#include <cassert>
+#include <xpdf/Object.hh>
 
-#include <functional>
-#include <memory>
-#include <string>
-#include <tuple>
-#include <vector>
+struct DictEntry;
 
-#include <goo/unique_resource.hh>
+//------------------------------------------------------------------------
+// Dict
+//------------------------------------------------------------------------
 
-class Object;
-class XRef;
+class Dict {
+public:
+    // Constructor.
+    Dict (XRef* xrefA);
 
-namespace xpdf {
+    // Destructor.
+    ~Dict ();
 
-struct dictionary_t {
-    explicit dictionary_t (XRef*);
+    // Reference counting.
+    int incRef () { return ++ref; }
+    int decRef () { return --ref; }
 
-    // TODO: remove
-    size_t incref () { return ++refcount_; }
-    size_t decref () { return --refcount_; }
+    // Get number of entries.
+    int getLength () { return length; }
 
-    void insert (const char*, Object*);
+    // Add an entry.  NB: does not copy key.
+    void add (char* key, Object* val);
 
-    // TODO: optional result
-    Object* get (const char*, Object*);
-    Object* fetch (const char*, Object*, int = 0);
+    // Check if dictionary is of specified type.
+    bool is (const char* type);
 
-    // TODO: remove
-    Object* lookup (const char* s, Object* pobj, int recursion = 0) {
-        assert (s && s [0]);
-        assert (pobj);
-        assert (0 <= recursion);
+    // Look up an entry and return the value.  Returns a null object
+    // if <key> is not in the dictionary.
+    Object* lookup (const char* key, Object* obj, int recursion = 0);
+    Object* lookupNF (const char* key, Object* obj);
 
-        return fetch (s, pobj, recursion);
-    }
+    // Iterative accessors.
+    char* getKey (int i);
+    Object* getVal (int i, Object* obj);
+    Object* getValNF (int i, Object* obj);
 
-    Object* lookupNF (const char* s, Object* pobj) {
-        assert (s && s [0]);
-        assert (pobj);
-
-        return get (s, pobj);
-    }
-
-    bool type_is (const char*) const;
-
-    size_t size () const { return xs_.size (); }
-
-    const char* key_at (size_t) const;
-
-    // TODO: optional result
-    Object* get_at (size_t, Object* pobj);
-    Object* fetch_at (size_t, Object* pobj);
-
-    // TODO: remove
-    Object* getVal (size_t n, Object* pobj) {
-        return fetch_at (n, pobj);
-    }
-
-    Object* getValNF (size_t n, Object* pobj) {
-        return get_at (n, pobj);
-    }
-
-    void setXRef (XRef* pxref) { pxref_ = pxref; }
+    // Set the xref pointer.  This is only used in one special case: the
+    // trailer dictionary, which is read before the xref table is
+    // parsed.
+    void setXRef (XRef* xrefA) { xref = xrefA; }
 
 private:
-    //
-    // Xref table for this PDF file
-    //
-    XRef* pxref_;
+    XRef* xref;          // the xref table for this PDF file
+    DictEntry* entries;  // array of entries
+    DictEntry** hashTab; // hash table pointers
+    int size;            // size of <entries> array
+    int length;          // number of entries in dictionary
+    int ref;             // reference count
 
-    using object_deleter = std::function< void(Object&) >;
-    using object_resource = std::unique_resource< Object, object_deleter >;
-
-    std::vector< std::tuple< std::string, object_resource > > xs_;
-
-    size_t refcount_;
+    DictEntry* find (const char* key);
+    void expand ();
+    int hash (const char* key);
 };
 
-} // namespace xpdf
-
-using Dict = xpdf::dictionary_t;
-
-#endif // XPDF_XPDF_DICT_HH
+#endif

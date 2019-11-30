@@ -11,10 +11,10 @@
 
 #include <defs.hh>
 
-#include <xpdf/Dict.hh>
 #include <xpdf/Object.hh>
 
 class GList;
+class Dict;
 class Stream;
 struct PSCode;
 

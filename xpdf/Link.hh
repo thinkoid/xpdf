@@ -11,11 +11,11 @@
 
 #include <defs.hh>
 
-#include <xpdf/Dict.hh>
 #include <xpdf/Object.hh>
 
 class GString;
 class Array;
+class Dict;
 
 //------------------------------------------------------------------------
 // LinkAction

@@ -85,7 +85,7 @@ XPDFApp::XPDFApp (int* argc, char* argv[]) {
 }
 
 void XPDFApp::getResources () {
-    XPDFAppResources resources = { };
+    XPDFAppResources resources;
     XColor xcol, xcol2;
     Colormap colormap;
 
