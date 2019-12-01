@@ -10,7 +10,10 @@
 
 #include <cstddef>
 #include <cstring>
+
+#include <goo/memory.hh>
 #include <goo/GString.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>

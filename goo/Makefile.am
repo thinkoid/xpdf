@@ -8,6 +8,7 @@ noinst_LIBRARIES = libgoo.a
 
 libgoo_a_SOURCES =                              \
 	gfile.cc                                    \
+	memory.cc                                   \
 	parseargs.cc                                \
 	GHash.cc                                    \
 	GList.cc                                    \

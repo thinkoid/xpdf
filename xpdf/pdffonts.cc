@@ -7,14 +7,18 @@
 //========================================================================
 
 #include <defs.hh>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstddef>
 #include <cstring>
 #include <cmath>
 #include <climits>
+
+#include <goo/memory.hh>
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
+
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
@@ -23,7 +27,6 @@
 #include <xpdf/Annot.hh>
 #include <xpdf/Form.hh>
 #include <xpdf/PDFDoc.hh>
-#include <defs.hh>
 
 // NB: this must match the definition of GfxFontType in GfxFont.h.
 static const char* fontTypeNames[] = {

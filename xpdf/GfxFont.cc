@@ -17,6 +17,8 @@
 
 #include <algorithm>
 
+#include <goo/memory.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Dict.hh>

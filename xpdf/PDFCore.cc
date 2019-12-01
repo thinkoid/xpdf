@@ -9,13 +9,17 @@
 #include <defs.hh>
 
 #include <cmath>
+
+#include <goo/memory.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
-#include <xpdf/GlobalParams.hh>
+
 #include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>
 #include <splash/SplashPattern.hh>
 #include <splash/SplashPath.hh>
+
+#include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/PDFDoc.hh>

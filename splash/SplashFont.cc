@@ -9,6 +9,8 @@
 #include <defs.hh>
 
 #include <cstring>
+#include <cstdlib>
+
 #include <splash/SplashMath.hh>
 #include <splash/SplashGlyphBitmap.hh>
 #include <splash/SplashFontFile.hh>

@@ -11,8 +11,11 @@
 #include <cstring>
 #include <cstddef>
 #include <climits>
+
+#include <goo/memory.hh>
 #include <goo/gfile.hh>
 #include <goo/GList.hh>
+
 #include <xpdf/Object.hh>
 #include <xpdf/CharTypes.hh>
 #include <xpdf/PDFDoc.hh>

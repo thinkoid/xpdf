@@ -13,6 +13,7 @@
 
 #include <sstream>
 
+#include <goo/memory.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>

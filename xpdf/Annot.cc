@@ -10,7 +10,10 @@
 
 #include <cstdlib>
 #include <cmath>
+
+#include <goo/memory.hh>
 #include <goo/GList.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Catalog.hh>
@@ -24,7 +27,7 @@
 
 // the MSVC math.h doesn't define this
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+#  define M_PI 3.14159265358979323846
 #endif
 
 //------------------------------------------------------------------------

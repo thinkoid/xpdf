@@ -96,7 +96,6 @@ private:
     Page** pages;           // array of pages
     Ref* pageRefs;          // object ID for each page
     int numPages;           // number of pages
-    int pagesSize;          // size of pages array
     Object dests;           // named destination dictionary
     Object nameTree;        // name tree
     GString* baseURI;       // base URI for URI-type links

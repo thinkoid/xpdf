@@ -11,6 +11,8 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <goo/memory.hh>
+
 #include <splash/SplashErrorCodes.hh>
 #include <splash/SplashPath.hh>
 

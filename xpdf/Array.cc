@@ -10,6 +10,9 @@
 
 #include <cstdlib>
 #include <cstddef>
+
+#include <goo/memory.hh>
+
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>
 

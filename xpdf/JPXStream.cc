@@ -9,6 +9,9 @@
 #include <defs.hh>
 
 #include <climits>
+
+#include <goo/memory.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/JArithmeticDecoder.hh>
 #include <xpdf/JPXStream.hh>

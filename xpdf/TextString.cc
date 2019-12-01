@@ -9,7 +9,10 @@
 #include <defs.hh>
 
 #include <cstring>
+
+#include <goo/memory.hh>
 #include <goo/GString.hh>
+
 #include <xpdf/PDFDocEncoding.hh>
 #include <xpdf/TextString.hh>
 

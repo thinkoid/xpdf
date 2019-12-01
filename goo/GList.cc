@@ -10,6 +10,8 @@
 
 #include <cstdlib>
 #include <cstring>
+
+#include <goo/memory.hh>
 #include <goo/GList.hh>
 
 //------------------------------------------------------------------------

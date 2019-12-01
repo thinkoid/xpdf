@@ -2,6 +2,7 @@ dnl -*- Autoconf -*-
 
 AC_DEFUN([AC_CONFIG_CXX_WARNINGS],[
 WARNFLAGS=" -W -Wall \
+-Wno-sign-compare \
 -Wno-parentheses \
 -Wno-deprecated-declarations \
 -Wno-empty-body \
@@ -10,6 +11,7 @@ WARNFLAGS=" -W -Wall \
 -Wno-write-strings"
 
 CLANG_WARNFLAGS=" \
+-Wno-register \
 -Wno-deprecated-register \
 -Wno-logical-op-parentheses"
 
@@ -32,7 +34,7 @@ case $CXX in
         ;;
      *) ;;
 esac
-  
+
 CFLAGS+="$WARNFLAGS"
 CXXFLAGS+="$WARNFLAGS"
 

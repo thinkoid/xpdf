@@ -10,7 +10,10 @@
 
 #include <cstdlib>
 #include <climits>
+
+#include <goo/memory.hh>
 #include <goo/GList.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/JArithmeticDecoder.hh>
 #include <xpdf/JBIG2Stream.hh>

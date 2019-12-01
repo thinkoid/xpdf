@@ -10,6 +10,9 @@
 
 #include <cstdlib>
 #include <cstring>
+
+#include <goo/memory.hh>
+
 #include <splash/SplashErrorCodes.hh>
 #include <splash/SplashPath.hh>
 #include <splash/SplashXPath.hh>

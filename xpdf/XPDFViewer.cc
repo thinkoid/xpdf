@@ -11,12 +11,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 #include <X11/xpm.h>
+
+#include <goo/memory.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/PDFDoc.hh>
@@ -32,7 +36,6 @@
 #include <xpdf/XPDFApp.hh>
 #include <xpdf/XPDFViewer.hh>
 #include <xpdf/PSOutputDev.hh>
-#include <defs.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION

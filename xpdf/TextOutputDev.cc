@@ -13,9 +13,11 @@
 #include <cstddef>
 #include <cmath>
 #include <cctype>
+
+#include <goo/memory.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
-#include <defs.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/UnicodeMap.hh>
@@ -3939,8 +3941,8 @@ void TextPage::dumpChars(GList *charsA) {
   for (i = 0; i < charsA->getLength(); ++i) {
     ch = (TextChar *)charsA->get(i);
     printf("char: U+%04x '%c' xMin=%g yMin=%g xMax=%g yMax=%g fontSize=%g rot=%d\n",
-	   ch->c, ch->c & 0xff, ch->xMin, ch->yMin, ch->xMax, ch->yMax,
-	   ch->fontSize, ch->rot);
+       ch->c, ch->c & 0xff, ch->xMin, ch->yMin, ch->xMax, ch->yMax,
+       ch->fontSize, ch->rot);
   }
 }
 
@@ -3949,20 +3951,20 @@ void TextPage::dumpTree(TextBlock *tree, int indent) {
   int i;
 
   printf("%*sblock: type=%s tag=%s small=%d rot=%d xMin=%g yMin=%g xMax=%g yMax=%g\n",
-	 indent, "",
-	 tree->type == blkLeaf ? "leaf" :
-	                 tree->type == blkHorizSplit ? "horiz" : "vert",
-	 tree->tag == blkTagMulticolumn ? "multicolumn" :
-	                tree->tag == blkTagColumn ? "column" : "line",
-	 tree->smallSplit,
-	 tree->rot, tree->xMin, tree->yMin, tree->xMax, tree->yMax);
+     indent, "",
+     tree->type == blkLeaf ? "leaf" :
+                     tree->type == blkHorizSplit ? "horiz" : "vert",
+     tree->tag == blkTagMulticolumn ? "multicolumn" :
+                    tree->tag == blkTagColumn ? "column" : "line",
+     tree->smallSplit,
+     tree->rot, tree->xMin, tree->yMin, tree->xMax, tree->yMax);
   if (tree->type == blkLeaf) {
     for (i = 0; i < tree->children->getLength(); ++i) {
       ch = (TextChar *)tree->children->get(i);
       printf("%*schar: '%c' xMin=%g yMin=%g xMax=%g yMax=%g font=%d.%d\n",
-	     indent + 2, "", ch->c & 0xff,
-	     ch->xMin, ch->yMin, ch->xMax, ch->yMax,
-	     ch->font->fontID.num, ch->font->fontID.gen);
+         indent + 2, "", ch->c & 0xff,
+         ch->xMin, ch->yMin, ch->xMax, ch->yMax,
+         ch->font->fontID.num, ch->font->fontID.gen);
     }
   } else {
     for (i = 0; i < tree->children->getLength(); ++i) {
@@ -3980,21 +3982,21 @@ void TextPage::dumpColumns(GList *columns) {
   for (colIdx = 0; colIdx < columns->getLength(); ++colIdx) {
     col = (TextColumn *)columns->get(colIdx);
     printf("column: xMin=%g yMin=%g xMax=%g yMax=%g px=%d py=%d pw=%d ph=%d\n",
-	   col->xMin, col->yMin, col->xMax, col->yMax,
-	   col->px, col->py, col->pw, col->ph);
+       col->xMin, col->yMin, col->xMax, col->yMax,
+       col->px, col->py, col->pw, col->ph);
     for (parIdx = 0; parIdx < col->paragraphs->getLength(); ++parIdx) {
       par = (TextParagraph *)col->paragraphs->get(parIdx);
       printf("  paragraph:\n");
       for (lineIdx = 0; lineIdx < par->lines->getLength(); ++lineIdx) {
-	line = (TextLine *)par->lines->get(lineIdx);
-	printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
-	       line->xMin, line->yMin, line->xMax, line->yMax,
-	       line->px, line->pw, line->rot);
-	printf("          ");
-	for (i = 0; i < line->len; ++i) {
-	  printf("%c", line->text[i] & 0xff);
-	}
-	printf("\n");
+    line = (TextLine *)par->lines->get(lineIdx);
+    printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
+           line->xMin, line->yMin, line->xMax, line->yMax,
+           line->px, line->pw, line->rot);
+    printf("          ");
+    for (i = 0; i < line->len; ++i) {
+      printf("%c", line->text[i] & 0xff);
+    }
+    printf("\n");
       }
     }
   }

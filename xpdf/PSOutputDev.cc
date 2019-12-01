@@ -14,15 +14,13 @@
 #include <signal.h>
 #include <cmath>
 
+#include <goo/memory.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
 
 #include <fofi/FoFiType1C.hh>
 #include <fofi/FoFiTrueType.hh>
-
-#include <splash/Splash.hh>
-#include <splash/SplashBitmap.hh>
 
 #include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>

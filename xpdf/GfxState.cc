@@ -11,6 +11,9 @@
 #include <cstddef>
 #include <cmath>
 #include <cstring>
+
+#include <goo/memory.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Array.hh>

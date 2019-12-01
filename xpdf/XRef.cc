@@ -16,7 +16,9 @@
 
 #include <iostream>
 
+#include <goo/memory.hh>
 #include <goo/gfile.hh>
+
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Lexer.hh>

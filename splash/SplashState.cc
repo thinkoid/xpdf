@@ -9,6 +9,10 @@
 #include <defs.hh>
 
 #include <cstring>
+#include <cstdlib>
+
+#include <goo/memory.hh>
+
 #include <splash/SplashPattern.hh>
 #include <splash/SplashScreen.hh>
 #include <splash/SplashClip.hh>

@@ -10,9 +10,12 @@
 
 #include <cstdio>
 #include <cstring>
+
+#include <goo/memory.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 #include <goo/GList.hh>
+
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/UnicodeMap.hh>

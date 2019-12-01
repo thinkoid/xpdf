@@ -10,6 +10,9 @@
 
 #include <cstddef>
 #include <cstring>
+
+#include <goo/memory.hh>
+
 #include <xpdf/Object.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Dict.hh>
