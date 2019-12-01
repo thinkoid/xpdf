@@ -54,8 +54,10 @@ public:
 
     double getDomainMin (int i) { return domain[i][0]; }
     double getDomainMax (int i) { return domain[i][1]; }
+
     double getRangeMin (int i) { return range[i][0]; }
     double getRangeMax (int i) { return range[i][1]; }
+
     bool getHasRange () { return hasRange; }
 
     // Transform an input tuple into an output tuple.
@@ -64,7 +66,7 @@ public:
     virtual bool isOk () = 0;
 
 protected:
-    int m, n; // size of input and output tuples
+    size_t m, n; // size of input and output tuples
     double    // min and max values for function domain
         domain[funcMaxInputs][2];
     double // min and max values for function range
@@ -111,20 +113,28 @@ public:
 private:
     SampledFunction (SampledFunction* func);
 
-    int // number of samples for each domain element
-        sampleSize[funcMaxInputs];
-    double // min and max values for domain encoder
-        encode[funcMaxInputs][2];
-    double // min and max values for range decoder
-        decode[funcMaxOutputs][2];
-    double // input multipliers
-        inputMul[funcMaxInputs];
+    // number of samples for each domain element
+    int sampleSize[funcMaxInputs];
+
+    // min and max values for domain encoder
+    double encode[funcMaxInputs][2];
+
+    // min and max values for range decoder
+    double decode[funcMaxOutputs][2];
+
+    // input multipliers
+    double inputMul[funcMaxInputs];
+
     int* idxOffset;
+
     double* samples; // the samples
-    int nSamples;    // size of the samples array
+    size_t nSamples;    // size of the samples array
+
     double* sBuf;    // buffer for the transform function
+
     double cacheIn[funcMaxInputs];
     double cacheOut[funcMaxOutputs];
+
     bool ok;
 };
 
