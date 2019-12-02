@@ -15,6 +15,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -30,6 +31,12 @@
 #include <xpdf/Function.hh>
 
 #include <boost/noncopyable.hpp>
+
+#define COPY(x, y)                                              \
+    std::copy (&x[0], &x[0] + sizeof x / sizeof x[0], &y[0])
+
+#define COPY2(x, y)                                                     \
+    std::copy (&x[0][0], &x[0][0] + sizeof x / sizeof x[0][0], &y[0][0])
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -496,12 +503,31 @@ SampledFunction::~SampledFunction () {
     }
 }
 
-SampledFunction::SampledFunction (SampledFunction* func) {
-    memcpy (this, func, sizeof (SampledFunction));
+SampledFunction::SampledFunction (const SampledFunction& other)
+    : Function (other),
+      sampleSize (),
+      encode (),
+      decode (),
+      inputMul (),
+      idxOffset (),
+      samples (),
+      nSamples (),
+      sBuf (),
+      cacheIn (),
+      cacheOut (),
+      ok () {
+    COPY (other.sampleSize, sampleSize);
+    COPY (other.inputMul, inputMul);
+
+    COPY2 (other.encode, encode);
+    COPY2 (other.decode, decode);
+
     idxOffset = (int*)calloc (1 << m, sizeof (int));
-    memcpy (idxOffset, func->idxOffset, (1 << m) * (int)sizeof (int));
+    std::copy (&other.idxOffset[0], &other.idxOffset[0] + (1U << m), idxOffset);
+
     samples = (double*)calloc (nSamples, sizeof (double));
-    memcpy (samples, func->samples, nSamples * sizeof (double));
+    std::copy (&other.samples[0], &other.samples[0] + nSamples, samples);
+
     sBuf = (double*)calloc (1 << m, sizeof (double));
 }
 
@@ -701,8 +727,10 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
 
 ExponentialFunction::~ExponentialFunction () {}
 
-ExponentialFunction::ExponentialFunction (ExponentialFunction* func) {
-    memcpy (this, func, sizeof (ExponentialFunction));
+ExponentialFunction::ExponentialFunction (const ExponentialFunction& other)
+    : Function (other), e (other.e), ok (other.ok) {
+    COPY (other.c0, c0);
+    COPY (other.c1, c1);
 }
 
 void ExponentialFunction::transform (double* in, double* out) {
@@ -881,19 +909,24 @@ StitchingFunction::StitchingFunction (
     ok = true;
 }
 
-StitchingFunction::StitchingFunction (StitchingFunction* func) {
-    int i;
+StitchingFunction::StitchingFunction (const StitchingFunction& other)
+    : Function (other), k (other.k),
+      funcs (), bounds (), encode (), scale (), ok (other.ok) {
 
-    memcpy (this, func, sizeof (StitchingFunction));
     funcs = (Function**)calloc (k, sizeof (Function*));
-    for (i = 0; i < k; ++i) { funcs[i] = func->funcs[i]->copy (); }
+
+    std::transform (
+        &other.funcs[0], &other.funcs[0] + k, &funcs[0],
+        [](auto f) { return f->copy (); });
+
     bounds = (double*)calloc (k + 1, sizeof (double));
-    memcpy (bounds, func->bounds, (k + 1) * sizeof (double));
+    std::copy (&other.bounds[0], &other.bounds[0] + k + 1, bounds);
+
     encode = (double*)calloc (2 * k, sizeof (double));
-    memcpy (encode, func->encode, 2 * k * sizeof (double));
+    std::copy (&other.encode[0], &other.encode[0] + 2 * k, encode);
+
     scale = (double*)calloc (k, sizeof (double));
-    memcpy (scale, func->scale, k * sizeof (double));
-    ok = true;
+    std::copy (&other.scale[0], &other.scale[0] + k, scale);
 }
 
 StitchingFunction::~StitchingFunction () {
@@ -1067,11 +1100,17 @@ PostScriptFunction::PostScriptFunction (Object* funcObj, Dict* dict) {
     ok = true;
 }
 
-PostScriptFunction::PostScriptFunction (PostScriptFunction* func) {
-    memcpy (this, func, sizeof (PostScriptFunction));
-    codeString = func->codeString->copy ();
+PostScriptFunction::PostScriptFunction (const PostScriptFunction& other)
+    : Function (other),
+      codeString (other.codeString->copy ()),
+      code (),
+      codeLen (other.codeLen),
+      codeSize (other.codeSize),
+      cacheIn (),
+      cacheOut (),
+      ok (other.ok) {
     code = (PSCode*)calloc (codeSize, sizeof (PSCode));
-    memcpy (code, func->code, codeSize * sizeof (PSCode));
+    std::copy (&other.code[0], &other.code[0] + codeSize, &code [0]);
 }
 
 PostScriptFunction::~PostScriptFunction () {

@@ -82,7 +82,7 @@ class IdentityFunction : public Function {
 public:
     IdentityFunction ();
     virtual ~IdentityFunction ();
-    virtual Function* copy () { return new IdentityFunction (); }
+    virtual Function* copy () { return new IdentityFunction; }
     virtual int getType () { return -1; }
     virtual void transform (double* in, double* out);
     virtual bool isOk () { return true; }
@@ -98,7 +98,7 @@ class SampledFunction : public Function {
 public:
     SampledFunction (Object* funcObj, Dict* dict);
     virtual ~SampledFunction ();
-    virtual Function* copy () { return new SampledFunction (this); }
+    virtual Function* copy () { return new SampledFunction (*this); }
     virtual int getType () { return 0; }
     virtual void transform (double* in, double* out);
     virtual bool isOk () { return ok; }
@@ -111,7 +111,7 @@ public:
     double* getSamples () { return samples; }
 
 private:
-    SampledFunction (SampledFunction* func);
+    SampledFunction (const SampledFunction&);
 
     // number of samples for each domain element
     int sampleSize[funcMaxInputs];
@@ -146,7 +146,7 @@ class ExponentialFunction : public Function {
 public:
     ExponentialFunction (Object* funcObj, Dict* dict);
     virtual ~ExponentialFunction ();
-    virtual Function* copy () { return new ExponentialFunction (this); }
+    virtual Function* copy () { return new ExponentialFunction (*this); }
     virtual int getType () { return 2; }
     virtual void transform (double* in, double* out);
     virtual bool isOk () { return ok; }
@@ -156,7 +156,7 @@ public:
     double getE () { return e; }
 
 private:
-    ExponentialFunction (ExponentialFunction* func);
+    ExponentialFunction (const ExponentialFunction&);
 
     double c0[funcMaxOutputs];
     double c1[funcMaxOutputs];
@@ -172,7 +172,7 @@ class StitchingFunction : public Function {
 public:
     StitchingFunction (Object* funcObj, Dict* dict, int recursion);
     virtual ~StitchingFunction ();
-    virtual Function* copy () { return new StitchingFunction (this); }
+    virtual Function* copy () { return new StitchingFunction (*this); }
     virtual int getType () { return 3; }
     virtual void transform (double* in, double* out);
     virtual bool isOk () { return ok; }
@@ -184,13 +184,13 @@ public:
     double* getScale () { return scale; }
 
 private:
-    StitchingFunction (StitchingFunction* func);
+    StitchingFunction (const StitchingFunction& func);
 
-    int k;
+    size_t k;
+
     Function** funcs;
-    double* bounds;
-    double* encode;
-    double* scale;
+    double *bounds, *encode, *scale;
+
     bool ok;
 };
 
@@ -202,7 +202,7 @@ class PostScriptFunction : public Function {
 public:
     PostScriptFunction (Object* funcObj, Dict* dict);
     virtual ~PostScriptFunction ();
-    virtual Function* copy () { return new PostScriptFunction (this); }
+    virtual Function* copy () { return new PostScriptFunction (*this); }
     virtual int getType () { return 4; }
     virtual void transform (double* in, double* out);
     virtual bool isOk () { return ok; }
@@ -210,7 +210,7 @@ public:
     GString* getCodeString () { return codeString; }
 
 private:
-    PostScriptFunction (PostScriptFunction* func);
+    PostScriptFunction (const PostScriptFunction&);
     bool parseCode (GList* tokens, int* tokPtr, int* codePtr);
     void addCode (int* codePtr, int op);
     void addCodeI (int* codePtr, int op, int x);
