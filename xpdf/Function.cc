@@ -8,7 +8,6 @@
 
 #include <defs.hh>
 
-#include <cassert>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
@@ -32,10 +31,10 @@
 
 #include <boost/noncopyable.hpp>
 
-#define COPY(x, y)                                              \
+#define STD_COPY_C_ARRAY(x, y)                                  \
     std::copy (&x[0], &x[0] + sizeof x / sizeof x[0], &y[0])
 
-#define COPY2(x, y)                                                     \
+#define STD_COPY_C_ARRAY2(x, y)                                 \
     std::copy (&x[0][0], &x[0][0] + sizeof x / sizeof x[0][0], &y[0][0])
 
 ////////////////////////////////////////////////////////////////////////
@@ -196,7 +195,7 @@ bool Function::init (Dict* dict) {
         if (const auto opt = detail::as_array_of< double > (obj)) {
             const auto& xs = *opt;
 
-            assert (0 == (xs.size () & 1U));
+            ASSERT (0 == (xs.size () & 1U));
             m = xs.size () / 2;
 
             for (size_t i = 0; i < xs.size (); ++i) {
@@ -217,7 +216,7 @@ bool Function::init (Dict* dict) {
         if (const auto opt = detail::as_array_of< double > (obj)) {
             const auto& xs = *opt;
 
-            assert (0 == (xs.size () & 1U));
+            ASSERT (0 == (xs.size () & 1U));
             n = xs.size () / 2;
 
             for (size_t i = 0; i < xs.size (); ++i) {
@@ -388,7 +387,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
         if (obj.isArray () && obj.arrayGetLength () == 2 * m) {
             if (const auto opt = detail::as_array_of< double > (obj)) {
                 const auto& xs = *opt;
-                assert (0 == (xs.size () & 1U));
+                ASSERT (0 == (xs.size () & 1U));
 
                 for (size_t i = 0; i < xs.size (); ++i) {
                     encode[i >> 1][i & 1] = xs[i];
@@ -422,7 +421,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
         if (obj.isArray () && obj.arrayGetLength () == 2 * n) {
             if (const auto opt = detail::as_array_of< double > (obj)) {
                 const auto& xs = *opt;
-                assert (0 == (xs.size () & 1U));
+                ASSERT (0 == (xs.size () & 1U));
 
                 for (size_t i = 0; i < xs.size (); ++i) {
                     decode[i >> 1][i & 1] = xs[i];
@@ -516,11 +515,11 @@ SampledFunction::SampledFunction (const SampledFunction& other)
       cacheIn (),
       cacheOut (),
       ok () {
-    COPY (other.sampleSize, sampleSize);
-    COPY (other.inputMul, inputMul);
+    STD_COPY_C_ARRAY (other.sampleSize, sampleSize);
+    STD_COPY_C_ARRAY (other.inputMul, inputMul);
 
-    COPY2 (other.encode, encode);
-    COPY2 (other.decode, decode);
+    STD_COPY_C_ARRAY2 (other.encode, encode);
+    STD_COPY_C_ARRAY2 (other.decode, decode);
 
     idxOffset = (int*)calloc (1 << m, sizeof (int));
     std::copy (&other.idxOffset[0], &other.idxOffset[0] + (1U << m), idxOffset);
@@ -729,8 +728,8 @@ ExponentialFunction::~ExponentialFunction () {}
 
 ExponentialFunction::ExponentialFunction (const ExponentialFunction& other)
     : Function (other), e (other.e), ok (other.ok) {
-    COPY (other.c0, c0);
-    COPY (other.c1, c1);
+    STD_COPY_C_ARRAY (other.c0, c0);
+    STD_COPY_C_ARRAY (other.c1, c1);
 }
 
 void ExponentialFunction::transform (double* in, double* out) {

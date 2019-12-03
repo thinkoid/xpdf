@@ -8,9 +8,7 @@
 
 #include <defs.hh>
 
-#include <cassert>
 #include <cstdlib>
-
 #include <sstream>
 
 #include <goo/memory.hh>
@@ -835,7 +833,7 @@ void XFAFormField::drawBarCode (
         }
         if ((attr = barcodeElem->findAttr ("wideNarrowRatio"))) {
             const auto pstr = attr->getValue ();
-            assert (pstr);
+            ASSERT (pstr);
 
             const std::string s{ pstr->c_str () };
             std::stringstream ss{ s };
