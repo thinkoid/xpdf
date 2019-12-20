@@ -4,6 +4,64 @@ ACLOCAL_AMFLAGS = -I etc/m4
 
 include $(top_srcdir)/Makefile.common
 
+noinst_LIBRARIES = libxpdf.a
+libxpdf_a_SOURCES =                             \
+   AcroForm.cc                                  \
+   Annot.cc                                     \
+   Array.cc                                     \
+   BuiltinFont.cc                               \
+   BuiltinFontTables.cc                         \
+   CMap.cc                                      \
+   Catalog.cc                                   \
+   CharCodeToUnicode.cc                         \
+   CoreOutputDev.cc                             \
+   Decrypt.cc                                   \
+   Dict.cc                                      \
+   Error.cc                                     \
+   FontEncodingTables.cc                        \
+   Form.cc                                      \
+   Function.cc                                  \
+   Gfx.cc                                       \
+   GfxFont.cc                                   \
+   GfxState.cc                                  \
+   GlobalParams.cc                              \
+   HTMLGen.cc                                   \
+   ImageOutputDev.cc                            \
+   JArithmeticDecoder.cc                        \
+   JBIG2Stream.cc                               \
+   JPXStream.cc                                 \
+   Lexer.cc                                     \
+   Link.cc                                      \
+   NameToCharCode.cc                            \
+   Object.cc                                    \
+   OptionalContent.cc                           \
+   Outline.cc                                   \
+   OutputDev.cc                                 \
+   PDFCore.cc                                   \
+   PDFDoc.cc                                    \
+   PDFDocEncoding.cc                            \
+   PSOutputDev.cc                               \
+   PSTokenizer.cc                               \
+   Page.cc                                      \
+   Parser.cc                                    \
+   PreScanOutputDev.cc                          \
+   SecurityHandler.cc                           \
+   SplashOutputDev.cc                           \
+   Stream.cc                                    \
+   TextOutputDev.cc                             \
+   TextString.cc                                \
+   UnicodeMap.cc                                \
+   UnicodeTypeTable.cc                          \
+   XFAForm.cc                                   \
+   XPDFApp.cc                                   \
+   XPDFAppRes.c                                 \
+   XPDFCore.cc                                  \
+   XPDFTree.cc                                  \
+   XPDFViewer.cc                                \
+   XRef.cc                                      \
+   XpdfPluginAPI.cc                             \
+   Zoox.cc
+
 bin_PROGRAMS = xpdf                             \
 	pdfdetach                                   \
 	pdffonts                                    \
@@ -15,105 +73,20 @@ bin_PROGRAMS = xpdf                             \
 	pdftops                                     \
 	pdftotext
 
-SRCS =                                          \
-	AcroForm.cc                                 \
-	Annot.cc                                    \
-	Array.cc                                    \
-	BuiltinFont.cc                              \
-	BuiltinFontTables.cc                        \
-	CMap.cc                                     \
-	Catalog.cc                                  \
-	CharCodeToUnicode.cc                        \
-	Decrypt.cc                                  \
-	Dict.cc                                     \
-	Error.cc                                    \
-	FontEncodingTables.cc                       \
-	Form.cc                                     \
-	Function.cc                                 \
-	Gfx.cc                                      \
-	GfxFont.cc                                  \
-	GfxState.cc                                 \
-	GlobalParams.cc                             \
-	JArithmeticDecoder.cc                       \
-	JBIG2Stream.cc                              \
-	JPXStream.cc                                \
-	Lexer.cc                                    \
-	Link.cc                                     \
-	NameToCharCode.cc                           \
-	Object.cc                                   \
-	OptionalContent.cc                          \
-	Outline.cc                                  \
-	OutputDev.cc                                \
-	PDFDoc.cc                                   \
-	PDFDocEncoding.cc                           \
-	PSTokenizer.cc                              \
-	Page.cc                                     \
-	Parser.cc                                   \
-	SecurityHandler.cc                          \
-	Stream.cc                                   \
-	TextString.cc                               \
-	UnicodeMap.cc                               \
-	XFAForm.cc                                  \
-	XRef.cc                                     \
-	XpdfPluginAPI.cc                            \
-	Zoox.cc
-
-xpdf_SOURCES = $(SRCS)                          \
-	CoreOutputDev.cc                            \
-	PDFCore.cc                                  \
-	PSOutputDev.cc                              \
-	PreScanOutputDev.cc                         \
-	SplashOutputDev.cc                          \
-	TextOutputDev.cc                            \
-	UnicodeTypeTable.cc                         \
-	XPDFApp.cc                                  \
-	XPDFAppRes.c                                \
-	XPDFCore.cc                                 \
-	XPDFTree.cc                                 \
-	XPDFViewer.cc                               \
-	xpdf.cc
-
-pdftops_SOURCES = $(SRCS)                       \
-	PreScanOutputDev.cc                         \
-	PSOutputDev.cc                              \
-	SplashOutputDev.cc                          \
-	pdftops.cc
-
-pdftohtml_SOURCES = $(SRCS)                     \
-	HTMLGen.cc                                  \
-	SplashOutputDev.cc                          \
-	TextOutputDev.cc                            \
-	UnicodeTypeTable.cc                         \
-	pdftohtml.cc
-
-pdfinfo_SOURCES = $(SRCS) pdfinfo.cc
-pdffonts_SOURCES = $(SRCS) pdffonts.cc
-pdfdetach_SOURCES = $(SRCS) pdfdetach.cc
-
-pdftoppm_SOURCES = $(SRCS)                      \
-	SplashOutputDev.cc                          \
-	TextOutputDev.cc                            \
-	UnicodeTypeTable.cc                         \
-	pdftoppm.cc
-
-pdftopng_SOURCES = $(SRCS)                      \
-	SplashOutputDev.cc                          \
-	TextOutputDev.cc                            \
-	UnicodeTypeTable.cc                         \
-	pdftopng.cc
-
-pdfimages_SOURCES = $(SRCS)                     \
-	pdfimages.cc                                \
-	ImageOutputDev.cc
-
-pdftotext_SOURCES = $(SRCS)                     \
-	pdftotext.cc                                \
-	TextOutputDev.cc                            \
-	UnicodeTypeTable.cc
+	 xpdf_SOURCES = xpdf.cc
+pdfdetach_SOURCES = pdfdetach.cc
+ pdffonts_SOURCES = pdffonts.cc
+pdfimages_SOURCES = pdfimages.cc
+  pdfinfo_SOURCES = pdfinfo.cc
+pdftohtml_SOURCES = pdftohtml.cc
+ pdftopng_SOURCES = pdftopng.cc
+ pdftoppm_SOURCES = pdftoppm.cc
+  pdftops_SOURCES = pdftops.cc
+pdftotext_SOURCES = pdftotext.cc
 
 AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
 
-LDADD =                                                 \
+LDADD = libxpdf.a                                       \
 	$(top_srcdir)/fofi/libfofi.a                        \
 	$(top_srcdir)/goo/libgoo.a                          \
 	$(top_srcdir)/splash/libsplash.a                    \
