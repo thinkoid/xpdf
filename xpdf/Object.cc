@@ -11,10 +11,10 @@
 #include <cstddef>
 #include <cstdlib>
 
-#include <xpdf/Object.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
+#include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/XRef.hh>
 
@@ -136,3 +136,90 @@ void Object::print (FILE* f) {
     case objNone: fprintf (f, "<none>"); break;
     }
 }
+
+//------------------------------------------------------------------------
+// Array accessors.
+//------------------------------------------------------------------------
+
+int Object::arrayGetLength () { return array->getLength (); }
+
+void Object::arrayAdd (Object* elem) { array->add (elem); }
+
+Object* Object::arrayGet (int i, Object* obj) {
+    return array->get (i, obj);
+}
+
+Object* Object::arrayGetNF (int i, Object* obj) {
+    return array->getNF (i, obj);
+}
+
+//------------------------------------------------------------------------
+// Dict accessors.
+//------------------------------------------------------------------------
+
+int Object::dictGetLength () { return dict->getLength (); }
+
+void Object::dictAdd (char* key, Object* val) { dict->add (key, val); }
+
+bool Object::dictIs (const char* dictType) {
+    return dict->is (dictType);
+}
+
+bool Object::isDict (const char* dictType) {
+    return type == objDict && dictIs (dictType);
+}
+
+Object*
+Object::dictLookup (const char* key, Object* obj, int recursion) {
+    return dict->lookup (key, obj, recursion);
+}
+
+Object* Object::dictLookupNF (const char* key, Object* obj) {
+    return dict->lookupNF (key, obj);
+}
+
+char* Object::dictGetKey (int i) { return dict->getKey (i); }
+
+Object* Object::dictGetVal (int i, Object* obj) {
+    return dict->getVal (i, obj);
+}
+
+Object* Object::dictGetValNF (int i, Object* obj) {
+    return dict->getValNF (i, obj);
+}
+
+//------------------------------------------------------------------------
+// Stream accessors.
+//------------------------------------------------------------------------
+
+bool Object::streamIs (char* dictType) {
+    return stream->getDict ()->is (dictType);
+}
+
+bool Object::isStream (char* dictType) {
+    return type == objStream && streamIs (dictType);
+}
+
+void Object::streamReset () { stream->reset (); }
+
+void Object::streamClose () { stream->close (); }
+
+int Object::streamGetChar () { return stream->getChar (); }
+
+int Object::streamLookChar () { return stream->lookChar (); }
+
+int Object::streamGetBlock (char* blk, int size) {
+    return stream->getBlock (blk, size);
+}
+
+char* Object::streamGetLine (char* buf, int size) {
+    return stream->getLine (buf, size);
+}
+
+GFileOffset Object::streamGetPos () { return stream->getPos (); }
+
+void Object::streamSetPos (GFileOffset pos, int dir) {
+    stream->setPos (pos, dir);
+}
+
+Dict* Object::streamGetDict () { return stream->getDict (); }

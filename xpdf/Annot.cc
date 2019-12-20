@@ -14,16 +14,17 @@
 #include <goo/memory.hh>
 #include <goo/GList.hh>
 
-#include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/Form.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/Lexer.hh>
-#include <xpdf/PDFDoc.hh>
+#include <xpdf/Object.hh>
 #include <xpdf/OptionalContent.hh>
-#include <xpdf/Form.hh>
-#include <xpdf/Annot.hh>
+#include <xpdf/PDFDoc.hh>
 
 // the MSVC math.h doesn't define this
 #ifndef M_PI

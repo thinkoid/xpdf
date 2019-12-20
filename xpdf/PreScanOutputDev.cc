@@ -9,12 +9,14 @@
 #include <defs.hh>
 
 #include <cmath>
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/Page.hh>
+
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
+#include <xpdf/GlobalParams.hh>
 #include <xpdf/Link.hh>
+#include <xpdf/Page.hh>
 #include <xpdf/PreScanOutputDev.hh>
+#include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------
 // PreScanOutputDev

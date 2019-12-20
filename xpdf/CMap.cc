@@ -12,14 +12,17 @@
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
+
+#include <xpdf/CMap.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/PSTokenizer.hh>
 #include <xpdf/Object.hh>
+#include <xpdf/PSTokenizer.hh>
 #include <xpdf/Stream.hh>
-#include <xpdf/CMap.hh>
 
 //------------------------------------------------------------------------
 

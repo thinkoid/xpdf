@@ -12,10 +12,11 @@
 #include <defs.hh>
 
 #include <goo/gfile.hh>
+
 #include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
 
 class Dict;
-class Stream;
 class Parser;
 class ObjectStream;
 class XRefPosSet;

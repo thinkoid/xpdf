@@ -12,6 +12,7 @@
 #include <defs.hh>
 
 #include <xpdf/Form.hh>
+#include <xpdf/Object.hh>
 
 class TextString;
 class GfxFont;

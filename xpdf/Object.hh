@@ -6,8 +6,8 @@
 //
 //========================================================================
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef XPDF_XPDF_OBJECT_HH
+#define XPDF_XPDF_OBJECT_HH
 
 #include <defs.hh>
 
@@ -225,97 +225,4 @@ private:
     };
 };
 
-//------------------------------------------------------------------------
-// Array accessors.
-//------------------------------------------------------------------------
-
-#include <xpdf/Array.hh>
-
-inline int Object::arrayGetLength () { return array->getLength (); }
-
-inline void Object::arrayAdd (Object* elem) { array->add (elem); }
-
-inline Object* Object::arrayGet (int i, Object* obj) {
-    return array->get (i, obj);
-}
-
-inline Object* Object::arrayGetNF (int i, Object* obj) {
-    return array->getNF (i, obj);
-}
-
-//------------------------------------------------------------------------
-// Dict accessors.
-//------------------------------------------------------------------------
-
-#include <xpdf/Dict.hh>
-
-inline int Object::dictGetLength () { return dict->getLength (); }
-
-inline void Object::dictAdd (char* key, Object* val) { dict->add (key, val); }
-
-inline bool Object::dictIs (const char* dictType) {
-    return dict->is (dictType);
-}
-
-inline bool Object::isDict (const char* dictType) {
-    return type == objDict && dictIs (dictType);
-}
-
-inline Object*
-Object::dictLookup (const char* key, Object* obj, int recursion) {
-    return dict->lookup (key, obj, recursion);
-}
-
-inline Object* Object::dictLookupNF (const char* key, Object* obj) {
-    return dict->lookupNF (key, obj);
-}
-
-inline char* Object::dictGetKey (int i) { return dict->getKey (i); }
-
-inline Object* Object::dictGetVal (int i, Object* obj) {
-    return dict->getVal (i, obj);
-}
-
-inline Object* Object::dictGetValNF (int i, Object* obj) {
-    return dict->getValNF (i, obj);
-}
-
-//------------------------------------------------------------------------
-// Stream accessors.
-//------------------------------------------------------------------------
-
-#include <xpdf/Stream.hh>
-
-inline bool Object::streamIs (char* dictType) {
-    return stream->getDict ()->is (dictType);
-}
-
-inline bool Object::isStream (char* dictType) {
-    return type == objStream && streamIs (dictType);
-}
-
-inline void Object::streamReset () { stream->reset (); }
-
-inline void Object::streamClose () { stream->close (); }
-
-inline int Object::streamGetChar () { return stream->getChar (); }
-
-inline int Object::streamLookChar () { return stream->lookChar (); }
-
-inline int Object::streamGetBlock (char* blk, int size) {
-    return stream->getBlock (blk, size);
-}
-
-inline char* Object::streamGetLine (char* buf, int size) {
-    return stream->getLine (buf, size);
-}
-
-inline GFileOffset Object::streamGetPos () { return stream->getPos (); }
-
-inline void Object::streamSetPos (GFileOffset pos, int dir) {
-    stream->setPos (pos, dir);
-}
-
-inline Dict* Object::streamGetDict () { return stream->getDict (); }
-
-#endif
+#endif // XPDF_XPDF_OBJECT_HH

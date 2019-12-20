@@ -6,14 +6,18 @@
 //
 //========================================================================
 
-#ifndef FORM_H
-#define FORM_H
+#ifndef XPDF_XPDF_FORM_HH
+#define XPDF_XPDF_FORM_HH
 
 #include <defs.hh>
 
-
-class Gfx;
+class Catalog;
 class FormField;
+class Gfx;
+class Object;
+class PDFDoc;
+
+#include <xpdf/CharTypes.hh>
 
 //------------------------------------------------------------------------
 
@@ -53,4 +57,4 @@ public:
     virtual Object* getResources (Object* res) = 0;
 };
 
-#endif
+#endif // XPDF_XPDF_FORM_HH

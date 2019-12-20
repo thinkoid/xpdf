@@ -19,19 +19,21 @@
 
 #include <goo/memory.hh>
 
-#include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
-#include <xpdf/Dict.hh>
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/CMap.hh>
-#include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/FontEncodingTables.hh>
-#include <xpdf/BuiltinFontTables.hh>
 #include <fofi/FoFiIdentifier.hh>
+#include <fofi/FoFiTrueType.hh>
 #include <fofi/FoFiType1.hh>
 #include <fofi/FoFiType1C.hh>
-#include <fofi/FoFiTrueType.hh>
+
+#include <xpdf/BuiltinFontTables.hh>
+#include <xpdf/CMap.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/Dict.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/FontEncodingTables.hh>
 #include <xpdf/GfxFont.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------
 

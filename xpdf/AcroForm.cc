@@ -10,18 +10,22 @@
 
 #include <cstdlib>
 #include <cmath>
+
 #include <goo/GString.hh>
 #include <goo/GList.hh>
+
+#include <xpdf/AcroForm.hh>
+#include <xpdf/Annot.hh>
+#include <xpdf/Array.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
-#include <xpdf/PDFDoc.hh>
-#include <xpdf/TextString.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
-#include <xpdf/OptionalContent.hh>
-#include <xpdf/Annot.hh>
 #include <xpdf/Lexer.hh>
-#include <xpdf/AcroForm.hh>
+#include <xpdf/Object.hh>
+#include <xpdf/OptionalContent.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/TextString.hh>
 
 //------------------------------------------------------------------------
 

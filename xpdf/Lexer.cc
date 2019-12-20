@@ -12,8 +12,10 @@
 #include <cstddef>
 #include <cstring>
 #include <cctype>
-#include <xpdf/Lexer.hh>
+
+#include <xpdf/Array.hh>
 #include <xpdf/Error.hh>
+#include <xpdf/Lexer.hh>
 
 //------------------------------------------------------------------------
 

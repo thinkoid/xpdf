@@ -25,26 +25,27 @@
 #include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>
 
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/Annot.hh>
+#include <xpdf/Catalog.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
+#include <xpdf/Form.hh>
 #include <xpdf/Function.hh>
 #include <xpdf/Gfx.hh>
-#include <xpdf/GfxState.hh>
 #include <xpdf/GfxFont.hh>
-#include <xpdf/UnicodeMap.hh>
-#include <xpdf/Catalog.hh>
-#include <xpdf/Page.hh>
-#include <xpdf/Stream.hh>
-#include <xpdf/Annot.hh>
+#include <xpdf/GfxState.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Object.hh>
 #include <xpdf/PDFDoc.hh>
-#include <xpdf/XRef.hh>
-#include <xpdf/PreScanOutputDev.hh>
-#include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/Form.hh>
-#include <xpdf/TextString.hh>
 #include <xpdf/PSOutputDev.hh>
+#include <xpdf/Page.hh>
+#include <xpdf/PreScanOutputDev.hh>
 #include <xpdf/SplashOutputDev.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/TextString.hh>
+#include <xpdf/UnicodeMap.hh>
+#include <xpdf/XRef.hh>
 
 //------------------------------------------------------------------------
 // PostScript prolog and setup

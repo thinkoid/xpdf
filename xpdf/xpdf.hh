@@ -9,7 +9,8 @@
 #include <tuple>
 #include <vector>
 
-#include <xpdf/Array.hh>
+class Array;
+
 #include <xpdf/Dict.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>

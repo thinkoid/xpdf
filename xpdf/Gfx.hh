@@ -13,34 +13,39 @@
 
 #include <goo/gfile.hh>
 
-class GString;
-class GList;
-class PDFDoc;
-class XRef;
+class AnnotBorderStyle;
 class Array;
-class Stream;
-class Parser;
 class Dict;
 class Function;
-class OutputDev;
-class GfxFontDict;
-class GfxFont;
-class GfxPattern;
-class GfxTilingPattern;
-class GfxShadingPattern;
-class GfxShading;
-class GfxFunctionShading;
+class GList;
+class GString;
+class Gfx;
 class GfxAxialShading;
-class GfxRadialShading;
+class GfxColorSpace;
+class GfxFont;
+class GfxFontDict;
+class GfxFunctionShading;
 class GfxGouraudTriangleShading;
 class GfxPatchMeshShading;
-struct GfxPatch;
+class GfxPattern;
+class GfxRadialShading;
+class GfxShading;
+class GfxShadingPattern;
 class GfxState;
-struct GfxColor;
-class GfxColorSpace;
-class Gfx;
+class GfxTilingPattern;
+class Object;
+class OutputDev;
+class PDFDoc;
 class PDFRectangle;
-class AnnotBorderStyle;
+class Parser;
+class Stream;
+class XRef;
+class Ref;
+
+struct GfxColor;
+struct GfxPatch;
+
+#include <Object.hh>
 
 //------------------------------------------------------------------------
 
@@ -64,7 +69,7 @@ struct Operator {
     char name[4];
     int numArgs;
     TchkType tchk[maxArgs];
-    void (Gfx::*func) (Object args[], int numArgs);
+    void (Gfx::*func) (Object*, int);
 };
 
 //------------------------------------------------------------------------
