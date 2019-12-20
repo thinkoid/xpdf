@@ -356,7 +356,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
             bit = (t >> (m - 1)) & 1;
         }
 
-        idxOffset[i] = (idx + bit) * n;
+        idxOffset[i] = (idx + bit) * Function::n;
     }
 
     //----- BitsPerSample
