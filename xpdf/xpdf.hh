@@ -12,6 +12,7 @@
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Object.hh>
+#include <xpdf/Stream.hh>
 
 #include <boost/format.hpp>
 using fmt = boost::format;
@@ -38,8 +39,9 @@ inline bool contains (T&& t, U&& ... u) { return ((t == u) || ...); }
 
 template< typename T > bool is (Object&);
 
-template<> inline bool is<    int > (Object& obj) { return obj.isInt (); }
-template<> inline bool is< double > (Object& obj) { return obj.isNum (); }
+template<> inline bool is<    int > (Object& obj) { return obj.isInt   (); }
+template<> inline bool is< double > (Object& obj) { return obj.isNum   (); }
+template<> inline bool is< Array  > (Object& obj) { return obj.isArray (); }
 
 template< typename T > T get (Object&);
 

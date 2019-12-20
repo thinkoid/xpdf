@@ -12,6 +12,7 @@
 #include <defs.hh>
 
 class Object;
+class XRef;
 struct DictEntry;
 
 //------------------------------------------------------------------------

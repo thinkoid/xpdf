@@ -16,6 +16,8 @@
 #include <X11/cursorfont.h>
 #include <X11/xpm.h>
 
+#undef True
+
 #include <goo/memory.hh>
 #include <goo/gfile.hh>
 #include <goo/GString.hh>

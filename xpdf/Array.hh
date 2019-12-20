@@ -6,13 +6,18 @@
 //
 //========================================================================
 
-#ifndef ARRAY_H
-#define ARRAY_H
+#ifndef XPDF_XPDF_ARRAY_HH
+#define XPDF_XPDF_ARRAY_HH
 
 #include <defs.hh>
 
+#include <boost/iterator/iterator_facade.hpp>
+#include <range/v3/view/subrange.hpp>
+
 class Object;
 class XRef;
+
+#include <xpdf/xpdf.hh>
 
 //------------------------------------------------------------------------
 // Array
@@ -48,4 +53,4 @@ private:
     int ref;       // reference count
 };
 
-#endif
+#endif // XPDF_XPDF_ARRAY_HH
