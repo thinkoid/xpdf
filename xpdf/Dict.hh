@@ -11,8 +11,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
-
+class Object;
 struct DictEntry;
 
 //------------------------------------------------------------------------

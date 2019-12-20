@@ -23,6 +23,7 @@
 #include <goo/memory.hh>
 #include <goo/GList.hh>
 
+#include <xpdf/xpdf.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
@@ -39,76 +40,10 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-namespace detail {
-
-template< typename T >
-bool is (Object&);
-
-template<>
-bool is< int > (Object& obj) {
-    return obj.isInt ();
-}
-template<>
-bool is< double > (Object& obj) {
-    return obj.isNum ();
-}
-
-template< typename T >
-T get (Object&);
-
-template<>
-int get< int > (Object& obj) {
-    return obj.getInt ();
-}
-template<>
-double get< double > (Object& obj) {
-    return obj.getNum ();
-}
-
-template< typename T >
-std::optional< std::vector< T > > as_array_of (Object& src) {
-    std::vector< T > xs;
-
-    const size_t n = src.arrayGetLength ();
-
-    for (size_t i = 0; i < n; ++i) {
-        Object tmp;
-        src.arrayGet (i, &tmp);
-
-        if (!is< T > (tmp)) {
-            error (errSyntaxError, -1, "illegal array value");
-            return { };
-        }
-
-        xs.push_back (get< T > (tmp));
-        tmp.free ();
-    }
-
-    return xs;
-}
-
-struct object_guard_t : boost::noncopyable {
-    object_guard_t (Object& obj) : p_ (&obj) { }
-
-    ~object_guard_t () {
-        if (p_)
-            p_->free ();
-    }
-private:
-    Object* p_;
-};
-
-} // namespace detail
-
-#define XPDF_OBJECT_GUARD(x) \
-    detail::object_guard_t XPDF_CAT (object_guard_, __LINE__){ x }
-
-#define GUARD XPDF_OBJECT_GUARD
-
-////////////////////////////////////////////////////////////////////////
-
 // TODO: the copy constructors
-Function::Function () : m (), n (), domain (), range (), hasRange () { }
+Function::Function ()
+    : m (), n (), domain (), range (), hasRange ()
+{ }
 
 Function::~Function () { }
 
@@ -139,7 +74,7 @@ Function* Function::parse (Object* pobj, int recursion_level) {
     Object obj;
 
     dict->lookup ("FunctionType", &obj);
-    GUARD (obj);
+    OBJECT_GUARD (&obj);
 
     if (!obj.isInt ()) {
         error (errSyntaxError, -1, "Function type is missing or wrong type");
@@ -184,7 +119,7 @@ bool Function::init (Dict* dict) {
 
     {
         dict->lookup ("Domain", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         // The domain
         if (!obj.isArray ()) {
@@ -192,7 +127,7 @@ bool Function::init (Dict* dict) {
             return false;
         }
 
-        if (const auto opt = detail::as_array_of< double > (obj)) {
+        if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
             const auto& xs = *opt;
 
             ASSERT (0 == (xs.size () & 1U));
@@ -210,10 +145,10 @@ bool Function::init (Dict* dict) {
     hasRange = false;
 
     dict->lookup ("Range", &obj);
-    GUARD (obj);
+    OBJECT_GUARD (&obj);
 
     if (obj.isArray ()) {
-        if (const auto opt = detail::as_array_of< double > (obj)) {
+        if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
             const auto& xs = *opt;
 
             ASSERT (0 == (xs.size () & 1U));
@@ -315,14 +250,14 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
         Object obj;
 
         dict->lookup ("Size", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (!obj.isArray () || obj.arrayGetLength () != m) {
             error (errSyntaxError, -1, "Function has missing or invalid size array");
             return;
         }
 
-        if (const auto opt = detail::as_array_of< int > (obj)) {
+        if (const auto opt = xpdf::maybe_array_of< int > (obj)) {
             const auto& xs = *opt;
             std::copy (xs.begin (), xs.end (), sampleSize);
         }
@@ -364,7 +299,7 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
         Object obj;
 
         dict->lookup ("BitsPerSample", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (!obj.isInt ()) {
             error (
@@ -382,10 +317,10 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
         Object obj;
 
         dict->lookup ("Encode", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (obj.isArray () && obj.arrayGetLength () == 2 * m) {
-            if (const auto opt = detail::as_array_of< double > (obj)) {
+            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
                 const auto& xs = *opt;
                 ASSERT (0 == (xs.size () & 1U));
 
@@ -416,10 +351,10 @@ SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
         Object obj;
 
         dict->lookup ("Decode", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (obj.isArray () && obj.arrayGetLength () == 2 * n) {
-            if (const auto opt = detail::as_array_of< double > (obj)) {
+            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
                 const auto& xs = *opt;
                 ASSERT (0 == (xs.size () & 1U));
 
@@ -645,7 +580,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
         Object obj;
 
         dict->lookup ("C0", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (obj.isArray ()) {
             if (hasRange && obj.arrayGetLength () != n) {
@@ -653,7 +588,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
                 return;
             }
 
-            if (const auto opt = detail::as_array_of< double > (obj)) {
+            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
                 const auto& xs = *opt;
 
                 n = xs.size ();
@@ -679,7 +614,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
         Object obj;
 
         dict->lookup ("C1", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (obj.isArray ()) {
             if (obj.arrayGetLength () != n) {
@@ -687,7 +622,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
                 return;
             }
 
-            if (const auto opt = detail::as_array_of< double > (obj)) {
+            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
                 const auto& xs = *opt;
                 std::copy (xs.begin (), xs.end (), c1);
             }
@@ -710,7 +645,7 @@ ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
         Object obj;
 
         dict->lookup ("N", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (!obj.isNum ()) {
             error (errSyntaxError, -1, "Function has missing or invalid N");
@@ -784,7 +719,7 @@ StitchingFunction::StitchingFunction (
         Object obj;
 
         dict->lookup ("Functions", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (!obj.isArray ()) {
             error (
@@ -810,7 +745,7 @@ StitchingFunction::StitchingFunction (
             Object tmp;
 
             funcs [i] = Function::parse (obj.arrayGet (i, &tmp), recursion + 1);
-            GUARD (tmp);
+            OBJECT_GUARD (&tmp);
 
             if (!funcs [i]) {
                 return;
@@ -831,7 +766,7 @@ StitchingFunction::StitchingFunction (
         Object obj;
 
         dict->lookup ("Bounds", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (!obj.isArray () || obj.arrayGetLength () != k - 1) {
             error (
@@ -846,7 +781,7 @@ StitchingFunction::StitchingFunction (
             Object tmp;
 
             obj.arrayGet (i - 1, &tmp);
-            GUARD (tmp);
+            OBJECT_GUARD (&tmp);
 
             if (!tmp.isNum ()) {
                 error (
@@ -866,7 +801,7 @@ StitchingFunction::StitchingFunction (
         Object obj;
 
         dict->lookup ("Encode", &obj);
-        GUARD (obj);
+        OBJECT_GUARD (&obj);
 
         if (!obj.isArray () || obj.arrayGetLength () != 2 * k) {
             error (
@@ -879,7 +814,7 @@ StitchingFunction::StitchingFunction (
             Object tmp;
 
             obj.arrayGet (i, &tmp);
-            GUARD (tmp);
+            OBJECT_GUARD (&tmp);
 
             if (!tmp.isNum ()) {
                 error (
