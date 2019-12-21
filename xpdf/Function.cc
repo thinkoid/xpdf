@@ -24,6 +24,8 @@
 #include <goo/GList.hh>
 
 #include <xpdf/xpdf.hh>
+#include <Array.hh>
+#include <ArrayIterator.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
@@ -31,6 +33,9 @@
 #include <xpdf/Function.hh>
 
 #include <boost/noncopyable.hpp>
+
+#include <range/v3/all.hpp>
+using namespace ranges;
 
 #define STD_COPY_C_ARRAY(x, y)                                  \
     std::copy (&x[0], &x[0] + sizeof x / sizeof x[0], &y[0])

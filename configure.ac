@@ -79,5 +79,6 @@ AC_CONFIG_FILES(goo/Makefile)
 AC_CONFIG_FILES(fofi/Makefile)
 AC_CONFIG_FILES(splash/Makefile)
 AC_CONFIG_FILES(xpdf/Makefile)
+AC_CONFIG_FILES(test/Makefile)
 
 AC_OUTPUT()

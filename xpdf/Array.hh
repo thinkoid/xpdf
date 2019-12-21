@@ -11,9 +11,6 @@
 
 #include <defs.hh>
 
-#include <boost/iterator/iterator_facade.hpp>
-#include <range/v3/view/subrange.hpp>
-
 class Object;
 class XRef;
 
