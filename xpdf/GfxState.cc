@@ -1086,7 +1086,7 @@ void GfxIndexedColorSpace::getDefaultRanges (
 //------------------------------------------------------------------------
 
 GfxSeparationColorSpace::GfxSeparationColorSpace (
-    GString* nameA, GfxColorSpace* altA, Function* funcA) {
+    GString* nameA, GfxColorSpace* altA, const Function& funcA) {
     name = nameA;
     alt = altA;
     func = funcA;
@@ -1104,8 +1104,8 @@ GfxSeparationColorSpace::GfxSeparationColorSpace (
 }
 
 GfxSeparationColorSpace::GfxSeparationColorSpace (
-    GString* nameA, GfxColorSpace* altA, Function* funcA, bool nonMarkingA,
-    unsigned overprintMaskA) {
+    GString* nameA, GfxColorSpace* altA, const Function& funcA,
+    bool nonMarkingA, unsigned overprintMaskA) {
     name = nameA;
     alt = altA;
     func = funcA;
@@ -1116,14 +1116,13 @@ GfxSeparationColorSpace::GfxSeparationColorSpace (
 GfxSeparationColorSpace::~GfxSeparationColorSpace () {
     delete name;
     delete alt;
-    delete func;
 }
 
 GfxColorSpace* GfxSeparationColorSpace::copy () {
     GfxSeparationColorSpace* cs;
 
     cs = new GfxSeparationColorSpace (
-        name->copy (), alt->copy (), func->copy (), nonMarking, overprintMask);
+        name->copy (), alt->copy (), func, nonMarking, overprintMask);
     return cs;
 }
 
@@ -1132,7 +1131,7 @@ GfxColorSpace* GfxSeparationColorSpace::parse (Array* arr, int recursion) {
     GfxSeparationColorSpace* cs;
     GString* nameA;
     GfxColorSpace* altA;
-    Function* funcA;
+    Function funcA;
     Object obj1;
 
     if (arr->getLength () != 4) {
@@ -1154,7 +1153,7 @@ GfxColorSpace* GfxSeparationColorSpace::parse (Array* arr, int recursion) {
     }
     obj1.free ();
     arr->get (3, &obj1);
-    if (!(funcA = Function::parse (&obj1))) { goto err4; }
+    if (!(funcA = xpdf::make_function (obj1))) { goto err4; }
     obj1.free ();
     cs = new GfxSeparationColorSpace (nameA, altA, funcA);
     return cs;
@@ -1176,7 +1175,7 @@ void GfxSeparationColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     int i;
 
     x = colToDbl (color->c[0]);
-    func->transform (&x, c);
+    func (&x, &x + 1,c);
     for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
     alt->getGray (&color2, gray);
 }
@@ -1188,7 +1187,7 @@ void GfxSeparationColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     int i;
 
     x = colToDbl (color->c[0]);
-    func->transform (&x, c);
+    func (&x, &x + 1, c);
     for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
     alt->getRGB (&color2, rgb);
 }
@@ -1200,7 +1199,7 @@ void GfxSeparationColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     int i;
 
     x = colToDbl (color->c[0]);
-    func->transform (&x, c);
+    func (&x, &x + 1, c);
     for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
     alt->getCMYK (&color2, cmyk);
 }
@@ -1214,7 +1213,7 @@ void GfxSeparationColorSpace::getDefaultColor (GfxColor* color) {
 //------------------------------------------------------------------------
 
 GfxDeviceNColorSpace::GfxDeviceNColorSpace (
-    int nCompsA, GString** namesA, GfxColorSpace* altA, Function* funcA) {
+    int nCompsA, GString** namesA, GfxColorSpace* altA, const Function& funcA) {
     int i;
 
     nComps = nCompsA;
@@ -1242,7 +1241,7 @@ GfxDeviceNColorSpace::GfxDeviceNColorSpace (
 }
 
 GfxDeviceNColorSpace::GfxDeviceNColorSpace (
-    int nCompsA, GString** namesA, GfxColorSpace* altA, Function* funcA,
+    int nCompsA, GString** namesA, GfxColorSpace* altA, const Function& funcA,
     bool nonMarkingA, unsigned overprintMaskA) {
     int i;
 
@@ -1255,18 +1254,14 @@ GfxDeviceNColorSpace::GfxDeviceNColorSpace (
 }
 
 GfxDeviceNColorSpace::~GfxDeviceNColorSpace () {
-    int i;
-
-    for (i = 0; i < nComps; ++i) { delete names[i]; }
+    for (size_t i = 0; i < nComps; ++i) { delete names [i]; }
     delete alt;
-    delete func;
 }
 
 GfxColorSpace* GfxDeviceNColorSpace::copy () {
     GfxDeviceNColorSpace* cs;
-
     cs = new GfxDeviceNColorSpace (
-        nComps, names, alt->copy (), func->copy (), nonMarking, overprintMask);
+        nComps, names, alt->copy (), func, nonMarking, overprintMask);
     return cs;
 }
 
@@ -1276,7 +1271,7 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array* arr, int recursion) {
     int nCompsA;
     GString* namesA[gfxColorMaxComps];
     GfxColorSpace* altA;
-    Function* funcA;
+    Function funcA;
     Object obj1, obj2;
     int i;
 
@@ -1315,7 +1310,7 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array* arr, int recursion) {
     }
     obj1.free ();
     arr->get (3, &obj1);
-    if (!(funcA = Function::parse (&obj1))) { goto err4; }
+    if (!(funcA = xpdf::make_function (obj1))) { goto err4; }
     obj1.free ();
     cs = new GfxDeviceNColorSpace (nCompsA, namesA, altA, funcA);
     return cs;
@@ -1336,7 +1331,7 @@ void GfxDeviceNColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     int i;
 
     for (i = 0; i < nComps; ++i) { x[i] = colToDbl (color->c[i]); }
-    func->transform (x, c);
+    func (x, x + nComps, c);
     for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
     alt->getGray (&color2, gray);
 }
@@ -1347,7 +1342,7 @@ void GfxDeviceNColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     int i;
 
     for (i = 0; i < nComps; ++i) { x[i] = colToDbl (color->c[i]); }
-    func->transform (x, c);
+    func (x, x + nComps, c);
     for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
     alt->getRGB (&color2, rgb);
 }
@@ -1358,15 +1353,13 @@ void GfxDeviceNColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     int i;
 
     for (i = 0; i < nComps; ++i) { x[i] = colToDbl (color->c[i]); }
-    func->transform (x, c);
+    func (x, x + nComps, c);
     for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
     alt->getCMYK (&color2, cmyk);
 }
 
 void GfxDeviceNColorSpace::getDefaultColor (GfxColor* color) {
-    int i;
-
-    for (i = 0; i < nComps; ++i) { color->c[i] = gfxColorComp1; }
+    for (size_t i = 0; i < nComps; ++i) { color->c[i] = gfxColorComp1; }
 }
 
 //------------------------------------------------------------------------
@@ -1793,7 +1786,7 @@ bool GfxShading::init (Dict* dict) {
 
 GfxFunctionShading::GfxFunctionShading (
     double x0A, double y0A, double x1A, double y1A, double* matrixA,
-    Function** funcsA, int nFuncsA)
+    Function* funcsA, int nFuncsA)
     : GfxShading (1) {
     int i;
 
@@ -1801,9 +1794,11 @@ GfxFunctionShading::GfxFunctionShading (
     y0 = y0A;
     x1 = x1A;
     y1 = y1A;
+
     for (i = 0; i < 6; ++i) { matrix[i] = matrixA[i]; }
+
     nFuncs = nFuncsA;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = funcsA[i]; }
+    ::copy (funcsA, funcsA + nFuncsA, funcs);
 }
 
 GfxFunctionShading::GfxFunctionShading (GfxFunctionShading* shading)
@@ -1815,21 +1810,18 @@ GfxFunctionShading::GfxFunctionShading (GfxFunctionShading* shading)
     x1 = shading->x1;
     y1 = shading->y1;
     for (i = 0; i < 6; ++i) { matrix[i] = shading->matrix[i]; }
+
     nFuncs = shading->nFuncs;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = shading->funcs[i]->copy (); }
+    ::copy (funcs, funcs + nFuncs, shading->funcs);
 }
 
-GfxFunctionShading::~GfxFunctionShading () {
-    int i;
-
-    for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
-}
+GfxFunctionShading::~GfxFunctionShading () { }
 
 GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
     GfxFunctionShading* shading;
     double x0A, y0A, x1A, y1A;
     double matrixA[6];
-    Function* funcsA[gfxColorMaxComps];
+    Function funcsA[gfxColorMaxComps];
     int nFuncsA;
     Object obj1, obj2;
     int i;
@@ -1883,13 +1875,13 @@ GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
         }
         for (i = 0; i < nFuncsA; ++i) {
             obj1.arrayGet (i, &obj2);
-            if (!(funcsA[i] = Function::parse (&obj2))) { goto err2; }
+            if (!(funcsA[i] = xpdf::make_function (obj2))) { goto err2; }
             obj2.free ();
         }
     }
     else {
         nFuncsA = 1;
-        if (!(funcsA[0] = Function::parse (&obj1))) { goto err1; }
+        if (!(funcsA[0] = xpdf::make_function (obj1))) { goto err1; }
     }
     obj1.free ();
 
@@ -1913,16 +1905,17 @@ GfxShading* GfxFunctionShading::copy () {
 }
 
 void GfxFunctionShading::getColor (double x, double y, GfxColor* color) {
-    double in[2], out[gfxColorMaxComps];
-    int i;
+    double in [2] = { x, y }, out [gfxColorMaxComps] = { };
 
     // NB: there can be one function with n outputs or n functions with
     // one output each (where n = number of color components)
-    for (i = 0; i < gfxColorMaxComps; ++i) { out[i] = 0; }
-    in[0] = x;
-    in[1] = y;
-    for (i = 0; i < nFuncs; ++i) { funcs[i]->transform (in, &out[i]); }
-    for (i = 0; i < gfxColorMaxComps; ++i) { color->c[i] = dblToCol (out[i]); }
+    for (size_t i = 0; i < nFuncs; ++i) {
+        funcs [i] (in, in + 2, &out[i]);
+    }
+
+    for (size_t i = 0; i < gfxColorMaxComps; ++i) {
+        color->c [i] = dblToCol (out [i]);
+    }
 }
 
 //------------------------------------------------------------------------
@@ -1931,9 +1924,8 @@ void GfxFunctionShading::getColor (double x, double y, GfxColor* color) {
 
 GfxAxialShading::GfxAxialShading (
     double x0A, double y0A, double x1A, double y1A, double t0A, double t1A,
-    Function** funcsA, int nFuncsA, bool extend0A, bool extend1A)
+    Function* funcsA, int nFuncsA, bool extend0A, bool extend1A)
     : GfxShading (2) {
-    int i;
 
     x0 = x0A;
     y0 = y0A;
@@ -1941,39 +1933,37 @@ GfxAxialShading::GfxAxialShading (
     y1 = y1A;
     t0 = t0A;
     t1 = t1A;
+
     nFuncs = nFuncsA;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = funcsA[i]; }
+    ::copy (funcsA, funcsA + nFuncsA, funcs);
+
     extend0 = extend0A;
     extend1 = extend1A;
 }
 
 GfxAxialShading::GfxAxialShading (GfxAxialShading* shading)
     : GfxShading (shading) {
-    int i;
-
     x0 = shading->x0;
     y0 = shading->y0;
     x1 = shading->x1;
     y1 = shading->y1;
     t0 = shading->t0;
     t1 = shading->t1;
+
     nFuncs = shading->nFuncs;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = shading->funcs[i]->copy (); }
+    ::copy (shading->funcs, shading->funcs + nFuncs, funcs);
+
     extend0 = shading->extend0;
     extend1 = shading->extend1;
 }
 
-GfxAxialShading::~GfxAxialShading () {
-    int i;
-
-    for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
-}
+GfxAxialShading::~GfxAxialShading () { }
 
 GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     GfxAxialShading* shading;
     double x0A, y0A, x1A, y1A;
     double t0A, t1A;
-    Function* funcsA[gfxColorMaxComps];
+    Function funcsA[gfxColorMaxComps];
     int nFuncsA;
     bool extend0A, extend1A;
     Object obj1, obj2;
@@ -2021,7 +2011,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
         }
         for (i = 0; i < nFuncsA; ++i) {
             obj1.arrayGet (i, &obj2);
-            if (!(funcsA[i] = Function::parse (&obj2))) {
+            if (!(funcsA[i] = xpdf::make_function (obj2))) {
                 obj1.free ();
                 obj2.free ();
                 goto err1;
@@ -2031,7 +2021,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     }
     else {
         nFuncsA = 1;
-        if (!(funcsA[0] = Function::parse (&obj1))) {
+        if (!(funcsA[0] = xpdf::make_function (obj1))) {
             obj1.free ();
             goto err1;
         }
@@ -2063,14 +2053,17 @@ err1:
 GfxShading* GfxAxialShading::copy () { return new GfxAxialShading (this); }
 
 void GfxAxialShading::getColor (double t, GfxColor* color) {
-    double out[gfxColorMaxComps];
-    int i;
+    double out[gfxColorMaxComps] = { };
 
     // NB: there can be one function with n outputs or n functions with
     // one output each (where n = number of color components)
-    for (i = 0; i < gfxColorMaxComps; ++i) { out[i] = 0; }
-    for (i = 0; i < nFuncs; ++i) { funcs[i]->transform (&t, &out[i]); }
-    for (i = 0; i < gfxColorMaxComps; ++i) { color->c[i] = dblToCol (out[i]); }
+    for (size_t i = 0; i < nFuncs; ++i) {
+        funcs [i] (&t, &t + 1, out + i);
+    }
+
+    for (size_t i = 0; i < gfxColorMaxComps; ++i) {
+        color->c[i] = dblToCol (out[i]);
+    }
 }
 
 //------------------------------------------------------------------------
@@ -2079,10 +2072,9 @@ void GfxAxialShading::getColor (double t, GfxColor* color) {
 
 GfxRadialShading::GfxRadialShading (
     double x0A, double y0A, double r0A, double x1A, double y1A, double r1A,
-    double t0A, double t1A, Function** funcsA, int nFuncsA, bool extend0A,
+    double t0A, double t1A, Function* funcsA, int nFuncsA, bool extend0A,
     bool extend1A)
     : GfxShading (3) {
-    int i;
 
     x0 = x0A;
     y0 = y0A;
@@ -2092,16 +2084,16 @@ GfxRadialShading::GfxRadialShading (
     r1 = r1A;
     t0 = t0A;
     t1 = t1A;
+
     nFuncs = nFuncsA;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = funcsA[i]; }
+    ::copy (funcsA, funcsA + nFuncsA, funcs);
+
     extend0 = extend0A;
     extend1 = extend1A;
 }
 
 GfxRadialShading::GfxRadialShading (GfxRadialShading* shading)
     : GfxShading (shading) {
-    int i;
-
     x0 = shading->x0;
     y0 = shading->y0;
     r0 = shading->r0;
@@ -2110,23 +2102,21 @@ GfxRadialShading::GfxRadialShading (GfxRadialShading* shading)
     r1 = shading->r1;
     t0 = shading->t0;
     t1 = shading->t1;
+
     nFuncs = shading->nFuncs;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = shading->funcs[i]->copy (); }
+    ::copy (shading->funcs, shading->funcs + nFuncs, funcs);
+
     extend0 = shading->extend0;
     extend1 = shading->extend1;
 }
 
-GfxRadialShading::~GfxRadialShading () {
-    int i;
-
-    for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
-}
+GfxRadialShading::~GfxRadialShading () { }
 
 GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     GfxRadialShading* shading;
     double x0A, y0A, r0A, x1A, y1A, r1A;
     double t0A, t1A;
-    Function* funcsA[gfxColorMaxComps];
+    Function funcsA[gfxColorMaxComps];
     int nFuncsA;
     bool extend0A, extend1A;
     Object obj1, obj2;
@@ -2178,7 +2168,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
         }
         for (i = 0; i < nFuncsA; ++i) {
             obj1.arrayGet (i, &obj2);
-            if (!(funcsA[i] = Function::parse (&obj2))) {
+            if (!(funcsA[i] = xpdf::make_function (obj2))) {
                 obj1.free ();
                 obj2.free ();
                 goto err1;
@@ -2188,7 +2178,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     }
     else {
         nFuncsA = 1;
-        if (!(funcsA[0] = Function::parse (&obj1))) {
+        if (!(funcsA[0] = xpdf::make_function (obj1))) {
             obj1.free ();
             goto err1;
         }
@@ -2221,14 +2211,17 @@ err1:
 GfxShading* GfxRadialShading::copy () { return new GfxRadialShading (this); }
 
 void GfxRadialShading::getColor (double t, GfxColor* color) {
-    double out[gfxColorMaxComps];
-    int i;
+    double out [gfxColorMaxComps] = { };
 
     // NB: there can be one function with n outputs or n functions with
     // one output each (where n = number of color components)
-    for (i = 0; i < gfxColorMaxComps; ++i) { out[i] = 0; }
-    for (i = 0; i < nFuncs; ++i) { funcs[i]->transform (&t, &out[i]); }
-    for (i = 0; i < gfxColorMaxComps; ++i) { color->c[i] = dblToCol (out[i]); }
+    for (size_t i = 0; i < nFuncs; ++i) {
+        funcs [i] (&t, &t + 1, out + i);
+    }
+
+    for (size_t i = 0; i < gfxColorMaxComps; ++i) {
+        color->c [i] = dblToCol (out [i]);
+    }
 }
 
 //------------------------------------------------------------------------
@@ -2302,49 +2295,48 @@ void GfxShadingBitBuf::flushBits () {
 
 GfxGouraudTriangleShading::GfxGouraudTriangleShading (
     int typeA, GfxGouraudVertex* verticesA, int nVerticesA,
-    int (*trianglesA)[3], int nTrianglesA, int nCompsA, Function** funcsA,
-    int nFuncsA)
+    int (*trianglesA)[3], int nTrianglesA, int nCompsA,
+    Function* funcsA, int nFuncsA)
     : GfxShading (typeA) {
-    int i;
 
     vertices = verticesA;
     nVertices = nVerticesA;
     triangles = trianglesA;
     nTriangles = nTrianglesA;
     nComps = nCompsA;
+
     nFuncs = nFuncsA;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = funcsA[i]; }
+    ::copy (funcsA, funcsA + nFuncsA, funcs);
 }
 
 GfxGouraudTriangleShading::GfxGouraudTriangleShading (
     GfxGouraudTriangleShading* shading)
     : GfxShading (shading) {
-    int i;
-
     nVertices = shading->nVertices;
-    vertices =
-        (GfxGouraudVertex*)calloc (nVertices, sizeof (GfxGouraudVertex));
+
+    vertices = (GfxGouraudVertex*)calloc (nVertices, sizeof (GfxGouraudVertex));
     memcpy (vertices, shading->vertices, nVertices * sizeof (GfxGouraudVertex));
+
     nTriangles = shading->nTriangles;
+
     triangles = (int (*)[3])calloc (nTriangles * 3, sizeof (int));
     memcpy (triangles, shading->triangles, nTriangles * 3 * sizeof (int));
+
     nComps = shading->nComps;
+
     nFuncs = shading->nFuncs;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = shading->funcs[i]->copy (); }
+    ::copy (shading->funcs, shading->funcs + nFuncs, funcs);
 }
 
 GfxGouraudTriangleShading::~GfxGouraudTriangleShading () {
-    int i;
-
     free (vertices);
     free (triangles);
-    for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
 }
 
 GfxGouraudTriangleShading*
 GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
     GfxGouraudTriangleShading* shading;
-    Function* funcsA[gfxColorMaxComps];
+    Function funcsA[gfxColorMaxComps];
     int nFuncsA;
     int coordBits, compBits, flagBits, vertsPerRow, nRows;
     double xMin, xMax, yMin, yMax;
@@ -2446,7 +2438,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
             }
             for (i = 0; i < nFuncsA; ++i) {
                 obj1.arrayGet (i, &obj2);
-                if (!(funcsA[i] = Function::parse (&obj2))) {
+                if (!(funcsA[i] = xpdf::make_function (obj2))) {
                     obj1.free ();
                     obj2.free ();
                     goto err1;
@@ -2456,7 +2448,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
         }
         else {
             nFuncsA = 1;
-            if (!(funcsA[0] = Function::parse (&obj1))) {
+            if (!(funcsA[0] = xpdf::make_function (obj1))) {
                 obj1.free ();
                 goto err1;
             }
@@ -2588,18 +2580,24 @@ void GfxGouraudTriangleShading::getTriangle (
 }
 
 void GfxGouraudTriangleShading::getColor (double* in, GfxColor* out) {
-    double c[gfxColorMaxComps];
-    int i;
+    ASSERT (0);
+//     double c [gfxColorMaxComps] = { };
 
-    if (nFuncs > 0) {
-        for (i = 0; i < nFuncs; ++i) { funcs[i]->transform (in, &c[i]); }
-        for (i = 0; i < colorSpace->getNComps (); ++i) {
-            out->c[i] = dblToCol (c[i]);
-        }
-    }
-    else {
-        for (i = 0; i < nComps; ++i) { out->c[i] = dblToCol (in[i]); }
-    }
+//     if (nFuncs > 0) {
+//         for (size_t i = 0; i < nFuncs; ++i) {
+//             // TODO
+//             // funcs [i] (in, &c[i]);
+//         }
+
+//         for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
+//             out->c[i] = dblToCol (c[i]);
+//         }
+//     }
+//     else {
+//         for (size_t i = 0; i < nComps; ++i) {
+//             out->c [i] = dblToCol (in [i]);
+//         }
+//     }
 }
 
 //------------------------------------------------------------------------
@@ -2608,40 +2606,36 @@ void GfxGouraudTriangleShading::getColor (double* in, GfxColor* out) {
 
 GfxPatchMeshShading::GfxPatchMeshShading (
     int typeA, GfxPatch* patchesA, int nPatchesA, int nCompsA,
-    Function** funcsA, int nFuncsA)
+    Function* funcsA, int nFuncsA)
     : GfxShading (typeA) {
-    int i;
-
     patches = patchesA;
     nPatches = nPatchesA;
     nComps = nCompsA;
+
     nFuncs = nFuncsA;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = funcsA[i]; }
+    ::copy (funcsA, funcsA + nFuncsA, funcs);
 }
 
 GfxPatchMeshShading::GfxPatchMeshShading (GfxPatchMeshShading* shading)
     : GfxShading (shading) {
-    int i;
 
     nPatches = shading->nPatches;
     patches = (GfxPatch*)calloc (nPatches, sizeof (GfxPatch));
     memcpy (patches, shading->patches, nPatches * sizeof (GfxPatch));
     nComps = shading->nComps;
+
     nFuncs = shading->nFuncs;
-    for (i = 0; i < nFuncs; ++i) { funcs[i] = shading->funcs[i]->copy (); }
+    ::copy (shading->funcs, shading->funcs + nFuncs, funcs);
 }
 
 GfxPatchMeshShading::~GfxPatchMeshShading () {
-    int i;
-
     free (patches);
-    for (i = 0; i < nFuncs; ++i) { delete funcs[i]; }
 }
 
 GfxPatchMeshShading*
 GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
     GfxPatchMeshShading* shading;
-    Function* funcsA[gfxColorMaxComps];
+    Function funcsA[gfxColorMaxComps];
     int nFuncsA;
     int coordBits, compBits, flagBits;
     double xMin, xMax, yMin, yMax;
@@ -2730,7 +2724,7 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
             }
             for (i = 0; i < nFuncsA; ++i) {
                 obj1.arrayGet (i, &obj2);
-                if (!(funcsA[i] = Function::parse (&obj2))) {
+                if (!(funcsA[i] = xpdf::make_function (obj2))) {
                     obj1.free ();
                     obj2.free ();
                     goto err1;
@@ -2740,7 +2734,7 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
         }
         else {
             nFuncsA = 1;
-            if (!(funcsA[0] = Function::parse (&obj1))) {
+            if (!(funcsA[0] = xpdf::make_function (obj1))) {
                 obj1.free ();
                 goto err1;
             }
@@ -3168,18 +3162,24 @@ GfxShading* GfxPatchMeshShading::copy () {
 }
 
 void GfxPatchMeshShading::getColor (double* in, GfxColor* out) {
-    double c[gfxColorMaxComps];
-    int i;
+    ASSERT (0);
+//     double c [gfxColorMaxComps] = { };
 
-    if (nFuncs > 0) {
-        for (i = 0; i < nFuncs; ++i) { funcs[i]->transform (in, &c[i]); }
-        for (i = 0; i < colorSpace->getNComps (); ++i) {
-            out->c[i] = dblToCol (c[i]);
-        }
-    }
-    else {
-        for (i = 0; i < nComps; ++i) { out->c[i] = dblToCol (in[i]); }
-    }
+//     if (nFuncs > 0) {
+//         for (size_t i = 0; i < nFuncs; ++i) {
+//             // TODO
+//             // funcs [i] (in, &c[i]);
+//         }
+
+//         for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
+//             out->c [i] = dblToCol (c [i]);
+//         }
+//     }
+//     else {
+//         for (size_t i = 0; i < nComps; ++i) {
+//             out->c [i] = dblToCol (in [i]);
+//         }
+//     }
 }
 
 //------------------------------------------------------------------------
@@ -3192,7 +3192,7 @@ GfxImageColorMap::GfxImageColorMap (
     GfxSeparationColorSpace* sepCS;
     int maxPixel, indexHigh;
     unsigned char* indexedLookup;
-    Function* sepFunc;
+    Function sepFunc;
     Object obj;
     double x[gfxColorMaxComps];
     double y[gfxColorMaxComps];
@@ -3295,7 +3295,7 @@ GfxImageColorMap::GfxImageColorMap (
         }
         for (i = 0; i <= maxPixel; ++i) {
             x[0] = decodeLow[0] + (i * decodeRange[0]) / maxPixel;
-            sepFunc->transform (x, y);
+            sepFunc (x, x + 1, y);
             for (k = 0; k < nComps2; ++k) { lookup2[k][i] = dblToCol (y[k]); }
         }
     }
@@ -3756,7 +3756,8 @@ GfxState::GfxState (
     fillOverprint = false;
     strokeOverprint = false;
     overprintMode = 0;
-    transfer[0] = transfer[1] = transfer[2] = transfer[3] = NULL;
+
+    ::fill (transfer, transfer + 4, Function{ });
 
     lineWidth = 1;
     lineDash = NULL;
@@ -3796,16 +3797,13 @@ GfxState::GfxState (
 }
 
 GfxState::~GfxState () {
-    int i;
-
     if (fillColorSpace) { delete fillColorSpace; }
     if (strokeColorSpace) { delete strokeColorSpace; }
     if (fillPattern) { delete fillPattern; }
     if (strokePattern) { delete strokePattern; }
-    for (i = 0; i < 4; ++i) {
-        if (transfer[i]) { delete transfer[i]; }
-    }
+
     free (lineDash);
+
     if (path) {
         // this gets set to NULL by restore()
         delete path;
@@ -3813,29 +3811,97 @@ GfxState::~GfxState () {
 }
 
 // Used for copy();
-GfxState::GfxState (GfxState* state, bool copyPath) {
-    int i;
+GfxState::GfxState (GfxState* state, bool copyPath)
+    :
+    hDPI{ state->hDPI },
+    vDPI{ state->vDPI },
+    ctm{ },
+    px1{ state->px1 },
+    py1{ state->py1 },
+    px2{ state->px2 },
+    py2{ state->py2 },
+    pageWidth{ state->pageWidth },
+    pageHeight{ state->pageHeight },
+    rotate{ state->rotate },
+    fillColorSpace{ state->fillColorSpace },
+    strokeColorSpace{ state->strokeColorSpace },
+    fillColor{ state->fillColor },
+    strokeColor{ state->strokeColor },
+    fillPattern{ state->fillPattern },
+    strokePattern{ state->strokePattern },
+    blendMode{ state->blendMode },
+    fillOpacity{ state->fillOpacity },
+    strokeOpacity{ state->strokeOpacity },
+    fillOverprint{ state->fillOverprint },
+    strokeOverprint{ state->strokeOverprint },
+    overprintMode{ state->overprintMode },
+    transfer{ },
+    lineWidth{ state->lineWidth },
+    lineDash{ state->lineDash },
+    lineDashLength{ state->lineDashLength },
+    lineDashStart{ state->lineDashStart },
+    flatness{ state->flatness },
+    lineJoin{ state->lineJoin },
+    lineCap{ state->lineCap },
+    miterLimit{ state->miterLimit },
+    strokeAdjust{ state->strokeAdjust },
+    font{ state->font },
+    fontSize{ state->fontSize },
+    textMat{ },
+    charSpace{ state->charSpace },
+    wordSpace{ state->wordSpace },
+    horizScaling{ state->horizScaling },
+    leading{ state->leading },
+    rise{ state->rise },
+    render{ state->render },
+    path{ state->path },
+    curX{ state->curX },
+    curY{ state->curY },
+    lineX{ state->lineX },
+    lineY{ state->lineY },
+    clipXMin{ state->clipXMin },
+    clipYMin{ state->clipYMin },
+    clipXMax{ state->clipXMax },
+    clipYMax{ state->clipYMax },
+    saved{ }
+ {
+    // memcpy (this, state, sizeof (GfxState));
+     ::copy (state->ctm, state->ctm + 6, ctm);
+     ::copy (state->textMat, state->textMat + 6, textMat);
 
-    memcpy (this, state, sizeof (GfxState));
-    if (fillColorSpace) { fillColorSpace = state->fillColorSpace->copy (); }
-    if (strokeColorSpace) {
-        strokeColorSpace = state->strokeColorSpace->copy ();
-    }
-    if (fillPattern) { fillPattern = state->fillPattern->copy (); }
-    if (strokePattern) { strokePattern = state->strokePattern->copy (); }
-    for (i = 0; i < 4; ++i) {
-        if (transfer[i]) { transfer[i] = state->transfer[i]->copy (); }
-    }
-    if (lineDashLength > 0) {
-        lineDash = (double*)calloc (lineDashLength, sizeof (double));
-        memcpy (lineDash, state->lineDash, lineDashLength * sizeof (double));
-    }
-    if (copyPath) { path = state->path->copy (); }
-    saved = NULL;
+     if (fillColorSpace) {
+         fillColorSpace = state->fillColorSpace->copy ();
+     }
+
+     if (strokeColorSpace) {
+         strokeColorSpace = state->strokeColorSpace->copy ();
+     }
+
+     if (fillPattern) {
+         fillPattern = state->fillPattern->copy ();
+     }
+
+     if (strokePattern) {
+         strokePattern = state->strokePattern->copy ();
+     }
+
+     ::copy (state->transfer, state->transfer + 4, transfer);
+
+     if (lineDashLength > 0) {
+         lineDash = (double*)calloc (lineDashLength, sizeof (double));
+         memcpy (lineDash, state->lineDash, lineDashLength * sizeof (double));
+     }
+
+     if (copyPath) {
+         path = state->path->copy ();
+     }
 }
 
 void GfxState::setPath (GfxPath* pathA) {
-    delete path;
+    if (path) {
+        delete path;
+    }
+
     path = pathA;
 }
 
@@ -3993,13 +4059,8 @@ void GfxState::setStrokePattern (GfxPattern* pattern) {
     strokePattern = pattern;
 }
 
-void GfxState::setTransfer (Function** funcs) {
-    int i;
-
-    for (i = 0; i < 4; ++i) {
-        if (transfer[i]) { delete transfer[i]; }
-        transfer[i] = funcs[i];
-    }
+void GfxState::setTransfer (Function* funcs) {
+    ::copy (funcs, funcs + 4, transfer);
 }
 
 void GfxState::setLineDash (double* dash, int length, double start) {

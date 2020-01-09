@@ -1016,46 +1016,48 @@ void SplashOutputDev::updateStrokeOpacity (GfxState* state) {
 }
 
 void SplashOutputDev::updateTransfer (GfxState* state) {
-    Function** transfer;
     unsigned char red[256], green[256], blue[256], gray[256];
     double x, y;
     int i;
 
-    transfer = state->getTransfer ();
-    if (transfer[0] && transfer[0]->getInputSize () == 1 &&
-        transfer[0]->getOutputSize () == 1) {
-        if (transfer[1] && transfer[1]->getInputSize () == 1 &&
-            transfer[1]->getOutputSize () == 1 && transfer[2] &&
-            transfer[2]->getInputSize () == 1 &&
-            transfer[2]->getOutputSize () == 1 && transfer[3] &&
-            transfer[3]->getInputSize () == 1 &&
-            transfer[3]->getOutputSize () == 1) {
+    Function* ts = state->getTransfer ();
+
+    auto is_unary = [](auto& f) { return 1 == f.arity () && 1 == f.coarity (); };
+
+    if (ts [0] && is_unary (ts [0])) {
+        if (ts [1] && is_unary (ts [1]) &&
+            ts [2] && is_unary (ts [2]) &&
+            ts [3] && is_unary (ts [3])) {
             for (i = 0; i < 256; ++i) {
                 x = i / 255.0;
-                transfer[0]->transform (&x, &y);
-                red[i] = (unsigned char) (y * 255.0 + 0.5);
-                transfer[1]->transform (&x, &y);
-                green[i] = (unsigned char) (y * 255.0 + 0.5);
-                transfer[2]->transform (&x, &y);
-                blue[i] = (unsigned char) (y * 255.0 + 0.5);
-                transfer[3]->transform (&x, &y);
-                gray[i] = (unsigned char) (y * 255.0 + 0.5);
+
+                ts [0] (&x, &x + 1, &y);
+                red [i] = (unsigned char) (y * 255.0 + 0.5);
+
+                ts [1] (&x, &x + 1, &y);
+                green [i] = (unsigned char) (y * 255.0 + 0.5);
+
+                ts [2] (&x, &x + 1, &y);
+                blue [i] = (unsigned char) (y * 255.0 + 0.5);
+
+                ts [3] (&x, &x + 1, &y);
+                gray [i] = (unsigned char) (y * 255.0 + 0.5);
             }
         }
         else {
             for (i = 0; i < 256; ++i) {
                 x = i / 255.0;
-                transfer[0]->transform (&x, &y);
-                red[i] = green[i] = blue[i] = gray[i] =
-                    (unsigned char) (y * 255.0 + 0.5);
+                ts [0] (&x, &x + 1, &y);
+                red [i] = green [i] = blue [i] = gray [i] = (unsigned char) (y * 255.0 + 0.5);
             }
         }
     }
     else {
         for (i = 0; i < 256; ++i) {
-            red[i] = green[i] = blue[i] = gray[i] = (unsigned char)i;
+            red [i] = green [i] = blue [i] = gray [i] = (unsigned char)i;
         }
     }
+
     splash->setTransfer (red, green, blue, gray);
 }
 
@@ -3155,7 +3157,7 @@ void SplashOutputDev::paintTransparencyGroup (GfxState* state, double* bbox) {
 }
 
 void SplashOutputDev::setSoftMask (
-    GfxState* state, double* bbox, bool alpha, Function* transferFunc,
+    GfxState* state, double* bbox, bool alpha, const Function& transferFunc,
     GfxColor* backdropColor) {
     SplashBitmap *softMask, *tBitmap;
     Splash* tSplash;
@@ -3224,7 +3226,10 @@ void SplashOutputDev::setSoftMask (
             delete tSplash;
         }
     }
-    if (transferFunc) { transferFunc->transform (&backdrop, &backdrop2); }
+
+    if (transferFunc) {
+        transferFunc (&backdrop, &backdrop + 1, &backdrop2);
+    }
     else {
         backdrop2 = backdrop;
     }
@@ -3262,7 +3267,7 @@ void SplashOutputDev::setSoftMask (
 #endif
                     }
                 }
-                if (transferFunc) { transferFunc->transform (&lum, &lum2); }
+                if (transferFunc) { transferFunc (&lum, &lum + 1, &lum2); }
                 else {
                     lum2 = lum;
                 }

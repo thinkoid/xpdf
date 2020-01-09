@@ -11,12 +11,16 @@
 
 class Array;
 
+#include <xpdf/ArrayIterator.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
 
 #include <boost/format.hpp>
 using fmt = boost::format;
+
+#include <range/v3/all.hpp>
+using namespace ranges;
 
 namespace xpdf {
 
@@ -63,7 +67,7 @@ inline T as (Dict& dict, const char* s) {
     Object obj;
 
     if (0 == dict.lookup (s, &obj)) {
-        throw std::runtime_error (fmt ("missing key %1%") % s);
+        throw std::runtime_error ((fmt ("missing key %1%") % s).str ());
     }
 
     OBJECT_GUARD (&obj);
@@ -83,7 +87,7 @@ inline T array_get (Object& arr, size_t i) {
 }
 
 template< typename T >
-inline auto as_array_of (Object& src) {
+inline auto as_array (Object& src) {
     std::vector< T > xs;
 
     for (size_t i = 0, n = src.arrayGetLength (); i < n; ++i) {
@@ -94,7 +98,7 @@ inline auto as_array_of (Object& src) {
 }
 
 template< >
-inline auto as_array_of< size_t > (Object& src) {
+inline auto as_array< size_t > (Object& src) {
     std::vector< size_t > xs;
 
     for (size_t i = 0, n = src.arrayGetLength (); i < n; ++i) {
@@ -104,8 +108,25 @@ inline auto as_array_of< size_t > (Object& src) {
     return xs;
 }
 
+template< >
+inline auto as_array< std::tuple< double, double > > (Object& src) {
+    std::vector< std::tuple< double, double > > xs;
+
+    if (!src.isArray ()) {
+        throw std::runtime_error ("not an array");
+    }
+
+    auto rng = xpdf::make_array_subrange< double > (&src);
+
+    transform (rng | views::chunk (2), back_inserter (xs), [](auto arg) {
+        return std::make_tuple (arg [0], arg [1]);
+    });
+
+    return xs;
+}
+
 template< typename T >
-inline auto as_array_of (Dict& dict, const char* s) {
+inline auto as_array (Dict& dict, const char* s) {
     Object obj;
 
     if (0 == dict.lookup (s, &obj)) {
@@ -113,29 +134,19 @@ inline auto as_array_of (Dict& dict, const char* s) {
     }
 
     OBJECT_GUARD (&obj);
-    return as_array_of< T > (obj);
+    return as_array< T > (obj);
 }
 
 template< typename T >
-inline std::optional< std::vector< T > >
-maybe_array_of (Object& obj) {
-    try {
-        return as_array_of< T > (obj);
-    }
-    catch (...) {
-        return { };
-    }
-}
+std::vector< T > optional_array (Dict& dict, const char* s) {
+    Object obj;
 
-template< typename T >
-inline std::optional< std::vector< T > >
-maybe_array_of (Dict& dict, const char* s) {
-    try {
-        return as_array_of< T > (dict, s);
-    }
-    catch (...) {
+    if (0 == dict.lookup (s, &obj) || obj.isNull ()) {
         return { };
     }
+
+    OBJECT_GUARD (&obj);
+    return { as_array< T > (obj) };
 }
 
 } // namespace xpdf

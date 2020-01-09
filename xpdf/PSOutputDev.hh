@@ -12,7 +12,8 @@
 #include <defs.hh>
 
 #include <cstddef>
-#include <defs.hh>
+
+#include <xpdf/Function.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/OutputDev.hh>
@@ -20,7 +21,6 @@
 class GHash;
 class PDFDoc;
 class XRef;
-class Function;
 class GfxPath;
 class GfxFont;
 class GfxColorSpace;
@@ -257,7 +257,7 @@ public:
     }
 
     void writePSChar (char c);
-    void writePSBlock (char* s, int len);
+    void writePSBlock (const char* s, int len);
     void writePS (const char* s);
     void writePSFmt (const char* fmt, ...);
     void writePSString (GString* s);
@@ -318,7 +318,7 @@ private:
         GfxState* state, double x0, double y0, double* x1, double* y1);
     bool getFileSpec (Object* fileSpec, Object* fileName);
 #endif
-    void cvtFunction (Function* func);
+    void cvtFunction (const Function& func);
     GString* filterPSName (GString* name);
     void writePSTextLine (GString* s);
 

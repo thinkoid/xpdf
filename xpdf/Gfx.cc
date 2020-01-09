@@ -34,6 +34,9 @@
 #include <xpdf/TextString.hh>
 #include <xpdf/Gfx.hh>
 
+#include <range/v3/all.hpp>
+using namespace ranges;
+
 // the MSVC math.h doesn't define this
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -853,7 +856,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
     Object args2[2];
     GfxBlendMode mode;
     bool haveFillOP;
-    Function* funcs[4];
+    Function funcs[4];
     GfxColor backdropColor;
     bool haveBackdropColor;
     GfxColorSpace* blendingColorSpace;
@@ -968,15 +971,14 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
         obj1.dictLookup ("TR", &obj2);
     }
     if (obj2.isName ("Default") || obj2.isName ("Identity")) {
-        funcs[0] = funcs[1] = funcs[2] = funcs[3] = NULL;
         state->setTransfer (funcs);
         out->updateTransfer (state);
     }
     else if (obj2.isArray () && obj2.arrayGetLength () == 4) {
         for (i = 0; i < 4; ++i) {
             obj2.arrayGet (i, &obj3);
-            funcs[i] = Function::parse (&obj3);
-            obj3.free ();
+            OBJECT_GUARD (&obj3);
+            funcs[i] = xpdf::make_function (obj3);
             if (!funcs[i]) { break; }
         }
         if (i == 4) {
@@ -985,8 +987,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
         }
     }
     else if (obj2.isName () || obj2.isDict () || obj2.isStream ()) {
-        if ((funcs[0] = Function::parse (&obj2))) {
-            funcs[1] = funcs[2] = funcs[3] = NULL;
+        if ((funcs[0] = xpdf::make_function (obj2))) {
             state->setTransfer (funcs);
             out->updateTransfer (state);
         }
@@ -1009,21 +1010,19 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                 alpha = false;
             }
             obj3.free ();
-            funcs[0] = NULL;
+            fill (funcs, funcs + 4, Function{ });
             if (!obj2.dictLookup ("TR", &obj3)->isNull ()) {
                 if (obj3.isName ("Default") || obj3.isName ("Identity")) {
-                    funcs[0] = NULL;
+                    ; // funcs[0] = { };
                 }
                 else {
-                    funcs[0] = Function::parse (&obj3);
-                    if (funcs[0]->getInputSize () != 1 ||
-                        funcs[0]->getOutputSize () != 1) {
+                    funcs[0] = xpdf::make_function (obj3);
+                    if (funcs[0].arity () != 1 || funcs[0].coarity () != 1) {
                         error (
                             errSyntaxError, getPos (),
                             "Invalid transfer function in soft mask in "
                             "ExtGState");
-                        delete funcs[0];
-                        funcs[0] = NULL;
+                        funcs[0] = { };
                     }
                 }
             }
@@ -1074,9 +1073,10 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                     obj2.dictLookupNF ("G", &objRef3);
                     doSoftMask (
                         &obj3, &objRef3, alpha, blendingColorSpace, isolated,
-                        knockout, funcs[0], &backdropColor);
+                        knockout, funcs [0], &backdropColor);
+
                     objRef3.free ();
-                    if (funcs[0]) { delete funcs[0]; }
+                    funcs [0] = { };
                 }
                 else {
                     error (
@@ -1103,7 +1103,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
 
 void Gfx::doSoftMask (
     Object* str, Object* strRef, bool alpha, GfxColorSpace* blendingColorSpace,
-    bool isolated, bool knockout, Function* transferFunc,
+    bool isolated, bool knockout, const Function& transferFunc,
     GfxColor* backdropColor) {
     Dict *dict, *resDict;
     double m[6], bbox[4];
@@ -4144,7 +4144,7 @@ void Gfx::doForm (Object* strRef, Object* str) {
 void Gfx::drawForm (
     Object* strRef, Dict* resDict, double* matrix, double* bbox,
     bool transpGroup, bool softMask, GfxColorSpace* blendingColorSpace,
-    bool isolated, bool knockout, bool alpha, Function* transferFunc,
+    bool isolated, bool knockout, bool alpha, const Function& transferFunc,
     GfxColor* backdropColor) {
     Parser* oldParser;
     GfxState* savedState;

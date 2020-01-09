@@ -76,7 +76,7 @@ static inline unsigned char colToByte (GfxColorComp x) {
 // GfxColor
 //------------------------------------------------------------------------
 
-#define gfxColorMaxComps funcMaxOutputs
+#define gfxColorMaxComps xpdf::function_t::max_outputs
 
 struct GfxColor {
     GfxColorComp c[gfxColorMaxComps];
@@ -432,7 +432,7 @@ private:
 class GfxSeparationColorSpace : public GfxColorSpace {
 public:
     GfxSeparationColorSpace (
-        GString* nameA, GfxColorSpace* altA, Function* funcA);
+        GString* nameA, GfxColorSpace* altA, const Function& funcA);
     virtual ~GfxSeparationColorSpace ();
     virtual GfxColorSpace* copy ();
     virtual GfxColorSpaceMode getMode () { return csSeparation; }
@@ -452,16 +452,16 @@ public:
     // Separation-specific access.
     GString* getName () { return name; }
     GfxColorSpace* getAlt () { return alt; }
-    Function* getFunc () { return func; }
+    const Function& getFunc () const { return func; }
 
 private:
     GfxSeparationColorSpace (
-        GString* nameA, GfxColorSpace* altA, Function* funcA, bool nonMarkingA,
-        unsigned overprintMaskA);
+        GString* nameA, GfxColorSpace* altA, const Function& funcA,
+        bool nonMarkingA, unsigned overprintMaskA);
 
     GString* name;      // colorant name
     GfxColorSpace* alt; // alternate color space
-    Function* func;     // tint transform (into alternate color space)
+    Function func;     // tint transform (into alternate color space)
     bool nonMarking;
 };
 
@@ -472,7 +472,7 @@ private:
 class GfxDeviceNColorSpace : public GfxColorSpace {
 public:
     GfxDeviceNColorSpace (
-        int nCompsA, GString** namesA, GfxColorSpace* alt, Function* func);
+        int nCompsA, GString** namesA, GfxColorSpace* alt, const Function& func);
     virtual ~GfxDeviceNColorSpace ();
     virtual GfxColorSpace* copy ();
     virtual GfxColorSpaceMode getMode () { return csDeviceN; }
@@ -492,18 +492,18 @@ public:
     // DeviceN-specific access.
     GString* getColorantName (int i) { return names[i]; }
     GfxColorSpace* getAlt () { return alt; }
-    Function* getTintTransformFunc () { return func; }
+    const Function& getTintTransformFunc () const { return func; }
 
 private:
     GfxDeviceNColorSpace (
-        int nCompsA, GString** namesA, GfxColorSpace* alt, Function* func,
+        int nCompsA, GString** namesA, GfxColorSpace* alt, const Function& func,
         bool nonMarkingA, unsigned overprintMaskA);
 
     int nComps; // number of components
     GString     // colorant names
         * names[gfxColorMaxComps];
     GfxColorSpace* alt; // alternate color space
-    Function* func;     // tint transform (into alternate color space)
+    Function func;     // tint transform (into alternate color space)
     bool nonMarking;
 };
 
@@ -658,7 +658,7 @@ class GfxFunctionShading : public GfxShading {
 public:
     GfxFunctionShading (
         double x0A, double y0A, double x1A, double y1A, double* matrixA,
-        Function** funcsA, int nFuncsA);
+        Function* funcsA, int nFuncsA);
     GfxFunctionShading (GfxFunctionShading* shading);
     virtual ~GfxFunctionShading ();
 
@@ -674,13 +674,13 @@ public:
     }
     double* getMatrix () { return matrix; }
     int getNFuncs () { return nFuncs; }
-    Function* getFunc (int i) { return funcs[i]; }
+    const Function& getFunc (int i) const { return funcs[i]; }
     void getColor (double x, double y, GfxColor* color);
 
 private:
     double x0, y0, x1, y1;
     double matrix[6];
-    Function* funcs[gfxColorMaxComps];
+    Function funcs[gfxColorMaxComps];
     int nFuncs;
 };
 
@@ -692,7 +692,7 @@ class GfxAxialShading : public GfxShading {
 public:
     GfxAxialShading (
         double x0A, double y0A, double x1A, double y1A, double t0A, double t1A,
-        Function** funcsA, int nFuncsA, bool extend0A, bool extend1A);
+        Function* funcsA, int nFuncsA, bool extend0A, bool extend1A);
     GfxAxialShading (GfxAxialShading* shading);
     virtual ~GfxAxialShading ();
 
@@ -711,13 +711,13 @@ public:
     bool getExtend0 () { return extend0; }
     bool getExtend1 () { return extend1; }
     int getNFuncs () { return nFuncs; }
-    Function* getFunc (int i) { return funcs[i]; }
+    const Function& getFunc (int i) const { return funcs[i]; }
     void getColor (double t, GfxColor* color);
 
 private:
     double x0, y0, x1, y1;
     double t0, t1;
-    Function* funcs[gfxColorMaxComps];
+    Function funcs[gfxColorMaxComps];
     int nFuncs;
     bool extend0, extend1;
 };
@@ -730,7 +730,7 @@ class GfxRadialShading : public GfxShading {
 public:
     GfxRadialShading (
         double x0A, double y0A, double r0A, double x1A, double y1A, double r1A,
-        double t0A, double t1A, Function** funcsA, int nFuncsA, bool extend0A,
+        double t0A, double t1A, Function* funcsA, int nFuncsA, bool extend0A,
         bool extend1A);
     GfxRadialShading (GfxRadialShading* shading);
     virtual ~GfxRadialShading ();
@@ -754,13 +754,13 @@ public:
     bool getExtend0 () { return extend0; }
     bool getExtend1 () { return extend1; }
     int getNFuncs () { return nFuncs; }
-    Function* getFunc (int i) { return funcs[i]; }
+    const Function& getFunc (int i) const { return funcs[i]; }
     void getColor (double t, GfxColor* color);
 
 private:
     double x0, y0, r0, x1, y1, r1;
     double t0, t1;
-    Function* funcs[gfxColorMaxComps];
+    Function funcs[gfxColorMaxComps];
     int nFuncs;
     bool extend0, extend1;
 };
@@ -778,8 +778,8 @@ class GfxGouraudTriangleShading : public GfxShading {
 public:
     GfxGouraudTriangleShading (
         int typeA, GfxGouraudVertex* verticesA, int nVerticesA,
-        int (*trianglesA)[3], int nTrianglesA, int nCompsA, Function** funcsA,
-        int nFuncsA);
+        int (*trianglesA)[3], int nTrianglesA, int nCompsA,
+        Function* funcsA, int nFuncsA);
     GfxGouraudTriangleShading (GfxGouraudTriangleShading* shading);
     virtual ~GfxGouraudTriangleShading ();
 
@@ -800,7 +800,7 @@ private:
     int nVertices;
     int (*triangles)[3];
     int nTriangles;
-    Function* funcs[gfxColorMaxComps];
+    Function funcs[gfxColorMaxComps];
     int nComps; // number of color components (1 if nFuncs > 0)
     int nFuncs;
 };
@@ -819,7 +819,7 @@ class GfxPatchMeshShading : public GfxShading {
 public:
     GfxPatchMeshShading (
         int typeA, GfxPatch* patchesA, int nPatchesA, int nCompsA,
-        Function** funcsA, int nFuncsA);
+        Function* funcsA, int nFuncsA);
     GfxPatchMeshShading (GfxPatchMeshShading* shading);
     virtual ~GfxPatchMeshShading ();
 
@@ -835,7 +835,7 @@ public:
 private:
     GfxPatch* patches;
     int nPatches;
-    Function* funcs[gfxColorMaxComps];
+    Function funcs[gfxColorMaxComps];
     int nComps; // number of color components (1 if nFuncs > 0)
     int nFuncs;
 };
@@ -1067,7 +1067,7 @@ public:
     bool getFillOverprint () { return fillOverprint; }
     bool getStrokeOverprint () { return strokeOverprint; }
     int getOverprintMode () { return overprintMode; }
-    Function** getTransfer () { return transfer; }
+    Function* getTransfer () { return transfer; }
     double getLineWidth () { return lineWidth; }
     void getLineDash (double** dash, int* length, double* start) {
         *dash = lineDash;
@@ -1145,7 +1145,7 @@ public:
     void setFillOverprint (bool op) { fillOverprint = op; }
     void setStrokeOverprint (bool op) { strokeOverprint = op; }
     void setOverprintMode (int opm) { overprintMode = opm; }
-    void setTransfer (Function** funcs);
+    void setTransfer (Function* funcs);
     void setLineWidth (double width) { lineWidth = width; }
     void setLineDash (double* dash, int length, double start);
     void setFlatness (int flatness1) { flatness = flatness1; }
@@ -1232,7 +1232,7 @@ private:
     bool fillOverprint;             // fill overprint
     bool strokeOverprint;           // stroke overprint
     int overprintMode;               // overprint mode ("OPM")
-    Function* transfer[4];           // transfer function (entries may be: all
+    Function transfer[4];           // transfer function (entries may be: all
                                      //   NULL = identity; last three NULL =
                                      //   single function; all four non-NULL =
                                      //   R,G,B,gray functions)

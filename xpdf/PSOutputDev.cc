@@ -945,7 +945,7 @@ private:
 
     int width, height;
     GfxImageColorMap* colorMap;
-    Function* func;
+    Function func;
     ImageStream* imgStr;
     int buf[gfxColorMaxComps];
     int pixelIdx;
@@ -984,20 +984,27 @@ bool DeviceNRecoder::fillBuf () {
     unsigned char pixBuf[gfxColorMaxComps];
     GfxColor color;
     double x[gfxColorMaxComps], y[gfxColorMaxComps];
-    int i;
 
     if (pixelIdx >= width * height) { return false; }
     imgStr->getPixel (pixBuf);
     colorMap->getColor (pixBuf, &color);
-    for (i = 0;
-         i < ((GfxDeviceNColorSpace*)colorMap->getColorSpace ())->getNComps ();
-         ++i) {
-        x[i] = colToDbl (color.c[i]);
+
+    const size_t n = (
+        (GfxDeviceNColorSpace*)colorMap->getColorSpace ())->getNComps ();
+
+    for (size_t i = 0; i < n; ++i) {
+        x [i] = colToDbl (color.c [i]);
     }
-    func->transform (x, y);
-    for (i = 0; i < bufSize; ++i) { buf[i] = (int)(y[i] * 255 + 0.5); }
+
+    func (x, x + n, y);
+
+    for (size_t i = 0; i < bufSize; ++i) {
+        buf[i] = (int)(y[i] * 255 + 0.5);
+    }
+
     bufIdx = 0;
     ++pixelIdx;
+
     return true;
 }
 
@@ -3877,10 +3884,11 @@ void PSOutputDev::updateStrokeOverprint (GfxState* state) {
 }
 
 void PSOutputDev::updateTransfer (GfxState* state) {
-    Function** funcs;
+    Function* funcs;
     int i;
 
     funcs = state->getTransfer ();
+
     if (funcs[0] && funcs[1] && funcs[2] && funcs[3]) {
         if (level >= psLevel2) {
             for (i = 0; i < 4; ++i) { cvtFunction (funcs[i]); }
@@ -5884,7 +5892,6 @@ void PSOutputDev::dumpColorSpaceL2 (
     double low[gfxColorMaxComps], range[gfxColorMaxComps];
     GfxColor color;
     GfxCMYK cmyk;
-    Function* func;
     int n, numComps, numAltComps;
     int byte;
     int i, j, k;
@@ -6021,7 +6028,7 @@ void PSOutputDev::dumpColorSpaceL2 (
         lookup = indexedCS->getLookup ();
         writePSFmt (" {0:d} <\n", n);
         if (baseCS->getMode () == csDeviceN) {
-            func = ((GfxDeviceNColorSpace*)baseCS)->getTintTransformFunc ();
+            auto& func = ((GfxDeviceNColorSpace*)baseCS)->getTintTransformFunc ();
             baseCS->getDefaultRanges (low, range, indexedCS->getIndexHigh ());
             if (((GfxDeviceNColorSpace*)baseCS)->getAlt ()->getMode () ==
                 csLab) {
@@ -6040,7 +6047,7 @@ void PSOutputDev::dumpColorSpaceL2 (
                     for (k = 0; k < numComps; ++k) {
                         x[k] = low[k] + (*p++ / 255.0) * range[k];
                     }
-                    func->transform (x, y);
+                    func (x, x + numComps, y);
                     if (labCS) {
                         y[0] /= 100.0;
                         y[1] = (y[1] - labCS->getAMin ()) /
@@ -6599,167 +6606,9 @@ void PSOutputDev::psXObject (Stream* psStream, Stream* level1Stream) {
 
 //~ can nextFunc be reset to 0 -- maybe at the start of each page?
 //~   or maybe at the start of each color space / pattern?
-void PSOutputDev::cvtFunction (Function* func) {
-    SampledFunction* func0;
-    ExponentialFunction* func2;
-    StitchingFunction* func3;
-    PostScriptFunction* func4;
-    int thisFunc, m, n, nSamples, i, j, k;
-
-    switch (func->getType ()) {
-    case -1: // identity
-        writePS ("{}\n");
-        break;
-
-    case 0: // sampled
-        func0 = (SampledFunction*)func;
-        thisFunc = nextFunc++;
-        m = func0->getInputSize ();
-        n = func0->getOutputSize ();
-        nSamples = n;
-        for (i = 0; i < m; ++i) { nSamples *= func0->getSampleSize (i); }
-        writePSFmt ("/xpdfSamples{0:d} [\n", thisFunc);
-        for (i = 0; i < nSamples; ++i) {
-            writePSFmt ("{0:.6g}\n", func0->getSamples ()[i]);
-        }
-        writePS ("] def\n");
-        writePSFmt (
-            "{{ {0:d} array {1:d} array {2:d} 2 roll\n", 2 * m, m, m + 2);
-        // [e01] [efrac] x0 x1 ... xm-1
-        for (i = m - 1; i >= 0; --i) {
-            // [e01] [efrac] x0 x1 ... xi
-            writePSFmt (
-                "{0:.6g} sub {1:.6g} mul {2:.6g} add\n",
-                func0->getDomainMin (i),
-                (func0->getEncodeMax (i) - func0->getEncodeMin (i)) /
-                    (func0->getDomainMax (i) - func0->getDomainMin (i)),
-                func0->getEncodeMin (i));
-            // [e01] [efrac] x0 x1 ... xi-1 xi'
-            writePSFmt (
-                "dup 0 lt {{ pop 0 }} {{ dup {0:d} gt {{ pop {1:d} }} if }} "
-                "ifelse\n",
-                func0->getSampleSize (i) - 1, func0->getSampleSize (i) - 1);
-            // [e01] [efrac] x0 x1 ... xi-1 xi'
-            writePS ("dup floor cvi exch dup ceiling cvi exch 2 index sub\n");
-            // [e01] [efrac] x0 x1 ... xi-1 floor(xi') ceiling(xi') xi'-floor(xi')
-            writePSFmt ("{0:d} index {1:d} 3 2 roll put\n", i + 3, i);
-            // [e01] [efrac] x0 x1 ... xi-1 floor(xi') ceiling(xi')
-            writePSFmt ("{0:d} index {1:d} 3 2 roll put\n", i + 3, 2 * i + 1);
-            // [e01] [efrac] x0 x1 ... xi-1 floor(xi')
-            writePSFmt ("{0:d} index {1:d} 3 2 roll put\n", i + 2, 2 * i);
-            // [e01] [efrac] x0 x1 ... xi-1
-        }
-        // [e01] [efrac]
-        for (i = 0; i < n; ++i) {
-            // [e01] [efrac] y(0) ... y(i-1)
-            for (j = 0; j < (1 << m); ++j) {
-                // [e01] [efrac] y(0) ... y(i-1) s(0) s(1) ... s(j-1)
-                writePSFmt ("xpdfSamples{0:d}\n", thisFunc);
-                k = m - 1;
-                writePSFmt (
-                    "{0:d} index {1:d} get\n", i + j + 2,
-                    2 * k + ((j >> k) & 1));
-                for (k = m - 2; k >= 0; --k) {
-                    writePSFmt (
-                        "{0:d} mul {1:d} index {2:d} get add\n",
-                        func0->getSampleSize (k), i + j + 3,
-                        2 * k + ((j >> k) & 1));
-                }
-                if (n > 1) { writePSFmt ("{0:d} mul {1:d} add ", n, i); }
-                writePS ("get\n");
-            }
-            // [e01] [efrac] y(0) ... y(i-1) s(0) s(1) ... s(2^m-1)
-            for (j = 0; j < m; ++j) {
-                // [e01] [efrac] y(0) ... y(i-1) s(0) s(1) ... s(2^(m-j)-1)
-                for (k = 0; k < (1 << (m - j)); k += 2) {
-                    // [e01] [efrac] y(0) ... y(i-1) <k/2 s' values> <2^(m-j)-k s values>
-                    writePSFmt (
-                        "{0:d} index {1:d} get dup\n",
-                        i + k / 2 + (1 << (m - j)) - k, j);
-                    writePS ("3 2 roll mul exch 1 exch sub 3 2 roll mul add\n");
-                    writePSFmt (
-                        "{0:d} 1 roll\n", k / 2 + (1 << (m - j)) - k - 1);
-                }
-                // [e01] [efrac] s'(0) s'(1) ... s(2^(m-j-1)-1)
-            }
-            // [e01] [efrac] y(0) ... y(i-1) s
-            writePSFmt (
-                "{0:.6g} mul {1:.6g} add\n",
-                func0->getDecodeMax (i) - func0->getDecodeMin (i),
-                func0->getDecodeMin (i));
-            writePSFmt (
-                "dup {0:.6g} lt {{ pop {1:.6g} }} {{ dup {2:.6g} gt {{ pop "
-                "{3:.6g} }} if }} ifelse\n",
-                func0->getRangeMin (i), func0->getRangeMin (i),
-                func0->getRangeMax (i), func0->getRangeMax (i));
-            // [e01] [efrac] y(0) ... y(i-1) y(i)
-        }
-        // [e01] [efrac] y(0) ... y(n-1)
-        writePSFmt ("{0:d} {1:d} roll pop pop }}\n", n + 2, n);
-        break;
-
-    case 2: // exponential
-        func2 = (ExponentialFunction*)func;
-        n = func2->getOutputSize ();
-        writePSFmt (
-            "{{ dup {0:.6g} lt {{ pop {1:.6g} }} {{ dup {2:.6g} gt {{ pop "
-            "{3:.6g} }} if }} ifelse\n",
-            func2->getDomainMin (0), func2->getDomainMin (0),
-            func2->getDomainMax (0), func2->getDomainMax (0));
-        // x
-        for (i = 0; i < n; ++i) {
-            // x y(0) .. y(i-1)
-            writePSFmt (
-                "{0:d} index {1:.6g} exp {2:.6g} mul {3:.6g} add\n", i,
-                func2->getE (), func2->getC1 ()[i] - func2->getC0 ()[i],
-                func2->getC0 ()[i]);
-            if (func2->getHasRange ()) {
-                writePSFmt (
-                    "dup {0:.6g} lt {{ pop {1:.6g} }} {{ dup {2:.6g} gt {{ pop "
-                    "{3:.6g} }} if }} ifelse\n",
-                    func2->getRangeMin (i), func2->getRangeMin (i),
-                    func2->getRangeMax (i), func2->getRangeMax (i));
-            }
-        }
-        // x y(0) .. y(n-1)
-        writePSFmt ("{0:d} {1:d} roll pop }}\n", n + 1, n);
-        break;
-
-    case 3: // stitching
-        func3 = (StitchingFunction*)func;
-        thisFunc = nextFunc++;
-        for (i = 0; i < func3->getNumFuncs (); ++i) {
-            cvtFunction (func3->getFunc (i));
-            writePSFmt ("/xpdfFunc{0:d}_{1:d} exch def\n", thisFunc, i);
-        }
-        writePSFmt (
-            "{{ dup {0:.6g} lt {{ pop {1:.6g} }} {{ dup {2:.6g} gt {{ pop "
-            "{3:.6g} }} if }} ifelse\n",
-            func3->getDomainMin (0), func3->getDomainMin (0),
-            func3->getDomainMax (0), func3->getDomainMax (0));
-        for (i = 0; i < func3->getNumFuncs () - 1; ++i) {
-            writePSFmt (
-                "dup {0:.6g} lt {{ {1:.6g} sub {2:.6g} mul {3:.6g} add "
-                "xpdfFunc{4:d}_{5:d} }} {{\n",
-                func3->getBounds ()[i + 1], func3->getBounds ()[i],
-                func3->getScale ()[i], func3->getEncode ()[2 * i], thisFunc, i);
-        }
-        writePSFmt (
-            "{0:.6g} sub {1:.6g} mul {2:.6g} add xpdfFunc{3:d}_{4:d}\n",
-            func3->getBounds ()[i], func3->getScale ()[i],
-            func3->getEncode ()[2 * i], thisFunc, i);
-        for (i = 0; i < func3->getNumFuncs () - 1; ++i) {
-            writePS ("} ifelse\n");
-        }
-        writePS ("}\n");
-        break;
-
-    case 4: // PostScript
-        func4 = (PostScriptFunction*)func;
-        writePS (func4->getCodeString ()->c_str ());
-        writePS ("\n");
-        break;
-    }
+void PSOutputDev::cvtFunction (const Function& func) {
+    const auto str = func.to_ps ();
+    writePSBlock (str.c_str (), str.size ());
 }
 
 void PSOutputDev::writePSChar (char c) {
@@ -6769,7 +6618,7 @@ void PSOutputDev::writePSChar (char c) {
     }
 }
 
-void PSOutputDev::writePSBlock (char* s, int len) {
+void PSOutputDev::writePSBlock (const char* s, int len) {
     if (t3String) { t3String->append (s, len); }
     else {
         (*outputFunc) (outputStream, s, len);

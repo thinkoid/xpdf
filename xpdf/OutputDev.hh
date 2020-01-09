@@ -12,6 +12,7 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
+#include <xpdf/Function.hh>
 
 class GString;
 class Gfx;
@@ -27,7 +28,6 @@ class Links;
 class Link;
 class Catalog;
 class Page;
-class Function;
 
 //------------------------------------------------------------------------
 // OutputDev
@@ -241,7 +241,7 @@ public:
     virtual void endTransparencyGroup (GfxState* state) {}
     virtual void paintTransparencyGroup (GfxState* state, double* bbox) {}
     virtual void setSoftMask (
-        GfxState* state, double* bbox, bool alpha, Function* transferFunc,
+        GfxState* state, double* bbox, bool alpha, const Function& transferFunc,
         GfxColor* backdropColor) {}
     virtual void clearSoftMask (GfxState* state) {}
 

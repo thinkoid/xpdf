@@ -16,7 +16,6 @@
 class AnnotBorderStyle;
 class Array;
 class Dict;
-class Function;
 class GList;
 class GString;
 class Gfx;
@@ -45,7 +44,8 @@ class Ref;
 struct GfxColor;
 struct GfxPatch;
 
-#include <Object.hh>
+#include <xpdf/Function.hh>
+#include <xpdf/Object.hh>
 
 //------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ public:
         bool transpGroup = false, bool softMask = false,
         GfxColorSpace* blendingColorSpace = NULL, bool isolated = false,
         bool knockout = false, bool alpha = false,
-        Function* transferFunc = NULL, GfxColor* backdropColor = NULL);
+        const Function& transferFunc = { }, GfxColor* backdropColor = NULL);
 
     // Take all of the content stream stack entries from <oldGfx>.  This
     // is useful when creating a new Gfx object to handle a pattern,
@@ -230,7 +230,7 @@ private:
     void doSoftMask (
         Object* str, Object* strRef, bool alpha,
         GfxColorSpace* blendingColorSpace, bool isolated, bool knockout,
-        Function* transferFunc, GfxColor* backdropColor);
+        const Function& transferFunc, GfxColor* backdropColor);
     void opSetRenderingIntent (Object args[], int numArgs);
 
     // color operators

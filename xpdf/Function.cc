@@ -15,1259 +15,678 @@
 
 #include <algorithm>
 #include <functional>
+#include <iostream>
+#include <list>
 #include <memory>
 #include <numeric>
 #include <optional>
+#include <tuple>
 #include <vector>
 
 #include <goo/memory.hh>
 #include <goo/GList.hh>
 
+#include <xpdf/bitpack.hh>
 #include <xpdf/xpdf.hh>
-#include <Array.hh>
-#include <ArrayIterator.hh>
+
+#include <xpdf/Array.hh>
+#include <xpdf/ArrayIterator.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Function.hh>
+#include <xpdf/Object.hh>
 
 #include <boost/noncopyable.hpp>
 
 #include <range/v3/all.hpp>
 using namespace ranges;
 
-#define STD_COPY_C_ARRAY(x, y)                                  \
-    std::copy (&x[0], &x[0] + sizeof x / sizeof x[0], &y[0])
+////////////////////////////////////////////////////////////////////////
 
-#define STD_COPY_C_ARRAY2(x, y)                                 \
-    std::copy (&x[0][0], &x[0][0] + sizeof x / sizeof x[0][0], &y[0][0])
+namespace xpdf {
+
+struct function_t::impl_t {
+    virtual ~impl_t () { }
+
+    virtual void
+    operator() (const double*, const double* const, double*) const = 0;
+
+    virtual size_t   arity () const = 0;
+    virtual size_t coarity () const = 0;
+
+    virtual int type () const = 0;
+
+    virtual std::string to_ps () const = 0;
+};
+
+namespace {
+
+inline auto domain_from (Dict& dict) {
+    return as_array< std::tuple< double, double > > (dict, "Domain");
+}
+
+inline auto range_from (Dict& dict) {
+    return as_array< std::tuple< double, double > > (dict, "Range");
+}
+
+inline auto optional_range_from (Dict& dict) {
+    return optional_array< std::tuple< double, double > > (dict, "Range");
+}
 
 ////////////////////////////////////////////////////////////////////////
 
-// TODO: the copy constructors
-Function::Function ()
-    : m (), n (), domain (), range (), hasRange ()
+struct identity_function_t : function_t::impl_t {
+    identity_function_t ();
+    ~identity_function_t () { }
+
+    void operator() (const double*, const double* const, double*) const;
+
+    size_t   arity () const { return function_t::max_inputs; }
+    size_t coarity () const { return function_t::max_outputs; }
+
+    int type () const { return -1; }
+
+    std::string to_ps () const;
+
+    //
+    // Domain, range (defaulted):
+    //
+    std::vector< std::tuple< double, double > > domain, range;
+};
+
+inline auto make_default_domain () {
+    return std::vector< std::tuple< double, double > >{
+        function_t::max_inputs, { 0., 1. } };
+}
+
+inline auto make_default_range () {
+    return std::vector< std::tuple< double, double > >{
+        function_t::max_outputs, { 0., 0. } };
+}
+
+identity_function_t::identity_function_t ()
+    : domain (make_default_domain ()), range (make_default_range ())
 { }
 
-Function::~Function () { }
-
-Function* Function::parse (Object* pobj, int recursion_level) {
-    static const size_t max_recursion = 8U;
-
-    if (recursion_level > max_recursion) {
-        error (errSyntaxError, -1, "Loop detected in function objects");
-        return 0;
-    }
-
-    Dict* dict = 0;
-
-    if (pobj->isStream ()) {
-        dict = pobj->streamGetDict ();
-    }
-    else if (pobj->isDict ()) {
-        dict = pobj->getDict ();
-    }
-    else if (pobj->isName ("Identity")) {
-        return new IdentityFunction ();
-    }
-    else {
-        error (errSyntaxError, -1, "Expected function dictionary or stream");
-        return 0;
-    }
-
-    Object obj;
-
-    dict->lookup ("FunctionType", &obj);
-    OBJECT_GUARD (&obj);
-
-    if (!obj.isInt ()) {
-        error (errSyntaxError, -1, "Function type is missing or wrong type");
-        return 0;
-    }
-
-    Function* func = 0;
-
-    switch (const int type = obj.getInt ()) {
-    case 0:
-        func = new SampledFunction (pobj, dict);
-        break;
-
-    case 2:
-        func = new ExponentialFunction (pobj, dict);
-        break;
-
-    case 3:
-        func = new StitchingFunction (pobj, dict, recursion_level);
-        break;
-
-    case 4:
-        func = new PostScriptFunction (pobj, dict);
-        break;
-
-    default:
-        error (errSyntaxError, -1, "Unimplemented function type ({0:d})", type);
-        break;
-    }
-
-    if (func && !func->isOk ()) {
-        delete func;
-        func = 0;
-    }
-
-    return func;
+void
+identity_function_t::operator() (
+    const double* src, const double* const end, double* dst) const {
+    copy (src, end, dst);
 }
 
-bool Function::init (Dict* dict) {
-    // TODO: managed resource
-    Object obj, obj2;
-
-    {
-        dict->lookup ("Domain", &obj);
-        OBJECT_GUARD (&obj);
-
-        // The domain
-        if (!obj.isArray ()) {
-            error (errSyntaxError, -1, "Function is missing domain");
-            return false;
-        }
-
-        if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
-            const auto& xs = *opt;
-
-            ASSERT (0 == (xs.size () & 1U));
-            m = xs.size () / 2;
-
-            for (size_t i = 0; i < xs.size (); ++i) {
-                domain[i >> 1][i & 1] = xs[i];
-            }
-        }
-        else {
-            return false;
-        }
-    }
-
-    hasRange = false;
-
-    dict->lookup ("Range", &obj);
-    OBJECT_GUARD (&obj);
-
-    if (obj.isArray ()) {
-        if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
-            const auto& xs = *opt;
-
-            ASSERT (0 == (xs.size () & 1U));
-            n = xs.size () / 2;
-
-            for (size_t i = 0; i < xs.size (); ++i) {
-                range[i >> 1][i & 1] = xs[i];
-            }
-
-            hasRange = true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    return true;
+std::string identity_function_t::to_ps () const {
+    return "{}\n";
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-IdentityFunction::IdentityFunction () {
-    //
-    // Fill these in with arbitrary values just in case they get used
-    // somewhere
-    //
-    m = funcMaxInputs;
-    n = funcMaxOutputs;
+struct sampled_function_t : function_t::impl_t {
+    sampled_function_t (Object&, Dict&);
+    ~sampled_function_t () { }
 
-    for (size_t i = 0; i < funcMaxInputs; ++i) {
-        domain [i][0] = 0;
-        domain [i][1] = 1;
-    }
+    void operator() (const double*, const double* const, double*) const;
 
-    hasRange = false;
+    size_t   arity () const { return domain.size (); }
+    size_t coarity () const { return range.size (); }
+
+    int type () const { return 2; }
+
+    std::string to_ps () const;
+
+    //
+    // Domain, range (required):
+    //
+    std::vector< std::tuple< double, double > > domain, range;
+
+    //
+    // Encode and decode arrays (optional):
+    //
+    std::vector< std::tuple< double, double > > encode, decode;
+
+    //
+    // Samples (required):
+    //
+    std::vector< double > samples;
+
+    //
+    // Number of samples (required):
+    //
+    std::vector< size_t > sizes;
+
+    //
+    // Helper data, offsets:
+    //
+    std::vector< off_t > off;
+
+    //
+    // Helper data, multipliers:
+    //
+    std::vector< double > multipliers;
+};
+
+inline std::vector< size_t > sample_sizes_from (Dict& dict) {
+    return xpdf::as_array< size_t > (dict, "Size");
 }
 
-IdentityFunction::~IdentityFunction () { }
+std::vector< off_t >
+make_offsets (const std::vector< size_t >& zs, size_t n) {
+    const size_t m = zs.size ();
 
-void IdentityFunction::transform (double* in, double* out) {
-    std::copy (in, in + funcMaxOutputs, out);
-}
+    std::vector< off_t > xs;
+    xs.reserve (1UL << zs.size ());
 
-////////////////////////////////////////////////////////////////////////
+    for (size_t i = 0; i < (1UL << m); ++i) {
+        off_t off = 0;
 
-SampledFunction::SampledFunction (Object* funcObj, Dict* dict)
-    : sampleSize (),
-      encode (),
-      decode (),
-      inputMul (),
-      idxOffset (),
-      samples (),
-      nSamples (),
-      sBuf (),
-      cacheIn (),
-      cacheOut (),
-      ok ()
-{
-    Stream* str;
-    int sampleBits;
-    double sampleMul;
-    unsigned buf, bitMask;
-    int bits;
-    unsigned s;
-    double in[funcMaxInputs];
-    int bit, idx;
-
-    //----- initialize the generic stuff
-    if (!init (dict)) {
-        return;
-    }
-
-    if (!hasRange) {
-        error (errSyntaxError, -1, "Type 0 function is missing range");
-        return;
-    }
-
-    if (m > sampledFuncMaxInputs) {
-        error (
-            errSyntaxError, -1,
-            "Sampled functions with more than {0:d} inputs are unsupported",
-            sampledFuncMaxInputs);
-        return;
-    }
-
-    //----- buffer
-    sBuf = (double*)calloc (1 << m, sizeof (double));
-
-    //----- get the stream
-    if (!funcObj->isStream ()) {
-        error (errSyntaxError, -1, "Type 0 function isn't a stream");
-        return;
-    }
-
-    str = funcObj->getStream ();
-
-    //----- Size
-    {
-        Object obj;
-
-        dict->lookup ("Size", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (!obj.isArray () || obj.arrayGetLength () != m) {
-            error (errSyntaxError, -1, "Function has missing or invalid size array");
-            return;
-        }
-
-        if (const auto opt = xpdf::maybe_array_of< int > (obj)) {
-            const auto& xs = *opt;
-            std::copy (xs.begin (), xs.end (), sampleSize);
-        }
-        else {
-            return;
-        }
-    }
-
-    idxOffset = (int*)calloc (1U << m, sizeof (int));
-
-    for (size_t i = 0, n = 1U << m; i < n; ++i) {
-        idx = 0;
-
-        size_t j, t;
-
+        size_t j, t, bit;
         for (j = m - 1, t = i; j >= 1; --j, t <<= 1) {
-            if (sampleSize [j] == 1) {
+            if (zs [j] == 1) {
                 bit = 0;
             }
             else {
                 bit = (t >> (m - 1)) & 1;
             }
 
-            idx = (idx + bit) * sampleSize[j - 1];
+            off = (off + bit) * zs [j - 1];
         }
 
-        if (sampleSize[0] == 1) {
+        if (zs [0] == 1) {
             bit = 0;
         }
         else {
             bit = (t >> (m - 1)) & 1;
         }
 
-        idxOffset[i] = (idx + bit) * Function::n;
+        xs.push_back ((off + bit) * n);
     }
 
-    //----- BitsPerSample
-    {
-        Object obj;
+    return xs;
+}
 
-        dict->lookup ("BitsPerSample", &obj);
-        OBJECT_GUARD (&obj);
+inline size_t bps_from (Dict& dict) {
+    auto n = xpdf::as< int > (dict, "BitsPerSample");
+    ASSERT (xpdf::contains (n, 1, 2, 4, 8, 12, 16, 24, 32));
+    return n;
+}
 
-        if (!obj.isInt ()) {
-            error (
-                errSyntaxError, -1,
-                "Function has missing or invalid BitsPerSample");
-            return;
-        }
+std::vector< char >
+block_from (Object& obj, size_t n) {
+    auto str = obj.getStream ();
+    STREAM_GUARD (str);
 
-        sampleBits = obj.getInt ();
-        sampleMul = 1.0 / (pow (2.0, (double)sampleBits) - 1);
-    }
+    std::vector< char > xs (n);
 
-    //----- Encode
-    {
-        Object obj;
-
-        dict->lookup ("Encode", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (obj.isArray () && obj.arrayGetLength () == 2 * m) {
-            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
-                const auto& xs = *opt;
-                ASSERT (0 == (xs.size () & 1U));
-
-                for (size_t i = 0; i < xs.size (); ++i) {
-                    encode[i >> 1][i & 1] = xs[i];
-                }
-            }
-            else {
-                return;
-            }
-        }
-        else {
-            for (size_t i = 0; i < m; ++i) {
-                encode[i][0] = 0;
-                encode[i][1] = sampleSize[i] - 1;
-            }
-        }
-    }
-
-    for (size_t i = 0; i < m; ++i) {
-        inputMul[i] =
-            (encode[i][1] - encode[i][0]) /
-            (domain[i][1] - domain[i][0]);
-    }
-
-    //----- Decode
-    {
-        Object obj;
-
-        dict->lookup ("Decode", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (obj.isArray () && obj.arrayGetLength () == 2 * n) {
-            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
-                const auto& xs = *opt;
-                ASSERT (0 == (xs.size () & 1U));
-
-                for (size_t i = 0; i < xs.size (); ++i) {
-                    decode[i >> 1][i & 1] = xs[i];
-                }
-            }
-            else {
-                return;
-            }
-        }
-        else {
-            for (size_t i = 0; i < n; ++i) {
-                decode [i][0] = range [i][0];
-                decode [i][1] = range [i][1];
-            }
-        }
-    }
-
-    //----- samples
-    nSamples = std::accumulate (
-        &sampleSize [0], &sampleSize [0] + m, n,
-        std::multiplies< size_t >{ });
-
-    samples = (double*)calloc (nSamples, sizeof (double));
-
-    buf = 0;
-    bits = 0;
-    bitMask = (sampleBits < 32) ? ((1 << sampleBits) - 1) : 0xffffffffU;
     str->reset ();
+    str->getBlock (xs.data (), n);
 
-    for (size_t i = 0; i < nSamples; ++i) {
-        if (sampleBits == 8) {
-            s = str->getChar ();
-        }
-        else if (sampleBits == 16) {
-            s = str->getChar ();
-            s = (s << 8) + str->getChar ();
-        }
-        else if (sampleBits == 32) {
-            s = str->getChar ();
-            s = (s << 8) + str->getChar ();
-            s = (s << 8) + str->getChar ();
-            s = (s << 8) + str->getChar ();
-        }
-        else {
-            while (bits < sampleBits) {
-                buf = (buf << 8) | (str->getChar () & 0xff);
-                bits += 8;
-            }
-            s = (buf >> (bits - sampleBits)) & bitMask;
-            bits -= sampleBits;
-        }
-        samples[i] = (double)s * sampleMul;
-    }
-
-    str->close ();
-
-    // set up the cache
-    for (size_t i = 0; i < m; ++i) {
-        in[i] = domain[i][0];
-        cacheIn[i] = in[i] - 1;
-    }
-
-    transform (in, cacheOut);
-    ok = true;
+    return xs;
 }
 
-SampledFunction::~SampledFunction () {
-    if (idxOffset) {
-        free (idxOffset);
-    }
-
-    if (samples) {
-        free (samples);
-    }
-
-    if (sBuf) {
-        free (sBuf);
-    }
+inline std::vector< double >
+samples_from (const std::vector< char >& xs, size_t n, size_t bps) {
+    return unpack (xs.data (), xs.data () + xs.size (), n, bps);
 }
 
-SampledFunction::SampledFunction (const SampledFunction& other)
-    : Function (other),
-      sampleSize (),
-      encode (),
-      decode (),
-      inputMul (),
-      idxOffset (),
-      samples (),
-      nSamples (),
-      sBuf (),
-      cacheIn (),
-      cacheOut (),
-      ok () {
-    STD_COPY_C_ARRAY (other.sampleSize, sampleSize);
-    STD_COPY_C_ARRAY (other.inputMul, inputMul);
+std::vector< std::tuple< double, double > >
+encode_array_from (Dict& dict, const std::vector< size_t >& default_) {
+    auto xs = optional_array< std::tuple< double, double > > (dict, "Encode");
 
-    STD_COPY_C_ARRAY2 (other.encode, encode);
-    STD_COPY_C_ARRAY2 (other.decode, decode);
+    if (xs.empty ()) {
+        transform (default_, back_inserter (xs), [](auto x) {
+            return std::make_tuple (size_t (0), size_t (x - 1));
+        });
+    }
 
-    idxOffset = (int*)calloc (1 << m, sizeof (int));
-    std::copy (&other.idxOffset[0], &other.idxOffset[0] + (1U << m), idxOffset);
-
-    samples = (double*)calloc (nSamples, sizeof (double));
-    std::copy (&other.samples[0], &other.samples[0] + nSamples, samples);
-
-    sBuf = (double*)calloc (1 << m, sizeof (double));
+    return xs;
 }
 
-void SampledFunction::transform (double* in, double* out) {
-    double x;
-    int e[funcMaxInputs] = { };
+std::vector< std::tuple< double, double > >
+decode_array_from (
+    Dict& dict, const std::vector< std::tuple< double, double > >& default_) {
+    auto xs = optional_array< std::tuple< double, double > > (dict, "Decode");
+    return xs.empty () ? default_ : xs;
+}
 
-    double efrac0[funcMaxInputs] = { };
-    double efrac1[funcMaxInputs] = { };
+std::vector< double >
+multipliers_from (
+    const std::vector< std::tuple< double, double > >& d,
+    const std::vector< std::tuple< double, double > >& e) {
+
+    std::vector< double > xs;
+
+    transform (
+        views::zip (d, e), ranges::back_inserter (xs),
+        [](auto arg) {
+            const auto& [d, e] = arg;
+
+            const auto& [d_0, d_1] = d;
+            const auto& [e_0, e_1] = e;
+
+            return double (e_1 - e_0) / (d_1 - d_0);
+        });
+
+    return xs;
+}
+
+sampled_function_t::sampled_function_t (Object& obj, Dict& dict)
+    : domain (domain_from (dict)), range (range_from (dict)) {
+    ASSERT (domain.size () <= function_t::max_inputs);
+    ASSERT ( range.size () <= function_t::max_outputs);
+
+    ASSERT (!range.empty ());
+
+    sizes = sample_sizes_from (dict);
+    ASSERT (domain.size () == sizes.size ());
+
+    off = make_offsets (sizes, range.size ());
+
+    const size_t nsamples = accumulate (
+        sizes, range.size (), std::multiplies< size_t >{ });
+
+    const size_t bps = bps_from (dict);
+    const size_t nbytes = (nsamples * bps + 7) >> 3;
+
+    samples = samples_from (block_from (obj, nbytes), nsamples, bps);
+    ASSERT (nsamples == samples.size ());
+
+    encode = encode_array_from (dict, sizes);
+    ASSERT (encode.size () == domain.size ());
+
+    decode = decode_array_from (dict, range);
+    ASSERT (decode.size () == range.size ());
+
+    multipliers = multipliers_from (domain, encode);
+}
+
+void
+sampled_function_t::operator() (
+    const double* src, const double* const end, double* dst) const {
+    int e [function_t::max_inputs] = { };
+
+    double efrac0 [function_t::max_inputs] = { };
+    double efrac1 [function_t::max_inputs] = { };
 
     int j, k, idx0, t;
 
-    {
-        // check the cache
-        size_t i = 0;
+    const size_t m = domain.size ();
+    const size_t n = range.size ();
 
-        for (; i < m; ++i) {
-            if (in[i] != cacheIn[i]) {
-                break;
-            }
-        }
-
-        if (i == m) {
-            for (size_t i = 0; i < n; ++i) {
-                out[i] = cacheOut[i];
-            }
-            return;
-        }
-    }
+    ASSERT (m == std::distance (src, end));
 
     // map input values into sample array
     for (size_t i = 0; i < m; ++i) {
-        x = (in[i] - domain[i][0]) * inputMul[i] + encode[i][0];
+        const auto& [d_0, d_1] = domain [i];
+        const auto& [e_0, e_1] = encode [i];
 
-        if (x < 0 || x != x) { // x!=x is a more portable version of isnan(x)
-            x = 0;
-        }
-        else if (x > sampleSize[i] - 1) {
-            x = sampleSize[i] - 1;
-        }
+        double x = (src [i] - d_0) * multipliers [i] + e_0;
+        x = std::isnan (x) ? 0 : std::clamp (x, 0., double (sizes [i] - 1));
 
-        e[i] = (int)x;
+        e [i] = int (x);
 
-        if (e[i] == sampleSize[i] - 1 && sampleSize[i] > 1) {
-            // this happens if in[i] = domain[i][1]
-            e[i] = sampleSize[i] - 2;
+        if (e [i] == sizes [i] - 1 && sizes [i] > 1) {
+            // this happens if in [i] = std::get< 1 > (d [i])
+            e [i] = sizes [i] - 2;
         }
 
-        efrac1[i] = x - e[i];
-        efrac0[i] = 1 - efrac1[i];
+        efrac1 [i] = x - e [i];
+        efrac0 [i] = 1 - efrac1 [i];
     }
 
     // compute index for the first sample to be used
     idx0 = 0;
 
     for (k = m - 1; k >= 1; --k) {
-        idx0 = (idx0 + e[k]) * sampleSize[k - 1];
+        idx0 = (idx0 + e [k]) * sizes [k - 1];
     }
 
-    idx0 = (idx0 + e[0]) * n;
+    idx0 = (idx0 + e [0]) * n;
+
+    std::vector< double > scratch (1UL << domain.size ());
 
     // for each output, do m-linear interpolation
     for (size_t i = 0; i < n; ++i) {
         // pull 2^m values out of the sample array
-        for (j = 0; j < (1 << m); ++j) {
-            sBuf[j] = samples[idx0 + idxOffset[j] + i];
+        for (j = 0; j < (1UL << m); ++j) {
+            scratch [j] = samples [idx0 + off [j] + i];
         }
 
         // do m sets of interpolations
-        for (j = 0, t = (1 << m); j < m; ++j, t >>= 1) {
+        for (j = 0, t = (1UL << m); j < m; ++j, t >>= 1) {
             for (k = 0; k < t; k += 2) {
-                sBuf[k >> 1] = efrac0[j] * sBuf[k] + efrac1[j] * sBuf[k + 1];
+                scratch [k >> 1] = efrac0 [j] * scratch [k] + efrac1 [j] * scratch [k + 1];
             }
         }
 
-        // map output value to range
-        out[i] = sBuf[0] * (decode[i][1] - decode[i][0]) + decode[i][0];
+        const auto& [x_0, x_1] = decode [i];
+        dst [i] = scratch [0] * (x_1 - x_0) + x_0;
 
-        if (out[i] < range[i][0]) {
-            out[i] = range[i][0];
-        }
-        else if (out[i] > range[i][1]) {
-            out[i] = range[i][1];
-        }
+        const auto& [r_0, r_1] = range [i];
+        dst [i] = std::clamp (dst [i], r_0, r_1);
     }
+}
 
-    // save current result in the cache
-    for (size_t i = 0; i < m; ++i) {
-        cacheIn[i] = in[i];
-    }
-
-    for (size_t i = 0; i < n; ++i) {
-        cacheOut[i] = out[i];
-    }
+std::string sampled_function_t::to_ps () const {
+    return { };
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-ExponentialFunction::ExponentialFunction (Object* funcObj, Dict* dict) {
-    ok = false;
+struct exponential_function_t : function_t::impl_t {
+    exponential_function_t (Object&, Dict&);
+    ~exponential_function_t () { }
 
-    //----- initialize the generic stuff
-    if (!init (dict)) {
-        return;
+    void operator() (const double*, const double* const, double*) const;
+
+    size_t arity () const {
+        ASSERT (1UL == domain.size ());
+        return domain.size ();
     }
 
-    if (m != 1) {
-        error (
-            errSyntaxError, -1,
-            "Exponential function with more than one input");
-        return;
+    size_t coarity () const {
+        ASSERT (c0.size () == c1.size ());
+        return c0.size ();
     }
 
-    //----- C0
-    {
-        Object obj;
-
-        dict->lookup ("C0", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (obj.isArray ()) {
-            if (hasRange && obj.arrayGetLength () != n) {
-                error (errSyntaxError, -1, "Function's C0 array is wrong length");
-                return;
-            }
-
-            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
-                const auto& xs = *opt;
-
-                n = xs.size ();
-                std::copy (xs.begin (), xs.end (), c0);
-            }
-            else {
-                return;
-            }
-        }
-        else {
-            if (hasRange && n != 1) {
-                error (errSyntaxError, -1, "Function's C0 array is wrong length");
-                return;
-            }
-
-            n = 1;
-            c0[0] = 0;
-        }
-    }
-
-    //----- C1
-    {
-        Object obj;
-
-        dict->lookup ("C1", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (obj.isArray ()) {
-            if (obj.arrayGetLength () != n) {
-                error (errSyntaxError, -1, "Function's C1 array is wrong length");
-                return;
-            }
-
-            if (const auto opt = xpdf::maybe_array_of< double > (obj)) {
-                const auto& xs = *opt;
-                std::copy (xs.begin (), xs.end (), c1);
-            }
-            else {
-                return;
-            }
-        }
-        else {
-            if (n != 1) {
-                error (errSyntaxError, -1, "Function's C1 array is wrong length");
-                return;
-            }
-
-            c1[0] = 1;
-        }
-    }
-
-    //----- N (exponent)
-    {
-        Object obj;
-
-        dict->lookup ("N", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (!obj.isNum ()) {
-            error (errSyntaxError, -1, "Function has missing or invalid N");
-            return;
-        }
-
-        e = obj.getNum ();
-    }
-
-    ok = true;
-    return;
-}
-
-ExponentialFunction::~ExponentialFunction () {}
-
-ExponentialFunction::ExponentialFunction (const ExponentialFunction& other)
-    : Function (other), e (other.e), ok (other.ok) {
-    STD_COPY_C_ARRAY (other.c0, c0);
-    STD_COPY_C_ARRAY (other.c1, c1);
-}
-
-void ExponentialFunction::transform (double* in, double* out) {
-    double x;
-    int i;
-
-    if (in[0] < domain[0][0]) { x = domain[0][0]; }
-    else if (in[0] > domain[0][1]) {
-        x = domain[0][1];
-    }
-    else {
-        x = in[0];
-    }
-    for (i = 0; i < n; ++i) {
-        out[i] = c0[i] + pow (x, e) * (c1[i] - c0[i]);
-        if (hasRange) {
-            if (out[i] < range[i][0]) { out[i] = range[i][0]; }
-            else if (out[i] > range[i][1]) {
-                out[i] = range[i][1];
-            }
-        }
-    }
-    return;
-}
-
-//------------------------------------------------------------------------
-// StitchingFunction
-//------------------------------------------------------------------------
-
-StitchingFunction::StitchingFunction (
-    Object* funcObj, Dict* dict, int recursion) {
-    int i;
-
-    ok = false;
-    funcs = NULL;
-    bounds = NULL;
-    encode = NULL;
-    scale = NULL;
-
-    //----- initialize the generic stuff
-    if (!init (dict)) {
-        return;
-    }
-
-    if (m != 1) {
-        error (errSyntaxError, -1, "Stitching function with more than one input");
-        return;
-    }
-
-    //----- Functions
-    {
-        Object obj;
-
-        dict->lookup ("Functions", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (!obj.isArray ()) {
-            error (
-                errSyntaxError, -1,
-                "Missing 'Functions' entry in stitching function");
-            return;
-        }
-
-        k = obj.arrayGetLength ();
-
-        funcs = (Function**)calloc (k, sizeof (Function*));
-
-        bounds = (double*)calloc (k + 1, sizeof (double));
-        encode = (double*)calloc (2 * k, sizeof (double));
-
-        scale = (double*)calloc (k, sizeof (double));
-
-        for (i = 0; i < k; ++i) {
-            funcs[i] = 0;
-        }
-
-        for (i = 0; i < k; ++i) {
-            Object tmp;
-
-            funcs [i] = Function::parse (obj.arrayGet (i, &tmp), recursion + 1);
-            OBJECT_GUARD (&tmp);
-
-            if (!funcs [i]) {
-                return;
-            }
-
-            if (funcs[i]->getInputSize () != 1 ||
-                (i > 0 && funcs[i]->getOutputSize () != funcs[0]->getOutputSize ())) {
-                error (
-                    errSyntaxError, -1,
-                    "Incompatible subfunctions in stitching function");
-                return;
-            }
-        }
-    }
-
-    //----- Bounds
-    {
-        Object obj;
-
-        dict->lookup ("Bounds", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (!obj.isArray () || obj.arrayGetLength () != k - 1) {
-            error (
-                errSyntaxError, -1,
-                "Missing or invalid 'Bounds' entry in stitching function");
-            return;
-        }
-
-        bounds[0] = domain[0][0];
-
-        for (i = 1; i < k; ++i) {
-            Object tmp;
-
-            obj.arrayGet (i - 1, &tmp);
-            OBJECT_GUARD (&tmp);
-
-            if (!tmp.isNum ()) {
-                error (
-                    errSyntaxError, -1,
-                    "Invalid type in 'Bounds' array in stitching function");
-                return;
-            }
-
-            bounds[i] = tmp.getNum ();
-        }
-
-        bounds[k] = domain[0][1];
-    }
-
-    //----- Encode
-    {
-        Object obj;
-
-        dict->lookup ("Encode", &obj);
-        OBJECT_GUARD (&obj);
-
-        if (!obj.isArray () || obj.arrayGetLength () != 2 * k) {
-            error (
-                errSyntaxError, -1,
-                "Missing or invalid 'Encode' entry in stitching function");
-            return;
-        }
-
-        for (i = 0; i < 2 * k; ++i) {
-            Object tmp;
-
-            obj.arrayGet (i, &tmp);
-            OBJECT_GUARD (&tmp);
-
-            if (!tmp.isNum ()) {
-                error (
-                    errSyntaxError, -1,
-                    "Invalid type in 'Encode' array in stitching function");
-                return;
-            }
-
-            encode[i] = tmp.getNum ();
-        }
-    }
-
-    //----- pre-compute the scale factors
-    for (i = 0; i < k; ++i) {
-        if (bounds[i] == bounds[i + 1]) {
-            // avoid a divide-by-zero -- in this situation, function i will
-            // never be used anyway
-            scale[i] = 0;
-        }
-        else {
-            scale[i] = (encode[2 * i + 1] - encode[2 * i]) /
-                       (bounds[    i + 1] - bounds[    i]);
-        }
-    }
-
-    ok = true;
-}
-
-StitchingFunction::StitchingFunction (const StitchingFunction& other)
-    : Function (other), k (other.k),
-      funcs (), bounds (), encode (), scale (), ok (other.ok) {
-
-    funcs = (Function**)calloc (k, sizeof (Function*));
-
-    std::transform (
-        &other.funcs[0], &other.funcs[0] + k, &funcs[0],
-        [](auto f) { return f->copy (); });
-
-    bounds = (double*)calloc (k + 1, sizeof (double));
-    std::copy (&other.bounds[0], &other.bounds[0] + k + 1, bounds);
-
-    encode = (double*)calloc (2 * k, sizeof (double));
-    std::copy (&other.encode[0], &other.encode[0] + 2 * k, encode);
-
-    scale = (double*)calloc (k, sizeof (double));
-    std::copy (&other.scale[0], &other.scale[0] + k, scale);
-}
-
-StitchingFunction::~StitchingFunction () {
-    int i;
-
-    if (funcs) {
-        for (i = 0; i < k; ++i) {
-            if (funcs[i]) { delete funcs[i]; }
-        }
-    }
-    free (funcs);
-    free (bounds);
-    free (encode);
-    free (scale);
-}
-
-void StitchingFunction::transform (double* in, double* out) {
-    double x;
-    int i;
-
-    if (in[0] < domain[0][0]) {
-        x = domain[0][0];
-    }
-    else if (in[0] > domain[0][1]) {
-        x = domain[0][1];
-    }
-    else {
-        x = in[0];
-    }
-
-    for (i = 0; i < k - 1; ++i) {
-        if (x < bounds[i + 1]) { break; }
-    }
-
-    x = encode[2 * i] + (x - bounds[i]) * scale[i];
-    funcs[i]->transform (&x, out);
-}
-
-//------------------------------------------------------------------------
-// PostScriptFunction
-//------------------------------------------------------------------------
-
-// This is not an enum, because we can't foreward-declare the enum
-// type in Function.h
-#define psOpAbs 0
-#define psOpAdd 1
-#define psOpAnd 2
-#define psOpAtan 3
-#define psOpBitshift 4
-#define psOpCeiling 5
-#define psOpCopy 6
-#define psOpCos 7
-#define psOpCvi 8
-#define psOpCvr 9
-#define psOpDiv 10
-#define psOpDup 11
-#define psOpEq 12
-#define psOpExch 13
-#define psOpExp 14
-#define psOpFalse 15
-#define psOpFloor 16
-#define psOpGe 17
-#define psOpGt 18
-#define psOpIdiv 19
-#define psOpIndex 20
-#define psOpLe 21
-#define psOpLn 22
-#define psOpLog 23
-#define psOpLt 24
-#define psOpMod 25
-#define psOpMul 26
-#define psOpNe 27
-#define psOpNeg 28
-#define psOpNot 29
-#define psOpOr 30
-#define psOpPop 31
-#define psOpRoll 32
-#define psOpRound 33
-#define psOpSin 34
-#define psOpSqrt 35
-#define psOpSub 36
-#define psOpTrue 37
-#define psOpTruncate 38
-#define psOpXor 39
-#define psOpPush 40
-#define psOpJ 41
-#define psOpJz 42
-
-#define nPSOps 43
-
-// Note: 'if' and 'ifelse' are parsed separately.
-// The rest are listed here in alphabetical order.
-// The index in this table is equivalent to the psOpXXX defines.
-static const char* psOpNames[] = {
-    "abs",   "add",   "and", "atan", "bitshift", "ceiling", "copy",     "cos",
-    "cvi",   "cvr",   "div", "dup",  "eq",       "exch",    "exp",      "false",
-    "floor", "ge",    "gt",  "idiv", "index",    "le",      "ln",       "log",
-    "lt",    "mod",   "mul", "ne",   "neg",      "not",     "or",       "pop",
-    "roll",  "round", "sin", "sqrt", "sub",      "true",    "truncate", "xor"
+    int type () const { return 3; }
+
+    std::string to_ps () const;
+
+    //
+    // Domain (required), range (optional):
+    //
+    std::vector< std::tuple< double, double > > domain, range;
+
+    //
+    // Optional arrays, default to { 0 } and { 1 }, respectively:
+    //
+    std::vector< double > c0, c1;
+
+    //
+    // Interpolation exponent (required):
+    //
+    double e;
 };
 
-struct PSCode {
-    int op;
-    union {
-        double d;
-        int i;
-    } val;
+inline std::vector< double >
+exponential_array_from (Dict& dict, const char* s, int default_) {
+    auto xs = optional_array< double > (dict, s);
+
+    if (xs.empty ()) {
+        xs.push_back (default_);
+    }
+
+    return xs;
+}
+
+exponential_function_t::exponential_function_t (Object& obj, Dict& dict)
+    : domain (domain_from (dict)), range (optional_range_from (dict)),
+      c0 (exponential_array_from (dict, "C0", 0)),
+      c1 (exponential_array_from (dict, "C1", 1)),
+      e (xpdf::as< double > (dict, "N")) {
+    ASSERT (1UL == domain.size ());
+    ASSERT (2 > range.size ());
+}
+
+void
+exponential_function_t::operator() (
+    const double* src, const double* const end, double* dst) const {
+    const auto& [d_0, d_1] = domain [0];
+
+    ASSERT (1UL == std::distance (src, end));
+    double x = std::clamp (src [0], d_0, d_1);
+
+    for (size_t i = 0, n = c0.size (); i < n; ++i) {
+        dst [i] = c0 [i] + pow (x, e) * (c1 [i] - c0 [i]);
+
+        if (!range.empty ()) {
+            ASSERT (i < range.size ());
+            auto& [r_0, r_1] = range [i];
+
+            dst [i] = std::clamp (dst [i], r_0, r_1);
+        }
+    }
+}
+
+std::string exponential_function_t::to_ps () const {
+    return { };
+}
+
+////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr< function_t::impl_t >
+make_function (Object&, size_t = 0);
+
+struct stitching_function_t : function_t::impl_t {
+    stitching_function_t (Object&, Dict&, int /* max recursion */ = 0);
+    ~stitching_function_t () { }
+
+    void operator() (const double*, const double* const, double*) const;
+
+    size_t   arity () const { return 1UL; }
+    size_t coarity () const { return 1UL; }
+
+    int type () const { return 3; }
+
+    std::string to_ps () const;
+
+    //
+    // Domain (required), range (optional, if present all functions' coarities
+    // agree:
+    //
+    std::vector< std::tuple< double, double > > domain, range;
+
+    //
+    // Stitched functions of arity 1 and coarity 1 (required):
+    //
+    std::vector< std::shared_ptr< function_t::impl_t > > fs;
+
+    //
+    // Array of values that partition the domain (required):
+    //
+    std::vector< double > bounds;
+
+    //
+    // Mapping of domain and bounds to the domain of each function:
+    //
+    std::vector< std::tuple< double, double > > encode;
+
+    //
+    // Helper data:
+    //
+    std::vector< double > scale;
 };
 
-#define psStackSize 100
+std::vector< std::shared_ptr< function_t::impl_t > >
+stitched_functions_from (Dict& dict, int recursion) {
+    Object arr;
 
-PostScriptFunction::PostScriptFunction (Object* funcObj, Dict* dict) {
-    Stream* str;
-    double in[funcMaxInputs];
+    dict.lookup ("Functions", &arr);
+    OBJECT_GUARD (&arr);
 
-    codeString = NULL;
-    code = NULL;
-    codeSize = 0;
-    ok = false;
+    std::vector< std::shared_ptr< function_t::impl_t > > fs;
 
-    //----- initialize the generic stuff
-    if (!init (dict)) {
-        return;
+    for (size_t i = 0, k = arr.arrayGetLength (); i < k; ++i) {
+        Object fun;
+
+        arr.arrayGet (i, &fun);
+        OBJECT_GUARD (&fun);
+
+        if (auto p = make_function (fun, recursion + 1)) {
+            fs.push_back (p);
+        }
     }
 
-    if (!hasRange) {
-        error (errSyntaxError, -1, "Type 4 function is missing range");
-        return;
-    }
-
-    //----- get the stream
-
-    if (!funcObj->isStream ()) {
-        error (errSyntaxError, -1, "Type 4 function isn't a stream");
-        return;
-    }
-
-    str = funcObj->getStream ();
-    str->reset ();
-
-    codeString = new GString ();
-    auto tokens = std::make_unique< GList > ();
-
-    for (GString* tok = getToken (str); tok = getToken (str);) {
-        tokens->append (tok);
-    }
-
-    str->close ();
-
-    //----- parse the function
-    if (tokens->getLength () < 1 || ((GString*)tokens->get (0))->cmp ("{")) {
-        error (errSyntaxError, -1, "Expected '{' at start of PostScript function");
-        return;
-    }
-
-    int tokPtr = 1, codePtr = 0;
-
-    if (!parseCode (tokens.get (), &tokPtr, &codePtr)) {
-        return;
-    }
-
-    codeLen = codePtr;
-
-    //----- set up the cache
-    for (size_t i = 0; i < m; ++i) {
-        in[i] = domain[i][0];
-        cacheIn[i] = in[i] - 1;
-    }
-
-    transform (in, cacheOut);
-    ok = true;
+    return fs;
 }
 
-PostScriptFunction::PostScriptFunction (const PostScriptFunction& other)
-    : Function (other),
-      codeString (other.codeString->copy ()),
-      code (),
-      codeLen (other.codeLen),
-      codeSize (other.codeSize),
-      cacheIn (),
-      cacheOut (),
-      ok (other.ok) {
-    code = (PSCode*)calloc (codeSize, sizeof (PSCode));
-    std::copy (&other.code[0], &other.code[0] + codeSize, &code [0]);
+auto
+bounds_array_from (Dict& dict, double lhs, double rhs) {
+    std::vector< double > xs{ lhs };
+
+    auto ys = as_array< double > (dict, "Bounds");
+    xs.reserve (xs.size () + ys.size () + 1);
+
+    xs.insert (xs.end (), ys.begin (), ys.end ());
+    xs.push_back (rhs);
+
+    return xs;
 }
 
-PostScriptFunction::~PostScriptFunction () {
-    free (code);
+inline auto
+encode_array_from (Dict& dict) {
+    return as_array< std::tuple< double, double > > (dict, "Encode");
+}
 
-    if (codeString) {
-        delete codeString;
+stitching_function_t::stitching_function_t (
+    Object&, Dict& dict, int recursion)
+    : domain (domain_from (dict)), range (optional_range_from (dict)) {
+
+    ASSERT (1UL == domain.size ());
+
+    fs = stitched_functions_from (dict, recursion);
+    ASSERT (!fs.empty ());
+
+    const size_t k = fs.size ();
+
+    auto is_like = [](int n) { return [=](auto& f){ return f->coarity () == n; }; };
+    ASSERT (::all_of (fs, is_like (fs [0]->coarity ())));
+    ASSERT (range.empty () || range.size () == fs [0]->coarity ());
+
+    bounds = bounds_array_from (
+        dict, std::get< 0 > (domain [0]), std::get< 1 > (domain [0]));
+    ASSERT (k + 1 == bounds.size ());
+
+    encode = encode_array_from (dict);
+    ASSERT (k == encode.size ());
+
+    scale.resize (k);
+
+    for (size_t i = 0; i < k; ++i) {
+        auto [e_0, e_1] = encode [i];
+        auto [d_0, d_1] = std::tie (bounds [i], bounds [i + 1]);
+        scale [i] = d_0 == d_1 ? 0 : (e_1 - e_0) / (d_1 - d_0);
     }
 }
 
-void PostScriptFunction::transform (double* in, double* out) {
-    double stack[psStackSize];
-    double x;
-    int sp, i;
+void
+stitching_function_t::operator() (
+    const double* src, const double* const end, double* dst) const {
+    ASSERT (1UL == domain.size ());
+    const auto& [d_0, d_1] = domain [0];
 
-    // check the cache
-    for (i = 0; i < m; ++i) {
-        if (in[i] != cacheIn[i]) { break; }
-    }
+    ASSERT (1 == std::distance (src, end));
+    double x = std::clamp (src [0], d_0, d_1);
 
-    if (i == m) {
-        for (i = 0; i < n; ++i) {
-            out[i] = cacheOut[i];
-        }
+    size_t i = 0;
+    for (; i < fs.size () - 1 && x >= bounds [i + 1]; ++i) ;
 
-        return;
-    }
-
-    for (i = 0; i < m; ++i) {
-        stack[psStackSize - 1 - i] = in[i];
-    }
-
-    sp = exec (stack, psStackSize - m);
-
-    // if (sp < psStackSize - n) {
-    //   error(errSyntaxWarning, -1,
-    // 	  "Extra values on stack at end of PostScript function");
-    // }
-
-    if (sp > psStackSize - n) {
-        error (errSyntaxError, -1, "Stack underflow in PostScript function");
-        sp = psStackSize - n;
-    }
-
-    for (i = 0; i < n; ++i) {
-        x = stack[sp + n - 1 - i];
-
-        if (x < range[i][0]) {
-            out[i] = range[i][0];
-        }
-        else if (x > range[i][1]) {
-            out[i] = range[i][1];
-        }
-        else {
-            out[i] = x;
-        }
-    }
-
-    // save current result in the cache
-    for (i = 0; i < m; ++i) { cacheIn[i] = in[i]; }
-    for (i = 0; i < n; ++i) { cacheOut[i] = out[i]; }
+    x = std::get< 0 > (encode [i]) + (x - bounds [i]) * scale [i];
+    (*fs [i]) (&x, &x + 1, dst);
 }
 
-bool PostScriptFunction::parseCode (GList* tokens, int* tokPtr, int* codePtr) {
-    GString* tok;
-    int a, b, mid, cmp;
-    int codePtr0, codePtr1;
-
-    while (1) {
-        if (*tokPtr >= tokens->getLength ()) {
-            error (
-                errSyntaxError, -1,
-                "Unexpected end of PostScript function stream");
-            return false;
-        }
-
-        tok = (GString*)tokens->get ((*tokPtr)++);
-        const char* p = tok->c_str ();
-
-        if (isdigit (*p) || *p == '.' || *p == '-') {
-            addCodeD (codePtr, psOpPush, atof (tok->c_str ()));
-        }
-        else if (!tok->cmp ("{")) {
-            codePtr0 = *codePtr;
-            addCodeI (codePtr, psOpJz, 0);
-            if (!parseCode (tokens, tokPtr, codePtr)) { return false; }
-            if (*tokPtr >= tokens->getLength ()) {
-                error (
-                    errSyntaxError, -1,
-                    "Unexpected end of PostScript function stream");
-                return false;
-            }
-            tok = (GString*)tokens->get ((*tokPtr)++);
-            if (!tok->cmp ("if")) { code[codePtr0].val.i = *codePtr; }
-            else if (!tok->cmp ("{")) {
-                codePtr1 = *codePtr;
-                addCodeI (codePtr, psOpJ, 0);
-                code[codePtr0].val.i = *codePtr;
-                if (!parseCode (tokens, tokPtr, codePtr)) { return false; }
-                if (*tokPtr >= tokens->getLength ()) {
-                    error (
-                        errSyntaxError, -1,
-                        "Unexpected end of PostScript function stream");
-                    return false;
-                }
-                tok = (GString*)tokens->get ((*tokPtr)++);
-                if (!tok->cmp ("ifelse")) { code[codePtr1].val.i = *codePtr; }
-                else {
-                    error (
-                        errSyntaxError, -1,
-                        "Expected 'ifelse' in PostScript function stream");
-                    return false;
-                }
-            }
-            else {
-                error (
-                    errSyntaxError, -1,
-                    "Expected 'if' in PostScript function stream");
-                return false;
-            }
-        }
-        else if (!tok->cmp ("}")) {
-            break;
-        }
-        else if (!tok->cmp ("if")) {
-            error (
-                errSyntaxError, -1,
-                "Unexpected 'if' in PostScript function stream");
-            return false;
-        }
-        else if (!tok->cmp ("ifelse")) {
-            error (
-                errSyntaxError, -1,
-                "Unexpected 'ifelse' in PostScript function stream");
-            return false;
-        }
-        else {
-            a = -1;
-            b = nPSOps;
-            cmp = 0; // make gcc happy
-            // invariant: psOpNames[a] < tok < psOpNames[b]
-            while (b - a > 1) {
-                mid = (a + b) / 2;
-                cmp = tok->cmp (psOpNames[mid]);
-                if (cmp > 0) { a = mid; }
-                else if (cmp < 0) {
-                    b = mid;
-                }
-                else {
-                    a = b = mid;
-                }
-            }
-            if (cmp != 0) {
-                error (
-                    errSyntaxError, -1,
-                    "Unknown operator '{0:t}' in PostScript function", tok);
-                return false;
-            }
-            addCode (codePtr, a);
-        }
-    }
-
-    return true;
+std::string stitching_function_t::to_ps () const {
+    return { };
 }
 
-void PostScriptFunction::addCode (int* codePtr, int op) {
-    if (*codePtr >= codeSize) {
-        if (codeSize) { codeSize *= 2; }
-        else {
-            codeSize = 16;
-        }
-        code = (PSCode*)reallocarray (code, codeSize, sizeof (PSCode));
-    }
-    code[*codePtr].op = op;
-    ++(*codePtr);
-}
+////////////////////////////////////////////////////////////////////////
 
-void PostScriptFunction::addCodeI (int* codePtr, int op, int x) {
-    if (*codePtr >= codeSize) {
-        if (codeSize) { codeSize *= 2; }
-        else {
-            codeSize = 16;
-        }
-        code = (PSCode*)reallocarray (code, codeSize, sizeof (PSCode));
-    }
-    code[*codePtr].op = op;
-    code[*codePtr].val.i = x;
-    ++(*codePtr);
-}
+enum {
+    psOpAbs,       //  0
+    psOpAdd,       //  1
+    psOpAnd,       //  2
+    psOpAtan,      //  3
+    psOpBitshift,  //  4
+    psOpCeiling,   //  5
+    psOpCopy,      //  6
+    psOpCos,       //  7
+    psOpCvi,       //  8
+    psOpCvr,       //  9
+    psOpDiv,       // 10
+    psOpDup,       // 11
+    psOpEq,        // 12
+    psOpExch,      // 13
+    psOpExp,       // 14
+    psOpFalse,     // 15
+    psOpFloor,     // 16
+    psOpGe,        // 17
+    psOpGt,        // 18
+    psOpIdiv,      // 19
+    psOpIndex,     // 20
+    psOpLe,        // 21
+    psOpLn,        // 22
+    psOpLog,       // 23
+    psOpLt,        // 24
+    psOpMod,       // 25
+    psOpMul,       // 26
+    psOpNe,        // 27
+    psOpNeg,       // 28
+    psOpNot,       // 29
+    psOpOr,        // 30
+    psOpPop,       // 31
+    psOpRoll,      // 32
+    psOpRound,     // 33
+    psOpSin,       // 34
+    psOpSqrt,      // 35
+    psOpSub,       // 36
+    psOpTrue,      // 37
+    psOpTruncate,  // 38
+    psOpXor,       // 39
+    psOpPush,      // 40
+    psOpJ,         // 41
+    psOpJz,        // 42
+    nPSOps         // 43
+};
 
-void PostScriptFunction::addCodeD (int* codePtr, int op, double x) {
-    if (*codePtr >= codeSize) {
-        if (codeSize) { codeSize *= 2; }
-        else {
-            codeSize = 16;
-        }
-        code = (PSCode*)reallocarray (code, codeSize, sizeof (PSCode));
-    }
-    code[*codePtr].op = op;
-    code[*codePtr].val.d = x;
-    ++(*codePtr);
-}
+struct postscript_function_t : function_t::impl_t {
+    postscript_function_t (Object&, Dict&);
+    ~postscript_function_t () { }
 
-GString* PostScriptFunction::getToken (Stream* str) {
-    GString* s;
-    int c;
-    bool comment;
+    void operator() (const double*, const double* const, double*) const;
 
-    s = new GString ();
-    comment = false;
-    while (1) {
-        if ((c = str->getChar ()) == EOF) {
-            delete s;
-            return NULL;
+    struct code_t {
+        int op;
+        union {
+            double d;
+            int i;
+        } val;
+    };
+
+    size_t   arity () const { return domain.size (); }
+    size_t coarity () const { return  range.size (); }
+
+    int type () const { return 4; }
+
+    std::string to_ps () const;
+
+    //
+    // Domain (required), range (optional, if present all functions' coarities
+    // agree:
+    //
+    std::vector< std::tuple< double, double > > domain, range;
+
+    std::vector< code_t > cs;
+    std::string s;
+
+    std::vector< double > exec (std::vector< double > stack) const;
+};
+
+static std::optional< std::string >
+next_token (Stream& str) {
+    int c = 0;
+
+    for (bool comment = false;;) {
+        c = str.getChar ();
+
+        if (c == EOF) {
+            return { };
         }
-        codeString->append (c);
+
         if (comment) {
-            if (c == '\x0a' || c == '\x0d') { comment = false; }
+            if (c == '\x0a' || c == '\x0d') {
+                comment = false;
+            }
         }
         else if (c == '%') {
             comment = true;
@@ -1276,271 +695,555 @@ GString* PostScriptFunction::getToken (Stream* str) {
             break;
         }
     }
-    if (c == '{' || c == '}') { s->append ((char)c); }
+
+    std::string s;
+
+    if (c == '{' || c == '}') {
+        s.append (1UL, char (c));
+    }
     else if (isdigit (c) || c == '.' || c == '-') {
-        while (1) {
-            s->append ((char)c);
-            c = str->lookChar ();
-            if (c == EOF || !(isdigit (c) || c == '.' || c == '-')) { break; }
-            str->getChar ();
-            codeString->append (c);
+        while (true) {
+            s.append (1UL, char (c));
+            c = str.lookChar ();
+
+            if (c == EOF || !(isdigit (c) || c == '.' || c == '-')) {
+                break;
+            }
+
+            str.getChar ();
         }
     }
     else {
         while (1) {
-            s->append ((char)c);
-            c = str->lookChar ();
-            if (c == EOF || !isalnum (c)) { break; }
-            str->getChar ();
-            codeString->append (c);
+            s.append (1UL, char (c));
+            c = str.lookChar ();
+
+            if (c == EOF || !isalnum (c)) {
+                break;
+            }
+
+            str.getChar ();
         }
     }
+
     return s;
 }
 
-int PostScriptFunction::exec (double* stack, int sp0) {
-    PSCode* c;
-    double tmp[psStackSize];
-    double t;
-    int sp, ip, nn, k, i;
+static std::list< std::string >
+tokenize (Stream& str) {
+    std::list< std::string > ss;
 
-    sp = sp0;
-    ip = 0;
-    while (ip < codeLen) {
-        c = &code[ip++];
-        switch (c->op) {
-        case psOpAbs:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = fabs (stack[sp]);
-            break;
-        case psOpAdd:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] + stack[sp];
-            ++sp;
-            break;
-        case psOpAnd:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = (int)stack[sp + 1] & (int)stack[sp];
-            ++sp;
-            break;
-        case psOpAtan:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = atan2 (stack[sp + 1], stack[sp]);
-            ++sp;
-            break;
-        case psOpBitshift:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            k = (int)stack[sp + 1];
-            nn = (int)stack[sp];
-            if (nn > 0) { stack[sp + 1] = k << nn; }
-            else if (nn < 0) {
-                stack[sp + 1] = k >> -nn;
+    while (auto opt = next_token (str)) {
+        ss.emplace_back (*opt);
+    }
+
+    return ss;
+}
+
+template< typename Iterator >
+std::vector< postscript_function_t::code_t >
+parse (Iterator& iter, Iterator last) {
+    std::vector< postscript_function_t::code_t > xs;
+
+    for (; iter != last;) {
+        const auto& tok = *iter;
+
+        if (isdigit (tok [0]) || tok [0] == '.' || tok [0] == '-') {
+            //
+            // Push value on the stack:
+            //
+            xs.push_back ({ psOpPush, { .d = std::stod (tok) } });
+            ++iter;
+        }
+        else if (tok == "{") {
+            //
+            // Block start, signals the beginning of a block belonging to an
+            // `if' or `ifelse' conditional:
+            //
+            auto then_block = parse (++iter, last);
+
+            if (iter == last) {
+                throw std::runtime_error ("incomplete PostScript conditional");
+            }
+
+            const auto& tok2 = *iter;
+
+            if (tok2 == "if") {
+                //
+                // The conditional block is a plain `if':
+                //
+                xs.push_back ({ psOpJz, { .i = int (then_block.size ()) } });
+                xs.insert (xs.end (), then_block.begin (), then_block.end ());
+
+                ++iter;
+            }
+            else if (tok2 == "{") {
+                xs.push_back ({ psOpJz, { .i = int (then_block.size ()) } });
+                xs.insert (xs.end (), then_block.begin (), then_block.end ());
+
+                auto else_block = parse (++iter, last);
+
+                if (iter == last) {
+                    throw std::runtime_error (
+                        "incomplete PostScript conditional");
+                }
+
+                xs.push_back ({ psOpJ, { .i = int (else_block.size ()) } });
+                xs.insert (xs.end (), else_block.begin (), else_block.end ());
+
+                const auto& tok3 = *iter;
+
+                if (tok3 != "ifelse") {
+                    throw std::runtime_error ("incomplete PostScript conditional");
+                }
+
+                ++iter;
             }
             else {
-                stack[sp + 1] = k;
+                throw std::runtime_error (
+                    (fmt ("unexpected PostScript: %1%") % tok).str ());
             }
-            ++sp;
-            break;
-        case psOpCeiling:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = ceil (stack[sp]);
-            break;
-        case psOpCopy:
-            if (sp >= psStackSize) { goto underflow; }
-            nn = (int)stack[sp++];
-            if (nn < 0) { goto invalidArg; }
-            if (sp + nn > psStackSize) { goto underflow; }
-            if (sp - nn < 0) { goto overflow; }
-            for (i = 0; i < nn; ++i) { stack[sp - nn + i] = stack[sp + i]; }
-            sp -= nn;
-            break;
-        case psOpCos:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = cos (stack[sp]);
-            break;
-        case psOpCvi:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = (int)stack[sp];
-            break;
-        case psOpCvr:
-            if (sp >= psStackSize) { goto underflow; }
-            break;
-        case psOpDiv:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] / stack[sp];
-            ++sp;
-            break;
-        case psOpDup:
-            if (sp >= psStackSize) { goto underflow; }
-            if (sp < 1) { goto overflow; }
-            stack[sp - 1] = stack[sp];
-            --sp;
-            break;
-        case psOpEq:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] == stack[sp] ? 1 : 0;
-            ++sp;
-            break;
-        case psOpExch:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            t = stack[sp];
-            stack[sp] = stack[sp + 1];
-            stack[sp + 1] = t;
-            break;
-        case psOpExp:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = pow (stack[sp + 1], stack[sp]);
-            ++sp;
-            break;
-        case psOpFalse:
-            if (sp < 1) { goto overflow; }
-            stack[sp - 1] = 0;
-            --sp;
-            break;
-        case psOpFloor:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = floor (stack[sp]);
-            break;
-        case psOpGe:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] >= stack[sp] ? 1 : 0;
-            ++sp;
-            break;
-        case psOpGt:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] > stack[sp] ? 1 : 0;
-            ++sp;
-            break;
-        case psOpIdiv:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = (int)stack[sp + 1] / (int)stack[sp];
-            ++sp;
-            break;
-        case psOpIndex:
-            if (sp >= psStackSize) { goto underflow; }
-            k = (int)stack[sp];
-            if (k < 0) { goto invalidArg; }
-            if (sp + 1 + k >= psStackSize) { goto underflow; }
-            stack[sp] = stack[sp + 1 + k];
-            break;
-        case psOpLe:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] <= stack[sp] ? 1 : 0;
-            ++sp;
-            break;
-        case psOpLn:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = log (stack[sp]);
-            break;
-        case psOpLog:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = log10 (stack[sp]);
-            break;
-        case psOpLt:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] < stack[sp] ? 1 : 0;
-            ++sp;
-            break;
-        case psOpMod:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = (int)stack[sp + 1] % (int)stack[sp];
-            ++sp;
-            break;
-        case psOpMul:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] * stack[sp];
-            ++sp;
-            break;
-        case psOpNe:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] != stack[sp] ? 1 : 0;
-            ++sp;
-            break;
-        case psOpNeg:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = -stack[sp];
-            break;
-        case psOpNot:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = stack[sp] == 0 ? 1 : 0;
-            break;
-        case psOpOr:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = (int)stack[sp + 1] | (int)stack[sp];
-            ++sp;
-            break;
-        case psOpPop:
-            if (sp >= psStackSize) { goto underflow; }
-            ++sp;
-            break;
-        case psOpRoll:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            k = (int)stack[sp++];
-            nn = (int)stack[sp++];
-            if (nn < 0) { goto invalidArg; }
-            if (sp + nn > psStackSize) { goto underflow; }
-            if (k >= 0) { k %= nn; }
-            else {
-                k = -k % nn;
-                if (k) { k = nn - k; }
-            }
-            for (i = 0; i < nn; ++i) { tmp[i] = stack[sp + i]; }
-            for (i = 0; i < nn; ++i) { stack[sp + i] = tmp[(i + k) % nn]; }
-            break;
-        case psOpRound:
-            if (sp >= psStackSize) { goto underflow; }
-            t = stack[sp];
-            stack[sp] = (t >= 0) ? floor (t + 0.5) : ceil (t - 0.5);
-            break;
-        case psOpSin:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = sin (stack[sp]);
-            break;
-        case psOpSqrt:
-            if (sp >= psStackSize) { goto underflow; }
-            stack[sp] = sqrt (stack[sp]);
-            break;
-        case psOpSub:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = stack[sp + 1] - stack[sp];
-            ++sp;
-            break;
-        case psOpTrue:
-            if (sp < 1) { goto overflow; }
-            stack[sp - 1] = 1;
-            --sp;
-            break;
-        case psOpTruncate:
-            if (sp >= psStackSize) { goto underflow; }
-            t = stack[sp];
-            stack[sp] = (t >= 0) ? floor (t) : ceil (t);
-            break;
-        case psOpXor:
-            if (sp + 1 >= psStackSize) { goto underflow; }
-            stack[sp + 1] = (int)stack[sp + 1] ^ (int)stack[sp];
-            ++sp;
-            break;
-        case psOpPush:
-            if (sp < 1) { goto overflow; }
-            stack[--sp] = c->val.d;
-            break;
-        case psOpJ: ip = c->val.i; break;
-        case psOpJz:
-            if (sp >= psStackSize) { goto underflow; }
-            k = (int)stack[sp++];
-            if (k == 0) { ip = c->val.i; }
+        }
+        else if (tok == "}") {
+            ++iter;
             break;
         }
-    }
-    return sp;
+        else if (tok == "if" || tok == "ifelse") {
+            throw std::runtime_error (
+                (fmt ("unexpected PostScript: %1%") % tok).str ());
+        }
+        else {
+            // Note: 'if' and 'ifelse' are parsed separately.
+            // The rest are listed here in alphabetical order.
+            // The index in this table is equivalent to the psOpXXX defines.
+            static const std::vector< std::string > ns{
+                "abs", "add", "and", "atan", "bitshift", "ceiling", "copy", "cos",
+                "cvi", "cvr", "div", "dup", "eq", "exch", "exp", "false", "floor",
+                "ge", "gt", "idiv", "index", "le", "ln", "log", "lt", "mod", "mul",
+                "ne", "neg", "not", "or", "pop", "roll", "round", "sin", "sqrt",
+                "sub", "true", "truncate", "xor"
+            };
 
-underflow:
-    error (errSyntaxError, -1, "Stack underflow in PostScript function");
-    return sp;
-overflow:
-    error (errSyntaxError, -1, "Stack overflow in PostScript function");
-    return sp;
-invalidArg:
-    error (errSyntaxError, -1, "Invalid arg in PostScript function");
-    return sp;
+            auto iter2 = std::find (ns.begin (), ns.end (), tok);
+
+            if (iter2 == ns.end ()) {
+                throw std::runtime_error (
+                    (fmt ("invalid PostScript: %1%") % tok).str ());
+            }
+
+            xs.push_back ({ int (std::distance (iter2, ns.end ())), 0 });
+
+            ++iter;
+        }
+    }
+
+    return xs;
 }
+
+postscript_function_t::postscript_function_t (Object& obj, Dict& dict)
+    : domain (domain_from (dict)), range (optional_range_from (dict)) {
+    ASSERT (domain.size () <= function_t::max_inputs);
+
+    ASSERT (range.size () <= function_t::max_outputs);
+    ASSERT (!range.empty ());
+
+    auto str = obj.getStream ();
+    STREAM_GUARD (str);
+
+    str->reset ();
+    const auto ts = tokenize (*str);
+
+    auto iter = ts.begin ();
+    cs = parse (iter, ts.end ());
+
+    ASSERT (!cs.empty ());
+}
+
+std::vector< double >
+postscript_function_t::exec (std::vector< double > stack) const {
+    auto _0 = [&]() -> double& { return stack.back (); };
+    auto _1 = [&]() -> double& { return *++stack.rbegin (); };
+
+    //
+    // TODO: replace asserts
+    //
+    for (auto iter = cs.begin (), last = cs.end (); iter != last; ++iter) {
+        switch (iter->op) {
+        case psOpAbs:
+            ASSERT (!stack.empty ());
+            _0 () = fabs (_0 ());
+            break;
+
+        case psOpAdd:
+            ASSERT (stack.size () > 1);
+            _1 () = _0 () + _1 ();
+            stack.pop_back ();
+            break;
+
+        case psOpAnd:
+            ASSERT (stack.size () > 1);
+            _1 () = int (_0 ()) & int (_1 ());
+            stack.pop_back ();
+            break;
+
+        case psOpAtan:
+            ASSERT (stack.size () > 1);
+            _1 () = atan2 (_1 (), _0 ());
+            stack.pop_back ();
+            break;
+
+        case psOpBitshift: {
+            ASSERT (stack.size () > 1);
+
+            auto k = int (_1 ());
+            auto n = int (_0 ());
+
+            _1 () = (n > 0) ? (k << n) : (n < 0) ? k >> -n : k;
+
+            stack.pop_back ();
+        }
+            break;
+
+        case psOpCeiling:
+            ASSERT (!stack.empty ());
+            _0 () = ceil (_0 ());
+            break;
+
+        case psOpCopy: {
+            ASSERT (!stack.empty ());
+
+            auto off = off_t (_0 ());
+
+            if (off < 0 || off > stack.size ()) {
+                throw std::runtime_error ("invalid PostScript copy operand");
+            }
+
+            if (off) {
+                stack.reserve (stack.size () + off);
+                stack.insert (stack.end (), stack.end () - 4, stack.end ());
+            }
+        }
+            break;
+
+        case psOpCos:
+            ASSERT (!stack.empty ());
+            _0 () = cos (_0 ());
+            break;
+
+        case psOpCvi:
+            ASSERT (!stack.empty ());
+            _0 () = int (_0 ());
+            break;
+
+        case psOpCvr:
+            ASSERT (!stack.empty ());
+            break;
+
+        case psOpDiv:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () / _0 ();
+            stack.pop_back ();
+            break;
+
+        case psOpDup:
+            ASSERT (!stack.empty ());
+            stack.push_back (stack.back ());
+            break;
+
+        case psOpEq:
+            ASSERT (stack.size () > 1);
+            _1 () = _0 () == _1 () ? 1 : 0;
+            stack.pop_back ();
+            break;
+
+        case psOpExch:
+            ASSERT (stack.size () > 1);
+            std::swap (_0 (), _1 ());
+            break;
+
+        case psOpExp:
+            ASSERT (stack.size () > 1);
+            _1 () = pow (_1 (), _0 ());
+            stack.pop_back ();
+            break;
+
+        case psOpFalse:
+            stack.push_back (0);
+            break;
+
+        case psOpFloor:
+            ASSERT (!stack.empty ());
+            _0 () = floor (_0 ());
+            break;
+
+        case psOpGe:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () >= _0 () ? 1 : 0;
+            stack.pop_back ();
+            break;
+
+        case psOpGt:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () > _0 () ? 1 : 0;
+            stack.pop_back ();
+            break;
+
+        case psOpIdiv:
+            ASSERT (stack.size () > 1);
+            _1 () = int (_1 ()) / int (_0 ());
+            stack.pop_back ();
+            break;
+
+        case psOpIndex: {
+            ASSERT (!stack.empty ());
+
+            const off_t k = off_t (_0 ());
+            ASSERT (k >= 0);
+
+            stack.pop_back ();
+            ASSERT (k < stack.size ());
+
+            stack.push_back (*(stack.end () - k));
+        }
+            break;
+
+        case psOpLe:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () <= _0 () ? 1 : 0;
+            stack.pop_back ();
+            break;
+
+        case psOpLn:
+            ASSERT (!stack.empty ());
+            _0 () = log (_0 ());
+            break;
+
+        case psOpLog:
+            ASSERT (!stack.empty ());
+            _0 () = log10 (_0 ());
+            break;
+
+        case psOpLt:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () < _0 () ? 1 : 0;
+            stack.pop_back ();
+            break;
+
+        case psOpMod:
+            ASSERT (stack.size () > 1);
+            _1 () = int (_1 ()) % int (_0 ());
+            stack.pop_back ();
+            break;
+
+        case psOpMul:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () * _0 ();
+            stack.pop_back ();
+            break;
+
+        case psOpNe:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () != _0 () ? 1 : 0;
+            stack.pop_back ();
+            break;
+
+        case psOpNeg:
+            ASSERT (!stack.empty ());
+            _0 () = -_0 ();
+            break;
+
+        case psOpNot:
+            ASSERT (!stack.empty ());
+            _0 () = _0 () == 0 ? 1 : 0;
+            break;
+
+        case psOpOr:
+            ASSERT (stack.size () > 1);
+            _1 () = (int)_1 () | (int)_0 ();
+            stack.pop_back ();
+            break;
+
+        case psOpPop:
+            ASSERT (!stack.empty ());
+            stack.pop_back ();
+            break;
+
+        case psOpRoll: {
+            ASSERT (stack.size () > 1);
+
+            //
+            // n is the width of the window, from the top of the stack:
+            //
+            const size_t n = _1 ();
+
+            //
+            // j indicates the circular motion offset:
+            // -- positive pops top and inserts it at end of window
+            // -- negative pops end of window and pushes it to top
+            //
+            const size_t j = size_t (_0 ()) % n;
+
+            stack.resize (stack.size () - 2);
+            ASSERT (n <= stack.size ());
+
+            auto iter = stack.end () - n, last = stack.end (), iter2 = last - j;
+
+            std::rotate (iter, iter2, last);
+        }
+            break;
+
+        case psOpRound:
+            ASSERT (!stack.empty ());
+            _0 () = std::round (_0 ());
+            break;
+
+        case psOpSin:
+            ASSERT (!stack.empty ());
+            _0 () = sin (_0 ());
+            break;
+
+        case psOpSqrt:
+            ASSERT (!stack.empty ());
+            _0 () = sqrt (_0 ());
+            break;
+
+        case psOpSub:
+            ASSERT (stack.size () > 1);
+            _1 () = _1 () - _0 ();
+            stack.pop_back ();
+            break;
+
+        case psOpTrue:
+            stack.push_back (1);
+            break;
+
+        case psOpTruncate:
+            ASSERT (!stack.empty ());
+            _0 () = std::trunc (_0 ());
+            break;
+
+        case psOpXor:
+            ASSERT (stack.size () > 1);
+            _1 () = int (_1 ()) ^ int (_0 ());
+            stack.pop_back ();
+            break;
+
+        case psOpPush:
+            stack.push_back (iter->val.d);
+            break;
+
+        case psOpJ:
+            if (const size_t off = iter->val.i) {
+                ASSERT (std::distance (iter, last) < off);
+                std::advance (iter, off - 1);
+            }
+            break;
+
+        case psOpJz: {
+            ASSERT (!stack.empty ());
+
+            const auto b = bool (_0 ());
+
+            stack.pop_back ();
+            ASSERT (!stack.empty ());
+
+            if (!b) {
+                const size_t off = size_t (iter->val.i);
+
+                if (off) {
+                    ASSERT (std::distance (iter, last) < off);
+                    std::advance (iter, off - 1);
+                }
+            }
+        }
+            break;
+
+        default:
+            throw std::runtime_error (
+                (fmt ("invalid PostScript code: %1%") % 1).str ());
+        }
+    }
+
+    return stack;
+}
+
+void
+postscript_function_t::operator() (
+    const double* src, const double* const end, double* dst) const {
+
+    const auto stack = exec (std::vector< double > (src, end));
+    ASSERT (stack.size () == range.size ());
+
+    transform (views::zip (range, stack | views::reverse), dst, [](auto arg) {
+        const auto& [r, x] = arg;
+        const auto& [r_0, r_1] = r;
+        return std::clamp (x, r_0, r_1);
+    });
+}
+
+std::string postscript_function_t::to_ps () const {
+    return { };
+}
+
+////////////////////////////////////////////////////////////////////////
+
+static inline Dict*
+dictionary_from (Object& obj) {
+    return obj.isStream ()
+        ? obj.streamGetDict ()
+        : obj.isDict () ? obj.getDict () : 0;
+}
+
+std::shared_ptr< function_t::impl_t >
+make_function (Object& obj, size_t recursion /* = 0 */) {
+    if (recursion > function_t::max_recursion) {
+        throw std::runtime_error ("function definition recursion limit");
+    }
+
+    if (obj.isName ("Identity")) {
+        return std::make_shared< identity_function_t > ();
+    }
+    else {
+        auto p = dictionary_from (obj);
+        ASSERT (p);
+
+        switch (auto type = as< int >(*p, "FunctionType")) {
+        case 0: return std::make_shared<     sampled_function_t > (obj, *p);
+        case 2: return std::make_shared< exponential_function_t > (obj, *p);
+        case 3: return std::make_shared<   stitching_function_t > (obj, *p, recursion + 1);
+        case 4: return std::make_shared<  postscript_function_t > (obj, *p);
+        default:
+            throw std::runtime_error (
+                (fmt ("invalid function type: %1%") % type).str ());
+        }
+    }
+}
+
+} // anonymous
+
+void
+function_t::operator() (
+    const double* src, const double* const end, double* dst) const {
+    return p_->operator() (src, end, dst);
+}
+
+size_t
+function_t::arity () const {
+    return p_->arity ();
+}
+
+size_t
+function_t::coarity () const {
+    return p_->coarity ();
+}
+
+std::string
+function_t::to_ps () const {
+    return p_->to_ps ();
+}
+
+function_t make_function (Object& obj) {
+    return function_t{ make_function (obj, 0) };
+}
+
+} // namespace xpdf

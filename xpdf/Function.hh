@@ -6,225 +6,48 @@
 //
 //========================================================================
 
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef XPDF_XPDF_FUNCTION_HH
+#define XPDF_XPDF_FUNCTION_HH
 
 #include <defs.hh>
+#include <memory>
 
-#include <xpdf/Object.hh>
+class Object;
 
-class GList;
-class Dict;
-class Stream;
-struct PSCode;
+namespace xpdf {
 
-//------------------------------------------------------------------------
-// Function
-//------------------------------------------------------------------------
+struct function_t {
+    struct impl_t;
 
-#define funcMaxInputs 32
-#define funcMaxOutputs 32
-#define sampledFuncMaxInputs 16
+    static constexpr size_t max_recursion      =  8UL;
+    static constexpr size_t max_inputs         = 32UL;
+    static constexpr size_t max_outputs        = 32UL;
+    static constexpr size_t max_sampled_inputs = 16UL;
 
-class Function {
 public:
-    Function ();
+    function_t () { }
 
-    virtual ~Function ();
+    void operator() (const double*, const double* const, double*) const;
 
-    // Construct a function.  Returns NULL if unsuccessful.
-    static Function* parse (Object* funcObj, int recursion = 0);
+    size_t   arity () const;
+    size_t coarity () const;
 
-    // Initialize the entries common to all function types.
-    bool init (Dict* dict);
+    std::string to_ps () const;
 
-    virtual Function* copy () = 0;
-
-    // Return the function type:
-    //   -1 : identity
-    //    0 : sampled
-    //    2 : exponential
-    //    3 : stitching
-    //    4 : PostScript
-    virtual int getType () = 0;
-
-    // Return size of input and output tuples.
-    int getInputSize () { return m; }
-    int getOutputSize () { return n; }
-
-    double getDomainMin (int i) { return domain[i][0]; }
-    double getDomainMax (int i) { return domain[i][1]; }
-
-    double getRangeMin (int i) { return range[i][0]; }
-    double getRangeMax (int i) { return range[i][1]; }
-
-    bool getHasRange () { return hasRange; }
-
-    // Transform an input tuple into an output tuple.
-    virtual void transform (double* in, double* out) = 0;
-
-    virtual bool isOk () = 0;
-
-protected:
-    size_t m, n; // size of input and output tuples
-    double    // min and max values for function domain
-        domain[funcMaxInputs][2];
-    double // min and max values for function range
-        range[funcMaxOutputs][2];
-    bool hasRange; // set if range is defined
-};
-
-//------------------------------------------------------------------------
-// IdentityFunction
-//------------------------------------------------------------------------
-
-class IdentityFunction : public Function {
-public:
-    IdentityFunction ();
-    virtual ~IdentityFunction ();
-    virtual Function* copy () { return new IdentityFunction; }
-    virtual int getType () { return -1; }
-    virtual void transform (double* in, double* out);
-    virtual bool isOk () { return true; }
+    operator bool () const { return bool (p_); }
 
 private:
-};
-
-//------------------------------------------------------------------------
-// SampledFunction
-//------------------------------------------------------------------------
-
-class SampledFunction : public Function {
-public:
-    SampledFunction (Object* funcObj, Dict* dict);
-    virtual ~SampledFunction ();
-    virtual Function* copy () { return new SampledFunction (*this); }
-    virtual int getType () { return 0; }
-    virtual void transform (double* in, double* out);
-    virtual bool isOk () { return ok; }
-
-    int getSampleSize (int i) { return sampleSize[i]; }
-    double getEncodeMin (int i) { return encode[i][0]; }
-    double getEncodeMax (int i) { return encode[i][1]; }
-    double getDecodeMin (int i) { return decode[i][0]; }
-    double getDecodeMax (int i) { return decode[i][1]; }
-    double* getSamples () { return samples; }
+    std::shared_ptr< impl_t > p_;
 
 private:
-    SampledFunction (const SampledFunction&);
-
-    // number of samples for each domain element
-    int sampleSize[funcMaxInputs];
-
-    // min and max values for domain encoder
-    double encode[funcMaxInputs][2];
-
-    // min and max values for range decoder
-    double decode[funcMaxOutputs][2];
-
-    // input multipliers
-    double inputMul[funcMaxInputs];
-
-    int* idxOffset;
-
-    double* samples; // the samples
-    size_t nSamples;    // size of the samples array
-
-    double* sBuf;    // buffer for the transform function
-
-    double cacheIn[funcMaxInputs];
-    double cacheOut[funcMaxOutputs];
-
-    bool ok;
+    function_t (std::shared_ptr< impl_t > p) : p_ (p) { }
+    friend function_t make_function (Object&);
 };
 
-//------------------------------------------------------------------------
-// ExponentialFunction
-//------------------------------------------------------------------------
+function_t make_function (Object&);
 
-class ExponentialFunction : public Function {
-public:
-    ExponentialFunction (Object* funcObj, Dict* dict);
-    virtual ~ExponentialFunction ();
-    virtual Function* copy () { return new ExponentialFunction (*this); }
-    virtual int getType () { return 2; }
-    virtual void transform (double* in, double* out);
-    virtual bool isOk () { return ok; }
+} // namespace xpdf
 
-    double* getC0 () { return c0; }
-    double* getC1 () { return c1; }
-    double getE () { return e; }
+using Function = xpdf::function_t;
 
-private:
-    ExponentialFunction (const ExponentialFunction&);
-
-    double c0[funcMaxOutputs];
-    double c1[funcMaxOutputs];
-    double e;
-    bool ok;
-};
-
-//------------------------------------------------------------------------
-// StitchingFunction
-//------------------------------------------------------------------------
-
-class StitchingFunction : public Function {
-public:
-    StitchingFunction (Object* funcObj, Dict* dict, int recursion);
-    virtual ~StitchingFunction ();
-    virtual Function* copy () { return new StitchingFunction (*this); }
-    virtual int getType () { return 3; }
-    virtual void transform (double* in, double* out);
-    virtual bool isOk () { return ok; }
-
-    int getNumFuncs () { return k; }
-    Function* getFunc (int i) { return funcs[i]; }
-    double* getBounds () { return bounds; }
-    double* getEncode () { return encode; }
-    double* getScale () { return scale; }
-
-private:
-    StitchingFunction (const StitchingFunction& func);
-
-    size_t k;
-
-    Function** funcs;
-    double *bounds, *encode, *scale;
-
-    bool ok;
-};
-
-//------------------------------------------------------------------------
-// PostScriptFunction
-//------------------------------------------------------------------------
-
-class PostScriptFunction : public Function {
-public:
-    PostScriptFunction (Object* funcObj, Dict* dict);
-    virtual ~PostScriptFunction ();
-    virtual Function* copy () { return new PostScriptFunction (*this); }
-    virtual int getType () { return 4; }
-    virtual void transform (double* in, double* out);
-    virtual bool isOk () { return ok; }
-
-    GString* getCodeString () { return codeString; }
-
-private:
-    PostScriptFunction (const PostScriptFunction&);
-    bool parseCode (GList* tokens, int* tokPtr, int* codePtr);
-    void addCode (int* codePtr, int op);
-    void addCodeI (int* codePtr, int op, int x);
-    void addCodeD (int* codePtr, int op, double x);
-    GString* getToken (Stream* str);
-    int exec (double* stack, int sp0);
-
-    GString* codeString;
-    PSCode* code;
-    int codeLen;
-    int codeSize;
-    double cacheIn[funcMaxInputs];
-    double cacheOut[funcMaxOutputs];
-    bool ok;
-};
-
-#endif
+#endif // XPDF_XPDF_FUNCTION_HH

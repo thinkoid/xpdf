@@ -158,7 +158,7 @@ public:
     virtual void endTransparencyGroup (GfxState* state);
     virtual void paintTransparencyGroup (GfxState* state, double* bbox);
     virtual void setSoftMask (
-        GfxState* state, double* bbox, bool alpha, Function* transferFunc,
+        GfxState* state, double* bbox, bool alpha, const Function& transferFunc,
         GfxColor* backdropColor);
     virtual void clearSoftMask (GfxState* state);
 
