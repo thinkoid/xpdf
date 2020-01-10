@@ -129,7 +129,7 @@ template< typename T >
 inline auto as_array (Dict& dict, const char* s) {
     Object obj;
 
-    if (0 == dict.lookup (s, &obj)) {
+    if (0 == dict.lookup (s, &obj) || obj.isNull ()) {
         throw std::runtime_error ((fmt ("missing array \"%1%\"") % s).str ());
     }
 
