@@ -1760,21 +1760,30 @@ bool GfxShading::init (Dict* dict) {
     xMin = yMin = xMax = yMax = 0;
     hasBBox = false;
     if (dict->lookup ("BBox", &obj1)->isArray ()) {
-        if (obj1.arrayGetLength () == 4) {
+        auto n = obj1.arrayGetLength ();
+
+        if (4 == n) {
             hasBBox = true;
+
             xMin = obj1.arrayGet (0, &obj2)->getNum ();
             obj2.free ();
+
             yMin = obj1.arrayGet (1, &obj2)->getNum ();
             obj2.free ();
+
             xMax = obj1.arrayGet (2, &obj2)->getNum ();
             obj2.free ();
+
             yMax = obj1.arrayGet (3, &obj2)->getNum ();
             obj2.free ();
         }
         else {
-            error (errSyntaxError, -1, "Bad BBox in shading dictionary");
+            error (
+                errSyntaxError, -1,
+                "invalid size of shading BBox array: {0:d}", n);
         }
     }
+
     obj1.free ();
 
     return true;
