@@ -31,7 +31,7 @@
 #include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Form.hh>
-#include <xpdf/Function.hh>
+#include <xpdf/function.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>

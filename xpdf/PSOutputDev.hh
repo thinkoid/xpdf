@@ -13,7 +13,7 @@
 
 #include <cstddef>
 
-#include <xpdf/Function.hh>
+#include <xpdf/function.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/OutputDev.hh>

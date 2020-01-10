@@ -1,6 +1,6 @@
 //========================================================================
 //
-// Function.cc
+// function.cc
 //
 // Copyright 2001-2003 Glyph & Cog, LLC
 //
@@ -35,7 +35,7 @@
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Function.hh>
+#include <xpdf/function.hh>
 #include <xpdf/Object.hh>
 
 #include <boost/noncopyable.hpp>

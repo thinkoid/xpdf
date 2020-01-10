@@ -44,7 +44,7 @@ class Ref;
 struct GfxColor;
 struct GfxPatch;
 
-#include <xpdf/Function.hh>
+#include <xpdf/function.hh>
 #include <xpdf/Object.hh>
 
 //------------------------------------------------------------------------

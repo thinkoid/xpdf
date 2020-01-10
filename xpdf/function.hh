@@ -1,6 +1,6 @@
 //========================================================================
 //
-// Function.h
+// function.hh
 //
 // Copyright 2001-2003 Glyph & Cog, LLC
 //
@@ -15,10 +15,6 @@
 class Object;
 
 namespace xpdf {
-
-struct rangecheck_error_t : std::runtime_error {
-    using std::runtime_error::runtime_error;
-};
 
 struct function_t {
     struct impl_t;

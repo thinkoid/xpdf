@@ -12,7 +12,7 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
-#include <xpdf/Function.hh>
+#include <xpdf/function.hh>
 
 class GString;
 class Gfx;

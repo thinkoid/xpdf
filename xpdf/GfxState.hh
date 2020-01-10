@@ -12,7 +12,7 @@
 #include <defs.hh>
 
 #include <xpdf/Object.hh>
-#include <xpdf/Function.hh>
+#include <xpdf/function.hh>
 
 class Array;
 class GfxFont;

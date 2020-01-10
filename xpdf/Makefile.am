@@ -20,7 +20,6 @@ libxpdf_a_SOURCES =                             \
    Error.cc                                     \
    FontEncodingTables.cc                        \
    Form.cc                                      \
-   Function.cc                                  \
    Gfx.cc                                       \
    GfxFont.cc                                   \
    GfxState.cc                                  \
@@ -61,7 +60,8 @@ libxpdf_a_SOURCES =                             \
    XRef.cc                                      \
    XpdfPluginAPI.cc                             \
    Zoox.cc                                      \
-   bitpack.cc
+   bitpack.cc                                   \
+   function.cc
 
 bin_PROGRAMS = xpdf                             \
 	pdfdetach                                   \
