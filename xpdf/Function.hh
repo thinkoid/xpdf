@@ -16,13 +16,17 @@ class Object;
 
 namespace xpdf {
 
+struct rangecheck_error_t : std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
 struct function_t {
     struct impl_t;
 
-    static constexpr size_t max_recursion      =  8UL;
-    static constexpr size_t max_inputs         = 32UL;
-    static constexpr size_t max_outputs        = 32UL;
-    static constexpr size_t max_sampled_inputs = 16UL;
+    static constexpr size_t max_recursion  =  8UL;
+
+    static constexpr size_t max_arity          = 32UL;
+    static constexpr size_t max_sampled_arity  = 16UL;
 
 public:
     function_t () { }

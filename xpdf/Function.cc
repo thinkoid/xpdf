@@ -83,8 +83,8 @@ struct identity_function_t : function_t::impl_t {
 
     void operator() (const double*, const double* const, double*) const;
 
-    size_t   arity () const { return function_t::max_inputs; }
-    size_t coarity () const { return function_t::max_outputs; }
+    size_t   arity () const { return function_t::max_arity; }
+    size_t coarity () const { return function_t::max_arity; }
 
     int type () const { return -1; }
 
@@ -98,12 +98,12 @@ struct identity_function_t : function_t::impl_t {
 
 inline auto make_default_domain () {
     return std::vector< std::tuple< double, double > >{
-        function_t::max_inputs, { 0., 1. } };
+        function_t::max_arity, { 0., 1. } };
 }
 
 inline auto make_default_range () {
     return std::vector< std::tuple< double, double > >{
-        function_t::max_outputs, { 0., 0. } };
+        function_t::max_arity, { 0., 0. } };
 }
 
 identity_function_t::identity_function_t ()
@@ -272,8 +272,8 @@ multipliers_from (
 
 sampled_function_t::sampled_function_t (Object& obj, Dict& dict)
     : domain (domain_from (dict)), range (range_from (dict)) {
-    ASSERT (domain.size () <= function_t::max_inputs);
-    ASSERT ( range.size () <= function_t::max_outputs);
+    ASSERT (domain.size () <= function_t::max_arity);
+    ASSERT ( range.size () <= function_t::max_arity);
 
     ASSERT (!range.empty ());
 
@@ -303,10 +303,10 @@ sampled_function_t::sampled_function_t (Object& obj, Dict& dict)
 void
 sampled_function_t::operator() (
     const double* src, const double* const end, double* dst) const {
-    int e [function_t::max_inputs] = { };
+    int e [function_t::max_arity] = { };
 
-    double efrac0 [function_t::max_inputs] = { };
-    double efrac1 [function_t::max_inputs] = { };
+    double efrac0 [function_t::max_arity] = { };
+    double efrac1 [function_t::max_arity] = { };
 
     int j, k, idx0, t;
 
@@ -842,9 +842,9 @@ parse (Iterator& iter, Iterator last) {
 
 postscript_function_t::postscript_function_t (Object& obj, Dict& dict)
     : domain (domain_from (dict)), range (optional_range_from (dict)) {
-    ASSERT (domain.size () <= function_t::max_inputs);
+    ASSERT (domain.size () <= function_t::max_arity);
 
-    ASSERT (range.size () <= function_t::max_outputs);
+    ASSERT (range.size () <= function_t::max_arity);
     ASSERT (!range.empty ());
 
     auto str = obj.getStream ();

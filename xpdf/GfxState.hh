@@ -76,7 +76,7 @@ static inline unsigned char colToByte (GfxColorComp x) {
 // GfxColor
 //------------------------------------------------------------------------
 
-#define gfxColorMaxComps xpdf::function_t::max_outputs
+#define gfxColorMaxComps xpdf::function_t::max_arity
 
 struct GfxColor {
     GfxColorComp c[gfxColorMaxComps];
