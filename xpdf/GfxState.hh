@@ -193,13 +193,13 @@ private:
 };
 
 //------------------------------------------------------------------------
-// GfxCalGrayColorSpace
+// GfxCalibratedGrayColorSpace
 //------------------------------------------------------------------------
 
-class GfxCalGrayColorSpace : public GfxColorSpace {
+class GfxCalibratedGrayColorSpace : public GfxColorSpace {
 public:
-    GfxCalGrayColorSpace ();
-    virtual ~GfxCalGrayColorSpace ();
+    GfxCalibratedGrayColorSpace ();
+    virtual ~GfxCalibratedGrayColorSpace ();
     virtual GfxColorSpace* copy ();
     virtual GfxColorSpaceMode getMode () { return csCalGray; }
 
@@ -250,13 +250,13 @@ private:
 };
 
 //------------------------------------------------------------------------
-// GfxCalRGBColorSpace
+// GfxCalibratedRGBColorSpace
 //------------------------------------------------------------------------
 
-class GfxCalRGBColorSpace : public GfxColorSpace {
+class GfxCalibratedRGBColorSpace : public GfxColorSpace {
 public:
-    GfxCalRGBColorSpace ();
-    virtual ~GfxCalRGBColorSpace ();
+    GfxCalibratedRGBColorSpace ();
+    virtual ~GfxCalibratedRGBColorSpace ();
     virtual GfxColorSpace* copy ();
     virtual GfxColorSpaceMode getMode () { return csCalRGB; }
 

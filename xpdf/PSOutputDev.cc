@@ -5880,8 +5880,8 @@ void PSOutputDev::doImageL3 (
 void PSOutputDev::dumpColorSpaceL2 (
     GfxColorSpace* colorSpace, bool genXform, bool updateColors,
     bool map01) {
-    GfxCalGrayColorSpace* calGrayCS;
-    GfxCalRGBColorSpace* calRGBCS;
+    GfxCalibratedGrayColorSpace* calGrayCS;
+    GfxCalibratedRGBColorSpace* calRGBCS;
     GfxLabColorSpace* labCS;
     GfxIndexedColorSpace* indexedCS;
     GfxSeparationColorSpace* separationCS;
@@ -5904,7 +5904,7 @@ void PSOutputDev::dumpColorSpaceL2 (
         break;
 
     case csCalGray:
-        calGrayCS = (GfxCalGrayColorSpace*)colorSpace;
+        calGrayCS = (GfxCalibratedGrayColorSpace*)colorSpace;
         writePS ("[/CIEBasedA <<\n");
         writePSFmt (" /DecodeA {{{0:.4g} exp}} bind\n", calGrayCS->getGamma ());
         writePSFmt (
@@ -5928,7 +5928,7 @@ void PSOutputDev::dumpColorSpaceL2 (
         break;
 
     case csCalRGB:
-        calRGBCS = (GfxCalRGBColorSpace*)colorSpace;
+        calRGBCS = (GfxCalibratedRGBColorSpace*)colorSpace;
         writePS ("[/CIEBasedABC <<\n");
         writePSFmt (
             " /DecodeABC [{{{0:.4g} exp}} bind {{{1:.4g} exp}} bind {{{2:.4g} "

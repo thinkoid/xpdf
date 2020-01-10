@@ -116,10 +116,10 @@ GfxColorSpace* GfxColorSpace::parse (Object* csObj, int recursion) {
             cs = GfxColorSpace::create (csDeviceCMYK);
         }
         else if (obj1.isName ("CalGray")) {
-            cs = GfxCalGrayColorSpace::parse (csObj->getArray (), recursion);
+            cs = GfxCalibratedGrayColorSpace::parse (csObj->getArray (), recursion);
         }
         else if (obj1.isName ("CalRGB")) {
-            cs = GfxCalRGBColorSpace::parse (csObj->getArray (), recursion);
+            cs = GfxCalibratedRGBColorSpace::parse (csObj->getArray (), recursion);
         }
         else if (obj1.isName ("Lab")) {
             cs = GfxLabColorSpace::parse (csObj->getArray (), recursion);
@@ -213,21 +213,21 @@ void GfxDeviceGrayColorSpace::getDefaultColor (GfxColor* color) {
 }
 
 //------------------------------------------------------------------------
-// GfxCalGrayColorSpace
+// GfxCalibratedGrayColorSpace
 //------------------------------------------------------------------------
 
-GfxCalGrayColorSpace::GfxCalGrayColorSpace () {
+GfxCalibratedGrayColorSpace::GfxCalibratedGrayColorSpace () {
     whiteX = whiteY = whiteZ = 1;
     blackX = blackY = blackZ = 0;
     gamma = 1;
 }
 
-GfxCalGrayColorSpace::~GfxCalGrayColorSpace () {}
+GfxCalibratedGrayColorSpace::~GfxCalibratedGrayColorSpace () {}
 
-GfxColorSpace* GfxCalGrayColorSpace::copy () {
-    GfxCalGrayColorSpace* cs;
+GfxColorSpace* GfxCalibratedGrayColorSpace::copy () {
+    GfxCalibratedGrayColorSpace* cs;
 
-    cs = new GfxCalGrayColorSpace ();
+    cs = new GfxCalibratedGrayColorSpace ();
     cs->whiteX = whiteX;
     cs->whiteY = whiteY;
     cs->whiteZ = whiteZ;
@@ -238,8 +238,8 @@ GfxColorSpace* GfxCalGrayColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxCalGrayColorSpace::parse (Array* arr, int recursion) {
-    GfxCalGrayColorSpace* cs;
+GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array* arr, int recursion) {
+    GfxCalibratedGrayColorSpace* cs;
     Object obj1, obj2, obj3;
 
     if (arr->getLength () < 2) {
@@ -252,7 +252,7 @@ GfxColorSpace* GfxCalGrayColorSpace::parse (Array* arr, int recursion) {
         obj1.free ();
         return NULL;
     }
-    cs = new GfxCalGrayColorSpace ();
+    cs = new GfxCalibratedGrayColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->isArray () &&
         obj2.arrayGetLength () == 3) {
         obj2.arrayGet (0, &obj3);
@@ -287,20 +287,20 @@ GfxColorSpace* GfxCalGrayColorSpace::parse (Array* arr, int recursion) {
     return cs;
 }
 
-void GfxCalGrayColorSpace::getGray (GfxColor* color, GfxGray* gray) {
+void GfxCalibratedGrayColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     *gray = clip01 (color->c[0]);
 }
 
-void GfxCalGrayColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
+void GfxCalibratedGrayColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     rgb->r = rgb->g = rgb->b = clip01 (color->c[0]);
 }
 
-void GfxCalGrayColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
+void GfxCalibratedGrayColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     cmyk->c = cmyk->m = cmyk->y = 0;
     cmyk->k = clip01 (gfxColorComp1 - color->c[0]);
 }
 
-void GfxCalGrayColorSpace::getDefaultColor (GfxColor* color) {
+void GfxCalibratedGrayColorSpace::getDefaultColor (GfxColor* color) {
     color->c[0] = 0;
 }
 
@@ -352,10 +352,10 @@ void GfxDeviceRGBColorSpace::getDefaultColor (GfxColor* color) {
 }
 
 //------------------------------------------------------------------------
-// GfxCalRGBColorSpace
+// GfxCalibratedRGBColorSpace
 //------------------------------------------------------------------------
 
-GfxCalRGBColorSpace::GfxCalRGBColorSpace () {
+GfxCalibratedRGBColorSpace::GfxCalibratedRGBColorSpace () {
     whiteX = whiteY = whiteZ = 1;
     blackX = blackY = blackZ = 0;
     gammaR = gammaG = gammaB = 1;
@@ -370,13 +370,13 @@ GfxCalRGBColorSpace::GfxCalRGBColorSpace () {
     mat[8] = 1;
 }
 
-GfxCalRGBColorSpace::~GfxCalRGBColorSpace () {}
+GfxCalibratedRGBColorSpace::~GfxCalibratedRGBColorSpace () {}
 
-GfxColorSpace* GfxCalRGBColorSpace::copy () {
-    GfxCalRGBColorSpace* cs;
+GfxColorSpace* GfxCalibratedRGBColorSpace::copy () {
+    GfxCalibratedRGBColorSpace* cs;
     int i;
 
-    cs = new GfxCalRGBColorSpace ();
+    cs = new GfxCalibratedRGBColorSpace ();
     cs->whiteX = whiteX;
     cs->whiteY = whiteY;
     cs->whiteZ = whiteZ;
@@ -390,8 +390,8 @@ GfxColorSpace* GfxCalRGBColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxCalRGBColorSpace::parse (Array* arr, int recursion) {
-    GfxCalRGBColorSpace* cs;
+GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array* arr, int recursion) {
+    GfxCalibratedRGBColorSpace* cs;
     Object obj1, obj2, obj3;
     int i;
 
@@ -405,7 +405,7 @@ GfxColorSpace* GfxCalRGBColorSpace::parse (Array* arr, int recursion) {
         obj1.free ();
         return NULL;
     }
-    cs = new GfxCalRGBColorSpace ();
+    cs = new GfxCalibratedRGBColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->isArray () &&
         obj2.arrayGetLength () == 3) {
         obj2.arrayGet (0, &obj3);
@@ -458,18 +458,18 @@ GfxColorSpace* GfxCalRGBColorSpace::parse (Array* arr, int recursion) {
     return cs;
 }
 
-void GfxCalRGBColorSpace::getGray (GfxColor* color, GfxGray* gray) {
+void GfxCalibratedRGBColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     *gray = clip01 ((GfxColorComp) (
         0.299 * color->c[0] + 0.587 * color->c[1] + 0.114 * color->c[2] + 0.5));
 }
 
-void GfxCalRGBColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
+void GfxCalibratedRGBColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     rgb->r = clip01 (color->c[0]);
     rgb->g = clip01 (color->c[1]);
     rgb->b = clip01 (color->c[2]);
 }
 
-void GfxCalRGBColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
+void GfxCalibratedRGBColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     GfxColorComp c, m, y, k;
 
     c = clip01 (gfxColorComp1 - color->c[0]);
@@ -484,7 +484,7 @@ void GfxCalRGBColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     cmyk->k = k;
 }
 
-void GfxCalRGBColorSpace::getDefaultColor (GfxColor* color) {
+void GfxCalibratedRGBColorSpace::getDefaultColor (GfxColor* color) {
     color->c[0] = 0;
     color->c[1] = 0;
     color->c[2] = 0;
