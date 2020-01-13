@@ -51,26 +51,7 @@ struct GfxPatch;
 
 enum GfxClipType { clipNone, clipNormal, clipEO };
 
-enum TchkType {
-    tchkBool,   // boolean
-    tchkInt,    // integer
-    tchkNum,    // number (integer or real)
-    tchkString, // string
-    tchkName,   // name
-    tchkArray,  // array
-    tchkProps,  // properties (dictionary or name)
-    tchkSCN,    // scn/SCN args (number of name)
-    tchkNone    // used to avoid empty initializer lists
-};
-
 #define maxArgs 33
-
-struct Operator {
-    char name[4];
-    int numArgs;
-    TchkType tchk[maxArgs];
-    void (Gfx::*func) (Object*, int);
-};
 
 //------------------------------------------------------------------------
 
@@ -203,17 +184,36 @@ private:
     GList* contentStreamStack; // stack of open content streams, used
                                //   for loop-checking
 
-    bool // callback to check for an abort
-        (*abortCheckCbk) (void* data);
-    void* abortCheckCbkData;
+    enum typeCheckType {
+        typeCheckBool,   // boolean
+        typeCheckInt,    // integer
+        typeCheckNum,    // number (integer or real)
+        typeCheckString, // string
+        typeCheckName,   // name
+        typeCheckArray,  // array
+        typeCheckProps,  // properties (dictionary or name)
+        typeCheckSCN,    // scn/SCN args (number of name)
+        typeCheckNone    // used to avoid empty initializer lists
+    };
 
-    static Operator opTab[]; // table of operators
+    struct Operator {
+        char name[4];
+        int numArgs;
+        typeCheckType tchk[maxArgs];
+        void (Gfx::*func) (Object*, int);
+    };
+
+    static Operator opTab [];
+
+    // callback to check for an abort
+    bool (*abortCheckCbk) (void* data);
+    void* abortCheckCbkData;
 
     bool checkForContentStreamLoop (Object* ref);
     void go (bool topLevel);
     bool execOp (Object* cmd, Object args[], int numArgs);
     Operator* findOp (char* name);
-    bool checkArg (Object* arg, TchkType type);
+    bool checkArg (Object* arg, typeCheckType type);
     GFileOffset getPos ();
 
     // graphics state operators
