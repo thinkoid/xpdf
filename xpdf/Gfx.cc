@@ -1016,8 +1016,12 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                     ; // funcs[0] = { };
                 }
                 else {
+                    auto is_unary = [](const auto& f) {
+                        return 1 == f.arity () && 1 == f.coarity (); };
+
                     funcs[0] = xpdf::make_function (obj3);
-                    if (funcs[0].arity () != 1 || funcs[0].coarity () != 1) {
+
+                    if (!is_unary (funcs [0])) {
                         error (
                             errSyntaxError, getPos (),
                             "Invalid transfer function in soft mask in "
