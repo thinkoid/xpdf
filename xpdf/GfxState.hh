@@ -14,10 +14,51 @@
 #include <xpdf/Object.hh>
 #include <xpdf/function.hh>
 
+#include <cnl/all.h>
+
 class Array;
 class GfxFont;
 class PDFRectangle;
 class GfxShading;
+
+namespace xpdf {
+
+#define XPDF_FIXED_POINT_ONE 0x00010000U
+
+using       color_t = uint32_t;
+using small_color_t = uint8_t;
+
+//
+// Map double [0÷1] -> int [0÷65535] (16-bit fixed-point)
+//
+inline color_t to_color (double x) {
+    return std::clamp (x, 0., 1.) * XPDF_FIXED_POINT_ONE;
+}
+
+//
+// Map int [0÷65535] (16-bit fixed-point) -> double [0÷1]
+//
+inline double to_double (color_t x) {
+    return
+        double (std::clamp (x, 0U, XPDF_FIXED_POINT_ONE))
+        / XPDF_FIXED_POINT_ONE;
+}
+
+//
+// Map unsigned char [0÷255] -> int [0÷65535] (16-bit fixed-point)
+//
+inline color_t to_color (small_color_t x) {
+    return x << 8;
+}
+
+//
+// Map int [0÷65535] (16-bit fixed-point) -> unsigned char [0÷255]
+//
+inline small_color_t to_small_color (color_t x) {
+    return std::clamp (x >> 8, 0U, 255U);
+}
+
+} // namespace xpdf
 
 //------------------------------------------------------------------------
 // GfxBlendMode
@@ -43,57 +84,27 @@ enum GfxBlendMode {
 };
 
 //------------------------------------------------------------------------
-// GfxColorComp
-//------------------------------------------------------------------------
-
-// 16.16 fixed point color component
-typedef int GfxColorComp;
-
-#define gfxColorComp1 0x10000
-
-static inline GfxColorComp dblToCol (double x) {
-    return (GfxColorComp) (x * gfxColorComp1);
-}
-
-static inline double colToDbl (GfxColorComp x) {
-    return (double)x / (double)gfxColorComp1;
-}
-
-static inline GfxColorComp byteToCol (unsigned char x) {
-    // (x / 255) << 16  =  (0.0000000100000001... * x) << 16
-    //                  =  ((x << 8) + (x) + (x >> 8) + ...) << 16
-    //                  =  (x << 8) + (x) + (x >> 7)
-    //                                      [for rounding]
-    return (GfxColorComp) ((x << 8) + x + (x >> 7));
-}
-
-static inline unsigned char colToByte (GfxColorComp x) {
-    // 255 * x + 0.5  =  256 * x - x + 0x8000
-    return (unsigned char) (((x << 8) - x + 0x8000) >> 16);
-}
-
-//------------------------------------------------------------------------
 // GfxColor
 //------------------------------------------------------------------------
 
 #define gfxColorMaxComps xpdf::function_t::max_arity
 
 struct GfxColor {
-    GfxColorComp c[gfxColorMaxComps];
+    xpdf::color_t c[gfxColorMaxComps];
 };
 
 //------------------------------------------------------------------------
 // GfxGray
 //------------------------------------------------------------------------
 
-typedef GfxColorComp GfxGray;
+struct GfxGray { xpdf::color_t x; };
 
 //------------------------------------------------------------------------
 // GfxRGB
 //------------------------------------------------------------------------
 
 struct GfxRGB {
-    GfxColorComp r, g, b;
+    xpdf::color_t r, g, b;
 };
 
 //------------------------------------------------------------------------
@@ -101,7 +112,7 @@ struct GfxRGB {
 //------------------------------------------------------------------------
 
 struct GfxCMYK {
-    GfxColorComp c, m, y, k;
+    xpdf::color_t c, m, y, k;
 };
 
 //------------------------------------------------------------------------
@@ -888,9 +899,9 @@ private:
     int nComps;                 // number of components in a pixel
     GfxColorSpace* colorSpace2; // secondary color space
     int nComps2;                // number of components in colorSpace2
-    GfxColorComp*               // lookup table
+    xpdf::color_t*               // lookup table
         lookup[gfxColorMaxComps];
-    GfxColorComp* // optimized case lookup table
+    xpdf::color_t* // optimized case lookup table
         lookup2[gfxColorMaxComps];
     double // minimum values for each component
         decodeLow[gfxColorMaxComps];

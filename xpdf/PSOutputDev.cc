@@ -993,7 +993,7 @@ bool DeviceNRecoder::fillBuf () {
         (GfxDeviceNColorSpace*)colorMap->getColorSpace ())->getNComps ();
 
     for (size_t i = 0; i < n; ++i) {
-        x [i] = colToDbl (color.c [i]);
+        x [i] = xpdf::to_double (color.c [i]);
     }
 
     func (x, x + n, y);
@@ -3733,14 +3733,14 @@ void PSOutputDev::updateFillColor (GfxState* state) {
     switch (level) {
     case psLevel1:
         state->getFillGray (&gray);
-        writePSFmt ("{0:.4g} g\n", colToDbl (gray));
+        writePSFmt ("{0:.4g} g\n", xpdf::to_double (gray.x));
         break;
     case psLevel1Sep:
         state->getFillCMYK (&cmyk);
-        c = colToDbl (cmyk.c);
-        m = colToDbl (cmyk.m);
-        y = colToDbl (cmyk.y);
-        k = colToDbl (cmyk.k);
+        c = xpdf::to_double (cmyk.c);
+        m = xpdf::to_double (cmyk.m);
+        y = xpdf::to_double (cmyk.y);
+        k = xpdf::to_double (cmyk.k);
         writePSFmt ("{0:.4g} {1:.4g} {2:.4g} {3:.4g} k\n", c, m, y, k);
         addProcessColor (c, m, y, k);
         break;
@@ -3751,7 +3751,7 @@ void PSOutputDev::updateFillColor (GfxState* state) {
             writePS ("[");
             for (i = 0; i < state->getFillColorSpace ()->getNComps (); ++i) {
                 if (i > 0) { writePS (" "); }
-                writePSFmt ("{0:.4g}", colToDbl (colorPtr->c[i]));
+                writePSFmt ("{0:.4g}", xpdf::to_double (colorPtr->c[i]));
             }
             writePS ("] sc\n");
         }
@@ -3760,21 +3760,21 @@ void PSOutputDev::updateFillColor (GfxState* state) {
     case psLevel3Sep:
         if (state->getFillColorSpace ()->getMode () == csSeparation) {
             sepCS = (GfxSeparationColorSpace*)state->getFillColorSpace ();
-            color.c[0] = gfxColorComp1;
+            color.c[0] = XPDF_FIXED_POINT_ONE;
             sepCS->getCMYK (&color, &cmyk);
             writePSFmt (
                 "{0:.4g} {1:.4g} {2:.4g} {3:.4g} {4:.4g} ({5:t}) ck\n",
-                colToDbl (state->getFillColor ()->c[0]), colToDbl (cmyk.c),
-                colToDbl (cmyk.m), colToDbl (cmyk.y), colToDbl (cmyk.k),
+                xpdf::to_double (state->getFillColor ()->c[0]), xpdf::to_double (cmyk.c),
+                xpdf::to_double (cmyk.m), xpdf::to_double (cmyk.y), xpdf::to_double (cmyk.k),
                 sepCS->getName ());
             addCustomColor (sepCS);
         }
         else {
             state->getFillCMYK (&cmyk);
-            c = colToDbl (cmyk.c);
-            m = colToDbl (cmyk.m);
-            y = colToDbl (cmyk.y);
-            k = colToDbl (cmyk.k);
+            c = xpdf::to_double (cmyk.c);
+            m = xpdf::to_double (cmyk.m);
+            y = xpdf::to_double (cmyk.y);
+            k = xpdf::to_double (cmyk.k);
             writePSFmt ("{0:.4g} {1:.4g} {2:.4g} {3:.4g} k\n", c, m, y, k);
             addProcessColor (c, m, y, k);
         }
@@ -3795,14 +3795,14 @@ void PSOutputDev::updateStrokeColor (GfxState* state) {
     switch (level) {
     case psLevel1:
         state->getStrokeGray (&gray);
-        writePSFmt ("{0:.4g} G\n", colToDbl (gray));
+        writePSFmt ("{0:.4g} G\n", xpdf::to_double (gray.x));
         break;
     case psLevel1Sep:
         state->getStrokeCMYK (&cmyk);
-        c = colToDbl (cmyk.c);
-        m = colToDbl (cmyk.m);
-        y = colToDbl (cmyk.y);
-        k = colToDbl (cmyk.k);
+        c = xpdf::to_double (cmyk.c);
+        m = xpdf::to_double (cmyk.m);
+        y = xpdf::to_double (cmyk.y);
+        k = xpdf::to_double (cmyk.k);
         writePSFmt ("{0:.4g} {1:.4g} {2:.4g} {3:.4g} K\n", c, m, y, k);
         addProcessColor (c, m, y, k);
         break;
@@ -3813,7 +3813,7 @@ void PSOutputDev::updateStrokeColor (GfxState* state) {
             writePS ("[");
             for (i = 0; i < state->getStrokeColorSpace ()->getNComps (); ++i) {
                 if (i > 0) { writePS (" "); }
-                writePSFmt ("{0:.4g}", colToDbl (colorPtr->c[i]));
+                writePSFmt ("{0:.4g}", xpdf::to_double (colorPtr->c[i]));
             }
             writePS ("] SC\n");
         }
@@ -3822,21 +3822,21 @@ void PSOutputDev::updateStrokeColor (GfxState* state) {
     case psLevel3Sep:
         if (state->getStrokeColorSpace ()->getMode () == csSeparation) {
             sepCS = (GfxSeparationColorSpace*)state->getStrokeColorSpace ();
-            color.c[0] = gfxColorComp1;
+            color.c[0] = XPDF_FIXED_POINT_ONE;
             sepCS->getCMYK (&color, &cmyk);
             writePSFmt (
                 "{0:.4g} {1:.4g} {2:.4g} {3:.4g} {4:.4g} ({5:t}) CK\n",
-                colToDbl (state->getStrokeColor ()->c[0]), colToDbl (cmyk.c),
-                colToDbl (cmyk.m), colToDbl (cmyk.y), colToDbl (cmyk.k),
+                xpdf::to_double (state->getStrokeColor ()->c[0]), xpdf::to_double (cmyk.c),
+                xpdf::to_double (cmyk.m), xpdf::to_double (cmyk.y), xpdf::to_double (cmyk.k),
                 sepCS->getName ());
             addCustomColor (sepCS);
         }
         else {
             state->getStrokeCMYK (&cmyk);
-            c = colToDbl (cmyk.c);
-            m = colToDbl (cmyk.m);
-            y = colToDbl (cmyk.y);
-            k = colToDbl (cmyk.k);
+            c = xpdf::to_double (cmyk.c);
+            m = xpdf::to_double (cmyk.m);
+            y = xpdf::to_double (cmyk.y);
+            k = xpdf::to_double (cmyk.k);
             writePSFmt ("{0:.4g} {1:.4g} {2:.4g} {3:.4g} K\n", c, m, y, k);
             addProcessColor (c, m, y, k);
         }
@@ -3860,11 +3860,11 @@ void PSOutputDev::addCustomColor (GfxSeparationColorSpace* sepCS) {
     for (cc = customColors; cc; cc = cc->next) {
         if (!cc->name->cmp (sepCS->getName ())) { return; }
     }
-    color.c[0] = gfxColorComp1;
+    color.c[0] = XPDF_FIXED_POINT_ONE;
     sepCS->getCMYK (&color, &cmyk);
     cc = new PSOutCustomColor (
-        colToDbl (cmyk.c), colToDbl (cmyk.m), colToDbl (cmyk.y),
-        colToDbl (cmyk.k), sepCS->getName ()->copy ());
+        xpdf::to_double (cmyk.c), xpdf::to_double (cmyk.m), xpdf::to_double (cmyk.y),
+        xpdf::to_double (cmyk.k), sepCS->getName ()->copy ());
     cc->next = customColors;
     customColors = cc;
 }
@@ -4861,7 +4861,7 @@ void PSOutputDev::doImageL1 (
                 for (x = 0; x < width; ++x) {
                     imgStr->getPixel (pixBuf);
                     colorMap->getGray (pixBuf, &gray);
-                    writePSFmt ("{0:02x}", colToByte (gray));
+                    writePSFmt ("{0:02x}", xpdf::to_small_color (gray.x));
                     if (++i == 32) {
                         writePSChar ('\n');
                         i = 0;
@@ -4921,13 +4921,13 @@ void PSOutputDev::doImageL1Sep (
         for (x = 0; x < width; ++x) {
             imgStr->getPixel (pixBuf);
             colorMap->getCMYK (pixBuf, &cmyk);
-            lineBuf[4 * x + 0] = colToByte (cmyk.c);
-            lineBuf[4 * x + 1] = colToByte (cmyk.m);
-            lineBuf[4 * x + 2] = colToByte (cmyk.y);
-            lineBuf[4 * x + 3] = colToByte (cmyk.k);
+            lineBuf[4 * x + 0] = xpdf::to_small_color (cmyk.c);
+            lineBuf[4 * x + 1] = xpdf::to_small_color (cmyk.m);
+            lineBuf[4 * x + 2] = xpdf::to_small_color (cmyk.y);
+            lineBuf[4 * x + 3] = xpdf::to_small_color (cmyk.k);
             addProcessColor (
-                colToDbl (cmyk.c), colToDbl (cmyk.m), colToDbl (cmyk.y),
-                colToDbl (cmyk.k));
+                xpdf::to_double (cmyk.c), xpdf::to_double (cmyk.m), xpdf::to_double (cmyk.y),
+                xpdf::to_double (cmyk.k));
         }
 
         // write one line of each color component
@@ -5448,13 +5448,13 @@ void PSOutputDev::doImageL2 (
 #endif
         if ((level == psLevel2Sep || level == psLevel3Sep) && colorMap &&
             colorMap->getColorSpace ()->getMode () == csSeparation) {
-            color.c[0] = gfxColorComp1;
+            color.c[0] = XPDF_FIXED_POINT_ONE;
             sepCS = (GfxSeparationColorSpace*)colorMap->getColorSpace ();
             sepCS->getCMYK (&color, &cmyk);
             writePSFmt (
                 "{0:.4g} {1:.4g} {2:.4g} {3:.4g} ({4:t}) pdfImSep\n",
-                colToDbl (cmyk.c), colToDbl (cmyk.m), colToDbl (cmyk.y),
-                colToDbl (cmyk.k), sepCS->getName ());
+                xpdf::to_double (cmyk.c), xpdf::to_double (cmyk.m), xpdf::to_double (cmyk.y),
+                xpdf::to_double (cmyk.k), sepCS->getName ());
         }
         else {
             writePSFmt ("{0:s}\n", colorMap ? "pdfIm" : "pdfImM");
@@ -5811,13 +5811,13 @@ void PSOutputDev::doImageL3 (
     else {
         if ((level == psLevel2Sep || level == psLevel3Sep) && colorMap &&
             colorMap->getColorSpace ()->getMode () == csSeparation) {
-            color.c[0] = gfxColorComp1;
+            color.c[0] = XPDF_FIXED_POINT_ONE;
             sepCS = (GfxSeparationColorSpace*)colorMap->getColorSpace ();
             sepCS->getCMYK (&color, &cmyk);
             writePSFmt (
                 "{0:.4g} {1:.4g} {2:.4g} {3:.4g} ({4:t}) pdfImSep\n",
-                colToDbl (cmyk.c), colToDbl (cmyk.m), colToDbl (cmyk.y),
-                colToDbl (cmyk.k), sepCS->getName ());
+                xpdf::to_double (cmyk.c), xpdf::to_double (cmyk.m), xpdf::to_double (cmyk.y),
+                xpdf::to_double (cmyk.k), sepCS->getName ());
         }
         else {
             writePSFmt ("{0:s}\n", colorMap ? "pdfIm" : "pdfImM");
@@ -6064,11 +6064,11 @@ void PSOutputDev::dumpColorSpaceL2 (
                         writePSFmt ("{0:02x}", byte);
                     }
                     if (updateColors) {
-                        color.c[0] = dblToCol (j);
+                        color.c[0] = xpdf::to_color (double (j));
                         indexedCS->getCMYK (&color, &cmyk);
                         addProcessColor (
-                            colToDbl (cmyk.c), colToDbl (cmyk.m),
-                            colToDbl (cmyk.y), colToDbl (cmyk.k));
+                            xpdf::to_double (cmyk.c), xpdf::to_double (cmyk.m),
+                            xpdf::to_double (cmyk.y), xpdf::to_double (cmyk.k));
                     }
                 }
                 writePS ("\n");
@@ -6082,11 +6082,11 @@ void PSOutputDev::dumpColorSpaceL2 (
                         writePSFmt ("{0:02x}", lookup[j * numComps + k]);
                     }
                     if (updateColors) {
-                        color.c[0] = dblToCol (j);
+                        color.c[0] = xpdf::to_color (double (j));
                         indexedCS->getCMYK (&color, &cmyk);
                         addProcessColor (
-                            colToDbl (cmyk.c), colToDbl (cmyk.m),
-                            colToDbl (cmyk.y), colToDbl (cmyk.k));
+                            xpdf::to_double (cmyk.c), xpdf::to_double (cmyk.m),
+                            xpdf::to_double (cmyk.y), xpdf::to_double (cmyk.k));
                     }
                 }
                 writePS ("\n");

@@ -190,9 +190,9 @@ void ImageOutputDev::drawImage (
             if ((p = imgStr->getLine ())) {
                 for (x = 0; x < width; ++x) {
                     colorMap->getRGB (p, &rgb);
-                    fputc (colToByte (rgb.r), f);
-                    fputc (colToByte (rgb.g), f);
-                    fputc (colToByte (rgb.b), f);
+                    fputc (xpdf::to_small_color (rgb.r), f);
+                    fputc (xpdf::to_small_color (rgb.g), f);
+                    fputc (xpdf::to_small_color (rgb.b), f);
                     p += colorMap->getNumPixelComps ();
                 }
             }

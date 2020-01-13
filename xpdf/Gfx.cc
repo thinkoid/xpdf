@@ -50,33 +50,33 @@ using namespace ranges;
 #define functionMaxDepth 6
 
 // Max delta allowed in any color component for a function shading fill.
-#define functionColorDelta (dblToCol (1 / 256.0))
+#define functionColorDelta (xpdf::color_t{ 256 })
 
 // Max number of splits along the t axis for an axial shading fill.
 #define axialMaxSplits 256
 
 // Max delta allowed in any color component for an axial shading fill.
-#define axialColorDelta (dblToCol (1 / 256.0))
+#define axialColorDelta (xpdf::color_t{ 256 })
 
 // Max number of splits along the t axis for a radial shading fill.
 #define radialMaxSplits 256
 
 // Max delta allowed in any color component for a radial shading fill.
-#define radialColorDelta (dblToCol (1 / 256.0))
+#define radialColorDelta (xpdf::color_t{ 256 })
 
 // Max recursive depth for a Gouraud triangle shading fill.
 #define gouraudMaxDepth 6
 
 // Max delta allowed in any color component for a Gouraud triangle
 // shading fill.
-#define gouraudColorDelta (dblToCol (1 / 256.0))
+#define gouraudColorDelta (xpdf::color_t{ 256 })
 
 // Max recursive depth for a patch mesh shading fill.
 #define patchMaxDepth 6
 
 // Max delta allowed in any color component for a patch mesh shading
 // fill.
-#define patchColorDelta (dblToCol (1 / 256.0))
+#define patchColorDelta (xpdf::color_t{ 256 })
 
 // Max errors (undefined operator, wrong number of args) allowed before
 // giving up on a content stream.
@@ -719,7 +719,7 @@ bool Gfx::execOp (Object* cmd, Object args[], int numArgs) {
         if (numArgs > op->numArgs) {
 #if 0
       error(errSyntaxWarning, getPos(),
-	    "Too many ({0:d}) args to '{1:s}' operator", numArgs, name);
+        "Too many ({0:d}) args to '{1:s}' operator", numArgs, name);
 #endif
             argPtr += numArgs - op->numArgs;
             numArgs = op->numArgs;
@@ -1036,7 +1036,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                      ++i) {
                     obj3.arrayGet (i, &obj4);
                     if (obj4.isNum ()) {
-                        backdropColor.c[i] = dblToCol (obj4.getNum ());
+                        backdropColor.c[i] = xpdf::to_color (obj4.getNum ());
                     }
                     obj4.free ();
                 }
@@ -1183,7 +1183,7 @@ void Gfx::opSetFillGray (Object args[], int numArgs) {
     state->setFillPattern (NULL);
     state->setFillColorSpace (GfxColorSpace::create (csDeviceGray));
     out->updateFillColorSpace (state);
-    color.c[0] = dblToCol (args[0].getNum ());
+    color.c[0] = xpdf::to_color (args[0].getNum ());
     state->setFillColor (&color);
     out->updateFillColor (state);
 }
@@ -1194,7 +1194,7 @@ void Gfx::opSetStrokeGray (Object args[], int numArgs) {
     state->setStrokePattern (NULL);
     state->setStrokeColorSpace (GfxColorSpace::create (csDeviceGray));
     out->updateStrokeColorSpace (state);
-    color.c[0] = dblToCol (args[0].getNum ());
+    color.c[0] = xpdf::to_color (args[0].getNum ());
     state->setStrokeColor (&color);
     out->updateStrokeColor (state);
 }
@@ -1206,7 +1206,7 @@ void Gfx::opSetFillCMYKColor (Object args[], int numArgs) {
     state->setFillPattern (NULL);
     state->setFillColorSpace (GfxColorSpace::create (csDeviceCMYK));
     out->updateFillColorSpace (state);
-    for (i = 0; i < 4; ++i) { color.c[i] = dblToCol (args[i].getNum ()); }
+    for (i = 0; i < 4; ++i) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
     state->setFillColor (&color);
     out->updateFillColor (state);
 }
@@ -1218,7 +1218,7 @@ void Gfx::opSetStrokeCMYKColor (Object args[], int numArgs) {
     state->setStrokePattern (NULL);
     state->setStrokeColorSpace (GfxColorSpace::create (csDeviceCMYK));
     out->updateStrokeColorSpace (state);
-    for (i = 0; i < 4; ++i) { color.c[i] = dblToCol (args[i].getNum ()); }
+    for (i = 0; i < 4; ++i) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
     state->setStrokeColor (&color);
     out->updateStrokeColor (state);
 }
@@ -1230,7 +1230,7 @@ void Gfx::opSetFillRGBColor (Object args[], int numArgs) {
     state->setFillPattern (NULL);
     state->setFillColorSpace (GfxColorSpace::create (csDeviceRGB));
     out->updateFillColorSpace (state);
-    for (i = 0; i < 3; ++i) { color.c[i] = dblToCol (args[i].getNum ()); }
+    for (i = 0; i < 3; ++i) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
     state->setFillColor (&color);
     out->updateFillColor (state);
 }
@@ -1242,7 +1242,7 @@ void Gfx::opSetStrokeRGBColor (Object args[], int numArgs) {
     state->setStrokePattern (NULL);
     state->setStrokeColorSpace (GfxColorSpace::create (csDeviceRGB));
     out->updateStrokeColorSpace (state);
-    for (i = 0; i < 3; ++i) { color.c[i] = dblToCol (args[i].getNum ()); }
+    for (i = 0; i < 3; ++i) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
     state->setStrokeColor (&color);
     out->updateStrokeColor (state);
 }
@@ -1306,7 +1306,7 @@ void Gfx::opSetFillColor (Object args[], int numArgs) {
         return;
     }
     state->setFillPattern (NULL);
-    for (i = 0; i < numArgs; ++i) { color.c[i] = dblToCol (args[i].getNum ()); }
+    for (i = 0; i < numArgs; ++i) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
     state->setFillColor (&color);
     out->updateFillColor (state);
 }
@@ -1322,7 +1322,7 @@ void Gfx::opSetStrokeColor (Object args[], int numArgs) {
         return;
     }
     state->setStrokePattern (NULL);
-    for (i = 0; i < numArgs; ++i) { color.c[i] = dblToCol (args[i].getNum ()); }
+    for (i = 0; i < numArgs; ++i) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
     state->setStrokeColor (&color);
     out->updateStrokeColor (state);
 }
@@ -1347,7 +1347,7 @@ void Gfx::opSetFillColorN (Object args[], int numArgs) {
             }
             for (i = 0; i < numArgs - 1 && i < gfxColorMaxComps; ++i) {
                 if (args[i].isNum ()) {
-                    color.c[i] = dblToCol (args[i].getNum ());
+                    color.c[i] = xpdf::to_color (args[i].getNum ());
                 }
             }
             state->setFillColor (&color);
@@ -1367,7 +1367,7 @@ void Gfx::opSetFillColorN (Object args[], int numArgs) {
         }
         state->setFillPattern (NULL);
         for (i = 0; i < numArgs && i < gfxColorMaxComps; ++i) {
-            if (args[i].isNum ()) { color.c[i] = dblToCol (args[i].getNum ()); }
+            if (args[i].isNum ()) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
         }
         state->setFillColor (&color);
         out->updateFillColor (state);
@@ -1394,7 +1394,7 @@ void Gfx::opSetStrokeColorN (Object args[], int numArgs) {
             }
             for (i = 0; i < numArgs - 1 && i < gfxColorMaxComps; ++i) {
                 if (args[i].isNum ()) {
-                    color.c[i] = dblToCol (args[i].getNum ());
+                    color.c[i] = xpdf::to_color (args[i].getNum ());
                 }
             }
             state->setStrokeColor (&color);
@@ -1414,7 +1414,7 @@ void Gfx::opSetStrokeColorN (Object args[], int numArgs) {
         }
         state->setStrokePattern (NULL);
         for (i = 0; i < numArgs && i < gfxColorMaxComps; ++i) {
-            if (args[i].isNum ()) { color.c[i] = dblToCol (args[i].getNum ()); }
+            if (args[i].isNum ()) { color.c[i] = xpdf::to_color (args[i].getNum ()); }
         }
         state->setStrokeColor (&color);
         out->updateStrokeColor (state);
@@ -4594,10 +4594,10 @@ void Gfx::drawAnnot (
             }
             break;
         }
-        color.c[0] = dblToCol (borderColor[0]);
-        color.c[1] = dblToCol (borderColor[1]);
-        color.c[2] = dblToCol (borderColor[2]);
-        color.c[3] = dblToCol (borderColor[3]);
+        color.c[0] = xpdf::to_color (borderColor[0]);
+        color.c[1] = xpdf::to_color (borderColor[1]);
+        color.c[2] = xpdf::to_color (borderColor[2]);
+        color.c[3] = xpdf::to_color (borderColor[3]);
         state->setStrokeColor (&color);
         out->updateStrokeColor (state);
         state->setLineWidth (borderStyle->getWidth ());

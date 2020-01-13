@@ -1106,7 +1106,7 @@ void TextPage::addChar (
             chars->append (new TextChar (
                 u[j], charPos, nBytes, xMin, yMin, xMax, yMax, curRot, clipped,
                 state->getRender () == 3, curFont, curFontSize,
-                colToDbl (rgb.r), colToDbl (rgb.g), colToDbl (rgb.b)));
+                xpdf::to_double (rgb.r), xpdf::to_double (rgb.g), xpdf::to_double (rgb.b)));
         }
     }
 

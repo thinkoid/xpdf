@@ -27,13 +27,17 @@
 // loops in the color space object structure.
 #define colorSpaceRecursionLimit 8
 
-//------------------------------------------------------------------------
+namespace xpdf {
 
-static inline GfxColorComp clip01 (GfxColorComp x) {
-    return (x < 0) ? 0 : (x > gfxColorComp1) ? gfxColorComp1 : x;
+inline xpdf::color_t clamp_color (xpdf::color_t x) {
+    return std::clamp (x, 0U, XPDF_FIXED_POINT_ONE);
 }
 
-static inline double clip01 (double x) { return (x < 0) ? 0 : (x > 1) ? 1 : x; }
+inline double clamp_color (double x) {
+    return std::clamp (x, 0., 1.);
+}
+
+} // namespace xpdf
 
 //------------------------------------------------------------------------
 
@@ -196,16 +200,16 @@ GfxColorSpace* GfxDeviceGrayColorSpace::copy () {
 }
 
 void GfxDeviceGrayColorSpace::getGray (GfxColor* color, GfxGray* gray) {
-    *gray = clip01 (color->c[0]);
+    gray->x = xpdf::clamp_color (color->c[0]);
 }
 
 void GfxDeviceGrayColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
-    rgb->r = rgb->g = rgb->b = clip01 (color->c[0]);
+    rgb->r = rgb->g = rgb->b = xpdf::clamp_color (color->c[0]);
 }
 
 void GfxDeviceGrayColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     cmyk->c = cmyk->m = cmyk->y = 0;
-    cmyk->k = clip01 (gfxColorComp1 - color->c[0]);
+    cmyk->k = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[0]);
 }
 
 void GfxDeviceGrayColorSpace::getDefaultColor (GfxColor* color) {
@@ -288,16 +292,16 @@ GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array* arr, int recursion) {
 }
 
 void GfxCalibratedGrayColorSpace::getGray (GfxColor* color, GfxGray* gray) {
-    *gray = clip01 (color->c[0]);
+    gray->x = xpdf::clamp_color (color->c[0]);
 }
 
 void GfxCalibratedGrayColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
-    rgb->r = rgb->g = rgb->b = clip01 (color->c[0]);
+    rgb->r = rgb->g = rgb->b = xpdf::clamp_color (color->c[0]);
 }
 
 void GfxCalibratedGrayColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     cmyk->c = cmyk->m = cmyk->y = 0;
-    cmyk->k = clip01 (gfxColorComp1 - color->c[0]);
+    cmyk->k = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[0]);
 }
 
 void GfxCalibratedGrayColorSpace::getDefaultColor (GfxColor* color) {
@@ -320,22 +324,22 @@ GfxColorSpace* GfxDeviceRGBColorSpace::copy () {
 }
 
 void GfxDeviceRGBColorSpace::getGray (GfxColor* color, GfxGray* gray) {
-    *gray = clip01 ((GfxColorComp) (
+    gray->x = xpdf::clamp_color ((xpdf::color_t) (
         0.3 * color->c[0] + 0.59 * color->c[1] + 0.11 * color->c[2] + 0.5));
 }
 
 void GfxDeviceRGBColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
-    rgb->r = clip01 (color->c[0]);
-    rgb->g = clip01 (color->c[1]);
-    rgb->b = clip01 (color->c[2]);
+    rgb->r = xpdf::clamp_color (color->c[0]);
+    rgb->g = xpdf::clamp_color (color->c[1]);
+    rgb->b = xpdf::clamp_color (color->c[2]);
 }
 
 void GfxDeviceRGBColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
-    GfxColorComp c, m, y, k;
+    xpdf::color_t c, m, y, k;
 
-    c = clip01 (gfxColorComp1 - color->c[0]);
-    m = clip01 (gfxColorComp1 - color->c[1]);
-    y = clip01 (gfxColorComp1 - color->c[2]);
+    c = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[0]);
+    m = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[1]);
+    y = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[2]);
     k = c;
     if (m < k) { k = m; }
     if (y < k) { k = y; }
@@ -459,22 +463,22 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array* arr, int recursion) {
 }
 
 void GfxCalibratedRGBColorSpace::getGray (GfxColor* color, GfxGray* gray) {
-    *gray = clip01 ((GfxColorComp) (
+    gray->x = xpdf::clamp_color ((xpdf::color_t) (
         0.299 * color->c[0] + 0.587 * color->c[1] + 0.114 * color->c[2] + 0.5));
 }
 
 void GfxCalibratedRGBColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
-    rgb->r = clip01 (color->c[0]);
-    rgb->g = clip01 (color->c[1]);
-    rgb->b = clip01 (color->c[2]);
+    rgb->r = xpdf::clamp_color (color->c[0]);
+    rgb->g = xpdf::clamp_color (color->c[1]);
+    rgb->b = xpdf::clamp_color (color->c[2]);
 }
 
 void GfxCalibratedRGBColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
-    GfxColorComp c, m, y, k;
+    xpdf::color_t c, m, y, k;
 
-    c = clip01 (gfxColorComp1 - color->c[0]);
-    m = clip01 (gfxColorComp1 - color->c[1]);
-    y = clip01 (gfxColorComp1 - color->c[2]);
+    c = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[0]);
+    m = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[1]);
+    y = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - color->c[2]);
     k = c;
     if (m < k) { k = m; }
     if (y < k) { k = y; }
@@ -506,18 +510,18 @@ GfxColorSpace* GfxDeviceCMYKColorSpace::copy () {
 }
 
 void GfxDeviceCMYKColorSpace::getGray (GfxColor* color, GfxGray* gray) {
-    *gray = clip01 ((GfxColorComp) (
-        gfxColorComp1 - color->c[3] - 0.3 * color->c[0] - 0.59 * color->c[1] -
+    gray->x = xpdf::clamp_color ((xpdf::color_t) (
+        XPDF_FIXED_POINT_ONE - color->c[3] - 0.3 * color->c[0] - 0.59 * color->c[1] -
         0.11 * color->c[2] + 0.5));
 }
 
 void GfxDeviceCMYKColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     double c, m, y, k, c1, m1, y1, k1, r, g, b, x;
 
-    c = colToDbl (color->c[0]);
-    m = colToDbl (color->c[1]);
-    y = colToDbl (color->c[2]);
-    k = colToDbl (color->c[3]);
+    c = xpdf::to_double (color->c[0]);
+    m = xpdf::to_double (color->c[1]);
+    y = xpdf::to_double (color->c[2]);
+    k = xpdf::to_double (color->c[3]);
     c1 = 1 - c;
     m1 = 1 - m;
     y1 = 1 - y;
@@ -568,23 +572,23 @@ void GfxDeviceCMYKColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     r += 0.2118 * x;
     g += 0.2119 * x;
     b += 0.2235 * x;
-    rgb->r = clip01 (dblToCol (r));
-    rgb->g = clip01 (dblToCol (g));
-    rgb->b = clip01 (dblToCol (b));
+    rgb->r = xpdf::clamp_color (xpdf::to_color (r));
+    rgb->g = xpdf::clamp_color (xpdf::to_color (g));
+    rgb->b = xpdf::clamp_color (xpdf::to_color (b));
 }
 
 void GfxDeviceCMYKColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
-    cmyk->c = clip01 (color->c[0]);
-    cmyk->m = clip01 (color->c[1]);
-    cmyk->y = clip01 (color->c[2]);
-    cmyk->k = clip01 (color->c[3]);
+    cmyk->c = xpdf::clamp_color (color->c[0]);
+    cmyk->m = xpdf::clamp_color (color->c[1]);
+    cmyk->y = xpdf::clamp_color (color->c[2]);
+    cmyk->k = xpdf::clamp_color (color->c[3]);
 }
 
 void GfxDeviceCMYKColorSpace::getDefaultColor (GfxColor* color) {
     color->c[0] = 0;
     color->c[1] = 0;
     color->c[2] = 0;
-    color->c[3] = gfxColorComp1;
+    color->c[3] = XPDF_FIXED_POINT_ONE;
 }
 
 //------------------------------------------------------------------------
@@ -699,8 +703,8 @@ void GfxLabColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     GfxRGB rgb;
 
     getRGB (color, &rgb);
-    *gray = clip01 (
-        (GfxColorComp) (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b + 0.5));
+    gray->x = xpdf::clamp_color (
+        (xpdf::color_t) (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b + 0.5));
 }
 
 void GfxLabColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
@@ -709,8 +713,8 @@ void GfxLabColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     double r, g, b;
 
     // convert L*a*b* to CIE 1931 XYZ color space
-    t1 = (colToDbl (color->c[0]) + 16) / 116;
-    t2 = t1 + colToDbl (color->c[1]) / 500;
+    t1 = (xpdf::to_double (color->c[0]) + 16) / 116;
+    t2 = t1 + xpdf::to_double (color->c[1]) / 500;
     if (t2 >= (6.0 / 29.0)) { X = t2 * t2 * t2; }
     else {
         X = (108.0 / 841.0) * (t2 - (4.0 / 29.0));
@@ -721,7 +725,7 @@ void GfxLabColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
         Y = (108.0 / 841.0) * (t1 - (4.0 / 29.0));
     }
     Y *= whiteY;
-    t2 = t1 - colToDbl (color->c[2]) / 200;
+    t2 = t1 - xpdf::to_double (color->c[2]) / 200;
     if (t2 >= (6.0 / 29.0)) { Z = t2 * t2 * t2; }
     else {
         Z = (108.0 / 841.0) * (t2 - (4.0 / 29.0));
@@ -732,19 +736,19 @@ void GfxLabColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     r = xyzrgb[0][0] * X + xyzrgb[0][1] * Y + xyzrgb[0][2] * Z;
     g = xyzrgb[1][0] * X + xyzrgb[1][1] * Y + xyzrgb[1][2] * Z;
     b = xyzrgb[2][0] * X + xyzrgb[2][1] * Y + xyzrgb[2][2] * Z;
-    rgb->r = dblToCol (pow (clip01 (r * kr), 0.5));
-    rgb->g = dblToCol (pow (clip01 (g * kg), 0.5));
-    rgb->b = dblToCol (pow (clip01 (b * kb), 0.5));
+    rgb->r = xpdf::to_color (pow (xpdf::clamp_color (r * kr), 0.5));
+    rgb->g = xpdf::to_color (pow (xpdf::clamp_color (g * kg), 0.5));
+    rgb->b = xpdf::to_color (pow (xpdf::clamp_color (b * kb), 0.5));
 }
 
 void GfxLabColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     GfxRGB rgb;
-    GfxColorComp c, m, y, k;
+    xpdf::color_t c, m, y, k;
 
     getRGB (color, &rgb);
-    c = clip01 (gfxColorComp1 - rgb.r);
-    m = clip01 (gfxColorComp1 - rgb.g);
-    y = clip01 (gfxColorComp1 - rgb.b);
+    c = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - rgb.r);
+    m = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - rgb.g);
+    y = xpdf::clamp_color (XPDF_FIXED_POINT_ONE - rgb.b);
     k = c;
     if (m < k) { k = m; }
     if (y < k) { k = y; }
@@ -756,16 +760,16 @@ void GfxLabColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
 
 void GfxLabColorSpace::getDefaultColor (GfxColor* color) {
     color->c[0] = 0;
-    if (aMin > 0) { color->c[1] = dblToCol (aMin); }
+    if (aMin > 0) { color->c[1] = xpdf::to_color (aMin); }
     else if (aMax < 0) {
-        color->c[1] = dblToCol (aMax);
+        color->c[1] = xpdf::to_color (aMax);
     }
     else {
         color->c[1] = 0;
     }
-    if (bMin > 0) { color->c[2] = dblToCol (bMin); }
+    if (bMin > 0) { color->c[2] = xpdf::to_color (bMin); }
     else if (bMax < 0) {
-        color->c[2] = dblToCol (bMax);
+        color->c[2] = xpdf::to_color (bMax);
     }
     else {
         color->c[2] = 0;
@@ -898,9 +902,9 @@ void GfxICCBasedColorSpace::getDefaultColor (GfxColor* color) {
     int i;
 
     for (i = 0; i < nComps; ++i) {
-        if (rangeMin[i] > 0) { color->c[i] = dblToCol (rangeMin[i]); }
+        if (rangeMin[i] > 0) { color->c[i] = xpdf::to_color (rangeMin[i]); }
         else if (rangeMax[i] < 0) {
-            color->c[i] = dblToCol (rangeMax[i]);
+            color->c[i] = xpdf::to_color (rangeMax[i]);
         }
         else {
             color->c[i] = 0;
@@ -1046,9 +1050,9 @@ GfxIndexedColorSpace::mapColorToBase (GfxColor* color, GfxColor* baseColor) {
 
     n = base->getNComps ();
     base->getDefaultRanges (low, range, indexHigh);
-    p = &lookup[(int)(colToDbl (color->c[0]) + 0.5) * n];
+    p = &lookup[(int)(xpdf::to_double (color->c[0]) + 0.5) * n];
     for (i = 0; i < n; ++i) {
-        baseColor->c[i] = dblToCol (low[i] + (p[i] / 255.0) * range[i]);
+        baseColor->c[i] = xpdf::to_color (low[i] + (p[i] / 255.0) * range[i]);
     }
     return baseColor;
 }
@@ -1174,9 +1178,9 @@ void GfxSeparationColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     GfxColor color2;
     int i;
 
-    x = colToDbl (color->c[0]);
+    x = xpdf::to_double (color->c[0]);
     func (&x, &x + 1,c);
-    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
+    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = xpdf::to_color (c[i]); }
     alt->getGray (&color2, gray);
 }
 
@@ -1186,9 +1190,9 @@ void GfxSeparationColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     GfxColor color2;
     int i;
 
-    x = colToDbl (color->c[0]);
+    x = xpdf::to_double (color->c[0]);
     func (&x, &x + 1, c);
-    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
+    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = xpdf::to_color (c[i]); }
     alt->getRGB (&color2, rgb);
 }
 
@@ -1198,14 +1202,14 @@ void GfxSeparationColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     GfxColor color2;
     int i;
 
-    x = colToDbl (color->c[0]);
+    x = xpdf::to_double (color->c[0]);
     func (&x, &x + 1, c);
-    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
+    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = xpdf::to_color (c[i]); }
     alt->getCMYK (&color2, cmyk);
 }
 
 void GfxSeparationColorSpace::getDefaultColor (GfxColor* color) {
-    color->c[0] = gfxColorComp1;
+    color->c[0] = XPDF_FIXED_POINT_ONE;
 }
 
 //------------------------------------------------------------------------
@@ -1330,9 +1334,9 @@ void GfxDeviceNColorSpace::getGray (GfxColor* color, GfxGray* gray) {
     GfxColor color2;
     int i;
 
-    for (i = 0; i < nComps; ++i) { x[i] = colToDbl (color->c[i]); }
+    for (i = 0; i < nComps; ++i) { x[i] = xpdf::to_double (color->c[i]); }
     func (x, x + nComps, c);
-    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
+    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = xpdf::to_color (c[i]); }
     alt->getGray (&color2, gray);
 }
 
@@ -1341,9 +1345,9 @@ void GfxDeviceNColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
     GfxColor color2;
     int i;
 
-    for (i = 0; i < nComps; ++i) { x[i] = colToDbl (color->c[i]); }
+    for (i = 0; i < nComps; ++i) { x[i] = xpdf::to_double (color->c[i]); }
     func (x, x + nComps, c);
-    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
+    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = xpdf::to_color (c[i]); }
     alt->getRGB (&color2, rgb);
 }
 
@@ -1352,14 +1356,14 @@ void GfxDeviceNColorSpace::getCMYK (GfxColor* color, GfxCMYK* cmyk) {
     GfxColor color2;
     int i;
 
-    for (i = 0; i < nComps; ++i) { x[i] = colToDbl (color->c[i]); }
+    for (i = 0; i < nComps; ++i) { x[i] = xpdf::to_double (color->c[i]); }
     func (x, x + nComps, c);
-    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = dblToCol (c[i]); }
+    for (i = 0; i < alt->getNComps (); ++i) { color2.c[i] = xpdf::to_color (c[i]); }
     alt->getCMYK (&color2, cmyk);
 }
 
 void GfxDeviceNColorSpace::getDefaultColor (GfxColor* color) {
-    for (size_t i = 0; i < nComps; ++i) { color->c[i] = gfxColorComp1; }
+    for (size_t i = 0; i < nComps; ++i) { color->c[i] = XPDF_FIXED_POINT_ONE; }
 }
 
 //------------------------------------------------------------------------
@@ -1408,7 +1412,7 @@ GfxColorSpace* GfxPatternColorSpace::parse (Array* arr, int recursion) {
 }
 
 void GfxPatternColorSpace::getGray (GfxColor* color, GfxGray* gray) {
-    *gray = 0;
+    gray->x = 0;
 }
 
 void GfxPatternColorSpace::getRGB (GfxColor* color, GfxRGB* rgb) {
@@ -1747,7 +1751,7 @@ bool GfxShading::init (Dict* dict) {
             hasBackground = true;
             for (i = 0; i < colorSpace->getNComps (); ++i) {
                 background.c[i] =
-                    dblToCol (obj1.arrayGet (i, &obj2)->getNum ());
+                    xpdf::to_color (obj1.arrayGet (i, &obj2)->getNum ());
                 obj2.free ();
             }
         }
@@ -1923,7 +1927,7 @@ void GfxFunctionShading::getColor (double x, double y, GfxColor* color) {
     }
 
     for (size_t i = 0; i < gfxColorMaxComps; ++i) {
-        color->c [i] = dblToCol (out [i]);
+        color->c [i] = xpdf::to_color (out [i]);
     }
 }
 
@@ -2071,7 +2075,7 @@ void GfxAxialShading::getColor (double t, GfxColor* color) {
     }
 
     for (size_t i = 0; i < gfxColorMaxComps; ++i) {
-        color->c[i] = dblToCol (out[i]);
+        color->c[i] = xpdf::to_color (out[i]);
     }
 }
 
@@ -2229,7 +2233,7 @@ void GfxRadialShading::getColor (double t, GfxColor* color) {
     }
 
     for (size_t i = 0; i < gfxColorMaxComps; ++i) {
-        color->c [i] = dblToCol (out [i]);
+        color->c [i] = xpdf::to_color (out [i]);
     }
 }
 
@@ -2599,12 +2603,12 @@ void GfxGouraudTriangleShading::getColor (double* in, GfxColor* out) {
 //         }
 
 //         for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
-//             out->c[i] = dblToCol (c[i]);
+//             out->c[i] = xpdf::to_color (c[i]);
 //         }
 //     }
 //     else {
 //         for (size_t i = 0; i < nComps; ++i) {
-//             out->c [i] = dblToCol (in [i]);
+//             out->c [i] = xpdf::to_color (in [i]);
 //         }
 //     }
 }
@@ -3181,12 +3185,12 @@ void GfxPatchMeshShading::getColor (double* in, GfxColor* out) {
 //         }
 
 //         for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
-//             out->c [i] = dblToCol (c [i]);
+//             out->c [i] = xpdf::to_color (c [i]);
 //         }
 //     }
 //     else {
 //         for (size_t i = 0; i < nComps; ++i) {
-//             out->c [i] = dblToCol (in [i]);
+//             out->c [i] = xpdf::to_color (in [i]);
 //         }
 //     }
 }
@@ -3255,10 +3259,10 @@ GfxImageColorMap::GfxImageColorMap (
     // decode mapping to each possible image pixel component value.
     for (k = 0; k < nComps; ++k) {
         lookup[k] =
-            (GfxColorComp*)calloc (maxPixel + 1, sizeof (GfxColorComp));
+            (xpdf::color_t*)calloc (maxPixel + 1, sizeof (xpdf::color_t));
         for (i = 0; i <= maxPixel; ++i) {
             lookup[k][i] =
-                dblToCol (decodeLow[k] + (i * decodeRange[k]) / maxPixel);
+                xpdf::to_color (decodeLow[k] + (i * decodeRange[k]) / maxPixel);
         }
     }
 
@@ -3279,7 +3283,7 @@ GfxImageColorMap::GfxImageColorMap (
         colorSpace2->getDefaultRanges (x, y, indexHigh);
         for (k = 0; k < nComps2; ++k) {
             lookup2[k] =
-                (GfxColorComp*)calloc (maxPixel + 1, sizeof (GfxColorComp));
+                (xpdf::color_t*)calloc (maxPixel + 1, sizeof (xpdf::color_t));
         }
         for (i = 0; i <= maxPixel; ++i) {
             j = (int)(decodeLow[0] + (i * decodeRange[0]) / maxPixel + 0.5);
@@ -3288,7 +3292,7 @@ GfxImageColorMap::GfxImageColorMap (
                 j = indexHigh;
             }
             for (k = 0; k < nComps2; ++k) {
-                lookup2[k][i] = dblToCol (
+                lookup2[k][i] = xpdf::to_color (
                     x[k] + (indexedLookup[j * nComps2 + k] / 255.0) * y[k]);
             }
         }
@@ -3300,12 +3304,12 @@ GfxImageColorMap::GfxImageColorMap (
         sepFunc = sepCS->getFunc ();
         for (k = 0; k < nComps2; ++k) {
             lookup2[k] =
-                (GfxColorComp*)calloc (maxPixel + 1, sizeof (GfxColorComp));
+                (xpdf::color_t*)calloc (maxPixel + 1, sizeof (xpdf::color_t));
         }
         for (i = 0; i <= maxPixel; ++i) {
             x[0] = decodeLow[0] + (i * decodeRange[0]) / maxPixel;
             sepFunc (x, x + 1, y);
-            for (k = 0; k < nComps2; ++k) { lookup2[k][i] = dblToCol (y[k]); }
+            for (k = 0; k < nComps2; ++k) { lookup2[k][i] = xpdf::to_color (y[k]); }
         }
     }
 
@@ -3334,23 +3338,23 @@ GfxImageColorMap::GfxImageColorMap (GfxImageColorMap* colorMap) {
         n = 256;
     }
     for (k = 0; k < nComps; ++k) {
-        lookup[k] = (GfxColorComp*)calloc (n, sizeof (GfxColorComp));
-        memcpy (lookup[k], colorMap->lookup[k], n * sizeof (GfxColorComp));
+        lookup[k] = (xpdf::color_t*)calloc (n, sizeof (xpdf::color_t));
+        memcpy (lookup[k], colorMap->lookup[k], n * sizeof (xpdf::color_t));
     }
     if (colorSpace->getMode () == csIndexed) {
         colorSpace2 = ((GfxIndexedColorSpace*)colorSpace)->getBase ();
         for (k = 0; k < nComps2; ++k) {
-            lookup2[k] = (GfxColorComp*)calloc (n, sizeof (GfxColorComp));
+            lookup2[k] = (xpdf::color_t*)calloc (n, sizeof (xpdf::color_t));
             memcpy (
-                lookup2[k], colorMap->lookup2[k], n * sizeof (GfxColorComp));
+                lookup2[k], colorMap->lookup2[k], n * sizeof (xpdf::color_t));
         }
     }
     else if (colorSpace->getMode () == csSeparation) {
         colorSpace2 = ((GfxSeparationColorSpace*)colorSpace)->getAlt ();
         for (k = 0; k < nComps2; ++k) {
-            lookup2[k] = (GfxColorComp*)calloc (n, sizeof (GfxColorComp));
+            lookup2[k] = (xpdf::color_t*)calloc (n, sizeof (xpdf::color_t));
             memcpy (
-                lookup2[k], colorMap->lookup2[k], n * sizeof (GfxColorComp));
+                lookup2[k], colorMap->lookup2[k], n * sizeof (xpdf::color_t));
         }
     }
     for (i = 0; i < nComps; ++i) {
@@ -3421,7 +3425,7 @@ void GfxImageColorMap::getColor (unsigned char* x, GfxColor* color) {
     }
     for (i = 0; i < nComps; ++i) {
         color->c[i] =
-            dblToCol (decodeLow[i] + (x[i] * decodeRange[i]) / maxPixel);
+            xpdf::to_color (decodeLow[i] + (x[i] * decodeRange[i]) / maxPixel);
     }
 }
 
@@ -3434,7 +3438,7 @@ void GfxImageColorMap::getGrayByteLine (unsigned char* in, unsigned char* out, i
         for (j = 0; j < n; ++j) {
             for (i = 0; i < nComps2; ++i) { color.c[i] = lookup2[i][in[j]]; }
             colorSpace2->getGray (&color, &gray);
-            out[j] = colToByte (gray);
+            out[j] = xpdf::to_small_color (gray.x);
         }
     }
     else {
@@ -3443,7 +3447,7 @@ void GfxImageColorMap::getGrayByteLine (unsigned char* in, unsigned char* out, i
                 color.c[i] = lookup[i][in[j * nComps + i]];
             }
             colorSpace->getGray (&color, &gray);
-            out[j] = colToByte (gray);
+            out[j] = xpdf::to_small_color (gray.x);
         }
     }
 }
@@ -3457,9 +3461,9 @@ void GfxImageColorMap::getRGBByteLine (unsigned char* in, unsigned char* out, in
         for (j = 0; j < n; ++j) {
             for (i = 0; i < nComps2; ++i) { color.c[i] = lookup2[i][in[j]]; }
             colorSpace2->getRGB (&color, &rgb);
-            out[j * 3] = colToByte (rgb.r);
-            out[j * 3 + 1] = colToByte (rgb.g);
-            out[j * 3 + 2] = colToByte (rgb.b);
+            out[j * 3] = xpdf::to_small_color (rgb.r);
+            out[j * 3 + 1] = xpdf::to_small_color (rgb.g);
+            out[j * 3 + 2] = xpdf::to_small_color (rgb.b);
         }
     }
     else {
@@ -3468,9 +3472,9 @@ void GfxImageColorMap::getRGBByteLine (unsigned char* in, unsigned char* out, in
                 color.c[i] = lookup[i][in[j * nComps + i]];
             }
             colorSpace->getRGB (&color, &rgb);
-            out[j * 3] = colToByte (rgb.r);
-            out[j * 3 + 1] = colToByte (rgb.g);
-            out[j * 3 + 2] = colToByte (rgb.b);
+            out[j * 3] = xpdf::to_small_color (rgb.r);
+            out[j * 3 + 1] = xpdf::to_small_color (rgb.g);
+            out[j * 3 + 2] = xpdf::to_small_color (rgb.b);
         }
     }
 }
@@ -3484,10 +3488,10 @@ void GfxImageColorMap::getCMYKByteLine (unsigned char* in, unsigned char* out, i
         for (j = 0; j < n; ++j) {
             for (i = 0; i < nComps2; ++i) { color.c[i] = lookup2[i][in[j]]; }
             colorSpace2->getCMYK (&color, &cmyk);
-            out[j * 4] = colToByte (cmyk.c);
-            out[j * 4 + 1] = colToByte (cmyk.m);
-            out[j * 4 + 2] = colToByte (cmyk.y);
-            out[j * 4 + 3] = colToByte (cmyk.k);
+            out[j * 4] = xpdf::to_small_color (cmyk.c);
+            out[j * 4 + 1] = xpdf::to_small_color (cmyk.m);
+            out[j * 4 + 2] = xpdf::to_small_color (cmyk.y);
+            out[j * 4 + 3] = xpdf::to_small_color (cmyk.k);
         }
     }
     else {
@@ -3496,10 +3500,10 @@ void GfxImageColorMap::getCMYKByteLine (unsigned char* in, unsigned char* out, i
                 color.c[i] = lookup[i][in[j * nComps + i]];
             }
             colorSpace->getCMYK (&color, &cmyk);
-            out[j * 4] = colToByte (cmyk.c);
-            out[j * 4 + 1] = colToByte (cmyk.m);
-            out[j * 4 + 2] = colToByte (cmyk.y);
-            out[j * 4 + 3] = colToByte (cmyk.k);
+            out[j * 4] = xpdf::to_small_color (cmyk.c);
+            out[j * 4 + 1] = xpdf::to_small_color (cmyk.m);
+            out[j * 4 + 2] = xpdf::to_small_color (cmyk.y);
+            out[j * 4 + 3] = xpdf::to_small_color (cmyk.k);
         }
     }
 }

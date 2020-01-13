@@ -930,28 +930,28 @@ void SplashOutputDev::updateStrokeColor (GfxState* state) {
 SplashPattern* SplashOutputDev::getColor (GfxGray gray) {
     SplashColor color;
 
-    if (reverseVideo) { gray = gfxColorComp1 - gray; }
-    color[0] = colToByte (gray);
+    if (reverseVideo) { gray.x = XPDF_FIXED_POINT_ONE - gray.x; }
+    color[0] = xpdf::to_small_color (gray.x);
     return new SplashSolidColor (color);
 }
 
 SplashPattern* SplashOutputDev::getColor (GfxRGB* rgb) {
-    GfxColorComp r, g, b;
+    xpdf::color_t r, g, b;
     SplashColor color;
 
     if (reverseVideo) {
-        r = gfxColorComp1 - rgb->r;
-        g = gfxColorComp1 - rgb->g;
-        b = gfxColorComp1 - rgb->b;
+        r = XPDF_FIXED_POINT_ONE - rgb->r;
+        g = XPDF_FIXED_POINT_ONE - rgb->g;
+        b = XPDF_FIXED_POINT_ONE - rgb->b;
     }
     else {
         r = rgb->r;
         g = rgb->g;
         b = rgb->b;
     }
-    color[0] = colToByte (r);
-    color[1] = colToByte (g);
-    color[2] = colToByte (b);
+    color[0] = xpdf::to_small_color (r);
+    color[1] = xpdf::to_small_color (g);
+    color[2] = xpdf::to_small_color (b);
     return new SplashSolidColor (color);
 }
 
@@ -959,10 +959,10 @@ SplashPattern* SplashOutputDev::getColor (GfxRGB* rgb) {
 SplashPattern* SplashOutputDev::getColor (GfxCMYK* cmyk) {
     SplashColor color;
 
-    color[0] = colToByte (cmyk->c);
-    color[1] = colToByte (cmyk->m);
-    color[2] = colToByte (cmyk->y);
-    color[3] = colToByte (cmyk->k);
+    color[0] = xpdf::to_small_color (cmyk->c);
+    color[1] = xpdf::to_small_color (cmyk->m);
+    color[2] = xpdf::to_small_color (cmyk->y);
+    color[3] = xpdf::to_small_color (cmyk->k);
     return new SplashSolidColor (color);
 }
 #endif
@@ -2379,22 +2379,22 @@ bool SplashOutputDev::alphaImageSrc (
             case splashModeMono1:
             case splashModeMono8:
                 imgData->colorMap->getGray (p, &gray);
-                *q++ = colToByte (gray);
+                *q++ = xpdf::to_small_color (gray.x);
                 break;
             case splashModeRGB8:
             case splashModeBGR8:
                 imgData->colorMap->getRGB (p, &rgb);
-                *q++ = colToByte (rgb.r);
-                *q++ = colToByte (rgb.g);
-                *q++ = colToByte (rgb.b);
+                *q++ = xpdf::to_small_color (rgb.r);
+                *q++ = xpdf::to_small_color (rgb.g);
+                *q++ = xpdf::to_small_color (rgb.b);
                 break;
 #if SPLASH_CMYK
             case splashModeCMYK8:
                 imgData->colorMap->getCMYK (p, &cmyk);
-                *q++ = colToByte (cmyk.c);
-                *q++ = colToByte (cmyk.m);
-                *q++ = colToByte (cmyk.y);
-                *q++ = colToByte (cmyk.k);
+                *q++ = xpdf::to_small_color (cmyk.c);
+                *q++ = xpdf::to_small_color (cmyk.m);
+                *q++ = xpdf::to_small_color (cmyk.y);
+                *q++ = xpdf::to_small_color (cmyk.k);
                 break;
 #endif
             }
@@ -2459,7 +2459,7 @@ void SplashOutputDev::drawImage (
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getGray (&pix, &gray);
-                imgData.lookup[i] = colToByte (gray);
+                imgData.lookup[i] = xpdf::to_small_color (gray.x);
             }
             break;
         case splashModeRGB8:
@@ -2468,9 +2468,9 @@ void SplashOutputDev::drawImage (
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getRGB (&pix, &rgb);
-                imgData.lookup[3 * i] = colToByte (rgb.r);
-                imgData.lookup[3 * i + 1] = colToByte (rgb.g);
-                imgData.lookup[3 * i + 2] = colToByte (rgb.b);
+                imgData.lookup[3 * i] = xpdf::to_small_color (rgb.r);
+                imgData.lookup[3 * i + 1] = xpdf::to_small_color (rgb.g);
+                imgData.lookup[3 * i + 2] = xpdf::to_small_color (rgb.b);
             }
             break;
 #if SPLASH_CMYK
@@ -2479,10 +2479,10 @@ void SplashOutputDev::drawImage (
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getCMYK (&pix, &cmyk);
-                imgData.lookup[4 * i] = colToByte (cmyk.c);
-                imgData.lookup[4 * i + 1] = colToByte (cmyk.m);
-                imgData.lookup[4 * i + 2] = colToByte (cmyk.y);
-                imgData.lookup[4 * i + 3] = colToByte (cmyk.k);
+                imgData.lookup[4 * i] = xpdf::to_small_color (cmyk.c);
+                imgData.lookup[4 * i + 1] = xpdf::to_small_color (cmyk.m);
+                imgData.lookup[4 * i + 2] = xpdf::to_small_color (cmyk.y);
+                imgData.lookup[4 * i + 3] = xpdf::to_small_color (cmyk.k);
             }
             break;
 #endif
@@ -2583,22 +2583,22 @@ bool SplashOutputDev::maskedImageSrc (
             case splashModeMono1:
             case splashModeMono8:
                 imgData->colorMap->getGray (p, &gray);
-                *q++ = colToByte (gray);
+                *q++ = xpdf::to_small_color (gray.x);
                 break;
             case splashModeRGB8:
             case splashModeBGR8:
                 imgData->colorMap->getRGB (p, &rgb);
-                *q++ = colToByte (rgb.r);
-                *q++ = colToByte (rgb.g);
-                *q++ = colToByte (rgb.b);
+                *q++ = xpdf::to_small_color (rgb.r);
+                *q++ = xpdf::to_small_color (rgb.g);
+                *q++ = xpdf::to_small_color (rgb.b);
                 break;
 #if SPLASH_CMYK
             case splashModeCMYK8:
                 imgData->colorMap->getCMYK (p, &cmyk);
-                *q++ = colToByte (cmyk.c);
-                *q++ = colToByte (cmyk.m);
-                *q++ = colToByte (cmyk.y);
-                *q++ = colToByte (cmyk.k);
+                *q++ = xpdf::to_small_color (cmyk.c);
+                *q++ = xpdf::to_small_color (cmyk.m);
+                *q++ = xpdf::to_small_color (cmyk.y);
+                *q++ = xpdf::to_small_color (cmyk.k);
                 break;
 #endif
             }
@@ -2718,7 +2718,7 @@ void SplashOutputDev::drawMaskedImage (
                 for (i = 0; i < n; ++i) {
                     pix = (unsigned char)i;
                     colorMap->getGray (&pix, &gray);
-                    imgData.lookup[i] = colToByte (gray);
+                    imgData.lookup[i] = xpdf::to_small_color (gray.x);
                 }
                 break;
             case splashModeRGB8:
@@ -2727,9 +2727,9 @@ void SplashOutputDev::drawMaskedImage (
                 for (i = 0; i < n; ++i) {
                     pix = (unsigned char)i;
                     colorMap->getRGB (&pix, &rgb);
-                    imgData.lookup[3 * i] = colToByte (rgb.r);
-                    imgData.lookup[3 * i + 1] = colToByte (rgb.g);
-                    imgData.lookup[3 * i + 2] = colToByte (rgb.b);
+                    imgData.lookup[3 * i] = xpdf::to_small_color (rgb.r);
+                    imgData.lookup[3 * i + 1] = xpdf::to_small_color (rgb.g);
+                    imgData.lookup[3 * i + 2] = xpdf::to_small_color (rgb.b);
                 }
                 break;
 #if SPLASH_CMYK
@@ -2738,10 +2738,10 @@ void SplashOutputDev::drawMaskedImage (
                 for (i = 0; i < n; ++i) {
                     pix = (unsigned char)i;
                     colorMap->getCMYK (&pix, &cmyk);
-                    imgData.lookup[4 * i] = colToByte (cmyk.c);
-                    imgData.lookup[4 * i + 1] = colToByte (cmyk.m);
-                    imgData.lookup[4 * i + 2] = colToByte (cmyk.y);
-                    imgData.lookup[4 * i + 3] = colToByte (cmyk.k);
+                    imgData.lookup[4 * i] = xpdf::to_small_color (cmyk.c);
+                    imgData.lookup[4 * i + 1] = xpdf::to_small_color (cmyk.m);
+                    imgData.lookup[4 * i + 2] = xpdf::to_small_color (cmyk.y);
+                    imgData.lookup[4 * i + 3] = xpdf::to_small_color (cmyk.k);
                 }
                 break;
 #endif
@@ -2817,7 +2817,7 @@ void SplashOutputDev::drawSoftMaskedImage (
     for (i = 0; i < n; ++i) {
         pix = (unsigned char)i;
         maskColorMap->getGray (&pix, &gray);
-        imgMaskData.lookup[i] = colToByte (gray);
+        imgMaskData.lookup[i] = xpdf::to_small_color (gray.x);
     }
     maskBitmap = new SplashBitmap (
         bitmap->getWidth (), bitmap->getHeight (), 1, splashModeMono8, false);
@@ -2857,7 +2857,7 @@ void SplashOutputDev::drawSoftMaskedImage (
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getGray (&pix, &gray);
-                imgData.lookup[i] = colToByte (gray);
+                imgData.lookup[i] = xpdf::to_small_color (gray.x);
             }
             break;
         case splashModeRGB8:
@@ -2866,9 +2866,9 @@ void SplashOutputDev::drawSoftMaskedImage (
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getRGB (&pix, &rgb);
-                imgData.lookup[3 * i] = colToByte (rgb.r);
-                imgData.lookup[3 * i + 1] = colToByte (rgb.g);
-                imgData.lookup[3 * i + 2] = colToByte (rgb.b);
+                imgData.lookup[3 * i] = xpdf::to_small_color (rgb.r);
+                imgData.lookup[3 * i + 1] = xpdf::to_small_color (rgb.g);
+                imgData.lookup[3 * i + 2] = xpdf::to_small_color (rgb.b);
             }
             break;
 #if SPLASH_CMYK
@@ -2877,10 +2877,10 @@ void SplashOutputDev::drawSoftMaskedImage (
             for (i = 0; i < n; ++i) {
                 pix = (unsigned char)i;
                 colorMap->getCMYK (&pix, &cmyk);
-                imgData.lookup[4 * i] = colToByte (cmyk.c);
-                imgData.lookup[4 * i + 1] = colToByte (cmyk.m);
-                imgData.lookup[4 * i + 2] = colToByte (cmyk.y);
-                imgData.lookup[4 * i + 3] = colToByte (cmyk.k);
+                imgData.lookup[4 * i] = xpdf::to_small_color (cmyk.c);
+                imgData.lookup[4 * i + 1] = xpdf::to_small_color (cmyk.m);
+                imgData.lookup[4 * i + 2] = xpdf::to_small_color (cmyk.y);
+                imgData.lookup[4 * i + 3] = xpdf::to_small_color (cmyk.k);
             }
             break;
 #endif
@@ -3193,32 +3193,32 @@ void SplashOutputDev::setSoftMask (
             case splashModeMono8:
                 transpGroupStack->blendingColorSpace->getGray (
                     backdropColor, &gray);
-                backdrop = colToDbl (gray);
-                color[0] = colToByte (gray);
+                backdrop = xpdf::to_double (gray.x);
+                color[0] = xpdf::to_small_color (gray.x);
                 tSplash->compositeBackground (color);
                 break;
             case splashModeRGB8:
             case splashModeBGR8:
                 transpGroupStack->blendingColorSpace->getRGB (
                     backdropColor, &rgb);
-                backdrop = 0.3 * colToDbl (rgb.r) + 0.59 * colToDbl (rgb.g) +
-                           0.11 * colToDbl (rgb.b);
-                color[0] = colToByte (rgb.r);
-                color[1] = colToByte (rgb.g);
-                color[2] = colToByte (rgb.b);
+                backdrop = 0.3 * xpdf::to_double (rgb.r) + 0.59 * xpdf::to_double (rgb.g) +
+                           0.11 * xpdf::to_double (rgb.b);
+                color[0] = xpdf::to_small_color (rgb.r);
+                color[1] = xpdf::to_small_color (rgb.g);
+                color[2] = xpdf::to_small_color (rgb.b);
                 tSplash->compositeBackground (color);
                 break;
 #if SPLASH_CMYK
             case splashModeCMYK8:
                 transpGroupStack->blendingColorSpace->getCMYK (
                     backdropColor, &cmyk);
-                backdrop = (1 - colToDbl (cmyk.k)) - 0.3 * colToDbl (cmyk.c) -
-                           0.59 * colToDbl (cmyk.m) - 0.11 * colToDbl (cmyk.y);
+                backdrop = (1 - xpdf::to_double (cmyk.k)) - 0.3 * xpdf::to_double (cmyk.c) -
+                           0.59 * xpdf::to_double (cmyk.m) - 0.11 * xpdf::to_double (cmyk.y);
                 if (backdrop < 0) { backdrop = 0; }
-                color[0] = colToByte (cmyk.c);
-                color[1] = colToByte (cmyk.m);
-                color[2] = colToByte (cmyk.y);
-                color[3] = colToByte (cmyk.k);
+                color[0] = xpdf::to_small_color (cmyk.c);
+                color[1] = xpdf::to_small_color (cmyk.m);
+                color[2] = xpdf::to_small_color (cmyk.y);
+                color[3] = xpdf::to_small_color (cmyk.k);
                 tSplash->compositeBackground (color);
                 break;
 #endif
@@ -3322,24 +3322,29 @@ void SplashOutputDev::setFillColor (int r, int g, int b) {
     GfxCMYK cmyk;
 #endif
 
-    rgb.r = byteToCol (r);
-    rgb.g = byteToCol (g);
-    rgb.b = byteToCol (b);
+    rgb.r = xpdf::to_color (uint8_t (r));
+    rgb.g = xpdf::to_color (uint8_t (g));
+    rgb.b = xpdf::to_color (uint8_t (b));
+
     switch (colorMode) {
     case splashModeMono1:
     case splashModeMono8:
-        gray = (GfxColorComp) (
+        gray.x = (xpdf::color_t) (
             0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.g + 0.5);
-        if (gray > gfxColorComp1) { gray = gfxColorComp1; }
+        gray.x = std::clamp (gray.x, 0U, XPDF_FIXED_POINT_ONE);
         splash->setFillPattern (getColor (gray));
         break;
+
     case splashModeRGB8:
-    case splashModeBGR8: splash->setFillPattern (getColor (&rgb)); break;
+    case splashModeBGR8:
+        splash->setFillPattern (getColor (&rgb));
+        break;
+
 #if SPLASH_CMYK
     case splashModeCMYK8:
-        cmyk.c = gfxColorComp1 - rgb.r;
-        cmyk.m = gfxColorComp1 - rgb.g;
-        cmyk.y = gfxColorComp1 - rgb.b;
+        cmyk.c = XPDF_FIXED_POINT_ONE - rgb.r;
+        cmyk.m = XPDF_FIXED_POINT_ONE - rgb.g;
+        cmyk.y = XPDF_FIXED_POINT_ONE - rgb.b;
         cmyk.k = 0;
         splash->setFillPattern (getColor (&cmyk));
         break;

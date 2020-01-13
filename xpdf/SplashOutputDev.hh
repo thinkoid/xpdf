@@ -199,7 +199,7 @@ public:
     void clearModRegion ();
 
     // Set the Splash fill color.
-    void setFillColor (int r, int g, int b);
+    void setFillColor (int, int, int);
 
     // Get a font object for a Base-14 font, using the Latin-1 encoding.
     SplashFont* getFont (GString* name, SplashCoord* textMatA);

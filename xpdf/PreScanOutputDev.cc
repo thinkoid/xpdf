@@ -281,8 +281,8 @@ void PreScanOutputDev::check (
             gray = false;
         }
         else if (!((rgb.r == 0 && rgb.g == 0 && rgb.b == 0) ||
-                   (rgb.r == gfxColorComp1 && rgb.g == gfxColorComp1 &&
-                    rgb.b == gfxColorComp1))) {
+                   (rgb.r == XPDF_FIXED_POINT_ONE && rgb.g == XPDF_FIXED_POINT_ONE &&
+                    rgb.b == XPDF_FIXED_POINT_ONE))) {
             mono = false;
         }
     }
