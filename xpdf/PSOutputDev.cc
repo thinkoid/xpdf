@@ -2722,7 +2722,6 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
     Dict* resDict;
     Dict* charProcs;
     Object charProc;
-    Gfx* gfx;
     PDFRectangle box;
     double* m;
     GString* buf;
@@ -2777,7 +2776,8 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
         box.y1 = m[1];
         box.x2 = m[2];
         box.y2 = m[3];
-        gfx = new Gfx (doc, this, resDict, &box, NULL);
+
+        auto gfx = std::make_unique< Gfx > (doc, this, resDict, &box, nullptr);
         inType3Char = true;
         for (i = 0; i < charProcs->getLength (); ++i) {
             t3FillColorOnly = false;
@@ -2812,7 +2812,6 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
             writePS ("} def\n");
         }
         inType3Char = false;
-        delete gfx;
         writePS ("end\n");
     }
     writePS ("currentdict end\n");
@@ -3075,7 +3074,6 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     Object matrixObj, bboxObj, resObj, obj1;
     double m[6], bbox[4];
     PDFRectangle box;
-    Gfx* gfx;
     int i;
 
     // check if form is already defined
@@ -3146,9 +3144,9 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     box.y1 = bbox[1];
     box.x2 = bbox[2];
     box.y2 = bbox[3];
-    gfx = new Gfx (doc, this, resDict, &box, &box);
+
+    auto gfx = std::make_unique< Gfx > (doc, this, resDict, &box, &box);
     gfx->display (strRef);
-    delete gfx;
 
     writePS ("Q\n");
     writePS ("} def\n");
@@ -4007,7 +4005,6 @@ void PSOutputDev::tilingPatternFill (
     double* mat, double* bbox, int x0, int y0, int x1, int y1, double xStep,
     double yStep) {
     PDFRectangle box;
-    Gfx* gfx2;
 
     // define a Type 3 font
     writePS ("8 dict begin\n");
@@ -4034,7 +4031,7 @@ void PSOutputDev::tilingPatternFill (
     box.y1 = bbox[1];
     box.x2 = bbox[2];
     box.y2 = bbox[3];
-    gfx2 = new Gfx (doc, this, resDict, &box, NULL);
+    auto gfx2 = std::make_unique< Gfx > (doc, this, resDict, &box, nullptr);
     gfx2->takeContentStreamStack (gfx);
     writePS ("/x {\n");
     if (paintType == 2) {
@@ -4056,7 +4053,7 @@ void PSOutputDev::tilingPatternFill (
     --numTilingPatterns;
     inType3Char = false;
     writePS ("} def\n");
-    delete gfx2;
+
     writePS ("end\n");
     writePS ("currentdict end\n");
     writePSFmt ("/xpdfTile{0:d} exch definefont pop\n", numTilingPatterns);
