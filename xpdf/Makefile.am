@@ -61,7 +61,8 @@ libxpdf_a_SOURCES =                             \
    XpdfPluginAPI.cc                             \
    Zoox.cc                                      \
    bitpack.cc                                   \
-   function.cc
+   function.cc                                  \
+   object.cc
 
 bin_PROGRAMS = xpdf                             \
 	pdfdetach                                   \

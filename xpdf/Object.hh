@@ -6,8 +6,8 @@
 //
 //========================================================================
 
-#ifndef XPDF_XPDF_OBJECT_HH
-#define XPDF_XPDF_OBJECT_HH
+#ifndef XPDF_LEGACY_XPDF_OBJECT_HH
+#define XPDF_LEGACY_XPDF_OBJECT_HH
 
 #include <defs.hh>
 
@@ -225,4 +225,4 @@ private:
     };
 };
 
-#endif // XPDF_XPDF_OBJECT_HH
+#endif // XPDF_LEGACY_XPDF_OBJECT_HH
