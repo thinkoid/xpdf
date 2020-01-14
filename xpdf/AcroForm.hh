@@ -11,44 +11,18 @@
 
 #include <defs.hh>
 
+#include <memory>
+#include <vector>
+
 #include <xpdf/Form.hh>
 #include <xpdf/Object.hh>
 
+class AcroForm;
 class TextString;
 class GfxFont;
 class GfxFontDict;
 
-//------------------------------------------------------------------------
-
-class AcroForm : public Form {
-public:
-    static AcroForm*
-    load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA);
-
-    virtual ~AcroForm ();
-
-    virtual const char* getType () { return "AcroForm"; }
-
-    virtual void draw (int pageNum, Gfx* gfx, bool printing);
-
-    virtual int getNumFields ();
-    virtual FormField* getField (int idx);
-
-private:
-    AcroForm (PDFDoc* docA, Object* acroFormObjA);
-    void buildAnnotPageList (Catalog* catalog);
-    int lookupAnnotPage (Object* annotRef);
-    void scanField (Object* fieldRef);
-
-    Object acroFormObj;
-    bool needAppearances;
-    GList* annotPages; // [AcroFormAnnotPage]
-    GList* fields;     // [AcroFormField]
-
-    friend class AcroFormField;
-};
-
-//------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////
 
 enum AcroFormFieldType {
     acroFormFieldPushbutton,
@@ -69,6 +43,7 @@ public:
     virtual ~AcroFormField ();
 
     virtual const char* getType ();
+
     virtual Unicode* getName (int* length);
     virtual Unicode* getValue (int* length);
 
@@ -117,5 +92,46 @@ private:
 
     friend class AcroForm;
 };
+
+//------------------------------------------------------------------------
+
+class AcroFormAnnotPage;
+
+class AcroForm : public Form {
+public:
+    virtual ~AcroForm ();
+
+    const char* getType () { return "AcroForm"; }
+
+    void draw (int pageNum, Gfx* gfx, bool printing);
+
+    size_t getNumFields () const { return fields.size (); }
+
+    FormField* getField (size_t i) const {
+        ASSERT (i < fields.size ());
+        return fields [i].get ();
+    }
+
+public:
+    static AcroForm* load (PDFDoc*, Catalog*, Object*);
+
+private:
+    friend class AcroFormField;
+
+    AcroForm (PDFDoc*, Object*);
+
+    void buildAnnotPageList (Catalog* catalog);
+    int lookupAnnotPage (Object* annotRef);
+    void scanField (Object* fieldRef);
+
+private:
+    Object acroFormObj;
+    bool needAppearances;
+
+    std::vector< std::unique_ptr< AcroFormAnnotPage > > annotPages;
+    std::vector< std::unique_ptr< AcroFormField > > fields;
+};
+
+//------------------------------------------------------------------------
 
 #endif

@@ -242,14 +242,12 @@ XFAForm::XFAForm (
     PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA)
     : Form (docA) {
     xml = xmlA;
-    fields = new GList ();
     resourceDictA->copy (&resourceDict);
     fullXFA = fullXFAA;
 }
 
 XFAForm::~XFAForm () {
     delete xml;
-    deleteGList (fields, XFAFormField);
     resourceDict.free ();
 }
 
@@ -269,9 +267,10 @@ void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
     //~   field is selected
 
     if (elem->isElement ("field")) {
-        fields->append (new XFAFormField (
-            this, elem, name->copy (), dataName->copy (), curPageNum,
-            curXOffset, curYOffset));
+        fields.push_back (
+            std::make_unique< XFAFormField > (
+                this, elem, name->copy (), dataName->copy (), curPageNum,
+                curXOffset, curYOffset));
     }
     else if (elem->isElement ("breakBefore")) {
         if ((attr = elem->findAttr ("targetType")) &&
@@ -344,7 +343,6 @@ void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
 void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
     GfxFontDict* fontDict;
     Object obj1;
-    int i;
 
     // build the font dictionary
     if (resourceDict.isDict () &&
@@ -354,20 +352,14 @@ void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
     else {
         fontDict = NULL;
     }
+
     obj1.free ();
 
-    for (i = 0; i < fields->getLength (); ++i) {
-        ((XFAFormField*)fields->get (i))
-            ->draw (pageNum, gfx, printing, fontDict);
+    for (auto& p : fields) {
+        p->draw (pageNum, gfx, printing, fontDict);
     }
 
     delete fontDict;
-}
-
-int XFAForm::getNumFields () { return fields->getLength (); }
-
-FormField* XFAForm::getField (int idx) {
-    return (XFAFormField*)fields->get (idx);
 }
 
 //------------------------------------------------------------------------

@@ -116,14 +116,10 @@ AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
 AcroForm::AcroForm (PDFDoc* docA, Object* acroFormObjA) : Form (docA) {
     acroFormObjA->copy (&acroFormObj);
     needAppearances = false;
-    annotPages = new GList ();
-    fields = new GList ();
 }
 
 AcroForm::~AcroForm () {
     acroFormObj.free ();
-    deleteGList (annotPages, AcroFormAnnotPage);
-    deleteGList (fields, AcroFormField);
 }
 
 void AcroForm::buildAnnotPageList (Catalog* catalog) {
@@ -134,8 +130,11 @@ void AcroForm::buildAnnotPageList (Catalog* catalog) {
         if (catalog->getPage (pageNum)->getAnnots (&annotsObj)->isArray ()) {
             for (i = 0; i < annotsObj.arrayGetLength (); ++i) {
                 if (annotsObj.arrayGetNF (i, &annotObj)->isRef ()) {
-                    annotPages->append (new AcroFormAnnotPage (
-                        annotObj.getRefNum (), annotObj.getRefGen (), pageNum));
+                    annotPages.push_back (
+                        std::make_unique< AcroFormAnnotPage > (
+                            annotObj.getRefNum (),
+                            annotObj.getRefGen (),
+                            pageNum));
                 }
                 annotObj.free ();
             }
@@ -146,24 +145,21 @@ void AcroForm::buildAnnotPageList (Catalog* catalog) {
 }
 
 int AcroForm::lookupAnnotPage (Object* annotRef) {
-    AcroFormAnnotPage* annotPage;
-    int num, gen, i;
-
-    if (!annotRef->isRef ()) { return 0; }
-    num = annotRef->getRefNum ();
-    gen = annotRef->getRefGen ();
-    //~ use bin search
-    for (i = 0; i < annotPages->getLength (); ++i) {
-        annotPage = (AcroFormAnnotPage*)annotPages->get (i);
-        if (annotPage->annotNum == num && annotPage->annotGen == gen) {
-            return annotPage->pageNum;
-        }
+    if (!annotRef->isRef ()) {
+        return 0;
     }
-    return 0;
+
+    int num = annotRef->getRefNum ();
+    int gen = annotRef->getRefGen ();
+
+    auto iter = find_if (annotPages, [=](auto& p) {
+        return p->annotNum == num && p->annotGen == gen;
+    });
+
+    return (iter == annotPages.end ()) ? 0 : (*iter)->pageNum;
 }
 
 void AcroForm::scanField (Object* fieldRef) {
-    AcroFormField* field;
     Object fieldObj, kidsObj, kidRef, kidObj, subtypeObj;
     bool isTerminal;
     int i;
@@ -203,8 +199,8 @@ void AcroForm::scanField (Object* fieldRef) {
     kidsObj.free ();
 
     if (isTerminal) {
-        if ((field = AcroFormField::load (this, fieldRef))) {
-            fields->append (field);
+        if (auto p = AcroFormField::load (this, fieldRef)) {
+            fields.push_back (std::unique_ptr< AcroFormField > (p));
         }
     }
 
@@ -212,17 +208,9 @@ void AcroForm::scanField (Object* fieldRef) {
 }
 
 void AcroForm::draw (int pageNum, Gfx* gfx, bool printing) {
-    int i;
-
-    for (i = 0; i < fields->getLength (); ++i) {
-        ((AcroFormField*)fields->get (i))->draw (pageNum, gfx, printing);
+    for (auto& p : fields) {
+        p->draw (pageNum, gfx, printing);
     }
-}
-
-int AcroForm::getNumFields () { return fields->getLength (); }
-
-FormField* AcroForm::getField (int idx) {
-    return (AcroFormField*)fields->get (idx);
 }
 
 //------------------------------------------------------------------------

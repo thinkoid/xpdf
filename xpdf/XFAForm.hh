@@ -11,6 +11,9 @@
 
 #include <defs.hh>
 
+#include <memory>
+#include <vector>
+
 #include <xpdf/Form.hh>
 
 class ZxDoc;
@@ -25,36 +28,7 @@ enum XFAVertAlign { xfaVAlignTop, xfaVAlignBottom, xfaVAlignMiddle };
 
 //------------------------------------------------------------------------
 
-class XFAForm : public Form {
-public:
-    static XFAForm* load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj);
-
-    virtual ~XFAForm ();
-
-    virtual const char* getType () { return "XFA"; }
-
-    virtual void draw (int pageNum, Gfx* gfx, bool printing);
-
-    virtual int getNumFields ();
-    virtual FormField* getField (int idx);
-
-private:
-    XFAForm (PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA);
-    void scanFields (ZxElement* elem, GString* name, GString* dataName);
-
-    ZxDoc* xml;
-    GList* fields; // [XFAFormField]
-    Object resourceDict;
-    bool fullXFA;     // true for "Full XFA", false for
-                       //   "XFA Foreground"
-    int curPageNum;    // current page number - used by scanFields()
-    double curXOffset, // current x,y offset - used by scanFields()
-        curYOffset;
-
-    friend class XFAFormField;
-};
-
-//------------------------------------------------------------------------
+class XFAForm;
 
 class XFAFormField : public FormField {
 public:
@@ -102,6 +76,56 @@ private:
     double xOffset, yOffset;
 
     friend class XFAForm;
+};
+
+//------------------------------------------------------------------------
+
+class XFAFormField;
+
+class XFAForm : public Form {
+public:
+    static XFAForm* load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj);
+
+    ~XFAForm ();
+
+    const char* getType () { return "XFA"; }
+
+    void draw (int pageNum, Gfx* gfx, bool printing);
+
+    size_t getNumFields () const {
+        return fields.size ();
+    }
+
+    FormField* getField (size_t i) const {
+        ASSERT (i < fields.size ());
+        return fields [i].get ();
+    }
+
+private:
+    XFAForm (PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA);
+    void scanFields (ZxElement* elem, GString* name, GString* dataName);
+
+    ZxDoc* xml;
+    std::vector< std::unique_ptr< XFAFormField > > fields;
+    Object resourceDict;
+
+    //
+    // current x,y offset - used by scanFields ()
+    //
+    double curXOffset, curYOffset;
+
+    //
+    // current page number - used by scanFields()
+    //
+    int curPageNum;
+
+    //
+    // true for "Full XFA", false for "XFA Foreground"
+    //
+    bool fullXFA;
+
+private:
+    friend class XFAFormField;
 };
 
 #endif
