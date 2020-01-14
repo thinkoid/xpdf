@@ -29,6 +29,11 @@ struct name_t : string_t {
     using string_t::operator=;
 };
 
+struct cmd_t : string_t {
+    using string_t::string_t;
+    using string_t::operator=;
+};
+
 struct stream_t : std::vector< char > {
     using std::vector< char >::vector;
     using std::vector< char >::operator=;
@@ -39,8 +44,6 @@ struct object_t;
 struct array_t : std::vector< object_t > {
     using std::vector< object_t >::vector;
     using std::vector< object_t >::operator=;
-
-    explicit array_t (XRef*);
 };
 
 struct dictionary_t : std::vector< std::tuple< std::string, object_t > > {
@@ -49,18 +52,16 @@ struct dictionary_t : std::vector< std::tuple< std::string, object_t > > {
 };
 
 struct object_t : std::variant<
-    null_t, bool, long, double, std::string, name_t, array_t, dictionary_t,
-    stream_t > {
+    null_t, bool, long, double, std::string, name_t, cmd_t,
+    array_t, dictionary_t, stream_t > {
 
     using base_type = std::variant<
-        null_t, bool, long, double, std::string, name_t, array_t, dictionary_t,
-        stream_t >;
+        null_t, bool, long, double, std::string, name_t, cmd_t,
+        array_t, dictionary_t, stream_t >;
 
     using base_type::base_type;
     using base_type::operator=;
 };
-
-array_t make_array (XRef*);
 
 } // namespace ast
 } // namespace xpdf
