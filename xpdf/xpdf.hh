@@ -16,11 +16,11 @@ class Array;
 #include <xpdf/Object.hh>
 #include <xpdf/Stream.hh>
 
-#include <boost/format.hpp>
-using fmt = boost::format;
-
 #include <range/v3/all.hpp>
 using namespace ranges;
+
+#include <fmt/format.h>
+using fmt::format;
 
 namespace xpdf {
 
@@ -67,7 +67,7 @@ inline T as (Dict& dict, const char* s) {
     Object obj;
 
     if (0 == dict.lookup (s, &obj)) {
-        throw std::runtime_error ((fmt ("missing key %1%") % s).str ());
+        throw std::runtime_error (format ("missing key {}", s));
     }
 
     OBJECT_GUARD (&obj);
@@ -79,7 +79,7 @@ inline T array_get (Object& arr, size_t i) {
     Object tmp;
 
     if (0 == arr.arrayGet (i, &tmp)) {
-        throw std::runtime_error ((fmt ("invalid array or index %1%") % i).str ());
+        throw std::runtime_error (format ("invalid array or index {}", i));
     }
 
     OBJECT_GUARD (&tmp);
@@ -130,7 +130,7 @@ inline auto as_array (Dict& dict, const char* s) {
     Object obj;
 
     if (0 == dict.lookup (s, &obj) || obj.isNull ()) {
-        throw std::runtime_error ((fmt ("missing array \"%1%\"") % s).str ());
+        throw std::runtime_error (format ("missing array \"{}\"", s));
     }
 
     OBJECT_GUARD (&obj);

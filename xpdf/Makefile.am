@@ -94,5 +94,6 @@ LDADD = libxpdf.a                                       \
 	$(top_srcdir)/splash/libsplash.a                    \
 	$(LIBS) $(FREETYPE2_LIBS)                           \
 	$(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS)    \
-	$(LIBPNG_LIBS) $(PAPER_LIBS)
+	$(LIBPNG_LIBS) $(PAPER_LIBS)                        \
+	$(FMT_LIBS)
 

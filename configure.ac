@@ -54,6 +54,7 @@ AS_IF([test "x$with_appdef_dir" != "xno"],[
 ])
 
 AC_PKG_CONFIG_WITH([libpng])
+AC_PKG_CONFIG_WITH([fmt])
 AC_PKG_CONFIG_WITH([freetype2])
 AC_PKG_CONFIG_WITH([x11])
 AC_PKG_CONFIG_WITH([xt])

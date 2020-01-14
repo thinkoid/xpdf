@@ -801,7 +801,7 @@ parse (Iterator& iter, Iterator last) {
             }
             else {
                 throw std::runtime_error (
-                    (fmt ("unexpected PostScript: %1%") % tok).str ());
+                    format ("unexpected PostScript: {}", tok));
             }
         }
         else if (tok == "}") {
@@ -810,7 +810,7 @@ parse (Iterator& iter, Iterator last) {
         }
         else if (tok == "if" || tok == "ifelse") {
             throw std::runtime_error (
-                (fmt ("unexpected PostScript: %1%") % tok).str ());
+                format ("unexpected PostScript: {}", tok));
         }
         else {
             // Note: 'if' and 'ifelse' are parsed separately.
@@ -828,7 +828,7 @@ parse (Iterator& iter, Iterator last) {
 
             if (iter2 == ns.end ()) {
                 throw std::runtime_error (
-                    (fmt ("invalid PostScript: %1%") % tok).str ());
+                    format ("invalid PostScript: {}", tok));
             }
 
             xs.push_back ({ int (std::distance (iter2, ns.end ())), 0 });
@@ -1160,7 +1160,7 @@ postscript_function_t::exec (std::vector< double > stack) const {
 
         default:
             throw std::runtime_error (
-                (fmt ("invalid PostScript code: %1%") % 1).str ());
+                format ("invalid PostScript code: {}", iter->op));
         }
     }
 
@@ -1214,7 +1214,7 @@ make_function (Object& obj, size_t recursion /* = 0 */) {
         case 4: return std::make_shared<  postscript_function_t > (obj, *p);
         default:
             throw std::runtime_error (
-                (fmt ("invalid function type: %1%") % type).str ());
+                format ("invalid function type: {}", type));
         }
     }
 }
