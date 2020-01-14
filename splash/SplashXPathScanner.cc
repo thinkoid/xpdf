@@ -19,107 +19,145 @@
 #include <splash/SplashXPath.hh>
 #include <splash/SplashXPathScanner.hh>
 
+#include <range/v3/all.hpp>
+using namespace ranges;
+
 //------------------------------------------------------------------------
 
 #define minVertStep 0.05
+
+struct indirect_cmp_t {
+    //
+    // Increasing order of xCur0, or dxdy:
+    //
+    bool operator() (const SplashXPathSeg* plhs, const SplashXPathSeg* prhs) {
+        const SplashXPathSeg &lhs = *plhs, &rhs = *prhs;
+
+        auto x = lhs.xCur0 - rhs.xCur0;
+
+        if (0 == x) {
+            x = lhs.dxdy - rhs.dxdy;
+        }
+
+        return x < 0;
+    }
+};
 
 //------------------------------------------------------------------------
 
 SplashXPathScanner::SplashXPathScanner (
     SplashXPath* xPathA, bool eoA, int yMinA, int yMaxA) {
     xPath = xPathA;
+
     eo = eoA;
+
     yMin = yMinA;
     yMax = yMaxA;
 
-    activeSegs = new GList ();
     nextSeg = 0;
     yNext = xPath->yMin;
 }
-
-SplashXPathScanner::~SplashXPathScanner () { delete activeSegs; }
 
 void SplashXPathScanner::getSpan (unsigned char* line, int y, int x0, int x1) {
     SplashXPathSeg *seg, *seg0;
     SplashCoord y0, y1, y1p;
     bool intersect, last;
-    int eoMask, state0, state1, count, i;
+    int eoMask, state0, state1, count;
 
     //--- clear the scan line buffer
     memset (line + x0, 0, x1 - x0 + 1);
 
     //--- reset the path
     if (yNext != y) {
-        delete activeSegs;
-        activeSegs = new GList ();
-        nextSeg = 0;
-        while (nextSeg < xPath->length) {
-            seg = &xPath->segs[nextSeg];
-            if (seg->y0 >= y) { break; }
-            if (seg->y0 != seg->y1 && seg->y1 > y) {
-                if (seg->y0 == y) { seg->xCur0 = seg->x0; }
-                else {
-                    seg->xCur0 =
-                        seg->x0 + ((SplashCoord)y - seg->y0) * seg->dxdy;
-                }
-                activeSegs->append (seg);
+        activeSegs.clear ();
+
+        for (nextSeg = 0; nextSeg < xPath->length; ++nextSeg) {
+            seg = &xPath->segs [nextSeg];
+
+            if (seg->y0 >= y) {
+                break;
             }
-            ++nextSeg;
+
+            if (seg->y0 != seg->y1 && seg->y1 > y) {
+                if (seg->y0 == y) {
+                    seg->xCur0 = seg->x0;
+                }
+                else {
+                    seg->xCur0 = seg->x0 + ((SplashCoord)y - seg->y0) * seg->dxdy;
+                }
+
+                activeSegs.push_back (seg);
+            }
         }
-        activeSegs->sort (&SplashXPathSeg::cmpXi);
+
+        sort (activeSegs, indirect_cmp_t{ });
     }
 
     //--- process the scan line
-    y0 = y;
-    while (y0 < y + 1) {
-        //--- delete finished segs
-        i = 0;
-        while (i < activeSegs->getLength ()) {
-            seg = (SplashXPathSeg*)activeSegs->get (i);
-            if (seg->y1 <= y0) { activeSegs->del (i); }
-            else {
-                ++i;
+    for (y0 = y; y0 < y + 1;) {
+        //
+        // Delete finished segs:
+        //
+        actions::remove_if (activeSegs, [=](auto p) { return p->y1 <= y0; });
+
+        //
+        // Check for bottom of path:
+        //
+        if (activeSegs.empty () && nextSeg >= xPath->length) {
+            break;
+        }
+
+        //
+        // Add waiting segs:
+        //
+        for (; nextSeg < xPath->length; ++nextSeg) {
+            auto p = &xPath->segs [nextSeg];
+
+            if (p->y0 > y0) {
+                break;
+            }
+
+            if (p->y0 != p->y1) {
+                p->xCur0 = p->x0;
+                activeSegs.push_back (p);
             }
         }
 
-        //--- check for bottom of path
-        if (!activeSegs->getLength () && nextSeg >= xPath->length) { break; }
-
-        //--- sort activeSegs
-        sortActiveSegs ();
-
-        //--- add waiting segs
-        while (nextSeg < xPath->length) {
-            seg = &xPath->segs[nextSeg];
-            if (seg->y0 > y0) { break; }
-            if (seg->y0 != seg->y1) {
-                seg->xCur0 = seg->x0;
-                insertActiveSeg (seg);
-            }
-            ++nextSeg;
-        }
+        //
+        // Sort activeSegs:
+        //
+        sort (activeSegs, indirect_cmp_t{ });
 
         //--- get the next "interesting" y value
         y1 = y + 1;
-        if (nextSeg < xPath->length && xPath->segs[nextSeg].y0 < y1) {
-            y1 = xPath->segs[nextSeg].y0;
+
+        if (nextSeg < xPath->length && xPath->segs [nextSeg].y0 < y1) {
+            y1 = xPath->segs [nextSeg].y0;
         }
-        for (i = 0; i < activeSegs->getLength (); ++i) {
-            seg = (SplashXPathSeg*)activeSegs->get (i);
-            if (seg->y1 < y1) { y1 = seg->y1; }
+
+        for (auto p : activeSegs) {
+            if (p->y1 < y1) {
+                y1 = p->y1;
+            }
         }
 
         //--- compute xCur1 values, check for intersections
         seg0 = NULL;
         intersect = false;
-        for (i = 0; i < activeSegs->getLength (); ++i) {
-            seg = (SplashXPathSeg*)activeSegs->get (i);
-            if (seg->y1 == y1) { seg->xCur1 = seg->x1; }
-            else {
-                seg->xCur1 = seg->x0 + (y1 - seg->y0) * seg->dxdy;
+
+        for (auto p : activeSegs) {
+            if (p->y1 == y1) {
+                p->xCur1 = p->x1;
             }
-            if (seg0 && seg0->xCur1 > seg->xCur1) { intersect = true; }
-            seg0 = seg;
+            else {
+                p->xCur1 = p->x0 + (y1 - p->y0) * p->dxdy;
+            }
+
+            if (seg0 && seg0->xCur1 > p->xCur1) {
+                intersect = true;
+            }
+
+            seg0 = p;
         }
 
         //--- draw rectangles
@@ -132,52 +170,66 @@ void SplashXPathScanner::getSpan (unsigned char* line, int y, int x0, int x1) {
                 else {
                     last = false;
                 }
+
                 state0 = state1 = count = 0;
                 seg0 = NULL;
+
                 eoMask = eo ? 1 : 0xffffffff;
-                for (i = 0; i < activeSegs->getLength (); ++i) {
-                    seg = (SplashXPathSeg*)activeSegs->get (i);
-                    if (last && seg->y1 == y1) { seg->xCur1 = seg->x1; }
+
+                for (auto p : activeSegs) {
+                    if (last && p->y1 == y1) {
+                        p->xCur1 = p->x1;
+                    }
                     else {
-                        seg->xCur1 = seg->x0 + (y1p - seg->y0) * seg->dxdy;
+                        p->xCur1 = p->x0 + (y1p - p->y0) * p->dxdy;
                     }
-                    count += seg->count;
+
+                    count += p->count;
                     state1 = count & eoMask;
-                    if (!state0 && state1) { seg0 = seg; }
-                    else if (state0 && !state1) {
-                        drawRectangle (
-                            line, x0, x1, y0, y1p, seg0->xCur0, seg->xCur0);
+
+                    if (!state0 && state1) {
+                        seg0 = p;
                     }
+                    else if (state0 && !state1) {
+                        drawRectangle (line, x0, x1, y0, y1p, seg0->xCur0, p->xCur0);
+                    }
+
                     state0 = state1;
                 }
-                for (i = 0; i < activeSegs->getLength (); ++i) {
-                    seg = (SplashXPathSeg*)activeSegs->get (i);
-                    seg->xCur0 = seg->xCur1;
-                }
-                sortActiveSegs ();
-            }
 
-            //--- draw trapezoids
+                for (auto p : activeSegs) {
+                    p->xCur0 = p->xCur1;
+                }
+
+                sort (activeSegs, indirect_cmp_t{ });
+            }
         }
         else {
+            //
+            // Draw trapezoids:
+            //
             state0 = state1 = count = 0;
             seg0 = NULL;
             eoMask = eo ? 1 : 0xffffffff;
-            for (i = 0; i < activeSegs->getLength (); ++i) {
-                seg = (SplashXPathSeg*)activeSegs->get (i);
-                count += seg->count;
+
+            for (auto p : activeSegs) {
+                count += p->count;
                 state1 = count & eoMask;
-                if (!state0 && state1) { seg0 = seg; }
+
+                if (!state0 && state1) {
+                    seg0 = p;
+                }
                 else if (state0 && !state1) {
                     drawTrapezoid (
                         line, x0, x1, y0, y1, seg0->xCur0, seg0->xCur1,
-                        seg0->dydx, seg->xCur0, seg->xCur1, seg->dydx);
+                        seg0->dydx, p->xCur0, p->xCur1, p->dydx);
                 }
+
                 state0 = state1;
             }
-            for (i = 0; i < activeSegs->getLength (); ++i) {
-                seg = (SplashXPathSeg*)activeSegs->get (i);
-                seg->xCur0 = seg->xCur1;
+
+            for (auto p : activeSegs) {
+                p->xCur0 = p->xCur1;
             }
         }
 
@@ -198,67 +250,76 @@ void SplashXPathScanner::getSpanBinary (unsigned char* line, int y, int x0, int 
 
     //--- reset the path
     if (yNext != y) {
-        delete activeSegs;
-        activeSegs = new GList ();
-        nextSeg = 0;
-        while (nextSeg < xPath->length) {
-            seg = &xPath->segs[nextSeg];
-            if (seg->y0 >= y) { break; }
-            if (seg->y1 > y) {
-                if (seg->y0 == y) { seg->xCur0 = seg->x0; }
-                else {
-                    seg->xCur0 =
-                        seg->x0 + ((SplashCoord)y - seg->y0) * seg->dxdy;
-                }
-                activeSegs->append (seg);
+        activeSegs.clear ();
+
+        for (nextSeg = 0; nextSeg < xPath->length; ++nextSeg) {
+            seg = &xPath->segs [nextSeg];
+
+            if (seg->y0 >= y) {
+                break;
             }
-            ++nextSeg;
+
+            if (seg->y1 > y) {
+                if (seg->y0 == y) {
+                    seg->xCur0 = seg->x0;
+                }
+                else {
+                    seg->xCur0 = seg->x0 + ((SplashCoord)y - seg->y0) * seg->dxdy;
+                }
+
+                activeSegs.push_back (seg);
+            }
         }
-        activeSegs->sort (&SplashXPathSeg::cmpXi);
+
+        sort (activeSegs, indirect_cmp_t{ });
     }
 
-    //--- delete finished segs
-    i = 0;
-    while (i < activeSegs->getLength ()) {
-        seg = (SplashXPathSeg*)activeSegs->get (i);
-        if (seg->y1 <= y) { activeSegs->del (i); }
-        else {
-            ++i;
+    //
+    // Delete finished segs:
+    //
+    actions::remove_if (activeSegs, [=](auto p) { return p->y1 <= y; });
+
+    //--- add waiting segs
+    for (; nextSeg < xPath->length; ++nextSeg) {
+        auto p = &xPath->segs [nextSeg];
+
+        if (p->y0 >= y + 1) {
+            break;
         }
+
+        p->xCur0 = p->x0;
+        activeSegs.push_back (p);
     }
 
     //--- sort activeSegs
-    sortActiveSegs ();
-
-    //--- add waiting segs
-    while (nextSeg < xPath->length) {
-        seg = &xPath->segs[nextSeg];
-        if (seg->y0 >= y + 1) { break; }
-        seg->xCur0 = seg->x0;
-        insertActiveSeg (seg);
-        ++nextSeg;
-    }
+    sort (activeSegs, indirect_cmp_t{ });
 
     //--- compute xCur1 values
-    for (i = 0; i < activeSegs->getLength (); ++i) {
-        seg = (SplashXPathSeg*)activeSegs->get (i);
-        if (seg->y1 <= y + 1) { seg->xCur1 = seg->x1; }
+    for (i = 0; i < activeSegs.size (); ++i) {
+        auto p = activeSegs [i];
+
+        if (p->y1 <= y + 1) {
+            p->xCur1 = p->x1;
+        }
         else {
-            seg->xCur1 =
-                seg->x0 + ((SplashCoord) (y + 1) - seg->y0) * seg->dxdy;
+            p->xCur1 = p->x0 + ((SplashCoord) (y + 1) - p->y0) * p->dxdy;
         }
     }
 
     //--- draw spans
     state0 = state1 = count = 0;
+
     eoMask = eo ? 1 : 0xffffffff;
     xx0 = xx1 = 0; // make gcc happy
-    for (i = 0; i < activeSegs->getLength (); ++i) {
-        seg = (SplashXPathSeg*)activeSegs->get (i);
+
+    for (i = 0; i < activeSegs.size (); ++i) {
+        seg = activeSegs [i];
+
         if (seg->y0 <= y && seg->y0 < seg->y1) {
             count += seg->count;
             state1 = count & eoMask;
         }
+
         if (state0) {
             xx = splashCeil (seg->xCur0) - 1;
             if (xx > xx1) { xx1 = xx; }
@@ -277,17 +338,19 @@ void SplashXPathScanner::getSpanBinary (unsigned char* line, int y, int x0, int 
                 xx1 = splashCeil (seg->xCur0) - 1;
             }
         }
+
         if (!state1) {
             if (xx0 < x0) { xx0 = x0; }
             if (xx1 > x1) { xx1 = x1; }
-            for (xx = xx0; xx <= xx1; ++xx) { line[xx] = 0xff; }
+            for (xx = xx0; xx <= xx1; ++xx) { line [xx] = 0xff; }
         }
+
         state0 = state1;
     }
 
     //--- update xCur0 values
-    for (i = 0; i < activeSegs->getLength (); ++i) {
-        seg = (SplashXPathSeg*)activeSegs->get (i);
+    for (i = 0; i < activeSegs.size (); ++i) {
+        seg = activeSegs [i];
         seg->xCur0 = seg->xCur1;
     }
 
@@ -299,9 +362,9 @@ inline void SplashXPathScanner::addArea (unsigned char* line, int x, SplashCoord
 
     a2 = splashRound (a * 255);
     if (a2 <= 0) { return; }
-    t = line[x] + a2;
+    t = line [x] + a2;
     if (t > 255) { t = 255; }
-    line[x] = t;
+    line [x] = t;
 }
 
 // Draw a trapezoid with edges:
@@ -310,9 +373,12 @@ inline void SplashXPathScanner::addArea (unsigned char* line, int x, SplashCoord
 //   right:  (xb0, y0) - (xb1, y1)
 //   bottom: (xa1, y1) - (xb1, y1)
 void SplashXPathScanner::drawTrapezoid (
-    unsigned char* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
-    SplashCoord xa0, SplashCoord xa1, SplashCoord dydxa, SplashCoord xb0,
-    SplashCoord xb1, SplashCoord dydxb) {
+    unsigned char* line,
+    int xMin, int xMax,
+    SplashCoord y0,  SplashCoord y1,
+    SplashCoord xa0, SplashCoord xa1, SplashCoord dydxa,
+    SplashCoord xb0, SplashCoord xb1, SplashCoord dydxb) {
+
     SplashCoord a, dy;
     int x0, x1, x2, x3, x;
 
@@ -359,8 +425,11 @@ void SplashXPathScanner::drawTrapezoid (
 // Compute area within a pixel slice ((xp,y0)-(xp+1,y1)) to the left
 // of a trapezoid edge ((x0,y0)-(x1,y1)).
 SplashCoord SplashXPathScanner::areaLeft (
-    int xp, SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
+    int xp,
+    SplashCoord x0, SplashCoord y0,
+    SplashCoord x1, SplashCoord y1,
     SplashCoord dydx) {
+
     SplashCoord a, ya, yb;
 
     if (dydx >= 0) {
@@ -409,8 +478,11 @@ SplashCoord SplashXPathScanner::areaLeft (
 // Compute area within a pixel slice ((xp,y0)-(xp+1,y1)) to the left
 // of a trapezoid edge ((x0,y0)-(x1,y1)).
 SplashCoord SplashXPathScanner::areaRight (
-    int xp, SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
+    int xp,
+    SplashCoord x0, SplashCoord y0,
+    SplashCoord x1, SplashCoord y1,
     SplashCoord dydx) {
+
     SplashCoord a, ya, yb;
 
     if (dydx >= 0) {
@@ -479,42 +551,4 @@ void SplashXPathScanner::drawRectangle (
         }
         addArea (line, x, a);
     }
-}
-
-void SplashXPathScanner::sortActiveSegs () {
-    SplashXPathSeg *seg0, *seg1;
-    int i, j, k;
-
-    if (activeSegs->getLength () < 2) { return; }
-    seg0 = (SplashXPathSeg*)activeSegs->get (0);
-    for (i = 1; i < activeSegs->getLength (); ++i) {
-        seg1 = (SplashXPathSeg*)activeSegs->get (i);
-        if (SplashXPathSeg::cmpX (seg0, seg1) > 0) {
-            for (j = i - 1; j > 0; --j) {
-                if (SplashXPathSeg::cmpX (
-                        (SplashXPathSeg*)activeSegs->get (j - 1), seg1) <= 0) {
-                    break;
-                }
-            }
-            for (k = i; k > j; --k) {
-                activeSegs->put (k, activeSegs->get (k - 1));
-            }
-            activeSegs->put (j, seg1);
-        }
-        else {
-            seg0 = seg1;
-        }
-    }
-}
-
-void SplashXPathScanner::insertActiveSeg (SplashXPathSeg* seg) {
-    int i;
-
-    for (i = 0; i < activeSegs->getLength (); ++i) {
-        if (SplashXPathSeg::cmpX (seg, (SplashXPathSeg*)activeSegs->get (i)) <
-            0) {
-            break;
-        }
-    }
-    activeSegs->insert (i, seg);
 }
