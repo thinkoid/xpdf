@@ -48,7 +48,7 @@ public:
 
 class MemReader : public Reader {
 public:
-    static MemReader* make (char* bufA, int lenA);
+    static MemReader* make (const char* bufA, int lenA);
     virtual ~MemReader ();
     virtual int getByte (int pos);
     virtual bool getU16BE (int pos, int* val);
@@ -58,17 +58,17 @@ public:
     virtual bool cmp (int pos, const char* s);
 
 private:
-    MemReader (char* bufA, int lenA);
+    MemReader (const char* bufA, int lenA);
 
-    char* buf;
+    const char* buf;
     int len;
 };
 
-MemReader* MemReader::make (char* bufA, int lenA) {
+MemReader* MemReader::make (const char* bufA, int lenA) {
     return new MemReader (bufA, lenA);
 }
 
-MemReader::MemReader (char* bufA, int lenA) {
+MemReader::MemReader (const char* bufA, int lenA) {
     buf = bufA;
     len = lenA;
 }
@@ -345,7 +345,7 @@ static FoFiIdentifierType identify (Reader* reader);
 static FoFiIdentifierType identifyOpenType (Reader* reader);
 static FoFiIdentifierType identifyCFF (Reader* reader, int start);
 
-FoFiIdentifierType FoFiIdentifier::identifyMem (char* file, int len) {
+FoFiIdentifierType FoFiIdentifier::identifyMem (const char* file, int len) {
     MemReader* reader;
     FoFiIdentifierType type;
 
@@ -531,203 +531,4 @@ static FoFiIdentifierType identifyCFF (Reader* reader, int start) {
     else {
         return fofiIdCFF8Bit;
     }
-}
-
-//------------------------------------------------------------------------
-
-static GList* getTTCFontList (FILE* f);
-static GList* getDfontFontList (FILE* f);
-
-GList* FoFiIdentifier::getFontList (char* fileName) {
-    FILE* f;
-    char buf[4];
-    GList* ret;
-
-    if (!(f = fopen (fileName, "rb"))) { return NULL; }
-    if (fread (buf, 1, 4, f) == 4 && buf[0] == 0x74 && // 'ttcf'
-        buf[1] == 0x74 && buf[2] == 0x63 && buf[3] == 0x66) {
-        ret = getTTCFontList (f);
-    }
-    else {
-        ret = getDfontFontList (f);
-    }
-    fclose (f);
-    return ret;
-}
-
-static GList* getTTCFontList (FILE* f) {
-    unsigned char buf[12];
-    unsigned char* buf2;
-    int fileLength, nFonts;
-    int tabDirOffset, nTables, nameTabOffset, nNames, stringsOffset;
-    int stringPlatform, stringLength, stringOffset;
-    bool stringUnicode;
-    int i, j;
-    GList* ret;
-
-    fseek (f, 0, SEEK_END);
-    fileLength = (int)ftell (f);
-    if (fileLength < 0) { goto err1; }
-    fseek (f, 8, SEEK_SET);
-    if (fread (buf, 1, 4, f) != 4) { goto err1; }
-    nFonts = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
-    if (nFonts < 0 || 12 + 4 * nFonts > fileLength) { goto err1; }
-    ret = new GList ();
-    for (i = 0; i < nFonts; ++i) {
-        fseek (f, 12 + 4 * i, SEEK_SET);
-        if (fread (buf, 1, 4, f) != 4) { goto err2; }
-        tabDirOffset = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
-        if (tabDirOffset < 0 || tabDirOffset + 12 < 0 ||
-            tabDirOffset + 12 > fileLength) {
-            goto err2;
-        }
-        fseek (f, tabDirOffset, SEEK_SET);
-        if (fread (buf, 1, 12, f) != 12) { goto err2; }
-        nTables = (buf[4] << 8) | buf[5];
-        if (tabDirOffset + 12 + 16 * nTables < 0 ||
-            tabDirOffset + 12 + 16 * nTables > fileLength) {
-            goto err2;
-        }
-        buf2 = (unsigned char*)calloc (nTables, 16);
-        if ((int)fread (buf2, 1, 16 * nTables, f) != 16 * nTables) {
-            goto err3;
-        }
-        nameTabOffset = 0; // make gcc happy
-        for (j = 0; j < nTables; ++j) {
-            if (buf2[16 * j + 0] == 'n' && buf2[16 * j + 1] == 'a' &&
-                buf2[16 * j + 2] == 'm' && buf2[16 * j + 3] == 'e') {
-                nameTabOffset = (buf2[16 * j + 8] << 24) |
-                                (buf2[16 * j + 9] << 16) |
-                                (buf2[16 * j + 10] << 8) | buf2[16 * j + 11];
-                break;
-            }
-        }
-        free (buf2);
-        if (j >= nTables) { goto err2; }
-        if (nameTabOffset < 0 || nameTabOffset + 6 < 0 ||
-            nameTabOffset + 6 > fileLength) {
-            goto err2;
-        }
-        fseek (f, nameTabOffset, SEEK_SET);
-        if (fread (buf, 1, 6, f) != 6) { goto err2; }
-        nNames = (buf[2] << 8) | buf[3];
-        stringsOffset = (buf[4] << 8) | buf[5];
-        if (nameTabOffset + 6 + 12 * nNames < 0 ||
-            nameTabOffset + 6 + 12 * nNames > fileLength ||
-            nameTabOffset + stringsOffset < 0) {
-            goto err2;
-        }
-        buf2 = (unsigned char*)calloc (nNames, 12);
-        if ((int)fread (buf2, 1, 12 * nNames, f) != 12 * nNames) { goto err3; }
-        for (j = 0; j < nNames; ++j) {
-            if (buf2[12 * j + 6] == 0 && // 0x0004 = full name
-                buf2[12 * j + 7] == 4) {
-                break;
-            }
-        }
-        if (j >= nNames) { goto err3; }
-        stringPlatform = (buf2[12 * j] << 8) | buf2[12 * j + 1];
-        // stringEncoding = (buf2[12*j + 2] << 8) | buf2[12*j + 3];
-        stringUnicode = stringPlatform == 0 || stringPlatform == 3;
-        stringLength = (buf2[12 * j + 8] << 8) | buf2[12 * j + 9];
-        stringOffset = nameTabOffset + stringsOffset +
-                       ((buf2[12 * j + 10] << 8) | buf2[12 * j + 11]);
-        free (buf2);
-        if (stringOffset < 0 || stringOffset + stringLength < 0 ||
-            stringOffset + stringLength > fileLength) {
-            goto err2;
-        }
-        buf2 = (unsigned char*)malloc (stringLength);
-        fseek (f, stringOffset, SEEK_SET);
-        if ((int)fread (buf2, 1, stringLength, f) != stringLength) {
-            goto err3;
-        }
-        if (stringUnicode) {
-            stringLength /= 2;
-            for (j = 0; j < stringLength; ++j) { buf2[j] = buf2[2 * j + 1]; }
-        }
-        ret->append (new GString ((char*)buf2, stringLength));
-        free (buf2);
-    }
-    return ret;
-
-err3:
-    free (buf2);
-err2:
-    deleteGList (ret, GString);
-err1:
-    return NULL;
-}
-
-static GList* getDfontFontList (FILE* f) {
-    unsigned char buf[16];
-    unsigned char* resMap;
-    int fileLength, resMapOffset, resMapLength;
-    int resTypeListOffset, resNameListOffset, nTypes;
-    int refListOffset, nFonts, nameOffset, nameLen;
-    int offset, i;
-    GList* ret;
-
-    fseek (f, 0, SEEK_END);
-    fileLength = (int)ftell (f);
-    if (fileLength < 0) { goto err1; }
-    fseek (f, 0, SEEK_SET);
-    if (fread ((char*)buf, 1, 16, f) != 16) { goto err1; }
-    resMapOffset = (buf[4] << 24) | (buf[5] << 16) | (buf[6] << 8) | buf[7];
-    resMapLength = (buf[12] << 24) | (buf[13] << 16) | (buf[14] << 8) | buf[15];
-    if (resMapOffset < 0 || resMapOffset >= fileLength || resMapLength < 0 ||
-        resMapOffset + resMapLength > fileLength ||
-        resMapOffset + resMapLength < 0) {
-        goto err1;
-    }
-    if (resMapLength > 32768) {
-        // sanity check - this probably isn't a dfont file
-        goto err1;
-    }
-    resMap = (unsigned char*)malloc (resMapLength);
-    fseek (f, resMapOffset, SEEK_SET);
-    if ((int)fread ((char*)resMap, 1, resMapLength, f) != resMapLength) {
-        goto err2;
-    }
-    resTypeListOffset = (resMap[24] << 8) | resMap[25];
-    resNameListOffset = (resMap[26] << 8) | resMap[27];
-    nTypes = ((resMap[28] << 8) | resMap[29]) + 1;
-    if (resTypeListOffset + 2 + nTypes * 8 > resMapLength ||
-        resNameListOffset >= resMapLength) {
-        goto err2;
-    }
-    for (i = 0; i < nTypes; ++i) {
-        offset = resTypeListOffset + 2 + 8 * i;
-        if (resMap[offset] == 0x73 && // 'sfnt'
-            resMap[offset + 1] == 0x66 && resMap[offset + 2] == 0x6e &&
-            resMap[offset + 3] == 0x74) {
-            nFonts = ((resMap[offset + 4] << 8) | resMap[offset + 5]) + 1;
-            refListOffset = (resMap[offset + 6] << 8) | resMap[offset + 7];
-            break;
-        }
-    }
-    if (i >= nTypes) { goto err2; }
-    if (resTypeListOffset + refListOffset >= resMapLength ||
-        resTypeListOffset + refListOffset + nFonts * 12 > resMapLength) {
-        goto err2;
-    }
-    ret = new GList ();
-    for (i = 0; i < nFonts; ++i) {
-        offset = resTypeListOffset + refListOffset + 12 * i;
-        nameOffset = (resMap[offset + 2] << 8) | resMap[offset + 3];
-        offset = resNameListOffset + nameOffset;
-        if (offset >= resMapLength) { goto err3; }
-        nameLen = resMap[offset];
-        if (offset + 1 + nameLen > resMapLength) { goto err3; }
-        ret->append (new GString ((char*)resMap + offset + 1, nameLen));
-    }
-    free (resMap);
-    return ret;
-
-err3:
-    deleteGList (ret, GString);
-err2:
-    free (resMap);
-err1:
-    return NULL;
 }
