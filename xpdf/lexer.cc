@@ -15,13 +15,9 @@
 
 #include <xpdf/Array.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 
-//------------------------------------------------------------------------
-
-// A '1' in this array means the character is white space.  A '1' or
-// '2' means the character ends a name or command.
-static char specialChars[256] = {
+static const char specialChars [256] = {
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, // 0x
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 1x
     1, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2, // 2x
@@ -40,11 +36,9 @@ static char specialChars[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  // fx
 };
 
-//------------------------------------------------------------------------
-// Lexer
-//------------------------------------------------------------------------
+namespace xpdf {
 
-Lexer::Lexer (XRef* xref, Stream* str) {
+lexer_t::lexer_t (XRef* xref, Stream* str) {
     Object obj;
 
     curStr.initStream (str);
@@ -55,7 +49,7 @@ Lexer::Lexer (XRef* xref, Stream* str) {
     curStr.streamReset ();
 }
 
-Lexer::Lexer (XRef* xref, Object* obj) {
+lexer_t::lexer_t (XRef* xref, Object* obj) {
     Object obj2;
 
     if (obj->isStream ()) {
@@ -74,7 +68,7 @@ Lexer::Lexer (XRef* xref, Object* obj) {
     }
 }
 
-Lexer::~Lexer () {
+lexer_t::~lexer_t () {
     if (!curStr.isNone ()) {
         curStr.streamClose ();
         curStr.free ();
@@ -82,7 +76,7 @@ Lexer::~Lexer () {
     if (freeArray) { delete streams; }
 }
 
-int Lexer::getChar () {
+int lexer_t::getChar () {
     int c;
 
     c = EOF;
@@ -98,12 +92,12 @@ int Lexer::getChar () {
     return c;
 }
 
-int Lexer::lookChar () {
+int lexer_t::lookChar () {
     if (curStr.isNone ()) { return EOF; }
     return curStr.streamLookChar ();
 }
 
-Object* Lexer::getObj (Object* obj) {
+Object* lexer_t::getObj (Object* obj) {
     char* p;
     int c, c2;
     bool comment, neg, done;
@@ -473,7 +467,7 @@ Object* Lexer::getObj (Object* obj) {
     return obj;
 }
 
-void Lexer::skipToNextLine () {
+void lexer_t::skipToNextLine () {
     int c;
 
     while (1) {
@@ -486,6 +480,8 @@ void Lexer::skipToNextLine () {
     }
 }
 
-bool Lexer::isSpace (int c) {
+bool lexer_t::isSpace (int c) {
     return c >= 0 && c <= 0xff && specialChars[c] == 1;
 }
+
+} // namespace xpdf

@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 
 //------------------------------------------------------------------------
 // Parser
@@ -20,7 +20,7 @@
 class Parser {
 public:
     // Constructor.
-    Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA);
+    Parser (XRef* xrefA, xpdf::lexer_t* lexerA, bool allowStreamsA);
 
     // Destructor.
     ~Parser ();
@@ -41,7 +41,7 @@ public:
 
 private:
     XRef* xref;         // the xref table for this PDF file
-    Lexer* lexer;       // input stream
+    xpdf::lexer_t* lexer;       // input stream
     bool allowStreams; // parse stream objects?
     Object buf1, buf2;  // next two tokens
     int inlineImg;      // set when inline image data is encountered

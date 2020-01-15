@@ -21,7 +21,7 @@
 #include <xpdf/Error.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 #include <xpdf/Object.hh>
 #include <xpdf/OptionalContent.hh>
 #include <xpdf/PDFDoc.hh>
@@ -1123,12 +1123,12 @@ void AcroFormField::drawText (
         daToks = new GList ();
         i = 0;
         while (i < da->getLength ()) {
-            while (i < da->getLength () && Lexer::isSpace (da->getChar (i))) {
+            while (i < da->getLength () && xpdf::lexer_t::isSpace (da->getChar (i))) {
                 ++i;
             }
             if (i < da->getLength ()) {
                 for (j = i + 1;
-                     j < da->getLength () && !Lexer::isSpace (da->getChar (j));
+                     j < da->getLength () && !xpdf::lexer_t::isSpace (da->getChar (j));
                      ++j)
                     ;
                 daToks->append (new GString (da, i, j - i));
@@ -1491,12 +1491,12 @@ void AcroFormField::drawListBox (
         daToks = new GList ();
         i = 0;
         while (i < da->getLength ()) {
-            while (i < da->getLength () && Lexer::isSpace (da->getChar (i))) {
+            while (i < da->getLength () && xpdf::lexer_t::isSpace (da->getChar (i))) {
                 ++i;
             }
             if (i < da->getLength ()) {
                 for (j = i + 1;
-                     j < da->getLength () && !Lexer::isSpace (da->getChar (j));
+                     j < da->getLength () && !xpdf::lexer_t::isSpace (da->getChar (j));
                      ++j)
                     ;
                 daToks->append (new GString (da, i, j - i));

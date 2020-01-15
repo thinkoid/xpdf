@@ -10,8 +10,6 @@
 #include <variant>
 #include <vector>
 
-class XRef;
-
 namespace xpdf {
 namespace ast {
 

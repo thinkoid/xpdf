@@ -25,7 +25,7 @@
 #include <xpdf/OutputDev.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/SecurityHandler.hh>
 #include <xpdf/Outline.hh>
@@ -313,7 +313,7 @@ bool PDFDoc::isLinearized () {
     obj1.initNull ();
     parser = new Parser (
         xref,
-        new Lexer (
+        new xpdf::lexer_t (
             xref, str->makeSubStream (str->getStart (), false, 0, &obj1)),
         true);
     parser->getObj (&obj1);

@@ -6,8 +6,8 @@
 //
 //========================================================================
 
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef XPDF_XPDF_LEXER_HH
+#define XPDF_XPDF_LEXER_HH
 
 #include <defs.hh>
 
@@ -16,24 +16,24 @@
 
 class XRef;
 
-#define tokBufSize 128 // size of token buffer
-
 //------------------------------------------------------------------------
-// Lexer
+// lexer_t
 //------------------------------------------------------------------------
 
-class Lexer {
+namespace xpdf {
+
+struct lexer_t {
 public:
     // Construct a lexer for a single stream.  Deletes the stream when
     // lexer is deleted.
-    Lexer (XRef* xref, Stream* str);
+    lexer_t (XRef* xref, Stream* str);
 
     // Construct a lexer for a stream or array of streams (assumes obj
     // is either a stream or array of streams).
-    Lexer (XRef* xref, Object* obj);
+    lexer_t (XRef* xref, Object* obj);
 
     // Destructor.
-    ~Lexer ();
+    ~lexer_t ();
 
     // Get the next object from the input stream.
     Object* getObj (Object* obj);
@@ -70,7 +70,11 @@ private:
     int strPtr;              // index of current stream
     Object curStr;           // current stream
     bool freeArray;         // should lexer free the streams array?
+
+#define tokBufSize 128 // size of token buffer
     char tokBuf[tokBufSize]; // temporary token buffer
 };
 
-#endif
+} // namespace xpdf
+
+#endif // XPDF_XPDF_LEXER_HH

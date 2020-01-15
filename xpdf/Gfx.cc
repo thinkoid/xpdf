@@ -22,7 +22,7 @@
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>
@@ -553,7 +553,7 @@ void Gfx::display (Object* objRef, bool topLevel) {
         obj1.free ();
         return;
     }
-    parser = new Parser (xref, new Lexer (xref, &obj1), false);
+    parser = new Parser (xref, new xpdf::lexer_t (xref, &obj1), false);
     go (topLevel);
     delete parser;
     parser = NULL;
@@ -4261,7 +4261,7 @@ void Gfx::opBeginImage (Object args[], int numArgs) {
         c1 = str->getUndecodedStream ()->getChar ();
         c2 = str->getUndecodedStream ()->getChar ();
         c3 = str->getUndecodedStream ()->lookChar ();
-        while (!(c1 == 'E' && c2 == 'I' && Lexer::isSpace (c3)) && c3 != EOF) {
+        while (!(c1 == 'E' && c2 == 'I' && xpdf::lexer_t::isSpace (c3)) && c3 != EOF) {
             c1 = c2;
             c2 = str->getUndecodedStream ()->getChar ();
             c3 = str->getUndecodedStream ()->lookChar ();

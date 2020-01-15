@@ -21,7 +21,7 @@
 // in the object structure.
 #define recursionLimit 500
 
-Parser::Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA) {
+Parser::Parser (XRef* xrefA, xpdf::lexer_t* lexerA, bool allowStreamsA) {
     xref = xrefA;
     lexer = lexerA;
     inlineImg = 0;

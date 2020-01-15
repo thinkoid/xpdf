@@ -29,7 +29,6 @@ libxpdf_a_SOURCES =                             \
    JArithmeticDecoder.cc                        \
    JBIG2Stream.cc                               \
    JPXStream.cc                                 \
-   Lexer.cc                                     \
    Link.cc                                      \
    NameToCharCode.cc                            \
    Object.cc                                    \
@@ -62,6 +61,7 @@ libxpdf_a_SOURCES =                             \
    Zoox.cc                                      \
    bitpack.cc                                   \
    function.cc                                  \
+   lexer.cc                                     \
    object.cc
 
 bin_PROGRAMS = xpdf                             \
