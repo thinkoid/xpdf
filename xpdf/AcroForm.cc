@@ -27,6 +27,8 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>
 
+#include <fmt/format.h>
+
 //------------------------------------------------------------------------
 
 #define acroFormFlagReadOnly (1 << 0)           // all
@@ -572,8 +574,6 @@ void AcroFormField::drawNewAppearance (
     GString* appearanceState;
     int borderDashLength, rot, quadding, comb, nOptions, topIdx, i, j;
 
-    appearBuf = new GString ();
-
     // get the appearance characteristics (MK) dictionary
     if (annot->lookup ("MK", &mkObj)->isDict ()) { mkDict = mkObj.getDict (); }
     else {
@@ -585,7 +585,7 @@ void AcroFormField::drawNewAppearance (
         if (mkDict->lookup ("BG", &obj1)->isArray () &&
             obj1.arrayGetLength () > 0) {
             setColor (obj1.getArray (), true, 0);
-            appearBuf->appendf (
+            appearBuf += format (
                 "0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
         }
         obj1.free ();
@@ -688,22 +688,22 @@ void AcroFormField::drawNewAppearance (
                     r = 0.5 * (dx < dy ? dx : dy);
                     switch (borderType) {
                     case annotBorderDashed:
-                        appearBuf->append ("[");
+                        appearBuf.append (1UL, '[');
                         for (i = 0; i < borderDashLength; ++i) {
-                            appearBuf->appendf (" {0:.4f}", borderDash[i]);
+                            appearBuf += format (" {0:.4f}", borderDash[i]);
                         }
-                        appearBuf->append ("] 0 d\n");
+                        appearBuf += "] 0 d\n";
                         // fall through to the solid case
                     case annotBorderSolid:
                     case annotBorderUnderlined:
-                        appearBuf->appendf ("{0:.4f} w\n", borderWidth);
+                        appearBuf += format ("{0:.4f} w\n", borderWidth);
                         setColor (obj1.getArray (), false, 0);
                         drawCircle (
                             0.5 * dx, 0.5 * dy, r - 0.5 * borderWidth, "s");
                         break;
                     case annotBorderBeveled:
                     case annotBorderInset:
-                        appearBuf->appendf ("{0:.4f} w\n", 0.5 * borderWidth);
+                        appearBuf += format ("{0:.4f} w\n", 0.5 * borderWidth);
                         setColor (obj1.getArray (), false, 0);
                         drawCircle (
                             0.5 * dx, 0.5 * dy, r - 0.25 * borderWidth, "s");
@@ -723,16 +723,16 @@ void AcroFormField::drawNewAppearance (
                 else {
                     switch (borderType) {
                     case annotBorderDashed:
-                        appearBuf->append ("[");
+                        appearBuf.append (1UL, '[');
                         for (i = 0; i < borderDashLength; ++i) {
-                            appearBuf->appendf (" {0:.4f}", borderDash[i]);
+                            appearBuf += format (" {0:.4f}", borderDash[i]);
                         }
-                        appearBuf->append ("] 0 d\n");
+                        appearBuf += "] 0 d\n";
                         // fall through to the solid case
                     case annotBorderSolid:
-                        appearBuf->appendf ("{0:.4f} w\n", borderWidth);
+                        appearBuf += format ("{0:.4f} w\n", borderWidth);
                         setColor (obj1.getArray (), false, 0);
-                        appearBuf->appendf (
+                        appearBuf += format (
                             "{0:.4f} {0:.4f} {1:.4f} {2:.4f} re s\n",
                             0.5 * borderWidth, dx - borderWidth,
                             dy - borderWidth);
@@ -742,41 +742,41 @@ void AcroFormField::drawNewAppearance (
                         setColor (
                             obj1.getArray (), true,
                             borderType == annotBorderBeveled ? 1 : -1);
-                        appearBuf->append ("0 0 m\n");
-                        appearBuf->appendf ("0 {0:.4f} l\n", dy);
-                        appearBuf->appendf ("{0:.4f} {1:.4f} l\n", dx, dy);
-                        appearBuf->appendf (
+                        appearBuf += "0 0 m\n";
+                        appearBuf += format ("0 {0:.4f} l\n", dy);
+                        appearBuf += format ("{0:.4f} {1:.4f} l\n", dx, dy);
+                        appearBuf += format (
                             "{0:.4f} {1:.4f} l\n", dx - borderWidth,
                             dy - borderWidth);
-                        appearBuf->appendf (
+                        appearBuf += format (
                             "{0:.4f} {1:.4f} l\n", borderWidth,
                             dy - borderWidth);
-                        appearBuf->appendf ("{0:.4f} {0:.4f} l\n", borderWidth);
-                        appearBuf->append ("f\n");
+                        appearBuf += format ("{0:.4f} {0:.4f} l\n", borderWidth);
+                        appearBuf += "f\n";
                         setColor (
                             obj1.getArray (), true,
                             borderType == annotBorderBeveled ? -1 : 1);
-                        appearBuf->append ("0 0 m\n");
-                        appearBuf->appendf ("{0:.4f} 0 l\n", dx);
-                        appearBuf->appendf ("{0:.4f} {1:.4f} l\n", dx, dy);
-                        appearBuf->appendf (
+                        appearBuf += "0 0 m\n";
+                        appearBuf += format ("{0:.4f} 0 l\n", dx);
+                        appearBuf += format ("{0:.4f} {1:.4f} l\n", dx, dy);
+                        appearBuf += format (
                             "{0:.4f} {1:.4f} l\n", dx - borderWidth,
                             dy - borderWidth);
-                        appearBuf->appendf (
+                        appearBuf += format (
                             "{0:.4f} {1:.4f} l\n", dx - borderWidth,
                             borderWidth);
-                        appearBuf->appendf ("{0:.4f} {0:.4f} l\n", borderWidth);
-                        appearBuf->append ("f\n");
+                        appearBuf += format ("{0:.4f} {0:.4f} l\n", borderWidth);
+                        appearBuf += "f\n";
                         break;
                     case annotBorderUnderlined:
-                        appearBuf->appendf ("{0:.4f} w\n", borderWidth);
+                        appearBuf += format ("{0:.4f} w\n", borderWidth);
                         setColor (obj1.getArray (), false, 0);
-                        appearBuf->appendf ("0 0 m {0:.4f} 0 l s\n", dx);
+                        appearBuf += format ("0 0 m {0:.4f} 0 l s\n", dx);
                         break;
                     }
 
                     // clip to the inside of the border
-                    appearBuf->appendf (
+                    appearBuf += format (
                         "{0:.4f} {0:.4f} {1:.4f} {2:.4f} re W n\n", borderWidth,
                         dx - 2 * borderWidth, dy - 2 * borderWidth);
                 }
@@ -1011,7 +1011,7 @@ void AcroFormField::drawNewAppearance (
     // build the appearance stream dictionary
     appearDict.initDict (acroForm->doc->getXRef ());
     appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+        strdup ("Length"), obj1.initInt (appearBuf.size ()));
     appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
     obj1.initArray (acroForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
@@ -1028,16 +1028,18 @@ void AcroFormField::drawNewAppearance (
 
     // build the appearance stream
     appearStream = new MemStream (
-        appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
+        appearBuf.c_str (), 0, appearBuf.size (), &appearDict);
     appearance.initStream (appearStream);
 
     // draw it
     gfx->drawAnnot (&appearance, NULL, xMin, yMin, xMax, yMax);
 
     appearance.free ();
-    delete appearBuf;
-    appearBuf = NULL;
-    if (fontDict) { delete fontDict; }
+
+    if (fontDict) {
+        delete fontDict;
+    }
+
     ftObj.free ();
     mkObj.free ();
 }
@@ -1068,17 +1070,17 @@ void AcroFormField::setColor (Array* a, bool fill, int adjust) {
         for (i = 0; i < nComps; ++i) { color[i] = 0.5 * color[i]; }
     }
     if (nComps == 4) {
-        appearBuf->appendf (
+        appearBuf += format (
             "{0:.2f} {1:.2f} {2:.2f} {3:.2f} {4:c}\n", color[0], color[1],
             color[2], color[3], fill ? 'k' : 'K');
     }
     else if (nComps == 3) {
-        appearBuf->appendf (
+        appearBuf += format (
             "{0:.2f} {1:.2f} {2:.2f} {3:s}\n", color[0], color[1], color[2],
             fill ? "rg" : "RG");
     }
     else {
-        appearBuf->appendf ("{0:.2f} {1:c}\n", color[0], fill ? 'g' : 'G');
+        appearBuf += format ("{0:.2f} {1:c}\n", color[0], fill ? 'g' : 'G');
     }
 }
 
@@ -1185,21 +1187,21 @@ void AcroFormField::drawText (
     }
 
     // setup
-    if (txField) { appearBuf->append ("/Tx BMC\n"); }
-    appearBuf->append ("q\n");
+    if (txField) { appearBuf += "/Tx BMC\n"; }
+    appearBuf += "q\n";
     if (rot == 90) {
-        appearBuf->appendf ("0 1 -1 0 {0:.4f} 0 cm\n", xMax - xMin);
+        appearBuf += format ("0 1 -1 0 {0:.4f} 0 cm\n", xMax - xMin);
         dx = yMax - yMin;
         dy = xMax - xMin;
     }
     else if (rot == 180) {
-        appearBuf->appendf (
+        appearBuf += format (
             "-1 0 0 -1 {0:.4f} {1:.4f} cm\n", xMax - xMin, yMax - yMin);
         dx = xMax - yMax;
         dy = yMax - yMin;
     }
     else if (rot == 270) {
-        appearBuf->appendf ("0 -1 1 0 0 {0:.4f} cm\n", yMax - yMin);
+        appearBuf += format ("0 -1 1 0 0 {0:.4f} cm\n", yMax - yMin);
         dx = yMax - yMin;
         dy = xMax - xMin;
     }
@@ -1207,7 +1209,7 @@ void AcroFormField::drawText (
         dx = xMax - xMin;
         dy = yMax - yMin;
     }
-    appearBuf->append ("BT\n");
+    appearBuf += "BT\n";
 
     // multi-line text
     if (multiline) {
@@ -1255,12 +1257,14 @@ void AcroFormField::drawText (
         // write the DA string
         if (daToks) {
             for (i = 0; i < daToks->getLength (); ++i) {
-                appearBuf->append ((GString*)daToks->get (i))->append (' ');
+                auto& gstr = *(GString*)daToks->get (i);
+                appearBuf += std::string (gstr.c_str ());
+                appearBuf.append (1UL, ' ');
             }
         }
 
         // write the font matrix (if not part of the DA string)
-        if (tmPos < 0) { appearBuf->appendf ("1 0 0 1 0 {0:.4f} Tm\n", y); }
+        if (tmPos < 0) { appearBuf += format ("1 0 0 1 0 {0:.4f} Tm\n", y); }
 
         // write a series of lines of text
         i = 0;
@@ -1277,22 +1281,22 @@ void AcroFormField::drawText (
             }
 
             // draw the line
-            appearBuf->appendf ("{0:.4f} {1:.4f} Td\n", x - xPrev, -fontSize);
-            appearBuf->append ('(');
+            appearBuf += format ("{0:.4f} {1:.4f} Td\n", x - xPrev, -fontSize);
+            appearBuf.append (1UL, '(');
             for (; i < j; ++i) {
                 c = text2->getChar (i) & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
-                    appearBuf->append ('\\');
-                    appearBuf->append (c);
+                    appearBuf += '\\';
+                    appearBuf += c;
                 }
                 else if (c < 0x20 || c >= 0x80) {
-                    appearBuf->appendf ("\\{0:03o}", c);
+                    appearBuf += format ("\\{0:03o}", c);
                 }
                 else {
-                    appearBuf->append (c);
+                    appearBuf += c;
                 }
             }
-            appearBuf->append (") Tj\n");
+            appearBuf += ") Tj\n";
 
             // next line
             i = k;
@@ -1347,33 +1351,35 @@ void AcroFormField::drawText (
             // write the DA string
             if (daToks) {
                 for (i = 0; i < daToks->getLength (); ++i) {
-                    appearBuf->append ((GString*)daToks->get (i))->append (' ');
+                    auto& gstr = *(GString*)daToks->get (i);
+                    appearBuf += std::string (gstr.c_str ());
+                    appearBuf.append (1UL, ' ');
                 }
             }
 
             // write the font matrix (if not part of the DA string)
             if (tmPos < 0) {
-                appearBuf->appendf ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
+                appearBuf += format ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
             }
 
             // write the text string
             //~ this should center (instead of left-justify) each character within
             //~     its comb cell
             for (i = 0; i < text2->getLength (); ++i) {
-                if (i > 0) { appearBuf->appendf ("{0:.4f} 0 Td\n", w); }
-                appearBuf->append ('(');
+                if (i > 0) { appearBuf += format ("{0:.4f} 0 Td\n", w); }
+                appearBuf.append (1UL, '(');
                 c = text2->getChar (i) & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
-                    appearBuf->append ('\\');
-                    appearBuf->append (c);
+                    appearBuf += '\\';
+                    appearBuf += c;
                 }
                 else if (c < 0x20 || c >= 0x80) {
-                    appearBuf->appendf ("{0:.4f} 0 Td\n", w);
+                    appearBuf += format ("{0:.4f} 0 Td\n", w);
                 }
                 else {
-                    appearBuf->append (c);
+                    appearBuf += c;
                 }
-                appearBuf->append (") Tj\n");
+                appearBuf += ") Tj\n";
             }
 
             // regular (non-comb) formatting
@@ -1427,38 +1433,40 @@ void AcroFormField::drawText (
             // write the DA string
             if (daToks) {
                 for (i = 0; i < daToks->getLength (); ++i) {
-                    appearBuf->append ((GString*)daToks->get (i))->append (' ');
+                    auto& gstr = *(GString*)daToks->get (i);
+                    appearBuf += std::string (gstr.c_str ());
+                    appearBuf.append (1UL, ' ');
                 }
             }
 
             // write the font matrix (if not part of the DA string)
             if (tmPos < 0) {
-                appearBuf->appendf ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
+                appearBuf += format ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
             }
 
             // write the text string
-            appearBuf->append ('(');
+            appearBuf.append (1UL, '(');
             for (i = 0; i < text2->getLength (); ++i) {
                 c = text2->getChar (i) & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
-                    appearBuf->append ('\\');
-                    appearBuf->append (c);
+                    appearBuf += '\\';
+                    appearBuf += c;
                 }
                 else if (c < 0x20 || c >= 0x80) {
-                    appearBuf->appendf ("\\{0:03o}", c);
+                    appearBuf += format ("\\{0:03o}", c);
                 }
                 else {
-                    appearBuf->append (c);
+                    appearBuf += c;
                 }
             }
-            appearBuf->append (") Tj\n");
+            appearBuf += ") Tj\n";
         }
     }
 
     // cleanup
-    appearBuf->append ("ET\n");
-    appearBuf->append ("Q\n");
-    if (txField) { appearBuf->append ("EMC\n"); }
+    appearBuf += "ET\n";
+    appearBuf += "Q\n";
+    if (txField) { appearBuf += "EMC\n"; }
 
     if (daToks) { deleteGList (daToks, GString); }
     if (text2 != text) { delete text2; }
@@ -1565,18 +1573,18 @@ void AcroFormField::drawListBox (
     y = yMax - yMin - 1.1 * fontSize;
     for (i = topIdx; i < nOptions; ++i) {
         // setup
-        appearBuf->append ("q\n");
+        appearBuf += "q\n";
 
         // draw the background if selected
         if (selection[i]) {
-            appearBuf->append ("0 g f\n");
-            appearBuf->appendf (
+            appearBuf += "0 g f\n";
+            appearBuf += format (
                 "{0:.4f} {1:.4f} {2:.4f} {3:.4f} re f\n", border,
                 y - 0.2 * fontSize, xMax - xMin - 2 * border, 1.1 * fontSize);
         }
 
         // setup
-        appearBuf->append ("BT\n");
+        appearBuf += "BT\n";
 
         // compute string width
         if (font && !font->isCIDFont ()) {
@@ -1612,38 +1620,39 @@ void AcroFormField::drawListBox (
         // write the DA string
         if (daToks) {
             for (j = 0; j < daToks->getLength (); ++j) {
-                appearBuf->append ((GString*)daToks->get (j))->append (' ');
+                auto& gstr = *(GString*)daToks->get (i);
+                appearBuf += std::string (gstr.c_str ());
+                appearBuf.append (1UL, ' ');
             }
         }
 
         // write the font matrix (if not part of the DA string)
         if (tmPos < 0) {
-            appearBuf->appendf ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
+            appearBuf += format ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
         }
 
         // change the text color if selected
-        if (selection[i]) { appearBuf->append ("1 g\n"); }
+        if (selection[i]) { appearBuf += "1 g\n"; }
 
         // write the text string
-        appearBuf->append ('(');
+        appearBuf.append (1UL, '(');
         for (j = 0; j < text[i]->getLength (); ++j) {
             c = text[i]->getChar (j) & 0xff;
             if (c == '(' || c == ')' || c == '\\') {
-                appearBuf->append ('\\');
-                appearBuf->append (c);
+                appearBuf += '\\';
+                appearBuf += c;
             }
             else if (c < 0x20 || c >= 0x80) {
-                appearBuf->appendf ("\\{0:03o}", c);
+                appearBuf += format ("\\{0:03o}", c);
             }
             else {
-                appearBuf->append (c);
+                appearBuf += c;
             }
         }
-        appearBuf->append (") Tj\n");
+        appearBuf += ") Tj\n";
 
         // cleanup
-        appearBuf->append ("ET\n");
-        appearBuf->append ("Q\n");
+        appearBuf += "ET\nQ\n";
 
         // next line
         y -= 1.1 * fontSize;
@@ -1716,22 +1725,22 @@ void AcroFormField::getNextLine (
 // <cmd> is used to draw the circle ("f", "s", or "b").
 void AcroFormField::drawCircle (
     double cx, double cy, double r, const char* cmd) {
-    appearBuf->appendf ("{0:.4f} {1:.4f} m\n", cx + r, cy);
-    appearBuf->appendf (
+    appearBuf += format ("{0:.4f} {1:.4f} m\n", cx + r, cy);
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n", cx + r,
         cy + bezierCircle * r, cx + bezierCircle * r, cy + r, cx, cy + r);
-    appearBuf->appendf (
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
         cx - bezierCircle * r, cy + r, cx - r, cy + bezierCircle * r, cx - r,
         cy);
-    appearBuf->appendf (
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n", cx - r,
         cy - bezierCircle * r, cx - bezierCircle * r, cy - r, cx, cy - r);
-    appearBuf->appendf (
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
         cx + bezierCircle * r, cy - r, cx + r, cy - bezierCircle * r, cx + r,
         cy);
-    appearBuf->appendf ("{0:s}\n", cmd);
+    appearBuf += format ("{0:s}\n", cmd);
 }
 
 // Draw the top-left half of an (approximate) circle of radius <r>
@@ -1740,18 +1749,18 @@ void AcroFormField::drawCircleTopLeft (double cx, double cy, double r) {
     double r2;
 
     r2 = r / sqrt (2.0);
-    appearBuf->appendf ("{0:.4f} {1:.4f} m\n", cx + r2, cy + r2);
-    appearBuf->appendf (
+    appearBuf += format ("{0:.4f} {1:.4f} m\n", cx + r2, cy + r2);
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
         cx + (1 - bezierCircle) * r2, cy + (1 + bezierCircle) * r2,
         cx - (1 - bezierCircle) * r2, cy + (1 + bezierCircle) * r2, cx - r2,
         cy + r2);
-    appearBuf->appendf (
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
         cx - (1 + bezierCircle) * r2, cy + (1 - bezierCircle) * r2,
         cx - (1 + bezierCircle) * r2, cy - (1 - bezierCircle) * r2, cx - r2,
         cy - r2);
-    appearBuf->append ("S\n");
+    appearBuf += "S\n";
 }
 
 // Draw the bottom-right half of an (approximate) circle of radius <r>
@@ -1760,18 +1769,18 @@ void AcroFormField::drawCircleBottomRight (double cx, double cy, double r) {
     double r2;
 
     r2 = r / sqrt (2.0);
-    appearBuf->appendf ("{0:.4f} {1:.4f} m\n", cx - r2, cy - r2);
-    appearBuf->appendf (
+    appearBuf += format ("{0:.4f} {1:.4f} m\n", cx - r2, cy - r2);
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
         cx - (1 - bezierCircle) * r2, cy - (1 + bezierCircle) * r2,
         cx + (1 - bezierCircle) * r2, cy - (1 + bezierCircle) * r2, cx + r2,
         cy - r2);
-    appearBuf->appendf (
+    appearBuf += format (
         "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
         cx + (1 + bezierCircle) * r2, cy - (1 - bezierCircle) * r2,
         cx + (1 + bezierCircle) * r2, cy + (1 - bezierCircle) * r2, cx + r2,
         cy + r2);
-    appearBuf->append ("S\n");
+    appearBuf += "S\n";
 }
 
 Object* AcroFormField::getResources (Object* res) {

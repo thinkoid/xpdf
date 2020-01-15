@@ -88,7 +88,7 @@ private:
     AcroFormFieldType type;
     TextString* name;
     unsigned flags;
-    GString* appearBuf;
+    std::string appearBuf;
 
     friend class AcroForm;
 };

@@ -19,7 +19,7 @@
 #include <string>
 
 
-class GString : private std::string {
+class GString : std::string {
 public:
     // Create an empty string.
     GString () = default;
