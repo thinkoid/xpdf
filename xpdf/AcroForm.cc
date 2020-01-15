@@ -67,6 +67,10 @@
 
 // map an annotation ref to a page number
 struct AcroFormAnnotPage {
+    AcroFormAnnotPage (int a, int b, int c)
+        : annotNum (a), annotGen (b), pageNum (c)
+        { }
+
     int annotNum;
     int annotGen;
     int pageNum;
