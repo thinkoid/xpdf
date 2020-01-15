@@ -32,7 +32,7 @@ class GfxShading;
 class GfxShadingPattern;
 class GfxState;
 class GfxTilingPattern;
-class Object;
+struct Object;
 class OutputDev;
 class PDFDoc;
 class PDFRectangle;

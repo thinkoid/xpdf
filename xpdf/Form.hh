@@ -14,7 +14,7 @@
 class Catalog;
 class FormField;
 class Gfx;
-class Object;
+struct Object;
 class PDFDoc;
 
 #include <xpdf/CharTypes.hh>

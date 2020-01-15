@@ -15,7 +15,7 @@ class Catalog;
 class Dict;
 class Gfx;
 class GfxFontDict;
-class Object;
+struct Object;
 class PDFDoc;
 class GString;
 

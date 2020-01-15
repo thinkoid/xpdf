@@ -14,7 +14,7 @@
 #include <xpdf/CharTypes.hh>
 
 class GString;
-class Object;
+struct Object;
 class Stream;
 struct CMapVectorEntry;
 class CMapCache;
