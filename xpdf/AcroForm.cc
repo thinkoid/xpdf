@@ -66,13 +66,7 @@
 //------------------------------------------------------------------------
 
 // map an annotation ref to a page number
-class AcroFormAnnotPage {
-public:
-    AcroFormAnnotPage (int annotNumA, int annotGenA, int pageNumA) {
-        annotNum = annotNumA;
-        annotGen = annotGenA;
-        pageNum = pageNumA;
-    }
+struct AcroFormAnnotPage {
     int annotNum;
     int annotGen;
     int pageNum;
