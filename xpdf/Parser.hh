@@ -41,9 +41,11 @@ public:
 
 private:
     XRef* xref;         // the xref table for this PDF file
-    xpdf::lexer_t* lexer;       // input stream
+
+    xpdf::lexer_t* lexer;
+    xpdf::lexer_t::token_t buf1, buf2;  // next two tokens
+
     bool allowStreams; // parse stream objects?
-    Object buf1, buf2;  // next two tokens
     int inlineImg;      // set when inline image data is encountered
 
     Stream* makeStream (

@@ -23,7 +23,20 @@ class XRef;
 namespace xpdf {
 
 struct lexer_t {
-public:
+    struct token_t {
+        enum {
+            ERROR_,
+            EOF_,
+            NULL_,
+            INT_,
+            REAL_,
+            STRING_,
+            NAME_,
+            KEYWORD_
+        } type;
+        std::string s;
+    };
+
     // Construct a lexer for a single stream.  Deletes the stream when
     // lexer is deleted.
     lexer_t (XRef* xref, Stream* str);
@@ -36,7 +49,7 @@ public:
     ~lexer_t ();
 
     // Get the next object from the input stream.
-    Object* getObj (Object* obj);
+    token_t next ();
 
     // Skip to the beginning of the next line in the input stream.
     void skipToNextLine ();

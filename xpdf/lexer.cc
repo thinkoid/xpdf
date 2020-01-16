@@ -97,123 +97,120 @@ int lexer_t::lookChar () {
     return curStr.streamLookChar ();
 }
 
-Object* lexer_t::getObj (Object* obj) {
-    char* p;
-    int c, c2;
-    bool comment, neg, done;
-    int numParen;
-    int xi;
-    double xf, scale;
-    GString* s;
-    int n, m;
+lexer_t::token_t lexer_t::next () {
+    int c;
 
-    // skip whitespace and comments
-    comment = false;
-    while (1) {
-        if ((c = getChar ()) == EOF) { return obj->initEOF (); }
+    //
+    // Skip whitespace and comments:
+    //
+    bool comment = false;
+
+    for (;;) {
+        if ((c = getChar ()) == EOF) {
+            return { token_t::EOF_, { } };
+        }
+
         if (comment) {
-            if (c == '\r' || c == '\n') comment = false;
+            if (c == '\r' || c == '\n') {
+                comment = false;
+            }
         }
         else if (c == '%') {
             comment = true;
         }
-        else if (specialChars[c] != 1) {
+        else if (specialChars [c] != 1) {
             break;
         }
     }
 
-    // start reading token
     switch (c) {
-    // number
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '-':
-    case '.':
-        neg = false;
-        xf = xi = 0;
-        if (c == '-') { neg = true; }
-        else if (c == '.') {
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
+    case '-': case '.': {
+        //
+        // Number:
+        //
+        std::string s (1UL, c);
+
+        if (s.back () == '.') {
             goto doReal;
         }
-        else {
-            xf = xi = c - '0';
-        }
-        while (1) {
+
+        for (;;) {
             c = lookChar ();
+
             if (isdigit (c)) {
                 getChar ();
-                xi = xi * 10 + (c - '0');
-                xf = xf * 10 + (c - '0');
+                s.append (1, c);
             }
             else if (c == '.') {
                 getChar ();
+                s.append (1, c);
                 goto doReal;
             }
             else {
                 break;
             }
         }
-        if (neg) { xi = -xi; }
-        obj->initInt (xi);
-        break;
-    doReal:
-        scale = 0.1;
-        while (1) {
+
+        return { token_t::INT_, s };
+
+doReal:
+        for (;;) {
             c = lookChar ();
+
             if (c == '-') {
-                // ignore minus signs in the middle of numbers to match
-                // Adobe's behavior
-                error (errSyntaxWarning, getPos (), "Badly formatted number");
+                // Ignore, just like Adobe(?):
                 getChar ();
                 continue;
             }
-            if (!isdigit (c)) { break; }
+
+            if (!isdigit (c)) {
+                break;
+            }
+
             getChar ();
-            xf = xf + scale * (c - '0');
-            scale *= 0.1;
+            s.append (1, c);
         }
-        if (neg) { xf = -xf; }
-        obj->initReal (xf);
+
+        return { token_t::REAL_, s };
+    }
         break;
 
-    // string
-    case '(':
-        p = tokBuf;
-        n = 0;
-        numParen = 1;
-        done = false;
-        s = NULL;
+    case '(': {
+        //
+        // String:
+        //
+        int nesting = 1, c2;
+        std::string s;
+        bool done = false;
+
         do {
             c2 = EOF;
+
             switch (c = getChar ()) {
             case EOF:
 #if 0
-      // This breaks some PDF files, e.g., ones from Photoshop.
-      case '\r':
-      case '\n':
+            case '\r': case '\n':
+                // This breaks some PDF files, e.g., ones from Photoshop.
 #endif
                 error (errSyntaxError, getPos (), "Unterminated string");
                 done = true;
                 break;
 
             case '(':
-                ++numParen;
+                ++nesting;
                 c2 = c;
                 break;
 
             case ')':
-                if (--numParen == 0) { done = true; }
+                if (--nesting == 0) {
+                    done = true;
+                }
                 else {
                     c2 = c;
                 }
+
                 break;
 
             case '\\':
@@ -223,17 +220,9 @@ Object* lexer_t::getObj (Object* obj) {
                 case 't': c2 = '\t'; break;
                 case 'b': c2 = '\b'; break;
                 case 'f': c2 = '\f'; break;
-                case '\\':
-                case '(':
-                case ')': c2 = c; break;
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
+                case '\\': case '(': case ')': c2 = c; break;
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7':
                     c2 = c - '0';
                     c = lookChar ();
                     if (c >= '0' && c <= '7') {
@@ -246,52 +235,56 @@ Object* lexer_t::getObj (Object* obj) {
                         }
                     }
                     break;
+
                 case '\r':
-                    c = lookChar ();
-                    if (c == '\n') { getChar (); }
+                    if ((c = lookChar ()) == '\n') {
+                        getChar ();
+                    }
                     break;
-                case '\n': break;
+
+                case '\n':
+                    break;
+
                 case EOF:
                     error (errSyntaxError, getPos (), "Unterminated string");
                     done = true;
                     break;
-                default: c2 = c; break;
+
+                default:
+                    c2 = c;
+                    break;
                 }
                 break;
 
-            default: c2 = c; break;
+            default:
+                c2 = c;
+                break;
             }
 
             if (c2 != EOF) {
-                if (n == tokBufSize) {
-                    if (!s)
-                        s = new GString (tokBuf, tokBufSize);
-                    else
-                        s->append (tokBuf, tokBufSize);
-                    p = tokBuf;
-                    n = 0;
-                }
-                *p++ = (char)c2;
-                ++n;
+                s.append (1, c2);
             }
         } while (!done);
-        if (!s)
-            s = new GString (tokBuf, n);
-        else
-            s->append (tokBuf, n);
-        obj->initString (s);
-        break;
 
-    // name
-    case '/':
-        p = tokBuf;
-        n = 0;
-        s = NULL;
-        while ((c = lookChar ()) != EOF && !specialChars[c]) {
+        return { token_t::STRING_, s };
+    }
+
+    case '/': {
+        //
+        // Name:
+        //
+        int c2;
+        std::string s;
+
+        while ((c = lookChar ()) != EOF && !specialChars [c]) {
             getChar ();
+
             if (c == '#') {
                 c2 = lookChar ();
-                if (c2 >= '0' && c2 <= '9') { c = c2 - '0'; }
+
+                if (c2 >= '0' && c2 <= '9') {
+                    c = c2 - '0';
+                }
                 else if (c2 >= 'A' && c2 <= 'F') {
                     c = c2 - 'A' + 10;
                 }
@@ -301,10 +294,15 @@ Object* lexer_t::getObj (Object* obj) {
                 else {
                     goto notEscChar;
                 }
+
                 getChar ();
+
                 c <<= 4;
                 c2 = getChar ();
-                if (c2 >= '0' && c2 <= '9') { c += c2 - '0'; }
+
+                if (c2 >= '0' && c2 <= '9') {
+                    c += c2 - '0';
+                }
                 else if (c2 >= 'A' && c2 <= 'F') {
                     c += c2 - 'A' + 10;
                 }
@@ -321,62 +319,47 @@ Object* lexer_t::getObj (Object* obj) {
             // the PDF spec claims that names are limited to 127 chars, but
             // Distiller 8 will produce longer names, and Acrobat 8 will
             // accept longer names
-            ++n;
-            if (n < tokBufSize) { *p++ = c; }
-            else if (n == tokBufSize) {
-                *p = c;
-                s = new GString (tokBuf, n);
-            }
-            else {
-                s->append ((char)c);
-            }
+            s.append (1, c);
         }
-        if (n < tokBufSize) {
-            *p = '\0';
-            obj->initName (tokBuf);
-        }
-        else {
-            obj->initName (s->c_str ());
-            delete s;
-        }
-        break;
+
+        return { token_t::NAME_, s };
+    }
 
     // array punctuation
-    case '[':
-    case ']':
-        tokBuf[0] = c;
-        tokBuf[1] = '\0';
-        obj->initCmd (tokBuf);
-        break;
+    case '[': case ']':
+        return { token_t::KEYWORD_, { char (c) } };
 
     // hex string or dict punctuation
-    case '<':
+    case '<': {
         c = lookChar ();
 
-        // dict punctuation
         if (c == '<') {
+            //
+            // Dict punctuation:
+            //
             getChar ();
-            tokBuf[0] = tokBuf[1] = '<';
-            tokBuf[2] = '\0';
-            obj->initCmd (tokBuf);
-
-            // hex string
+            return { token_t::KEYWORD_, "<<" };
         }
         else {
-            p = tokBuf;
-            m = n = 0;
-            c2 = 0;
-            s = NULL;
+            //
+            // Hex string:
+            //
+            int c2, m = 0;
+            std::string s;
+
             while (1) {
                 c = getChar ();
-                if (c == '>') { break; }
-                else if (c == EOF) {
-                    error (
-                        errSyntaxError, getPos (), "Unterminated hex string");
+
+                if (c == '>') {
                     break;
                 }
-                else if (specialChars[c] != 1) {
+                else if (c == EOF) {
+                    error (errSyntaxError, getPos (), "Unterminated hex string");
+                    break;
+                }
+                else if (specialChars [c] != 1) {
                     c2 = c2 << 4;
+
                     if (c >= '0' && c <= '9')
                         c2 += c - '0';
                     else if (c >= 'A' && c <= 'F')
@@ -387,84 +370,58 @@ Object* lexer_t::getObj (Object* obj) {
                         error (
                             errSyntaxError, getPos (),
                             "Illegal character <{0:02x}> in hex string", c);
+
                     if (++m == 2) {
-                        if (n == tokBufSize) {
-                            if (!s)
-                                s = new GString (tokBuf, tokBufSize);
-                            else
-                                s->append (tokBuf, tokBufSize);
-                            p = tokBuf;
-                            n = 0;
-                        }
-                        *p++ = (char)c2;
-                        ++n;
-                        c2 = 0;
-                        m = 0;
+                        s.append (1, c2);
+                        c2 = m = 0;
                     }
                 }
             }
-            if (!s)
-                s = new GString (tokBuf, n);
-            else
-                s->append (tokBuf, n);
-            if (m == 1) s->append ((char)(c2 << 4));
-            obj->initString (s);
-        }
-        break;
 
-    // dict punctuation
+            if (m == 1) {
+                s.append (1, char (c2 << 4));
+            }
+
+            return { token_t::STRING_, s };
+        }
+    }
+
     case '>':
-        c = lookChar ();
-        if (c == '>') {
+        //
+        // Dict punctuation:
+        //
+        if ((c = lookChar ()) == '>') {
             getChar ();
-            tokBuf[0] = tokBuf[1] = '>';
-            tokBuf[2] = '\0';
-            obj->initCmd (tokBuf);
+            return { token_t::KEYWORD_, ">>" };
         }
         else {
             error (errSyntaxError, getPos (), "Illegal character '>'");
-            obj->initError ();
+            return { token_t::ERROR_, { } };
         }
-        break;
 
-    // error
-    case ')':
-    case '{':
-    case '}':
+    case ')': case '{': case '}':
+        //
+        // Assorted errors:
+        //
         error (errSyntaxError, getPos (), "Illegal character '{0:c}'", c);
-        obj->initError ();
-        break;
+        return { token_t::ERROR_, { } };
 
-    // command
-    default:
-        p = tokBuf;
-        *p++ = c;
-        n = 1;
-        while ((c = lookChar ()) != EOF && !specialChars[c]) {
+    default: {
+        //
+        // Other keywords:
+        //
+        std::string s (1UL, char (c));
+
+        while ((c = lookChar ()) != EOF && !specialChars [c]) {
             getChar ();
-            if (++n == tokBufSize) {
-                error (errSyntaxError, getPos (), "Command token too long");
-                break;
-            }
-            *p++ = c;
+            s.append (1, c);
         }
-        *p = '\0';
-        if (tokBuf[0] == 't' && !strcmp (tokBuf, "true")) {
-            obj->initBool (true);
-        }
-        else if (tokBuf[0] == 'f' && !strcmp (tokBuf, "false")) {
-            obj->initBool (false);
-        }
-        else if (tokBuf[0] == 'n' && !strcmp (tokBuf, "null")) {
-            obj->initNull ();
-        }
-        else {
-            obj->initCmd (tokBuf);
-        }
-        break;
+
+        return { token_t::KEYWORD_, s };
+    }
     }
 
-    return obj;
+    return { };
 }
 
 void lexer_t::skipToNextLine () {

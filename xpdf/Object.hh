@@ -91,9 +91,19 @@ public:
         string = stringA;
         return this;
     }
+    Object* initString (const std::string& arg) {
+        initObj (objString);
+        string = new GString (arg);
+        return this;
+    }
     Object* initName (const char* nameA) {
         initObj (objName);
         name = strdup (nameA);
+        return this;
+    }
+    Object* initName (const std::string& arg) {
+        initObj (objName);
+        name = strdup (arg.c_str ());
         return this;
     }
     Object* initNull () {
@@ -110,9 +120,14 @@ public:
         ref.gen = genA;
         return this;
     }
-    Object* initCmd (char* cmdA) {
+    Object* initCmd (const char* cmdA) {
         initObj (objCmd);
         cmd = strdup (cmdA);
+        return this;
+    }
+    Object* initCmd (const std::string& arg) {
+        initObj (objCmd);
+        cmd = strdup (arg.c_str ());
         return this;
     }
     Object* initError () {
