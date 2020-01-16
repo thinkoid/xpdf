@@ -12,14 +12,13 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
+#include <xpdf/object_fwd.hh>
 
 class GList;
 class PDFDoc;
 class XRef;
-class Object;
 class Page;
 class PageAttrs;
-struct Ref;
 class LinkDest;
 class PageTreeNode;
 class Form;

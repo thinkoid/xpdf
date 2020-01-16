@@ -13,6 +13,9 @@
 
 #include <goo/gfile.hh>
 
+#include <xpdf/function.hh>
+#include <xpdf/object.hh>
+
 class AnnotBorderStyle;
 class Array;
 class Dict;
@@ -32,20 +35,15 @@ class GfxShading;
 class GfxShadingPattern;
 class GfxState;
 class GfxTilingPattern;
-struct Object;
 class OutputDev;
 class PDFDoc;
 class PDFRectangle;
 class Parser;
 class Stream;
 class XRef;
-class Ref;
 
 struct GfxColor;
 struct GfxPatch;
-
-#include <xpdf/function.hh>
-#include <xpdf/Object.hh>
 
 //------------------------------------------------------------------------
 
@@ -60,7 +58,7 @@ public:
     GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA);
     ~GfxResources ();
 
-    GfxFont* lookupFont (char* name);
+    GfxFont* lookupFont (const char* name);
     GfxFont* lookupFontByRef (Ref ref);
     bool lookupXObject (const char* name, Object* obj);
     bool lookupXObjectNF (const char* name, Object* obj);
@@ -212,7 +210,7 @@ private:
     bool checkForContentStreamLoop (Object* ref);
     void go (bool topLevel);
     bool execOp (Object* cmd, Object args[], int numArgs);
-    Operator* findOp (char* name);
+    Operator* findOp (const char* name);
     bool checkArg (Object* arg, typeCheckType type);
     GFileOffset getPos ();
 

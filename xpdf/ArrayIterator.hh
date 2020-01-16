@@ -7,7 +7,7 @@
 #include <range/v3/view/subrange.hpp>
 
 #include <xpdf/xpdf.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 
 namespace xpdf {
 

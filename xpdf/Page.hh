@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 
 class Dict;
 class PDFDoc;
@@ -63,8 +63,9 @@ public:
     PDFRectangle* getArtBox () { return &artBox; }
     int getRotate () { return rotate; }
     GString* getLastModified () {
-        return lastModified.isString () ? lastModified.getString ()
-                                        : (GString*)NULL;
+        return lastModified.isString ()
+            ? lastModified.getString ()
+            : (GString*)NULL;
     }
     Dict* getBoxColorInfo () {
         return boxColorInfo.isDict () ? boxColorInfo.getDict () : (Dict*)NULL;

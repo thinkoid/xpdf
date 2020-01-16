@@ -17,7 +17,7 @@
 #include <goo/GString.hh>
 #include <goo/gfile.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>

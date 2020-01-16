@@ -11,15 +11,15 @@
 
 #include <defs.hh>
 
+#include <xpdf/object_fwd.hh>
+#include <xpdf/XRef.hh>
+
 class Catalog;
 class Dict;
 class Gfx;
 class GfxFontDict;
-struct Object;
 class PDFDoc;
 class GString;
-
-#include <xpdf/XRef.hh>
 
 //------------------------------------------------------------------------
 // AnnotBorderStyle

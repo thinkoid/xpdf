@@ -22,7 +22,7 @@
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/lexer.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/OptionalContent.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>
@@ -387,7 +387,7 @@ Unicode* AcroFormField::getName (int* length) {
 Unicode* AcroFormField::getValue (int* length) {
     Object obj1;
     Unicode* u;
-    char* s;
+    const char* s;
     TextString* ts;
     int n, i;
 

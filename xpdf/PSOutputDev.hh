@@ -14,7 +14,7 @@
 #include <cstddef>
 
 #include <xpdf/function.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/OutputDev.hh>
 

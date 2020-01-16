@@ -22,7 +22,7 @@
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/lexer.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/OptionalContent.hh>
 #include <xpdf/PDFDoc.hh>
 

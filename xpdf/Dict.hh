@@ -11,7 +11,12 @@
 
 #include <defs.hh>
 
-struct Object;
+#include <list>
+#include <string>
+#include <tuple>
+
+#include <xpdf/object_fwd.hh>
+
 class XRef;
 struct DictEntry;
 
@@ -22,50 +27,54 @@ struct DictEntry;
 class Dict {
 public:
     // Constructor.
-    Dict (XRef* xrefA);
-
-    // Destructor.
-    ~Dict ();
+    Dict (XRef* p) : xref (p) { }
 
     // Reference counting.
-    int incRef () { return ++ref; }
-    int decRef () { return --ref; }
+    int incRef () const { return 1; }
+    int decRef () const { return 1; }
 
     // Get number of entries.
-    int getLength () { return length; }
+    int getLength () const { return xs.size (); }
 
-    // Add an entry.  NB: does not copy key.
-    void add (char* key, Object* val);
+    //
+    // Add an entry (taking ownership of key pointer):
+    //
+    void add (const std::string&, Object&);
 
-    // Check if dictionary is of specified type.
+    void add (const char* key, Object* pobj) {
+        add (key, *pobj);
+    }
+
+    //
+    // Check if dictionary is of specified type:
+    //
     bool is (const char* type);
 
+    //
     // Look up an entry and return the value.  Returns a null object
-    // if <key> is not in the dictionary.
-    Object* lookup (const char* key, Object* obj, int recursion = 0);
-    Object* lookupNF (const char* key, Object* obj);
+    // if <key> is not in the dictionary:
+    //
+    Object* lookup (const char*, Object*, int recursion = 0);
+    Object* lookupNF (const char*, Object*);
 
+    //
     // Iterative accessors.
-    char* getKey (int i);
+    //
+    char* getKey (int i) const;
+
     Object* getVal (int i, Object* obj);
     Object* getValNF (int i, Object* obj);
 
+    //
     // Set the xref pointer.  This is only used in one special case: the
     // trailer dictionary, which is read before the xref table is
     // parsed.
+    //
     void setXRef (XRef* xrefA) { xref = xrefA; }
 
 private:
     XRef* xref;          // the xref table for this PDF file
-    DictEntry* entries;  // array of entries
-    DictEntry** hashTab; // hash table pointers
-    int size;            // size of <entries> array
-    int length;          // number of entries in dictionary
-    int ref;             // reference count
-
-    DictEntry* find (const char* key);
-    void expand ();
-    int hash (const char* key);
+    std::list< std::tuple< std::string, Object > > xs;
 };
 
 #endif

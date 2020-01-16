@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Stream.hh>
 
 class XRef;
@@ -28,6 +28,7 @@ struct lexer_t {
             ERROR_,
             EOF_,
             NULL_,
+            BOOL_,
             INT_,
             REAL_,
             STRING_,

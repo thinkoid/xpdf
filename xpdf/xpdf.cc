@@ -11,7 +11,7 @@
 #include <goo/parseargs.hh>
 #include <goo/gfile.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/XPDFApp.hh>
 #include <defs.hh>
 

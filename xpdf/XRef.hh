@@ -13,7 +13,7 @@
 
 #include <goo/gfile.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Stream.hh>
 
 class Dict;
@@ -42,8 +42,6 @@ struct XRefCacheEntry {
     int gen;
     Object obj;
 };
-
-#define xrefCacheSize 16
 
 #define objStrCacheSize 4
 
@@ -129,8 +127,6 @@ private:
     int keyLength;               // length of key, in bytes
     int encVersion;              // encryption version
     CryptAlgorithm encAlgorithm; // encryption algorithm
-    XRefCacheEntry               // cache of recently accessed objects
-        cache[xrefCacheSize];
 
     GFileOffset getStartXref ();
     bool readXRef (GFileOffset* pos, XRefPosSet* posSet);

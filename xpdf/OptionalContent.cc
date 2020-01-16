@@ -11,7 +11,7 @@
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>
 #include <xpdf/OptionalContent.hh>

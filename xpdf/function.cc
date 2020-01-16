@@ -31,12 +31,12 @@
 
 #include <xpdf/Array.hh>
 #include <xpdf/ArrayIterator.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/function.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 
 #include <boost/noncopyable.hpp>
 

@@ -11,10 +11,12 @@
 
 #include <defs.hh>
 
-class Object;
-class XRef;
-
+#include <xpdf/object_fwd.hh>
 #include <xpdf/xpdf.hh>
+
+#include <list>
+
+class XRef;
 
 //------------------------------------------------------------------------
 // Array
@@ -25,15 +27,12 @@ public:
     // Constructor.
     Array (XRef* xrefA);
 
-    // Destructor.
-    ~Array ();
-
     // Reference counting.
-    int incRef () { return ++ref; }
-    int decRef () { return --ref; }
+    int incRef () const { return 1; }
+    int decRef () const { return 1; }
 
     // Get number of elements.
-    int getLength () { return length; }
+    int getLength () { return xs.size (); }
 
     // Add an element.
     void add (Object* elem);
@@ -44,10 +43,7 @@ public:
 
 private:
     XRef* xref;    // the xref table for this PDF file
-    Object* elems; // array of elements
-    int size;      // size of <elems> array
-    int length;    // number of elements in array
-    int ref;       // reference count
+    std::list< Object > xs;
 };
 
 #endif // XPDF_XPDF_ARRAY_HH

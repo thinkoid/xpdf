@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 
 class GString;
 class Array;
@@ -342,7 +342,7 @@ private:
 class LinkUnknown : public LinkAction {
 public:
     // Build a LinkUnknown with the specified action type.
-    LinkUnknown (char* actionA);
+    LinkUnknown (const char* actionA);
 
     // Destructor.
     virtual ~LinkUnknown ();

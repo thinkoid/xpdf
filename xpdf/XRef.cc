@@ -19,7 +19,7 @@
 #include <goo/memory.hh>
 #include <goo/gfile.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
@@ -289,8 +289,6 @@ XRef::XRef (BaseStream* strA, bool repair) {
     permFlags = defPermFlags;
     ownerPasswordOk = false;
 
-    for (i = 0; i < xrefCacheSize; ++i) { cache[i].num = -1; }
-
     str = strA;
     start = str->getStart ();
 
@@ -344,16 +342,17 @@ XRef::XRef (BaseStream* strA, bool repair) {
 }
 
 XRef::~XRef () {
-    int i;
-
-    for (i = 0; i < xrefCacheSize; ++i) {
-        if (cache[i].num >= 0) { cache[i].obj.free (); }
-    }
     free (entries);
     trailerDict.free ();
-    if (streamEnds) { free (streamEnds); }
-    for (i = 0; i < objStrCacheSize; ++i) {
-        if (objStrs[i]) { delete objStrs[i]; }
+
+    if (streamEnds) {
+        free (streamEnds);
+    }
+
+    for (int i = 0; i < objStrCacheSize; ++i) {
+        if (objStrs[i]) {
+            delete objStrs[i];
+        }
     }
 }
 
@@ -885,82 +884,72 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
     Parser* parser;
     ObjectStream* objStr;
     Object obj1, obj2, obj3;
-    XRefCacheEntry tmp;
-    int i, j;
 
     // check for bogus ref - this can happen in corrupted PDF files
-    if (num < 0 || num >= size) { goto err; }
-
-    // check the cache
-    if (cache[0].num == num && cache[0].gen == gen) {
-        return cache[0].obj.copy (obj);
-    }
-    for (i = 1; i < xrefCacheSize; ++i) {
-        if (cache[i].num == num && cache[i].gen == gen) {
-            tmp = cache[i];
-            for (j = i; j > 0; --j) { cache[j] = cache[j - 1]; }
-            cache[0] = tmp;
-            return cache[0].obj.copy (obj);
-        }
+    if (num < 0 || num >= size) {
+        goto err;
     }
 
     e = &entries[num];
+
     switch (e->type) {
     case xrefEntryUncompressed:
-        if (e->gen != gen) { goto err; }
+        if (e->gen != gen) {
+            goto err;
+        }
+
         obj1.initNull ();
+
         parser = new Parser (
             this,
             new xpdf::lexer_t (
                 this, str->makeSubStream (start + e->offset, false, 0, &obj1)),
             true);
+
         parser->getObj (&obj1, true);
         parser->getObj (&obj2, true);
         parser->getObj (&obj3, true);
-        if (!obj1.isInt () || obj1.getInt () != num || !obj2.isInt () ||
-            obj2.getInt () != gen || !obj3.isCmd ("obj")) {
+
+        if (!obj1.isInt () || obj1.getInt () != num ||
+            !obj2.isInt () || obj2.getInt () != gen ||
+            !obj3.isCmd ("obj")) {
+
             obj1.free ();
             obj2.free ();
             obj3.free ();
+
             delete parser;
             goto err;
         }
+
         parser->getObj (
             obj, false, encrypted ? fileKey : (unsigned char*)NULL, encAlgorithm,
             keyLength, num, gen, recursion);
+
         obj1.free ();
         obj2.free ();
         obj3.free ();
+
         delete parser;
         break;
 
     case xrefEntryCompressed:
-#if 0 // Adobe apparently ignores the generation number on compressed objects
-    if (gen != 0) {
-      goto err;
-    }
-#endif
         if (e->offset >= (GFileOffset)size ||
             entries[e->offset].type != xrefEntryUncompressed) {
             error (errSyntaxError, -1, "Invalid object stream");
             goto err;
         }
-        if (!(objStr = getObjectStream ((int)e->offset))) { goto err; }
+
+        if (!(objStr = getObjectStream ((int)e->offset))) {
+            goto err;
+        }
+
         objStr->getObject (e->gen, num, obj);
         break;
 
-    default: goto err;
+    default:
+        goto err;
     }
-
-    // put the new object in the cache, throwing away the oldest object
-    // currently in the cache
-    if (cache[xrefCacheSize - 1].num >= 0) {
-        cache[xrefCacheSize - 1].obj.free ();
-    }
-    for (i = xrefCacheSize - 1; i > 0; --i) { cache[i] = cache[i - 1]; }
-    cache[0].num = num;
-    cache[0].gen = gen;
-    obj->copy (&cache[0].obj);
 
     return obj;
 

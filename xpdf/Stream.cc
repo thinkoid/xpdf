@@ -18,7 +18,7 @@
 #include <goo/gfile.hh>
 #include <defs.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/lexer.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/Stream.hh>
@@ -136,7 +136,7 @@ Stream* Stream::addFilters (Object* dict, int recursion) {
 }
 
 Stream*
-Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
+Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion) {
     int pred; // parameters
     int colors;
     int bits;

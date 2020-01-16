@@ -8,7 +8,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/CoreOutputDev.hh>
 

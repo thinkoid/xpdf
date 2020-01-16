@@ -17,7 +17,7 @@
 #include <goo/GList.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/CharTypes.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
@@ -265,7 +265,7 @@ GfxResources::~GfxResources () {
     propsDict.free ();
 }
 
-GfxFont* GfxResources::lookupFont (char* name) {
+GfxFont* GfxResources::lookupFont (const char* name) {
     GfxFont* font;
     GfxResources* resPtr;
 
@@ -695,7 +695,7 @@ void Gfx::go (bool topLevel) {
 // Returns true if successful, false on error.
 bool Gfx::execOp (Object* cmd, Object args[], int numArgs) {
     Operator* op;
-    char* name;
+    const char* name;
     Object* argPtr;
     int i;
 
@@ -749,7 +749,7 @@ bool Gfx::execOp (Object* cmd, Object args[], int numArgs) {
     return true;
 }
 
-Gfx::Operator* Gfx::findOp (char* name) {
+Gfx::Operator* Gfx::findOp (const char* name) {
     int a, b, m, cmp;
 
     a = -1;
@@ -3600,7 +3600,7 @@ void Gfx::doIncCharCount (GString* s) {
 //------------------------------------------------------------------------
 
 void Gfx::opXObject (Object args[], int numArgs) {
-    char* name;
+    const char* name;
     Object obj1, obj2, obj3, refObj;
 #if OPI_SUPPORT
     Object opiDict;
@@ -4273,7 +4273,6 @@ void Gfx::opBeginImage (Object args[], int numArgs) {
 Stream* Gfx::buildImageStream () {
     Object dict;
     Object obj;
-    char* key;
     Stream* str;
 
     // build dictionary
@@ -4287,7 +4286,7 @@ Stream* Gfx::buildImageStream () {
             obj.free ();
         }
         else {
-            key = strdup (obj.getName ());
+            char* key = strdup (obj.getName ());
             obj.free ();
             parser->getObj (&obj);
             if (obj.isEOF () || obj.isError ()) {

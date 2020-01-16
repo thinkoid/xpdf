@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <goo/gfile.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 
 class BaseStream;
 
@@ -133,7 +133,7 @@ public:
     Stream* addFilters (Object* dict, int recursion = 0);
 
 private:
-    Stream* makeFilter (char* name, Stream* str, Object* params, int recursion);
+    Stream* makeFilter (const char* name, Stream* str, Object* params, int recursion);
 
     int ref; // reference count
 };

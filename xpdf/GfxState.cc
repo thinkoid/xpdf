@@ -15,7 +15,7 @@
 #include <goo/memory.hh>
 
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/XRef.hh>

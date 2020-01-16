@@ -12,9 +12,9 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
+#include <xpdf/object_fwd.hh>
 
 class GString;
-struct Object;
 class Stream;
 struct CMapVectorEntry;
 class CMapCache;

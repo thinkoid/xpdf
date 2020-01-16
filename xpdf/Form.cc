@@ -10,7 +10,7 @@
 
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/AcroForm.hh>
 #include <xpdf/XFAForm.hh>

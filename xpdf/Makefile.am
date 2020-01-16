@@ -31,7 +31,6 @@ libxpdf_a_SOURCES =                             \
    JPXStream.cc                                 \
    Link.cc                                      \
    NameToCharCode.cc                            \
-   Object.cc                                    \
    OptionalContent.cc                           \
    Outline.cc                                   \
    OutputDev.cc                                 \

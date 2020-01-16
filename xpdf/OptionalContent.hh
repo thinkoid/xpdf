@@ -11,7 +11,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/CharTypes.hh>
 
 class GString;

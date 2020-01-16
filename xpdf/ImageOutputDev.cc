@@ -15,7 +15,7 @@
 #include <defs.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GfxState.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/ImageOutputDev.hh>
 

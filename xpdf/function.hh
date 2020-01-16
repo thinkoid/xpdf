@@ -12,7 +12,7 @@
 #include <defs.hh>
 #include <memory>
 
-struct Object;
+#include <xpdf/object_fwd.hh>
 
 namespace xpdf {
 

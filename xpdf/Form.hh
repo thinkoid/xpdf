@@ -11,13 +11,13 @@
 
 #include <defs.hh>
 
+#include <xpdf/CharTypes.hh>
+#include <xpdf/object_fwd.hh>
+
 class Catalog;
 class FormField;
 class Gfx;
-struct Object;
 class PDFDoc;
-
-#include <xpdf/CharTypes.hh>
 
 //------------------------------------------------------------------------
 

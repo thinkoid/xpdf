@@ -15,7 +15,7 @@
 #include <goo/GString.hh>
 
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Link.hh>
@@ -733,7 +733,9 @@ LinkHide::~LinkHide () { fields.free (); }
 // LinkUnknown
 //------------------------------------------------------------------------
 
-LinkUnknown::LinkUnknown (char* actionA) { action = new GString (actionA); }
+LinkUnknown::LinkUnknown (const char* actionA) {
+    action = new GString (actionA);
+}
 
 LinkUnknown::~LinkUnknown () { delete action; }
 

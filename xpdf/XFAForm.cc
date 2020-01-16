@@ -17,7 +17,7 @@
 #include <goo/GHash.hh>
 
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>

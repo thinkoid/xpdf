@@ -11,7 +11,7 @@
 #ifdef ENABLE_PLUGINS
 
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/XPDFCore.hh>
 #include <xpdf/XpdfPluginAPI.hh>

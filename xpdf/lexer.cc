@@ -417,7 +417,15 @@ doReal:
             s.append (1, c);
         }
 
-        return { token_t::KEYWORD_, s };
+        if (s == "true" || s == "false") {
+            return { token_t::BOOL_, s };
+        }
+        else if (s == "null") {
+            return { token_t::NULL_, s };
+        }
+        else {
+            return { token_t::KEYWORD_, s };
+        }
     }
     }
 

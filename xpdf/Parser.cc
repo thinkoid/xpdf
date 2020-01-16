@@ -9,7 +9,7 @@
 #include <defs.hh>
 
 #include <cstddef>
-#include <xpdf/Object.hh>
+#include <xpdf/object.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Decrypt.hh>
@@ -53,13 +53,14 @@ static inline Object make_generic_object (const xpdf::lexer_t::token_t& tok) {
     Object obj;
 
     switch (tok.type) {
-    case xpdf::lexer_t::token_t::NULL_    : obj.initNull ();                  break;
-    case xpdf::lexer_t::token_t::EOF_     : obj.initEOF ();                   break;
-    case xpdf::lexer_t::token_t::INT_     : obj.initInt (std::stoi (tok.s));  break;
-    case xpdf::lexer_t::token_t::REAL_    : obj.initReal (std::stod (tok.s)); break;
-    case xpdf::lexer_t::token_t::STRING_  : obj.initString (tok.s);           break;
-    case xpdf::lexer_t::token_t::NAME_    : obj.initName (tok.s);             break;
-    case xpdf::lexer_t::token_t::KEYWORD_ : obj.initCmd (tok.s);              break;
+    case xpdf::lexer_t::token_t::NULL_    : obj.initNull ();                      break;
+    case xpdf::lexer_t::token_t::EOF_     : obj.initEOF ();                       break;
+    case xpdf::lexer_t::token_t::BOOL_    : obj.initBool (tok.s [0] == 't');      break;
+    case xpdf::lexer_t::token_t::INT_     : obj.initInt (std::stoi (tok.s));      break;
+    case xpdf::lexer_t::token_t::REAL_    : obj.initReal (std::stod (tok.s));     break;
+    case xpdf::lexer_t::token_t::STRING_  : obj.initString (new GString (tok.s)); break;
+    case xpdf::lexer_t::token_t::NAME_    : obj.initName (tok.s);                 break;
+    case xpdf::lexer_t::token_t::KEYWORD_ : obj.initCmd (tok.s);                  break;
 
     case xpdf::lexer_t::token_t::ERROR_:
     default:
@@ -93,7 +94,6 @@ Object* Parser::getObj (
     Object obj2;
     int num;
     DecryptStream* decrypt;
-    GString *s2;
     int c;
 
     // refill buffer after inline image data
@@ -213,11 +213,11 @@ Object* Parser::getObj (
         decrypt->reset ();
 
         while ((c = decrypt->getChar ()) != EOF) {
-            s2.append (1UL, char (c));
+            s.append (1UL, char (c));
         }
 
         delete decrypt;
-        obj->initString (s2);
+        obj->initString (s);
 
         shift ();
     }
