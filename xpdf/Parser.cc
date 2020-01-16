@@ -202,7 +202,7 @@ Object* Parser::getObj (
         //
         // String:
         //
-        s2 = new GString ();
+        std::string s;
 
         obj2.initNull ();
 
@@ -213,7 +213,7 @@ Object* Parser::getObj (
         decrypt->reset ();
 
         while ((c = decrypt->getChar ()) != EOF) {
-            s2->append (char (c));
+            s2.append (1UL, char (c));
         }
 
         delete decrypt;
