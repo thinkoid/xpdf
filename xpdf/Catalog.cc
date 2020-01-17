@@ -68,7 +68,7 @@ public:
 
 EmbeddedFile::EmbeddedFile (TextString* nameA, Object* streamRefA) {
     name = nameA;
-    streamRefA->copy (&streamRef);
+    streamRef= *streamRefA;
 }
 
 EmbeddedFile::~EmbeddedFile () {
@@ -606,7 +606,7 @@ void Catalog::readFileAttachmentAnnots (
             pageNodeRef->getRefNum (), pageNodeRef->getRefGen (), &pageNode);
     }
     else {
-        pageNodeRef->copy (&pageNode);
+        pageNode = *pageNodeRef;
     }
 
     if (pageNode.isDict ()) {

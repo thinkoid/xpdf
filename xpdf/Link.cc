@@ -675,7 +675,9 @@ LinkSubmitForm::LinkSubmitForm (
         url = NULL;
     }
 
-    if (fieldsObj->isArray ()) { fieldsObj->copy (&fields); }
+    if (fieldsObj->isArray ()) {
+        fields = *fieldsObj;
+    }
     else {
         if (!fieldsObj->isNull ()) {
             error (
@@ -685,7 +687,9 @@ LinkSubmitForm::LinkSubmitForm (
         fields.initNull ();
     }
 
-    if (flagsObj->isInt ()) { flags = flagsObj->getInt (); }
+    if (flagsObj->isInt ()) {
+        flags = flagsObj->getInt ();
+    }
     else {
         if (!flagsObj->isNull ()) {
             error (
@@ -706,9 +710,8 @@ LinkSubmitForm::~LinkSubmitForm () {
 //------------------------------------------------------------------------
 
 LinkHide::LinkHide (Object* fieldsObj, Object* hideFlagObj) {
-    if (fieldsObj->isRef () || fieldsObj->isString () ||
-        fieldsObj->isArray ()) {
-        fieldsObj->copy (&fields);
+    if (fieldsObj->isRef () || fieldsObj->isString () || fieldsObj->isArray ()) {
+        fields = *fieldsObj;
     }
     else {
         error (errSyntaxError, -1, "Hide action T value is wrong type");

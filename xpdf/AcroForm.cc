@@ -109,7 +109,7 @@ AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
 }
 
 AcroForm::AcroForm (PDFDoc* docA, Object* acroFormObjA) : Form (docA) {
-    acroFormObjA->copy (&acroFormObj);
+    acroFormObj = *acroFormObjA;
     needAppearances = false;
 }
 
@@ -339,8 +339,8 @@ AcroFormField::AcroFormField (
     AcroForm* acroFormA, Object* fieldRefA, Object* fieldObjA,
     AcroFormFieldType typeA, TextString* nameA, unsigned flagsA) {
     acroForm = acroFormA;
-    fieldRefA->copy (&fieldRef);
-    fieldObjA->copy (&fieldObj);
+    fieldRef = *fieldRefA;
+    fieldObj = *fieldObjA;
     type = typeA;
     name = nameA;
     flags = flagsA;
@@ -1015,9 +1015,8 @@ void AcroFormField::drawNewAppearance (
 
     // set the resource dictionary
     if (drObj.isDict ()) {
-        appearDict.dictAdd (strdup ("Resources"), drObj.copy (&obj1));
+        appearDict.dictAdd (strdup ("Resources"), &drObj);
     }
-    drObj.free ();
 
     // build the appearance stream
     appearStream = new MemStream (
@@ -1814,12 +1813,17 @@ Object* AcroFormField::getResources (Object* res) {
 }
 
 Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
-    Object apObj, asObj, appearance, obj1;
+    Object apObj, appearance;
 
     // get the appearance stream
     if (annot->lookup ("AP", &apObj)->isDict ()) {
+        Object obj1;
+
         apObj.dictLookup ("N", &obj1);
+
         if (obj1.isDict ()) {
+            Object asObj;
+
             if (annot->lookup ("AS", &asObj)->isName ()) {
                 obj1.dictLookup (asObj.getName (), &appearance);
             }
@@ -1829,13 +1833,12 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
             else {
                 obj1.dictLookup ("Off", &appearance);
             }
-            asObj.free ();
         }
         else {
-            obj1.copy (&appearance);
+            appearance = obj1;
         }
-        obj1.free ();
     }
+
     apObj.free ();
 
     if (appearance.isStream ()) {

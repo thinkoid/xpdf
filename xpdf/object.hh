@@ -224,7 +224,6 @@ struct object_t {
     const char* getTypeName () const;
     void print (FILE* = stdout);
 
-    object_t* copy (object_t*);
     void free ();
 
     //

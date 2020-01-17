@@ -258,7 +258,8 @@ Object* ObjectStream::getObject (int objIdx, int objNum, Object* obj) {
     if (objIdx < 0 || objIdx >= nObjects || objNum != objNums[objIdx]) {
         return obj->initNull ();
     }
-    return objs[objIdx].copy (obj);
+
+    return *obj = objs [objIdx], obj;
 }
 
 //------------------------------------------------------------------------
@@ -559,7 +560,9 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     obj2.free ();
 
     // save the first trailer dictionary
-    if (trailerDict.isNone ()) { obj.copy (&trailerDict); }
+    if (trailerDict.isNone ()) {
+        trailerDict = obj;
+    }
 
     // check for an 'XRefStm' key
     //~ this can be a 64-bit int (?)
@@ -763,28 +766,29 @@ bool XRef::constructXRef () {
         // got trailer dictionary
         if (!strncmp (p, "trailer", 7)) {
             obj.initNull ();
+
             parser = new Parser (
                 NULL,
                 new xpdf::lexer_t (NULL, str->makeSubStream (pos + 7, false, 0, &obj)),
                 false);
+
             parser->getObj (&newTrailerDict);
+
             if (newTrailerDict.isDict ()) {
                 newTrailerDict.dictLookupNF ("Root", &obj);
                 if (obj.isRef ()) {
                     rootNum = obj.getRefNum ();
                     rootGen = obj.getRefGen ();
-                    if (!trailerDict.isNone ()) { trailerDict.free (); }
-                    newTrailerDict.copy (&trailerDict);
+                    trailerDict = newTrailerDict;
                     gotRoot = true;
                 }
                 obj.free ();
             }
-            newTrailerDict.free ();
-            delete parser;
 
-            // look for object
+            delete parser;
         }
         else if (isdigit (*p & 0xff)) {
+            // look for object
             num = atoi (p);
             if (num > 0) {
                 do { ++p; } while (*p && isdigit (*p & 0xff));

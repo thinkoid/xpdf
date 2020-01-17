@@ -38,7 +38,7 @@ Object* Array::getNF (int i, Object* obj) {
     if (size_t (i) < xs.size ()) {
         auto iter = xs.begin ();
         std::advance (iter, i);
-        return iter->copy (obj);
+        return *obj = *iter, obj;
     }
     else {
         return obj->initNull ();

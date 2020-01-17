@@ -6526,9 +6526,9 @@ void PSOutputDev::opiEnd (GfxState* state, Dict* opiDict) {
 
 bool PSOutputDev::getFileSpec (Object* fileSpec, Object* fileName) {
     if (fileSpec->isString ()) {
-        fileSpec->copy (fileName);
-        return true;
+        return *fileName = *filespec, true;
     }
+
     if (fileSpec->isDict ()) {
         fileSpec->dictLookup ("DOS", fileName);
         if (fileName->isString ()) { return true; }

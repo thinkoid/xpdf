@@ -67,7 +67,7 @@ AnnotBorderStyle::~AnnotBorderStyle () {
 //------------------------------------------------------------------------
 
 Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
-    Object apObj, asObj, obj1, obj2, obj3;
+    Object obj1, obj2, obj3;
     AnnotBorderType borderType;
     double borderWidth;
     double* borderDash;
@@ -237,39 +237,47 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         nBorderColorComps);
 
     //----- get the appearance state
+    Object apObj, asObj;
 
     dict->lookup ("AP", &apObj);
     dict->lookup ("AS", &asObj);
-    if (asObj.isName ()) { appearanceState = new GString (asObj.getName ()); }
+
+    if (asObj.isName ()) {
+        appearanceState = new GString (asObj.getName ());
+    }
     else if (apObj.isDict ()) {
+        Object obj1;
+
         apObj.dictLookup ("N", &obj1);
+
         if (obj1.isDict () && obj1.dictGetLength () == 1) {
             appearanceState = new GString (obj1.dictGetKey (0));
         }
-        obj1.free ();
     }
-    if (!appearanceState) { appearanceState = new GString ("Off"); }
-    asObj.free ();
+
+    if (!appearanceState) {
+        appearanceState = new GString ("Off");
+    }
 
     //----- get the annotation appearance
 
     if (apObj.isDict ()) {
+        Object obj1, obj2;
+
         apObj.dictLookup ("N", &obj1);
         apObj.dictLookupNF ("N", &obj2);
+
         if (obj1.isDict ()) {
-            if (obj1.dictLookupNF (appearanceState->c_str (), &obj3)
-                    ->isRef ()) {
-                obj3.copy (&appearance);
+            Object obj3;
+
+            if (obj1.dictLookupNF (appearanceState->c_str (), &obj3)->isRef ()) {
+                appearance = obj3;
             }
-            obj3.free ();
         }
         else if (obj2.isRef ()) {
-            obj2.copy (&appearance);
+            appearance = obj2;
         }
-        obj1.free ();
-        obj2.free ();
     }
-    apObj.free ();
 
     //----- get the optional content entry
 
@@ -326,19 +334,18 @@ void Annot::generateLineAppearance () {
     //----- check for transparency
     if (annotObj.dictLookup ("CA", &obj1)->isNum ()) {
         gfxStateDict.initDict (doc->getXRef ());
-        gfxStateDict.dictAdd (strdup ("ca"), obj1.copy (&obj2));
+        gfxStateDict.dictAdd ("ca", &obj1);
         appearBuf->append ("/GS1 gs\n");
     }
-    obj1.free ();
 
     //----- set line style, colors
     setLineStyle (borderStyle, &w);
     setStrokeColor (borderStyle->getColor (), borderStyle->getNumColorComps ());
     fill = false;
+
     if (annotObj.dictLookup ("IC", &obj1)->isArray ()) {
         if (setFillColor (&obj1)) { fill = true; }
     }
-    obj1.free ();
 
     //----- get line properties
     if (annotObj.dictLookup ("L", &obj1)->isArray () &&
@@ -511,14 +518,14 @@ void Annot::generatePolyLineAppearance () {
     //----- check for transparency
     if (annotObj.dictLookup ("CA", &obj1)->isNum ()) {
         gfxStateDict.initDict (doc->getXRef ());
-        gfxStateDict.dictAdd (strdup ("ca"), obj1.copy (&obj2));
+        gfxStateDict.dictAdd ("ca", &obj1);
         appearBuf->append ("/GS1 gs\n");
     }
-    obj1.free ();
 
     //----- set line style, colors
     setLineStyle (borderStyle, &w);
     setStrokeColor (borderStyle->getColor (), borderStyle->getNumColorComps ());
+
     // fill = false;
     // if (annotObj.dictLookup("IC", &obj1)->isArray()) {
     //   if (setFillColor(&obj1)) {
@@ -602,10 +609,9 @@ void Annot::generatePolygonAppearance () {
     //----- check for transparency
     if (annotObj.dictLookup ("CA", &obj1)->isNum ()) {
         gfxStateDict.initDict (doc->getXRef ());
-        gfxStateDict.dictAdd (strdup ("ca"), obj1.copy (&obj2));
+        gfxStateDict.dictAdd ("ca", &obj1);
         appearBuf->append ("/GS1 gs\n");
     }
-    obj1.free ();
 
     //----- set fill color
     if (!annotObj.dictLookup ("IC", &obj1)->isArray () ||

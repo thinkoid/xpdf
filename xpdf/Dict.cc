@@ -52,7 +52,7 @@ Object* Dict::lookupNF (const char* key, Object* pobj) {
     auto iter = sequential_find (xs, key);
 
     if (iter != xs.end ()) {
-        return std::get< 1 > (*iter).copy (pobj);
+        return *pobj = std::get< 1 > (*iter), pobj;
     }
     else {
         return pobj->initNull ();
@@ -83,5 +83,5 @@ Object* Dict::getValNF (int i, Object* pobj) {
     auto iter = xs.begin ();
     std::advance (iter, size_t (i));
 
-    return std::get< 1 > (*iter).copy (pobj);
+    return *pobj = std::get< 1 > (*iter), pobj;
 }

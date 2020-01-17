@@ -1554,9 +1554,9 @@ GfxTilingPattern::GfxTilingPattern (
     for (i = 0; i < 4; ++i) { bbox[i] = bboxA[i]; }
     xStep = xStepA;
     yStep = yStepA;
-    resDictA->copy (&resDict);
+    resDict = *resDictA;
     for (i = 0; i < 6; ++i) { matrix[i] = matrixA[i]; }
-    contentStreamRefA->copy (&contentStreamRef);
+    contentStreamRef = *contentStreamRefA;
 }
 
 GfxTilingPattern::~GfxTilingPattern () {

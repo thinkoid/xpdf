@@ -81,10 +81,6 @@ object_t* object_t::initStream (Stream* p) {
     return this;
 }
 
-object_t* object_t::copy (object_t* pobj) {
-    return *pobj = *this, pobj;
-}
-
 void object_t::free () {
     initNull ();
 }

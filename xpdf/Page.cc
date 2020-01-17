@@ -58,7 +58,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
         cropBox = attrs->cropBox;
         haveCropBox = attrs->haveCropBox;
         rotate = attrs->rotate;
-        attrs->resources.copy (&resources);
+        resources = attrs->resources;
     }
     else {
         // set default MediaBox to 8.5" x 11" -- this shouldn't be necessary
@@ -102,6 +102,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     dict->lookup ("Metadata", &metadata);
     dict->lookup ("PieceInfo", &pieceInfo);
     dict->lookup ("SeparationInfo", &separationInfo);
+
     if (dict->lookup ("UserUnit", &obj1)->isNum ()) {
         userUnit = obj1.getNum ();
         if (userUnit < 1) { userUnit = 1; }
@@ -109,15 +110,13 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     else {
         userUnit = 1;
     }
-    obj1.free ();
 
     // resource dictionary
     dict->lookup ("Resources", &obj1);
+
     if (obj1.isDict ()) {
-        resources.free ();
-        obj1.copy (&resources);
+        resources = obj1;
     }
-    obj1.free ();
 }
 
 PageAttrs::PageAttrs () {

@@ -35,29 +35,33 @@ static const char specialChars [256] = {
 namespace xpdf {
 
 lexer_t::lexer_t (XRef* xref, Stream* str) {
-    Object obj;
-
     curStr.initStream (str);
+    Object obj = curStr;
+
     streams = new Array (xref);
-    streams->add (curStr.copy (&obj));
+    streams->add (&obj);
+
     strPtr = 0;
     freeArray = true;
+
     curStr.streamReset ();
 }
 
 lexer_t::lexer_t (XRef* xref, Object* obj) {
-    Object obj2;
-
     if (obj->isStream ()) {
         streams = new Array (xref);
         freeArray = true;
-        streams->add (obj->copy (&obj2));
+
+        Object obj2 = *obj;
+        streams->add (&obj2);
     }
     else {
         streams = obj->getArray ();
         freeArray = false;
     }
+
     strPtr = 0;
+
     if (streams->getLength () > 0) {
         streams->get (strPtr, &curStr);
         curStr.streamReset ();

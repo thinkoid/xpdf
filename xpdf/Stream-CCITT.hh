@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef XPDF_XPDF_STREAM-CCITT_HH
-#define XPDF_XPDF_STREAM-CCITT_HH
+#ifndef XPDF_XPDF_STREAM_CCITT_HH
+#define XPDF_XPDF_STREAM_CCITT_HH
 
 struct CCITTCode {
     short bits;
@@ -443,4 +443,4 @@ static CCITTCode blackTab3[64] = {
     { 2, 2 },   { 2, 2 },   { 2, 2 },   { 2, 2 },   { 2, 2 }, { 2, 2 }
 };
 
-#endif // XPDF_XPDF_STREAM-CCITT_HH
+#endif // XPDF_XPDF_STREAM_CCITT_HH

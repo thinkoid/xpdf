@@ -1033,7 +1033,7 @@ JBIG2Stream::JBIG2Stream (Stream* strA, Object* globalsStreamA)
     huffDecoder = new JBIG2HuffmanDecoder ();
     mmrDecoder = new JBIG2MMRDecoder ();
 
-    globalsStreamA->copy (&globalsStream);
+    globalsStream = *globalsStreamA;
     segments = globalSegments = NULL;
     curStr = NULL;
     dataPtr = dataEnd = NULL;

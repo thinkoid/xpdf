@@ -237,7 +237,7 @@ XFAForm::XFAForm (
     PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA)
     : Form (docA) {
     xml = xmlA;
-    resourceDictA->copy (&resourceDict);
+    resourceDict = *resourceDictA;
     fullXFA = fullXFAA;
 }
 
@@ -675,13 +675,17 @@ void XFAFormField::draw (
     appearDict.initDict (xfaForm->doc->getXRef ());
     appearDict.dictAdd (
         strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
+
     appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
+
     obj1.initArray (xfaForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (w));
     obj1.arrayAdd (obj2.initReal (h));
+
     appearDict.dictAdd (strdup ("BBox"), &obj1);
+
     obj1.initArray (xfaForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (mat[0]));
     obj1.arrayAdd (obj2.initReal (mat[1]));
@@ -689,11 +693,13 @@ void XFAFormField::draw (
     obj1.arrayAdd (obj2.initReal (mat[3]));
     obj1.arrayAdd (obj2.initReal (mat[4]));
     obj1.arrayAdd (obj2.initReal (mat[5]));
+
     appearDict.dictAdd (strdup ("Matrix"), &obj1);
+
     if (xfaForm->resourceDict.isDict ()) {
-        appearDict.dictAdd (
-            strdup ("Resources"), xfaForm->resourceDict.copy (&obj1));
+        appearDict.dictAdd ("Resources", &xfaForm->resourceDict);
     }
+
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.initStream (appearStream);
@@ -970,7 +976,7 @@ void XFAFormField::drawBarCode (
 }
 
 Object* XFAFormField::getResources (Object* res) {
-    return xfaForm->resourceDict.copy (res);
+    return *res = xfaForm->resourceDict, res;
 }
 
 double XFAFormField::getMeasurement (ZxAttr* attr, double defaultVal) {

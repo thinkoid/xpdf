@@ -60,7 +60,8 @@ OutlineItem::OutlineItem (
     }
     obj1.free ();
 
-    itemRefA->copy (&itemRef);
+    itemRef = *itemRefA;
+
     dict->lookupNF ("First", &firstRef);
     dict->lookupNF ("Last", &lastRef);
     dict->lookupNF ("Next", &nextRef);

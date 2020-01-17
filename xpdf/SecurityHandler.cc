@@ -348,7 +348,7 @@ bool StandardSecurityHandler::authorize (void* authData) {
 ExternalSecurityHandler::ExternalSecurityHandler (
     PDFDoc* docA, Object* encryptDictA, XpdfSecurityHandler* xshA)
     : SecurityHandler (docA) {
-    encryptDictA->copy (&encryptDict);
+    encryptDict = *encryptDictA;
     xsh = xshA;
     encAlgorithm = cryptRC4; //~ this should be obtained via getKey
     ok = false;
