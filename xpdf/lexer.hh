@@ -1,5 +1,6 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #ifndef XPDF_XPDF_LEXER_HH
 #define XPDF_XPDF_LEXER_HH

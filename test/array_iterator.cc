@@ -1,4 +1,5 @@
 // -*- mode: c++ -*-
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE array

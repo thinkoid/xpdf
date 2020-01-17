@@ -1,5 +1,5 @@
 // -*- mode: c++; -*-
-// Copyright 2019- Thinkoid, LLC
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #ifndef XPDF_XPDF_OBJECT_FWD_HH
 #define XPDF_XPDF_OBJECT_FWD_HH

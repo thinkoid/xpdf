@@ -1,5 +1,6 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #ifndef XPDF_XPDF_FUNCTION_HH
 #define XPDF_XPDF_FUNCTION_HH
