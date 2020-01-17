@@ -56,7 +56,6 @@ libxpdf_a_SOURCES =                             \
    XPDFTree.cc                                  \
    XPDFViewer.cc                                \
    XRef.cc                                      \
-   XpdfPluginAPI.cc                             \
    Zoox.cc                                      \
    bitpack.cc                                   \
    function.cc                                  \
