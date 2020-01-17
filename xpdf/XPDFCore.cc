@@ -600,14 +600,10 @@ void XPDFCore::doAction (LinkAction* action) {
                     if (obj1.arrayGet (i, &movieAnnot)->isDict ()) {
                         if (movieAnnot.dictLookup ("Subtype", &obj2)
                                 ->isName ("Movie")) {
-                            obj2.free ();
                             break;
                         }
-                        obj2.free ();
                     }
-                    movieAnnot.free ();
                 }
-                obj1.free ();
             }
         }
         if (movieAnnot.isDict ()) {
@@ -625,12 +621,9 @@ void XPDFCore::doAction (LinkAction* action) {
                         runCommand (cmd, fileName);
                         delete fileName;
                     }
-                    obj2.free ();
                 }
-                obj1.free ();
             }
         }
-        movieAnnot.free ();
         break;
 
     // unsupported action types

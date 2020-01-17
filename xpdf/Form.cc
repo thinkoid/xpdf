@@ -27,7 +27,6 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     acroFormObj->dictLookup ("XFA", &xfaObj);
     docA->getXRef ()->getCatalog (&catDict);
     catDict.dictLookup ("NeedsRendering", &needsRenderingObj);
-    catDict.free ();
     if (globalParams->getEnableXFA () && !xfaObj.isNull () &&
         !(needsRenderingObj.isBool () && needsRenderingObj.getBool ())) {
         form = XFAForm::load (docA, acroFormObj, &xfaObj);
@@ -35,8 +34,6 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     else {
         form = AcroForm::load (docA, catalog, acroFormObj);
     }
-    xfaObj.free ();
-    needsRenderingObj.free ();
     return form;
 }
 

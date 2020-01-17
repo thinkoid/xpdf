@@ -51,7 +51,6 @@ SecurityHandler* SecurityHandler::make (PDFDoc* docA, Object* encryptDictA) {
             "Missing or invalid 'Filter' entry in encryption dictionary");
         secHdlr = NULL;
     }
-    filterObj.free ();
     return secHdlr;
 }
 
@@ -184,7 +183,6 @@ StandardSecurityHandler::StandardSecurityHandler (
                                     //~ according to the spec, this should be cfLengthObj / 8
                                     fileKeyLength = cfLengthObj.getInt ();
                                 }
-                                cfLengthObj.free ();
                             }
                             else if (cfmObj.isName ("AESV2")) {
                                 encVersion = 2;
@@ -196,7 +194,6 @@ StandardSecurityHandler::StandardSecurityHandler (
                                     //~ according to the spec, this should be cfLengthObj / 8
                                     fileKeyLength = cfLengthObj.getInt ();
                                 }
-                                cfLengthObj.free ();
                             }
                             else if (cfmObj.isName ("AESV3")) {
                                 encVersion = 5;
@@ -210,22 +207,15 @@ StandardSecurityHandler::StandardSecurityHandler (
                                     //~ according to the spec, this should be cfLengthObj / 8
                                     fileKeyLength = cfLengthObj.getInt ();
                                 }
-                                cfLengthObj.free ();
                             }
-                            cfmObj.free ();
                         }
-                        cryptFilterObj.free ();
                     }
                 }
-                stringFilterObj.free ();
-                streamFilterObj.free ();
-                cryptFiltersObj.free ();
                 if (encryptDictA
                         ->dictLookup ("EncryptMetadata", &encryptMetadataObj)
                         ->isBool ()) {
                     encryptMetadata = encryptMetadataObj.getBool ();
                 }
-                encryptMetadataObj.free ();
             }
             permFlags = permObj.getInt ();
             ownerKey = ownerKeyObj.getString ()->copy ();
@@ -239,7 +229,6 @@ StandardSecurityHandler::StandardSecurityHandler (
                     else {
                         fileID = new GString ();
                     }
-                    fileIDObj1.free ();
                 }
                 else {
                     fileID = new GString ();
@@ -274,15 +263,6 @@ StandardSecurityHandler::StandardSecurityHandler (
     else {
         error (errSyntaxError, -1, "Weird encryption info");
     }
-    fileIDObj.free ();
-    permObj.free ();
-    userEncObj.free ();
-    ownerEncObj.free ();
-    userKeyObj.free ();
-    ownerKeyObj.free ();
-    lengthObj.free ();
-    revisionObj.free ();
-    versionObj.free ();
 }
 
 StandardSecurityHandler::~StandardSecurityHandler () {
@@ -364,7 +344,6 @@ ExternalSecurityHandler::ExternalSecurityHandler (
 
 ExternalSecurityHandler::~ExternalSecurityHandler () {
     (*xsh->freeDoc) (xsh->handlerData, docData);
-    encryptDict.free ();
 }
 
 void* ExternalSecurityHandler::makeAuthData (

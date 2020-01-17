@@ -45,7 +45,6 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
     if (obj2.isName ("GoTo")) {
         obj->dictLookup ("D", &obj3);
         action = new LinkGoTo (&obj3);
-        obj3.free ();
 
         // GoToR action
     }
@@ -53,8 +52,6 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         obj->dictLookup ("F", &obj3);
         obj->dictLookup ("D", &obj4);
         action = new LinkGoToR (&obj3, &obj4);
-        obj3.free ();
-        obj4.free ();
 
         // Launch action
     }
@@ -66,14 +63,12 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
     else if (obj2.isName ("URI")) {
         obj->dictLookup ("URI", &obj3);
         action = new LinkURI (&obj3, baseURI);
-        obj3.free ();
 
         // Named action
     }
     else if (obj2.isName ("Named")) {
         obj->dictLookup ("N", &obj3);
         action = new LinkNamed (&obj3);
-        obj3.free ();
 
         // Movie action
     }
@@ -81,15 +76,12 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         obj->dictLookupNF ("Annot", &obj3);
         obj->dictLookup ("T", &obj4);
         action = new LinkMovie (&obj3, &obj4);
-        obj3.free ();
-        obj4.free ();
 
         // JavaScript action
     }
     else if (obj2.isName ("JavaScript")) {
         obj->dictLookup ("JS", &obj3);
         action = new LinkJavaScript (&obj3);
-        obj3.free ();
 
         // SubmitForm action
     }
@@ -98,9 +90,6 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         obj->dictLookup ("Fields", &obj4);
         obj->dictLookup ("Flags", &obj5);
         action = new LinkSubmitForm (&obj3, &obj4, &obj5);
-        obj3.free ();
-        obj4.free ();
-        obj5.free ();
 
         // Hide action
     }
@@ -108,8 +97,6 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         obj->dictLookupNF ("T", &obj3);
         obj->dictLookup ("H", &obj4);
         action = new LinkHide (&obj3, &obj4);
-        obj3.free ();
-        obj4.free ();
 
         // unknown action
     }
@@ -123,7 +110,6 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         action = NULL;
     }
 
-    obj2.free ();
 
     if (action && !action->isOk ()) {
         delete action;
@@ -146,14 +132,12 @@ GString* LinkAction::getFileSpecName (Object* fileSpecObj) {
     }
     else if (fileSpecObj->isDict ()) {
         if (!fileSpecObj->dictLookup ("Unix", &obj1)->isString ()) {
-            obj1.free ();
             fileSpecObj->dictLookup ("F", &obj1);
         }
         if (obj1.isString ()) { name = obj1.getString ()->copy (); }
         else {
             error (errSyntaxWarning, -1, "Illegal file spec in link");
         }
-        obj1.free ();
 
         // error
     }
@@ -196,9 +180,8 @@ LinkDest::LinkDest (Array* a) {
     }
     else {
         error (errSyntaxWarning, -1, "Bad annotation destination");
-        goto err2;
+        return;
     }
-    obj1.free ();
 
     // get destination type
     a->get (1, &obj1);
@@ -218,9 +201,8 @@ LinkDest::LinkDest (Array* a) {
                 error (
                     errSyntaxWarning, -1,
                     "Bad annotation destination position");
-                goto err1;
+                return;
             }
-            obj2.free ();
         }
         if (a->getLength () < 4) { changeTop = false; }
         else {
@@ -234,9 +216,8 @@ LinkDest::LinkDest (Array* a) {
                 error (
                     errSyntaxWarning, -1,
                     "Bad annotation destination position");
-                goto err1;
+                return;
             }
-            obj2.free ();
         }
         if (a->getLength () < 5) { changeZoom = false; }
         else {
@@ -250,9 +231,8 @@ LinkDest::LinkDest (Array* a) {
                 error (
                     errSyntaxWarning, -1,
                     "Bad annotation destination position");
-                goto err1;
+                return;
             }
-            obj2.free ();
         }
 
         // Fit link
@@ -262,7 +242,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFit;
 
@@ -273,7 +253,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFitH;
         if (a->get (2, &obj2)->isNum ()) {
@@ -287,7 +267,6 @@ LinkDest::LinkDest (Array* a) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        obj2.free ();
 
         // FitV link
     }
@@ -296,7 +275,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFitV;
         if (a->get (2, &obj2)->isNum ()) {
@@ -310,7 +289,6 @@ LinkDest::LinkDest (Array* a) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        obj2.free ();
 
         // FitR link
     }
@@ -319,7 +297,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFitR;
         if (a->get (2, &obj2)->isNum ()) { left = obj2.getNum (); }
@@ -327,25 +305,21 @@ LinkDest::LinkDest (Array* a) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        obj2.free ();
         if (!a->get (3, &obj2)->isNum ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         bottom = obj2.getNum ();
-        obj2.free ();
         if (!a->get (4, &obj2)->isNum ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         right = obj2.getNum ();
-        obj2.free ();
         if (!a->get (5, &obj2)->isNum ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         top = obj2.getNum ();
-        obj2.free ();
 
         // FitB link
     }
@@ -354,7 +328,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFitB;
 
@@ -365,7 +339,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFitBH;
         if (a->get (2, &obj2)->isNum ()) {
@@ -379,7 +353,6 @@ LinkDest::LinkDest (Array* a) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        obj2.free ();
 
         // FitBV link
     }
@@ -388,7 +361,7 @@ LinkDest::LinkDest (Array* a) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
-            goto err2;
+            return;
         }
         kind = destFitBV;
         if (a->get (2, &obj2)->isNum ()) {
@@ -402,23 +375,15 @@ LinkDest::LinkDest (Array* a) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        obj2.free ();
 
         // unknown link kind
     }
     else {
         error (errSyntaxWarning, -1, "Unknown annotation destination type");
-        goto err2;
+        return;
     }
 
-    obj1.free ();
     ok = true;
-    return;
-
-err1:
-    obj2.free ();
-err2:
-    obj1.free ();
 }
 
 LinkDest::LinkDest (LinkDest* dest) {
@@ -526,23 +491,19 @@ LinkLaunch::LinkLaunch (Object* actionObj) {
             fileName = getFileSpecName (&obj1);
         }
         else {
-            obj1.free ();
             //~ This hasn't been defined by Adobe yet, so assume it looks
             //~ just like the Win dictionary until they say otherwise.
             if (actionObj->dictLookup ("Unix", &obj1)->isDict ()) {
                 obj1.dictLookup ("F", &obj2);
                 fileName = getFileSpecName (&obj2);
-                obj2.free ();
                 if (obj1.dictLookup ("P", &obj2)->isString ()) {
                     params = obj2.getString ()->copy ();
                 }
-                obj2.free ();
             }
             else {
                 error (errSyntaxWarning, -1, "Bad launch-type link action");
             }
         }
-        obj1.free ();
     }
 }
 
@@ -702,7 +663,6 @@ LinkSubmitForm::LinkSubmitForm (
 
 LinkSubmitForm::~LinkSubmitForm () {
     if (url) { delete url; }
-    fields.free ();
 }
 
 //------------------------------------------------------------------------
@@ -751,33 +711,28 @@ Link::Link (Dict* dict, GString* baseURI) {
     // get rectangle
     if (!dict->lookup ("Rect", &obj1)->isArray ()) {
         error (errSyntaxError, -1, "Annotation rectangle is wrong type");
-        goto err2;
+        return;
     }
     if (!obj1.arrayGet (0, &obj2)->isNum ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
-        goto err1;
+        return;
     }
     x1 = obj2.getNum ();
-    obj2.free ();
     if (!obj1.arrayGet (1, &obj2)->isNum ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
-        goto err1;
+        return;
     }
     y1 = obj2.getNum ();
-    obj2.free ();
     if (!obj1.arrayGet (2, &obj2)->isNum ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
-        goto err1;
+        return;
     }
     x2 = obj2.getNum ();
-    obj2.free ();
     if (!obj1.arrayGet (3, &obj2)->isNum ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
-        goto err1;
+        return;
     }
     y2 = obj2.getNum ();
-    obj2.free ();
-    obj1.free ();
     if (x1 > x2) {
         t = x1;
         x1 = x2;
@@ -796,22 +751,13 @@ Link::Link (Dict* dict, GString* baseURI) {
         // look for action
     }
     else {
-        obj1.free ();
         if (dict->lookup ("A", &obj1)->isDict ()) {
             action = LinkAction::parseAction (&obj1, baseURI);
         }
     }
-    obj1.free ();
 
     // check for bad action
     if (action) { ok = true; }
-
-    return;
-
-err1:
-    obj2.free ();
-err2:
-    obj1.free ();
 }
 
 Link::~Link () {
@@ -853,10 +799,7 @@ Links::Links (Object* annots, GString* baseURI) {
                         delete link;
                     }
                 }
-                obj3.free ();
-                obj2.free ();
             }
-            obj1.free ();
         }
     }
 }

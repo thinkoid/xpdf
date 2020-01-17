@@ -71,7 +71,7 @@ lexer_t::lexer_t (XRef* xref, Object* obj) {
 lexer_t::~lexer_t () {
     if (!curStr.isNone ()) {
         curStr.streamClose ();
-        curStr.free ();
+        curStr = { };
     }
     if (freeArray) { delete streams; }
 }
@@ -82,7 +82,8 @@ int lexer_t::getChar () {
     c = EOF;
     while (!curStr.isNone () && (c = curStr.streamGetChar ()) == EOF) {
         curStr.streamClose ();
-        curStr.free ();
+        curStr = { };
+
         ++strPtr;
         if (strPtr < streams->getLength ()) {
             streams->get (strPtr, &curStr);

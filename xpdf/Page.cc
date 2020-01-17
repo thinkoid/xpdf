@@ -91,7 +91,6 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     // rotate
     dict->lookup ("Rotate", &obj1);
     if (obj1.isInt ()) { rotate = obj1.getInt (); }
-    obj1.free ();
     while (rotate < 0) { rotate += 360; }
     while (rotate >= 360) { rotate -= 360; }
 
@@ -138,13 +137,6 @@ PageAttrs::PageAttrs () {
 }
 
 PageAttrs::~PageAttrs () {
-    lastModified.free ();
-    boxColorInfo.free ();
-    group.free ();
-    metadata.free ();
-    pieceInfo.free ();
-    separationInfo.free ();
-    resources.free ();
 }
 
 void PageAttrs::clipBoxes () {
@@ -168,25 +160,21 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
         else {
             ok = false;
         }
-        obj2.free ();
         obj1.arrayGet (1, &obj2);
         if (obj2.isNum ()) { tmp.y1 = obj2.getNum (); }
         else {
             ok = false;
         }
-        obj2.free ();
         obj1.arrayGet (2, &obj2);
         if (obj2.isNum ()) { tmp.x2 = obj2.getNum (); }
         else {
             ok = false;
         }
-        obj2.free ();
         obj1.arrayGet (3, &obj2);
         if (obj2.isNum ()) { tmp.y2 = obj2.getNum (); }
         else {
             ok = false;
         }
-        obj2.free ();
         if (ok) {
             if (tmp.x1 > tmp.x2) {
                 t = tmp.x1;
@@ -204,7 +192,6 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     else {
         ok = false;
     }
-    obj1.free ();
     return ok;
 }
 
@@ -229,7 +216,6 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
             errSyntaxError, -1,
             "Page annotations object (page {0:d}) is wrong type ({1:s})", num,
             annots.getTypeName ());
-        annots.free ();
         goto err2;
     }
 
@@ -240,7 +226,6 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
             errSyntaxError, -1,
             "Page contents object (page {0:d}) is wrong type ({1:s})", num,
             contents.getTypeName ());
-        contents.free ();
         goto err1;
     }
 
@@ -265,8 +250,6 @@ Page::Page (PDFDoc* docA, int numA) {
 
 Page::~Page () {
     delete attrs;
-    annots.free ();
-    contents.free ();
 }
 
 Links* Page::getLinks () {
@@ -274,7 +257,6 @@ Links* Page::getLinks () {
     Object obj;
 
     links = new Links (getAnnots (&obj), doc->getCatalog ()->getBaseURI ());
-    obj.free ();
     return links;
 }
 
@@ -343,12 +325,10 @@ void Page::displaySlice (
         // OutputDev
         out->dump ();
     }
-    obj.free ();
 
     // draw (non-form) annotations
     if (globalParams->getDrawAnnotations ()) {
         annotList = new Annots (doc, getAnnots (&obj));
-        obj.free ();
         annotList->generateAnnotAppearances ();
         if (annotList->getNumAnnots () > 0) {
             if (globalParams->getPrintCommands ()) {

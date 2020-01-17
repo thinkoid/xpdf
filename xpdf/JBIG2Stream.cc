@@ -1041,7 +1041,6 @@ JBIG2Stream::JBIG2Stream (Stream* strA, Object* globalsStreamA)
 
 JBIG2Stream::~JBIG2Stream () {
     close ();
-    globalsStream.free ();
     delete arithDecoder;
     delete genericRegionStats;
     delete refinementRegionStats;

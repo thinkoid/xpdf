@@ -233,7 +233,6 @@ void object_t::print (FILE*) {
             if (i > 0) fprintf (f, " ");
             arrayGetNF (i, &obj);
             obj.print (f);
-            obj.free ();
         }
         fprintf (f, "]");
         break;
@@ -243,7 +242,6 @@ void object_t::print (FILE*) {
             fprintf (f, " /%s ", dictGetKey (i));
             dictGetValNF (i, &obj);
             obj.print (f);
-            obj.free ();
         }
         fprintf (f, " >>");
         break;

@@ -150,14 +150,11 @@ int main (int argc, char* argv[]) {
         page = doc->getCatalog ()->getPage (pg);
         if ((resDict = page->getResourceDict ())) { scanFonts (resDict, doc); }
         annots = new Annots (doc, page->getAnnots (&obj1));
-        obj1.free ();
         for (i = 0; i < annots->getNumAnnots (); ++i) {
             if (annots->getAnnot (i)->getAppearance (&obj1)->isStream ()) {
                 obj1.streamGetDict ()->lookupNF ("Resources", &obj2);
                 scanFonts (&obj2, doc);
-                obj2.free ();
             }
-            obj1.free ();
         }
         delete annots;
     }
@@ -168,13 +165,11 @@ int main (int argc, char* argv[]) {
                 for (j = 0; j < obj1.arrayGetLength (); ++j) {
                     obj1.arrayGetNF (j, &obj2);
                     scanFonts (&obj2, doc);
-                    obj2.free ();
                 }
             }
             else if (obj1.isDict ()) {
                 scanFonts (obj1.getDict (), doc);
             }
-            obj1.free ();
         }
     }
 
@@ -215,7 +210,6 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
     if (obj->fetch (doc->getXRef (), &obj2)->isDict ()) {
         scanFonts (obj2.getDict (), doc);
     }
-    obj2.free ();
 }
 
 static void scanFonts (Dict* resDict, PDFDoc* doc) {
@@ -236,7 +230,6 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
             gfxFontDict =
                 new GfxFontDict (doc->getXRef (), &r, obj2.getDict ());
         }
-        obj2.free ();
     }
     else if (obj1.isDict ()) {
         gfxFontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.getDict ());
@@ -247,7 +240,6 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
         }
         delete gfxFontDict;
     }
-    obj1.free ();
 
     // recursively scan any resource dictionaries in XObjects in this
     // resource dictionary
@@ -258,12 +250,9 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
             if (xObj.isStream ()) {
                 xObj.streamGetDict ()->lookupNF ("Resources", &resObj);
                 scanFonts (&resObj, doc);
-                resObj.free ();
             }
-            xObj.free ();
         }
     }
-    xObjDict.free ();
 
     // recursively scan any resource dictionaries in Patterns in this
     // resource dictionary
@@ -274,12 +263,9 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
             if (pattern.isStream ()) {
                 pattern.streamGetDict ()->lookupNF ("Resources", &resObj);
                 scanFonts (&resObj, doc);
-                resObj.free ();
             }
-            pattern.free ();
         }
     }
-    patternDict.free ();
 
     // recursively scan any resource dictionaries in ExtGStates in this
     // resource dictionary

@@ -78,32 +78,34 @@ struct AcroFormAnnotPage {
 AcroForm*
 AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
     AcroForm* acroForm;
-    Object fieldsObj, obj1, obj2;
     int i;
 
     acroForm = new AcroForm (docA, acroFormObjA);
 
-    if (acroFormObjA->dictLookup ("NeedAppearances", &obj1)->isBool ()) {
-        acroForm->needAppearances = obj1.getBool ();
+    Object obj;
+    acroFormObjA->dictLookup ("NeedAppearances", &obj);
+
+    if (obj.isBool ()) {
+        acroForm->needAppearances = obj.getBool ();
     }
-    obj1.free ();
 
     acroForm->buildAnnotPageList (catalog);
+    acroFormObjA->dictLookup ("Fields", &obj);
 
-    if (!acroFormObjA->dictLookup ("Fields", &obj1)->isArray ()) {
-        if (!obj1.isNull ()) {
+    if (!obj.isArray ()) {
+        if (!obj.isNull ()) {
             error (errSyntaxError, -1, "AcroForm Fields entry is wrong type");
         }
-        obj1.free ();
+
         delete acroForm;
-        return NULL;
+        return 0;
     }
-    for (i = 0; i < obj1.arrayGetLength (); ++i) {
-        obj1.arrayGetNF (i, &obj2);
-        acroForm->scanField (&obj2);
-        obj2.free ();
+
+    for (i = 0; i < obj.arrayGetLength (); ++i) {
+        Object tmp;
+        obj.arrayGetNF (i, &tmp);
+        acroForm->scanField (&tmp);
     }
-    obj1.free ();
 
     return acroForm;
 }
@@ -113,30 +115,30 @@ AcroForm::AcroForm (PDFDoc* docA, Object* acroFormObjA) : Form (docA) {
     needAppearances = false;
 }
 
-AcroForm::~AcroForm () {
-    acroFormObj.free ();
-}
+AcroForm::~AcroForm () { }
 
 void AcroForm::buildAnnotPageList (Catalog* catalog) {
-    Object annotsObj, annotObj;
     int pageNum, i;
 
     for (pageNum = 1; pageNum <= catalog->getNumPages (); ++pageNum) {
-        if (catalog->getPage (pageNum)->getAnnots (&annotsObj)->isArray ()) {
-            for (i = 0; i < annotsObj.arrayGetLength (); ++i) {
-                if (annotsObj.arrayGetNF (i, &annotObj)->isRef ()) {
+        Object annots;
+        catalog->getPage (pageNum)->getAnnots (&annots);
+
+        if (annots.isArray ()) {
+            for (i = 0; i < annots.arrayGetLength (); ++i) {
+                Object annot;
+                annots.arrayGetNF (i, &annot);
+
+                if (annot.isRef ()) {
                     annotPages.push_back (
                         std::make_unique< AcroFormAnnotPage > (
-                            annotObj.getRefNum (),
-                            annotObj.getRefGen (),
+                            annot.getRefNum (),
+                            annot.getRefGen (),
                             pageNum));
                 }
-                annotObj.free ();
             }
         }
-        annotsObj.free ();
     }
-    //~ sort the list
 }
 
 int AcroForm::lookupAnnotPage (Object* annotRef) {
@@ -155,14 +157,14 @@ int AcroForm::lookupAnnotPage (Object* annotRef) {
 }
 
 void AcroForm::scanField (Object* fieldRef) {
-    Object fieldObj, kidsObj, kidRef, kidObj, subtypeObj;
     bool isTerminal;
     int i;
 
+    Object fieldObj;
     fieldRef->fetch (doc->getXRef (), &fieldObj);
+
     if (!fieldObj.isDict ()) {
         error (errSyntaxError, -1, "AcroForm field object is wrong type");
-        fieldObj.free ();
         return;
     }
 
@@ -171,35 +173,41 @@ void AcroForm::scanField (Object* fieldRef) {
     // annotations), then this is a non-terminal field, and we need to
     // scan the kids
     isTerminal = true;
-    if (fieldObj.dictLookup ("Kids", &kidsObj)->isArray ()) {
+
+    Object kidsObj;
+    fieldObj.dictLookup ("Kids", &kidsObj);
+
+    if (kidsObj.isArray ()) {
         isTerminal = false;
+
         for (i = 0; !isTerminal && i < kidsObj.arrayGetLength (); ++i) {
+            Object kidObj;
             kidsObj.arrayGet (i, &kidObj);
+
             if (kidObj.isDict ()) {
-                if (kidObj.dictLookup ("Parent", &subtypeObj)->isNull ()) {
+                Object subtypeObj;
+                kidObj.dictLookup ("Parent", &subtypeObj);
+
+                if (subtypeObj.isNull ()) {
                     isTerminal = true;
                 }
-                subtypeObj.free ();
             }
-            kidObj.free ();
         }
+
         if (!isTerminal) {
             for (i = 0; !isTerminal && i < kidsObj.arrayGetLength (); ++i) {
+                Object kidRef;
                 kidsObj.arrayGetNF (i, &kidRef);
                 scanField (&kidRef);
-                kidRef.free ();
             }
         }
     }
-    kidsObj.free ();
 
     if (isTerminal) {
         if (auto p = AcroFormField::load (this, fieldRef)) {
             fields.push_back (std::unique_ptr< AcroFormField > (p));
         }
     }
-
-    fieldObj.free ();
 }
 
 void AcroForm::draw (int pageNum, Gfx* gfx, bool printing) {
@@ -217,70 +225,83 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     TextString* nameA;
     unsigned flagsA;
     bool haveFlags;
-    Object fieldObjA, parentObj, parentObj2, obj1, obj2;
     AcroFormFieldType typeA;
     AcroFormField* field;
 
+    Object fieldObjA;
     fieldRefA->fetch (acroFormA->doc->getXRef (), &fieldObjA);
 
     //----- get field info
 
-    if (fieldObjA.dictLookup ("T", &obj1)->isString ()) {
-        nameA = new TextString (obj1.getString ());
+    Object obj;
+    fieldObjA.dictLookup ("T", &obj);
+
+    if (obj.isString ()) {
+        nameA = new TextString (obj.getString ());
     }
     else {
         nameA = new TextString ();
     }
-    obj1.free ();
 
-    if (fieldObjA.dictLookup ("FT", &obj1)->isName ()) {
-        typeStr = new GString (obj1.getName ());
+    fieldObjA.dictLookup ("FT", &obj);
+
+    if (obj.isName ()) {
+        typeStr = new GString (obj.getName ());
     }
     else {
         typeStr = NULL;
     }
-    obj1.free ();
 
-    if (fieldObjA.dictLookup ("Ff", &obj1)->isInt ()) {
-        flagsA = (unsigned)obj1.getInt ();
+    fieldObjA.dictLookup ("Ff", &obj);
+
+    if (obj.isInt ()) {
+        flagsA = (unsigned)obj.getInt ();
         haveFlags = true;
     }
     else {
         flagsA = 0;
         haveFlags = false;
     }
-    obj1.free ();
 
     //----- get info from parent non-terminal fields
 
+    Object parentObj;
     fieldObjA.dictLookup ("Parent", &parentObj);
+
     while (parentObj.isDict ()) {
-        if (parentObj.dictLookup ("T", &obj1)->isString ()) {
-            if (nameA->getLength ()) { nameA->insert (0, (Unicode)'.'); }
-            nameA->insert (0, obj1.getString ());
+        Object obj;
+        parentObj.dictLookup ("T", &obj);
+
+        if (obj.isString ()) {
+            if (nameA->getLength ()) {
+                nameA->insert (0, (Unicode)'.');
+            }
+
+            nameA->insert (0, obj.getString ());
         }
-        obj1.free ();
 
         if (!typeStr) {
-            if (parentObj.dictLookup ("FT", &obj1)->isName ()) {
-                typeStr = new GString (obj1.getName ());
+            parentObj.dictLookup ("FT", &obj);
+
+            if (obj.isName ()) {
+                typeStr = new GString (obj.getName ());
             }
-            obj1.free ();
         }
 
         if (!haveFlags) {
-            if (parentObj.dictLookup ("Ff", &obj1)->isInt ()) {
-                flagsA = (unsigned)obj1.getInt ();
+            parentObj.dictLookup ("Ff", &obj);
+
+            if (obj.isInt ()) {
+                flagsA = (unsigned)obj.getInt ();
                 haveFlags = true;
             }
-            obj1.free ();
         }
 
-        parentObj.dictLookup ("Parent", &parentObj2);
-        parentObj.free ();
-        parentObj = parentObj2;
+        Object tmp;
+        parentObj.dictLookup ("Parent", &tmp);
+
+        parentObj = tmp;
     }
-    parentObj.free ();
 
     if (!typeStr) {
         error (errSyntaxError, -1, "Missing type in AcroForm field");
@@ -309,7 +330,9 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
     }
     else if (!typeStr->cmp ("Ch")) {
-        if (flagsA & acroFormFlagCombo) { typeA = acroFormFieldComboBox; }
+        if (flagsA & acroFormFlagCombo) {
+            typeA = acroFormFieldComboBox;
+        }
         else {
             typeA = acroFormFieldListBox;
         }
@@ -321,18 +344,19 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         error (errSyntaxError, -1, "Invalid type in AcroForm field");
         goto err1;
     }
+
     delete typeStr;
 
     field = new AcroFormField (
         acroFormA, fieldRefA, &fieldObjA, typeA, nameA, flagsA);
-    fieldObjA.free ();
+
     return field;
 
 err1:
     delete typeStr;
     delete nameA;
-    fieldObjA.free ();
-    return NULL;
+
+    return 0;
 }
 
 AcroFormField::AcroFormField (
@@ -347,8 +371,6 @@ AcroFormField::AcroFormField (
 }
 
 AcroFormField::~AcroFormField () {
-    fieldRef.free ();
-    fieldObj.free ();
     delete name;
 }
 
@@ -410,28 +432,24 @@ Unicode* AcroFormField::getValue (int* length) {
 }
 
 void AcroFormField::draw (int pageNum, Gfx* gfx, bool printing) {
-    Object kidsObj, annotRef, annotObj;
-    int i;
-
     // find the annotation object(s)
-    if (fieldObj.dictLookup ("Kids", &kidsObj)->isArray ()) {
-        for (i = 0; i < kidsObj.arrayGetLength (); ++i) {
+    Object kidsObj;
+    fieldObj.dictLookup ("Kids", &kidsObj);
+    if (kidsObj.isArray ()) {
+        for (int i = 0; i < kidsObj.arrayGetLength (); ++i) {
+            Object annotRef, annotObj;
             kidsObj.arrayGetNF (i, &annotRef);
             annotRef.fetch (acroForm->doc->getXRef (), &annotObj);
             drawAnnot (pageNum, gfx, printing, &annotRef, &annotObj);
-            annotObj.free ();
-            annotRef.free ();
         }
     }
     else {
         drawAnnot (pageNum, gfx, printing, &fieldRef, &fieldObj);
     }
-    kidsObj.free ();
 }
 
 void AcroFormField::drawAnnot (
     int pageNum, Gfx* gfx, bool printing, Object* annotRef, Object* annotObj) {
-    Object obj1, obj2;
     double xMin, yMin, xMax, yMax, t;
     int annotFlags;
     bool oc;
@@ -445,14 +463,16 @@ void AcroFormField::drawAnnot (
     if (acroForm->lookupAnnotPage (annotRef) != pageNum) { return; }
 
     //----- check annotation flags
+    Object obj;
+    annotObj->dictLookup ("F", &obj);
 
-    if (annotObj->dictLookup ("F", &obj1)->isInt ()) {
-        annotFlags = obj1.getInt ();
+    if (obj.isInt ()) {
+        annotFlags = obj.getInt ();
     }
     else {
         annotFlags = 0;
     }
-    obj1.free ();
+
     if ((annotFlags & annotFlagHidden) ||
         (printing && !(annotFlags & annotFlagPrint)) ||
         (!printing && (annotFlags & annotFlagNoView))) {
@@ -461,32 +481,31 @@ void AcroFormField::drawAnnot (
 
     //----- check the optional content entry
 
-    annotObj->dictLookupNF ("OC", &obj1);
-    if (acroForm->doc->getOptionalContent ()->evalOCObject (&obj1, &oc) &&
-        !oc) {
-        obj1.free ();
+    annotObj->dictLookupNF ("OC", &obj);
+
+    if (acroForm->doc->getOptionalContent ()->evalOCObject (&obj, &oc) && !oc) {
         return;
     }
-    obj1.free ();
 
     //----- get the bounding box
+    annotObj->dictLookup ("Rect", &obj);
 
-    if (annotObj->dictLookup ("Rect", &obj1)->isArray () &&
-        obj1.arrayGetLength () == 4) {
+    if (obj.isArray () && obj.arrayGetLength () == 4) {
         xMin = yMin = xMax = yMax = 0;
-        if (obj1.arrayGet (0, &obj2)->isNum ()) { xMin = obj2.getNum (); }
-        obj2.free ();
-        if (obj1.arrayGet (1, &obj2)->isNum ()) { yMin = obj2.getNum (); }
-        obj2.free ();
-        if (obj1.arrayGet (2, &obj2)->isNum ()) { xMax = obj2.getNum (); }
-        obj2.free ();
-        if (obj1.arrayGet (3, &obj2)->isNum ()) { yMax = obj2.getNum (); }
-        obj2.free ();
+
+        Object number;
+
+        if (obj.arrayGet (0, &number)->isNum ()) { xMin = number.getNum (); }
+        if (obj.arrayGet (1, &number)->isNum ()) { yMin = number.getNum (); }
+        if (obj.arrayGet (2, &number)->isNum ()) { xMax = number.getNum (); }
+        if (obj.arrayGet (3, &number)->isNum ()) { yMax = number.getNum (); }
+
         if (xMin > xMax) {
             t = xMin;
             xMin = xMax;
             xMax = t;
         }
+
         if (yMin > yMax) {
             t = yMin;
             yMin = yMax;
@@ -495,10 +514,8 @@ void AcroFormField::drawAnnot (
     }
     else {
         error (errSyntaxError, -1, "Bad bounding box for annotation");
-        obj1.free ();
         return;
     }
-    obj1.free ();
 
     //----- draw it
 
@@ -515,14 +532,22 @@ void AcroFormField::drawAnnot (
 // attached to this field.
 void AcroFormField::drawExistingAppearance (
     Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax, double yMax) {
-    Object apObj, asObj, appearance, obj1;
 
     //----- get the appearance stream
+    Object appearance;
 
-    if (annot->lookup ("AP", &apObj)->isDict ()) {
+    Object apObj;
+    annot->lookup ("AP", &apObj);
+
+    if (apObj.isDict ()) {
+        Object obj1;
         apObj.dictLookup ("N", &obj1);
+
         if (obj1.isDict ()) {
-            if (annot->lookup ("AS", &asObj)->isName ()) {
+            Object asObj;
+            annot->lookup ("AS", &asObj);
+
+            if (asObj.isName ()) {
                 obj1.dictLookupNF (asObj.getName (), &appearance);
             }
             else if (obj1.dictGetLength () == 1) {
@@ -531,20 +556,16 @@ void AcroFormField::drawExistingAppearance (
             else {
                 obj1.dictLookupNF ("Off", &appearance);
             }
-            asObj.free ();
         }
         else {
             apObj.dictLookupNF ("N", &appearance);
         }
-        obj1.free ();
     }
-    apObj.free ();
 
     //----- draw it
 
     if (!appearance.isNone ()) {
         gfx->drawAnnot (&appearance, NULL, xMin, yMin, xMax, yMax);
-        appearance.free ();
     }
 }
 
@@ -575,13 +596,11 @@ void AcroFormField::drawNewAppearance (
 
     // draw the background
     if (mkDict) {
-        if (mkDict->lookup ("BG", &obj1)->isArray () &&
-            obj1.arrayGetLength () > 0) {
+        if (mkDict->lookup ("BG", &obj1)->isArray () && obj1.arrayGetLength () > 0) {
             setColor (obj1.getArray (), true, 0);
             appearBuf += format (
                 "0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
         }
-        obj1.free ();
     }
 
     // get the field type
@@ -608,11 +627,9 @@ void AcroFormField::drawNewAppearance (
                 borderType = annotBorderUnderlined;
             }
         }
-        obj2.free ();
         if (obj1.dictLookup ("W", &obj2)->isNum ()) {
             borderWidth = obj2.getNum ();
         }
-        obj2.free ();
         if (obj1.dictLookup ("D", &obj2)->isArray ()) {
             borderDashLength = obj2.arrayGetLength ();
             borderDash = (double*)calloc (borderDashLength, sizeof (double));
@@ -623,25 +640,22 @@ void AcroFormField::drawNewAppearance (
                 else {
                     borderDash[i] = 1;
                 }
-                obj3.free ();
             }
         }
-        obj2.free ();
     }
     else {
-        obj1.free ();
         if (annot->lookup ("Border", &obj1)->isArray ()) {
             if (obj1.arrayGetLength () >= 3) {
                 if (obj1.arrayGet (2, &obj2)->isNum ()) {
                     borderWidth = obj2.getNum ();
                 }
-                obj2.free ();
+
                 if (obj1.arrayGetLength () >= 4) {
                     if (obj1.arrayGet (3, &obj2)->isArray ()) {
                         borderType = annotBorderDashed;
                         borderDashLength = obj2.arrayGetLength ();
-                        borderDash = (double*)calloc (
-                            borderDashLength, sizeof (double));
+                        borderDash = (double*)calloc (borderDashLength, sizeof (double));
+
                         for (i = 0; i < borderDashLength; ++i) {
                             if (obj2.arrayGet (i, &obj3)->isNum ()) {
                                 borderDash[i] = obj3.getNum ();
@@ -649,7 +663,6 @@ void AcroFormField::drawNewAppearance (
                             else {
                                 borderDash[i] = 1;
                             }
-                            obj3.free ();
                         }
                     }
                     else {
@@ -657,12 +670,11 @@ void AcroFormField::drawNewAppearance (
                         // the wrong type.
                         borderWidth = 0;
                     }
-                    obj2.free ();
                 }
             }
         }
     }
-    obj1.free ();
+
     if (mkDict) {
         if (borderWidth > 0) {
             mkDict->lookup ("BC", &obj1);
@@ -675,7 +687,7 @@ void AcroFormField::drawNewAppearance (
 
                 // radio buttons with no caption have a round border
                 hasCaption = mkDict->lookup ("CA", &obj2)->isString ();
-                obj2.free ();
+
                 if (ftObj.isName ("Btn") && (flags & acroFormFlagRadio) &&
                     !hasCaption) {
                     r = 0.5 * (dx < dy ? dx : dy);
@@ -774,9 +786,9 @@ void AcroFormField::drawNewAppearance (
                         dx - 2 * borderWidth, dy - 2 * borderWidth);
                 }
             }
-            obj1.free ();
         }
     }
+
     free (borderDash);
 
     // get the resource dictionary
@@ -784,13 +796,12 @@ void AcroFormField::drawNewAppearance (
 
     // build the font dictionary
     if (drObj.isDict () && drObj.dictLookup ("Font", &obj1)->isDict ()) {
-        fontDict =
-            new GfxFontDict (acroForm->doc->getXRef (), NULL, obj1.getDict ());
+        fontDict = new GfxFontDict (
+            acroForm->doc->getXRef (), 0, obj1.getDict ());
     }
     else {
         fontDict = NULL;
     }
-    obj1.free ();
 
     // get the default appearance string
     if (fieldLookup ("DA", &obj1)->isString ()) {
@@ -799,45 +810,51 @@ void AcroFormField::drawNewAppearance (
     else {
         da = NULL;
     }
-    obj1.free ();
 
     // get the rotation value
     rot = 0;
+
     if (mkDict) {
-        if (mkDict->lookup ("R", &obj1)->isInt ()) { rot = obj1.getInt (); }
-        obj1.free ();
+        if (mkDict->lookup ("R", &obj1)->isInt ()) {
+            rot = obj1.getInt ();
+        }
     }
 
     // get the appearance state
     annot->lookup ("AP", &apObj);
     annot->lookup ("AS", &asObj);
-    appearanceState = NULL;
-    if (asObj.isName ()) { appearanceState = new GString (asObj.getName ()); }
+
+    appearanceState = 0;
+
+    if (asObj.isName ()) {
+        appearanceState = new GString (asObj.getName ());
+    }
     else if (apObj.isDict ()) {
         apObj.dictLookup ("N", &obj1);
+
         if (obj1.isDict () && obj1.dictGetLength () == 1) {
             appearanceState = new GString (obj1.dictGetKey (0));
         }
-        obj1.free ();
     }
-    if (!appearanceState) { appearanceState = new GString ("Off"); }
-    asObj.free ();
-    apObj.free ();
+
+    if (!appearanceState) {
+        appearanceState = new GString ("Off");
+    }
 
     // draw the field contents
     if (ftObj.isName ("Btn")) {
-        caption = NULL;
+        caption = 0;
+
         if (mkDict) {
             if (mkDict->lookup ("CA", &obj1)->isString ()) {
                 caption = obj1.getString ()->copy ();
             }
-            obj1.free ();
         }
+
         // radio button
         if (flags & acroFormFlagRadio) {
             //~ Acrobat doesn't draw a caption if there is no AP dict (?)
-            if (fieldLookup ("V", &obj1)
-                    ->isName (appearanceState->c_str ())) {
+            if (fieldLookup ("V", &obj1)->isName (appearanceState->c_str ())) {
                 if (caption) {
                     drawText (
                         caption, da, fontDict, false, 0, acroFormQuadCenter,
@@ -855,11 +872,9 @@ void AcroFormField::drawNewAppearance (
                                 0.5 * dx, 0.5 * dy, 0.2 * (dx < dy ? dx : dy),
                                 "f");
                         }
-                        obj2.free ();
                     }
                 }
             }
-            obj1.free ();
             // pushbutton
         }
         else if (flags & acroFormFlagPushbutton) {
@@ -880,14 +895,12 @@ void AcroFormField::drawNewAppearance (
                     caption, da, fontDict, false, 0, acroFormQuadCenter,
                     false, true, rot, xMin, yMin, xMax, yMax, borderWidth);
             }
-            obj1.free ();
         }
         if (caption) { delete caption; }
     }
     else if (ftObj.isName ("Tx")) {
         //~ value strings can be Unicode
         if (!fieldLookup ("V", &obj1)->isString ()) {
-            obj1.free ();
             fieldLookup ("DV", &obj1);
         }
         if (obj1.isString ()) {
@@ -897,20 +910,17 @@ void AcroFormField::drawNewAppearance (
             else {
                 quadding = acroFormQuadLeft;
             }
-            obj2.free ();
             comb = 0;
             if (flags & acroFormFlagComb) {
                 if (fieldLookup ("MaxLen", &obj2)->isInt ()) {
                     comb = obj2.getInt ();
                 }
-                obj2.free ();
             }
             drawText (
                 obj1.getString (), da, fontDict, flags & acroFormFlagMultiline,
                 comb, quadding, true, false, rot, xMin, yMin, xMax, yMax,
                 borderWidth);
         }
-        obj1.free ();
     }
     else if (ftObj.isName ("Ch")) {
         //~ value/option strings can be Unicode
@@ -918,7 +928,6 @@ void AcroFormField::drawNewAppearance (
         else {
             quadding = acroFormQuadLeft;
         }
-        obj1.free ();
         // combo box
         if (flags & acroFormFlagCombo) {
             if (fieldLookup ("V", &obj1)->isString ()) {
@@ -927,7 +936,6 @@ void AcroFormField::drawNewAppearance (
                     false, rot, xMin, yMin, xMax, yMax, borderWidth);
                 //~ Acrobat draws a popup icon on the right side
             }
-            obj1.free ();
             // list box
         }
         else {
@@ -945,9 +953,7 @@ void AcroFormField::drawNewAppearance (
                         if (obj2.arrayGet (1, &obj3)->isString ()) {
                             text[i] = obj3.getString ()->copy ();
                         }
-                        obj3.free ();
                     }
-                    obj2.free ();
                     if (!text[i]) { text[i] = new GString (); }
                 }
                 // get the selected option(s)
@@ -967,11 +973,9 @@ void AcroFormField::drawNewAppearance (
                                 !obj3.getString ()->cmp (text[i])) {
                                 selection[i] = true;
                             }
-                            obj3.free ();
                         }
                     }
                 }
-                obj2.free ();
                 // get the top index
                 if (fieldObj.dictLookup ("TI", &obj2)->isInt ()) {
                     topIdx = obj2.getInt ();
@@ -979,7 +983,6 @@ void AcroFormField::drawNewAppearance (
                 else {
                     topIdx = 0;
                 }
-                obj2.free ();
                 // draw the text
                 drawListBox (
                     text, selection, nOptions, topIdx, da, fontDict, quadding,
@@ -988,7 +991,6 @@ void AcroFormField::drawNewAppearance (
                 free (text);
                 free (selection);
             }
-            obj1.free ();
         }
     }
     else if (ftObj.isName ("Sig")) {
@@ -1026,14 +1028,11 @@ void AcroFormField::drawNewAppearance (
     // draw it
     gfx->drawAnnot (&appearance, NULL, xMin, yMin, xMax, yMax);
 
-    appearance.free ();
 
     if (fontDict) {
         delete fontDict;
     }
 
-    ftObj.free ();
-    mkObj.free ();
 }
 
 // Set the current fill or stroke color, based on <a> (which should
@@ -1052,7 +1051,6 @@ void AcroFormField::setColor (Array* a, bool fill, int adjust) {
         else {
             color[i] = 0;
         }
-        obj1.free ();
     }
     if (nComps == 4) { adjust = -adjust; }
     if (adjust > 0) {
@@ -1792,10 +1790,8 @@ Object* AcroFormField::getResources (Object* res) {
                         res->arrayAdd (&obj1);
                     }
                     else {
-                        obj1.free ();
                     }
                 }
-                annotObj.free ();
             }
         }
         else {
@@ -1803,10 +1799,8 @@ Object* AcroFormField::getResources (Object* res) {
                 res->arrayAdd (&obj1);
             }
             else {
-                obj1.free ();
             }
         }
-        kidsObj.free ();
     }
 
     return res;
@@ -1839,7 +1833,6 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
         }
     }
 
-    apObj.free ();
 
     if (appearance.isStream ()) {
         appearance.streamGetDict ()->lookup ("Resources", res);
@@ -1847,7 +1840,6 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
     else {
         res->initNull ();
     }
-    appearance.free ();
 
     return res;
 }

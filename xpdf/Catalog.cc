@@ -73,7 +73,6 @@ EmbeddedFile::EmbeddedFile (TextString* nameA, Object* streamRefA) {
 
 EmbeddedFile::~EmbeddedFile () {
     delete name;
-    streamRef.free ();
 }
 
 //------------------------------------------------------------------------
@@ -114,16 +113,13 @@ Catalog::Catalog (PDFDoc* docA) {
         obj.dictLookup ("Dests", &nameTree);
     else
         nameTree.initNull ();
-    obj.free ();
 
     // read base URI
     if (catDict.dictLookup ("URI", &obj)->isDict ()) {
         if (obj.dictLookup ("Base", &obj2)->isString ()) {
             baseURI = obj2.getString ()->copy ();
         }
-        obj2.free ();
     }
-    obj.free ();
     if (!baseURI || baseURI->getLength () == 0) {
         if (baseURI) { delete baseURI; }
         if (doc->getFileName ()) {
@@ -160,11 +156,9 @@ Catalog::Catalog (PDFDoc* docA) {
     // get the list of embedded files
     readEmbeddedFileList (catDict.getDict ());
 
-    catDict.free ();
     return;
 
 err1:
-    catDict.free ();
     dests.initNull ();
     nameTree.initNull ();
     ok = false;
@@ -181,15 +175,8 @@ Catalog::~Catalog () {
         free (pages);
         free (pageRefs);
     }
-    dests.free ();
-    nameTree.free ();
     if (baseURI) { delete baseURI; }
-    metadata.free ();
-    structTreeRoot.free ();
-    outline.free ();
-    acroForm.free ();
     if (form) { delete form; }
-    ocProperties.free ();
     if (embeddedFiles) { deleteGList (embeddedFiles, EmbeddedFile); }
 }
 
@@ -224,7 +211,6 @@ GString* Catalog::readMetadata () {
             errSyntaxWarning, -1, "Unknown Metadata type: '{0:s}'",
             obj.isName () ? obj.getName () : "???");
     }
-    obj.free ();
     s = new GString ();
     metadata.streamReset ();
     while ((n = metadata.streamGetBlock (buf, sizeof (buf))) > 0) {
@@ -254,15 +240,12 @@ LinkDest* Catalog::findDest (GString* name) {
     if (dests.isDict ()) {
         if (!dests.dictLookup (name->c_str (), &obj1)->isNull ())
             found = true;
-        else
-            obj1.free ();
     }
     if (!found && nameTree.isDict ()) {
         if (!findDestInTree (&nameTree, name, &obj1)->isNull ())
             found = true;
-        else
-            obj1.free ();
     }
+
     if (!found) return NULL;
 
     // construct LinkDest
@@ -273,12 +256,10 @@ LinkDest* Catalog::findDest (GString* name) {
             dest = new LinkDest (obj2.getArray ());
         else
             error (errSyntaxWarning, -1, "Bad named destination value");
-        obj2.free ();
     }
     else {
         error (errSyntaxWarning, -1, "Bad named destination value");
     }
-    obj1.free ();
     if (dest && !dest->isOk ()) {
         delete dest;
         dest = NULL;
@@ -308,13 +289,10 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
                     done = true;
                 }
             }
-            name1.free ();
         }
-        names.free ();
         if (!found) obj->initNull ();
         return obj;
     }
-    names.free ();
 
     // root or intermediate node
     done = false;
@@ -329,16 +307,11 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
                             findDestInTree (&kid, name, obj);
                             done = true;
                         }
-                        high.free ();
                     }
-                    low.free ();
                 }
-                limits.free ();
             }
-            kid.free ();
         }
     }
-    kids.free ();
 
     // name was outside of ranges of all kids
     if (!done) obj->initNull ();
@@ -355,15 +328,12 @@ bool Catalog::readPageTree (Object* catDict) {
             errSyntaxError, -1,
             "Top-level pages reference is wrong type ({0:s})",
             topPagesRef.getTypeName ());
-        topPagesRef.free ();
         return false;
     }
     if (!topPagesRef.fetch (xref, &topPagesObj)->isDict ()) {
         error (
             errSyntaxError, -1, "Top-level pages object is wrong type ({0:s})",
             topPagesObj.getTypeName ());
-        topPagesObj.free ();
-        topPagesRef.free ();
         return false;
     }
     if (topPagesObj.dictLookup ("Count", &countObj)->isInt ()) {
@@ -377,17 +347,12 @@ bool Catalog::readPageTree (Object* catDict) {
         // assume we got a Page node instead of a Pages node
         numPages = 1;
     }
-    countObj.free ();
     if (numPages < 0) {
         error (errSyntaxError, -1, "Invalid page count");
-        topPagesObj.free ();
-        topPagesRef.free ();
         numPages = 0;
         return false;
     }
     pageTree = new PageTreeNode (topPagesRef.getRef (), numPages, NULL);
-    topPagesObj.free ();
-    topPagesRef.free ();
     pages = (Page**)reallocarray (pages, numPages, sizeof (Page*));
     pageRefs = (Ref*)reallocarray (pageRefs, numPages, sizeof (Ref));
     for (i = 0; i < numPages; ++i) {
@@ -413,13 +378,11 @@ int Catalog::countPageTree (Object* pagesObj) {
                 error (errSyntaxError, -1, "Page tree contains too many pages");
                 n = INT_MAX;
             }
-            kid.free ();
         }
     }
     else {
         n = 1;
     }
-    kids.free ();
     return n;
 }
 
@@ -455,8 +418,6 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
             error (
                 errSyntaxError, -1, "Page tree object is wrong type ({0:s})",
                 pageObj.getTypeName ());
-            pageObj.free ();
-            pageRefObj.free ();
             pages[pg - 1] = new Page (doc, pg);
             return;
         }
@@ -482,7 +443,6 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
                         else {
                             count = 1;
                         }
-                        countObj.free ();
                         node->kids->append (new PageTreeNode (
                             kidRefObj.getRef (), count, node));
                     }
@@ -492,7 +452,6 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
                             "Page tree object is wrong type ({0:s})",
                             kidObj.getTypeName ());
                     }
-                    kidObj.free ();
                 }
                 else {
                     error (
@@ -500,7 +459,6 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
                         "Page tree reference is wrong type ({0:s})",
                         kidRefObj.getTypeName ());
                 }
-                kidRefObj.free ();
             }
         }
         else {
@@ -513,9 +471,6 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
             }
         }
 
-        kidsObj.free ();
-        pageObj.free ();
-        pageRefObj.free ();
     }
 
     // recursively descend the tree
@@ -547,15 +502,12 @@ void Catalog::readEmbeddedFileList (Dict* catDict) {
         if (obj1.dictLookup ("EmbeddedFiles", &obj2)->isDict ()) {
             readEmbeddedFileTree (&obj2);
         }
-        obj2.free ();
     }
-    obj1.free ();
 
     // look for file attachment annotations
     touchedObjs = (char*)malloc (xref->getNumObjects ());
     memset (touchedObjs, 0, xref->getNumObjects ());
     readFileAttachmentAnnots (catDict->lookupNF ("Pages", &obj1), touchedObjs);
-    obj1.free ();
     free (touchedObjs);
 }
 
@@ -569,7 +521,6 @@ void Catalog::readEmbeddedFileTree (Object* node) {
             if (kidsObj.arrayGet (i, &kidObj)->isDict ()) {
                 readEmbeddedFileTree (&kidObj);
             }
-            kidObj.free ();
         }
     }
     else {
@@ -578,13 +529,9 @@ void Catalog::readEmbeddedFileTree (Object* node) {
                 namesObj.arrayGet (i, &nameObj);
                 namesObj.arrayGet (i + 1, &fileSpecObj);
                 readEmbeddedFile (&fileSpecObj, &nameObj);
-                nameObj.free ();
-                fileSpecObj.free ();
             }
         }
-        namesObj.free ();
     }
-    kidsObj.free ();
 }
 
 void Catalog::readFileAttachmentAnnots (
@@ -614,7 +561,6 @@ void Catalog::readFileAttachmentAnnots (
             for (i = 0; i < kids.arrayGetLength (); ++i) {
                 readFileAttachmentAnnots (
                     kids.arrayGetNF (i, &kid), touchedObjs);
-                kid.free ();
             }
         }
         else {
@@ -627,21 +573,14 @@ void Catalog::readFileAttachmentAnnots (
                                 readEmbeddedFile (
                                     &fileSpec,
                                     annot.dictLookup ("Contents", &contents));
-                                contents.free ();
                             }
-                            fileSpec.free ();
                         }
-                        subtype.free ();
                     }
-                    annot.free ();
                 }
             }
-            annots.free ();
         }
-        kids.free ();
     }
 
-    pageNode.free ();
 }
 
 void Catalog::readEmbeddedFile (Object* fileSpec, Object* name1) {
@@ -654,7 +593,6 @@ void Catalog::readEmbeddedFile (Object* fileSpec, Object* name1) {
             name = new TextString (name2.getString ());
         }
         else {
-            name2.free ();
             if (fileSpec->dictLookup ("F", &name2)->isString ()) {
                 name = new TextString (name2.getString ());
             }
@@ -667,7 +605,6 @@ void Catalog::readEmbeddedFile (Object* fileSpec, Object* name1) {
                 delete s;
             }
         }
-        name2.free ();
         if (fileSpec->dictLookup ("EF", &efObj)->isDict ()) {
             if (efObj.dictLookupNF ("F", &streamObj)->isRef ()) {
                 if (!embeddedFiles) { embeddedFiles = new GList (); }
@@ -676,12 +613,10 @@ void Catalog::readEmbeddedFile (Object* fileSpec, Object* name1) {
             else {
                 delete name;
             }
-            streamObj.free ();
         }
         else {
             delete name;
         }
-        efObj.free ();
     }
 }
 

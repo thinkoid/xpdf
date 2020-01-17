@@ -244,12 +244,10 @@ Stream* Parser::makeStream (
         dict->dictLookup ("Length", &obj, recursion);
         if (obj.isInt ()) {
             length = (GFileOffset) (unsigned)obj.getInt ();
-            obj.free ();
         }
         else {
             error (
                 errSyntaxError, getPos (), "Bad 'Length' attribute in stream");
-            obj.free ();
             return NULL;
         }
     }

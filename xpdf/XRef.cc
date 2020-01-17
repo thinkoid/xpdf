@@ -157,19 +157,15 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
     if (!xref->fetch (objStrNum, 0, &objStr)->isStream ()) { goto err1; }
 
     if (!objStr.streamGetDict ()->lookup ("N", &obj1)->isInt ()) {
-        obj1.free ();
         goto err1;
     }
     nObjects = obj1.getInt ();
-    obj1.free ();
     if (nObjects <= 0) { goto err1; }
 
     if (!objStr.streamGetDict ()->lookup ("First", &obj1)->isInt ()) {
-        obj1.free ();
         goto err1;
     }
     first = obj1.getInt ();
-    obj1.free ();
     if (first < 0) { goto err1; }
 
     // this is an arbitrary limit to avoid integer overflow problems
@@ -192,16 +188,12 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         parser->getObj (&obj1, true);
         parser->getObj (&obj2, true);
         if (!obj1.isInt () || !obj2.isInt ()) {
-            obj1.free ();
-            obj2.free ();
             delete parser;
             free (offsets);
             goto err2;
         }
         objNums[i] = obj1.getInt ();
         offsets[i] = obj2.getInt ();
-        obj1.free ();
-        obj2.free ();
         if (objNums[i] < 0 || offsets[i] < 0 ||
             (i > 0 && offsets[i] < offsets[i - 1])) {
             delete parser;
@@ -241,7 +233,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
 err2:
     objStr.streamClose ();
 err1:
-    objStr.free ();
+    ;
 }
 
 ObjectStream::~ObjectStream () {
@@ -322,10 +314,8 @@ XRef::XRef (BaseStream* strA, bool repair) {
     if (obj.isRef ()) {
         rootNum = obj.getRefNum ();
         rootGen = obj.getRefGen ();
-        obj.free ();
     }
     else {
-        obj.free ();
         if (!(ok = constructXRef ())) {
             errCode = errDamaged;
             return;
@@ -339,7 +329,6 @@ XRef::XRef (BaseStream* strA, bool repair) {
 
 XRef::~XRef () {
     free (entries);
-    trailerDict.free ();
 
     if (streamEnds) {
         free (streamEnds);
@@ -407,14 +396,10 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
                 NULL, str->makeSubStream (start + *pos, false, 0, &obj)),
             true);
         if (!parser->getObj (&obj, true)->isInt ()) { goto err2; }
-        obj.free ();
         if (!parser->getObj (&obj, true)->isInt ()) { goto err2; }
-        obj.free ();
         if (!parser->getObj (&obj, true)->isCmd ("obj")) { goto err2; }
-        obj.free ();
         if (!parser->getObj (&obj)->isStream ()) { goto err2; }
         more = readXRefStream (obj.getStream (), pos);
-        obj.free ();
         delete parser;
     }
     else {
@@ -424,7 +409,6 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
     return more;
 
 err2:
-    obj.free ();
     delete parser;
 err1:
     ok = false;
@@ -537,7 +521,6 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     parser->getObj (&obj);
     delete parser;
     if (!obj.isDict ()) {
-        obj.free ();
         goto err1;
     }
 
@@ -557,7 +540,6 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     else {
         more = false;
     }
-    obj2.free ();
 
     // save the first trailer dictionary
     if (trailerDict.isNone ()) {
@@ -570,13 +552,10 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
         pos2 = (GFileOffset) (unsigned)obj2.getInt ();
         readXRef (&pos2, posSet);
         if (!ok) {
-            obj2.free ();
             goto err1;
         }
     }
-    obj2.free ();
 
-    obj.free ();
     return more;
 
 err1:
@@ -595,7 +574,6 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
 
     if (!dict->lookupNF ("Size", &obj)->isInt ()) { goto err1; }
     newSize = obj.getInt ();
-    obj.free ();
     if (newSize < 0) { goto err1; }
     if (newSize > size) {
         entries = (XRefEntry*)reallocarray (entries, newSize, sizeof (XRefEntry));
@@ -611,13 +589,10 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     }
     for (i = 0; i < 3; ++i) {
         if (!obj.arrayGet (i, &obj2)->isInt ()) {
-            obj2.free ();
             goto err1;
         }
         w[i] = obj2.getInt ();
-        obj2.free ();
     }
-    obj.free ();
     if (w[0] < 0 || w[0] > 4 || w[1] < 0 || w[1] > (int)sizeof (GFileOffset) ||
         w[2] < 0 || w[2] > 4) {
         goto err0;
@@ -628,31 +603,24 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     if (idx.isArray ()) {
         for (i = 0; i + 1 < idx.arrayGetLength (); i += 2) {
             if (!idx.arrayGet (i, &obj)->isInt ()) {
-                idx.free ();
                 goto err1;
             }
             first = obj.getInt ();
-            obj.free ();
             if (!idx.arrayGet (i + 1, &obj)->isInt ()) {
-                idx.free ();
                 goto err1;
             }
             n = obj.getInt ();
-            obj.free ();
             if (first < 0 || n < 0 ||
                 !readXRefStreamSection (xrefStr, w, first, n)) {
-                idx.free ();
                 goto err0;
             }
         }
     }
     else {
         if (!readXRefStreamSection (xrefStr, w, 0, newSize)) {
-            idx.free ();
             goto err0;
         }
     }
-    idx.free ();
 
     //~ this can be a 64-bit int (?)
     dict->lookupNF ("Prev", &obj);
@@ -663,13 +631,11 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     else {
         more = false;
     }
-    obj.free ();
     if (trailerDict.isNone ()) { trailerDict.initDict (dict); }
 
     return more;
 
 err1:
-    obj.free ();
 err0:
     ok = false;
     return false;
@@ -782,7 +748,6 @@ bool XRef::constructXRef () {
                     trailerDict = newTrailerDict;
                     gotRoot = true;
                 }
-                obj.free ();
             }
 
             delete parser;
@@ -913,9 +878,6 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
             !obj2.isInt () || obj2.getInt () != gen ||
             !obj3.isCmd ("obj")) {
 
-            obj1.free ();
-            obj2.free ();
-            obj3.free ();
 
             delete parser;
             goto err;
@@ -925,9 +887,6 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
             obj, false, encrypted ? fileKey : (unsigned char*)NULL, encAlgorithm,
             keyLength, num, gen, recursion);
 
-        obj1.free ();
-        obj2.free ();
-        obj3.free ();
 
         delete parser;
         break;

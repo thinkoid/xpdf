@@ -173,8 +173,6 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
     docA->getXRef ()->getCatalog (&catDict);
     catDict.dictLookup ("NeedsRendering", &obj1);
     fullXFAA = obj1.isBool () && obj1.getBool ();
-    obj1.free ();
-    catDict.free ();
 
     if (xfaObj->isStream ()) {
         data = new GString ();
@@ -188,7 +186,6 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
         for (i = 1; i < xfaObj->arrayGetLength (); i += 2) {
             if (!xfaObj->arrayGet (i, &obj1)->isStream ()) {
                 error (errSyntaxError, -1, "XFA array element is wrong type");
-                obj1.free ();
                 delete data;
                 return NULL;
             }
@@ -196,7 +193,6 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
             while ((n = obj1.getStream ()->getBlock (buf, sizeof (buf))) > 0) {
                 data->append (buf, n);
             }
-            obj1.free ();
         }
     }
     else {
@@ -217,7 +213,6 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
 
     xfaForm = new XFAForm (docA, xmlA, &resourceDictA, fullXFAA);
 
-    resourceDictA.free ();
 
     if (xfaForm->xml->getRoot ()) {
         if ((tmpl = xfaForm->xml->getRoot ()->findFirstChildElement (
@@ -243,7 +238,6 @@ XFAForm::XFAForm (
 
 XFAForm::~XFAForm () {
     delete xml;
-    resourceDict.free ();
 }
 
 void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
@@ -348,7 +342,6 @@ void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
         fontDict = NULL;
     }
 
-    obj1.free ();
 
     for (auto& p : fields) {
         p->draw (pageNum, gfx, printing, fontDict);
@@ -704,7 +697,6 @@ void XFAFormField::draw (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
     appearance.initStream (appearStream);
     gfx->drawAnnot (&appearance, NULL, x3, y3, x3 + w3, y3 + h3);
-    appearance.free ();
     delete appearBuf;
 }
 

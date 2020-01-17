@@ -212,12 +212,10 @@ GfxResources::GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA) {
                 r = obj1.getRef ();
                 fonts = new GfxFontDict (xref, &r, obj2.getDict ());
             }
-            obj2.free ();
         }
         else if (obj1.isDict ()) {
             fonts = new GfxFontDict (xref, NULL, obj1.getDict ());
         }
-        obj1.free ();
 
         // get XObject dictionary
         resDict->lookup ("XObject", &xObjDict);
@@ -252,12 +250,6 @@ GfxResources::GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA) {
 
 GfxResources::~GfxResources () {
     if (fonts) { delete fonts; }
-    xObjDict.free ();
-    colorSpaceDict.free ();
-    patternDict.free ();
-    shadingDict.free ();
-    gStateDict.free ();
-    propsDict.free ();
 }
 
 GfxFont* GfxResources::lookupFont (const char* name) {
@@ -357,11 +349,8 @@ GfxPattern* GfxResources::lookupPattern (const char* name) {
             if (!resPtr->patternDict.dictLookup (name, &obj)->isNull ()) {
                 resPtr->patternDict.dictLookupNF (name, &objRef);
                 pattern = GfxPattern::parse (&objRef, &obj);
-                objRef.free ();
-                obj.free ();
                 return pattern;
             }
-            obj.free ();
         }
     }
     error (errSyntaxError, -1, "Unknown pattern '{0:s}'", name);
@@ -377,10 +366,8 @@ GfxShading* GfxResources::lookupShading (const char* name) {
         if (resPtr->shadingDict.isDict ()) {
             if (!resPtr->shadingDict.dictLookup (name, &obj)->isNull ()) {
                 shading = GfxShading::parse (&obj);
-                obj.free ();
                 return shading;
             }
-            obj.free ();
         }
     }
     error (errSyntaxError, -1, "Unknown shading '{0:s}'", name);
@@ -535,11 +522,8 @@ void Gfx::display (Object* objRef, bool topLevel) {
         for (i = 0; i < obj1.arrayGetLength (); ++i) {
             obj1.arrayGetNF (i, &obj2);
             if (checkForContentStreamLoop (&obj2)) {
-                obj2.free ();
-                obj1.free ();
                 return;
             }
-            obj2.free ();
         }
         for (i = 0; i < obj1.arrayGetLength (); ++i) {
             obj1.arrayGet (i, &obj2);
@@ -547,24 +531,19 @@ void Gfx::display (Object* objRef, bool topLevel) {
                 error (
                     errSyntaxError, -1,
                     "Invalid object type for content stream");
-                obj2.free ();
-                obj1.free ();
                 return;
             }
-            obj2.free ();
         }
         contentStreamStack->append (&obj1);
     }
     else if (obj1.isStream ()) {
         if (checkForContentStreamLoop (objRef)) {
-            obj1.free ();
             return;
         }
         contentStreamStack->append (objRef);
     }
     else {
         error (errSyntaxError, -1, "Invalid object type for content stream");
-        obj1.free ();
         return;
     }
     parser = new Parser (xref, new xpdf::lexer_t (xref, &obj1), false);
@@ -572,7 +551,6 @@ void Gfx::display (Object* objRef, bool topLevel) {
     delete parser;
     parser = NULL;
     contentStreamStack->del (contentStreamStack->getLength () - 1);
-    obj1.free ();
 }
 
 // If <ref> is already on contentStreamStack, i.e., if there is a loop
@@ -600,11 +578,9 @@ bool Gfx::checkForContentStreamLoop (Object* ref) {
                             ref->getRefGen () == obj1.getRefGen ()) {
                             error (
                                 errSyntaxError, -1, "Loop in content streams");
-                            obj1.free ();
                             return true;
                         }
                     }
-                    obj1.free ();
                 }
             }
         }
@@ -637,7 +613,6 @@ void Gfx::go (bool topLevel) {
                 fflush (stdout);
             }
             if (!execOp (&obj, args, numArgs)) { ++errCount; }
-            obj.free ();
             for (i = 0; i < numArgs; ++i) args[i].free ();
             numArgs = 0;
 
@@ -679,13 +654,11 @@ void Gfx::go (bool topLevel) {
                 printf ("\n");
                 fflush (stdout);
             }
-            obj.free ();
         }
 
         // grab the next object
         parser->getObj (&obj);
     }
-    obj.free ();
 
     // args at end with no command
     if (numArgs > 0) {
@@ -833,7 +806,6 @@ void Gfx::opSetDash (Object args[], int numArgs) {
         dash = (double*)calloc (length, sizeof (double));
         for (i = 0; i < length; ++i) {
             dash[i] = a->get (i, &obj)->getNum ();
-            obj.free ();
         }
     }
     state->setLineDash (dash, length, args[1].getNum ());
@@ -883,7 +855,6 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
         error (
             errSyntaxError, getPos (), "ExtGState '{0:s}' is wrong type",
             args[0].getName ());
-        obj1.free ();
         return;
     }
     if (printCommands) {
@@ -894,13 +865,9 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
 
     // parameters that are also set by individual PDF operators
     if (obj1.dictLookup ("LW", &obj2)->isNum ()) { opSetLineWidth (&obj2, 1); }
-    obj2.free ();
     if (obj1.dictLookup ("LC", &obj2)->isInt ()) { opSetLineCap (&obj2, 1); }
-    obj2.free ();
     if (obj1.dictLookup ("LJ", &obj2)->isInt ()) { opSetLineJoin (&obj2, 1); }
-    obj2.free ();
     if (obj1.dictLookup ("ML", &obj2)->isNum ()) { opSetMiterLimit (&obj2, 1); }
-    obj2.free ();
     if (obj1.dictLookup ("D", &obj2)->isArray () &&
         obj2.arrayGetLength () == 2) {
         obj2.arrayGet (0, &args2[0]);
@@ -909,9 +876,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
         args2[0].free ();
         args2[1].free ();
     }
-    obj2.free ();
     if (obj1.dictLookup ("FL", &obj2)->isNum ()) { opSetFlat (&obj2, 1); }
-    obj2.free ();
 
     // font
     if (obj1.dictLookup ("Font", &obj2)->isArray () &&
@@ -921,10 +886,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
         if (obj3.isRef () && obj4.isNum ()) {
             doSetFont (res->lookupFontByRef (obj3.getRef ()), obj4.getNum ());
         }
-        obj3.free ();
-        obj4.free ();
     }
-    obj2.free ();
 
     // transparency support: blend mode, fill/stroke opacity
     if (!obj1.dictLookup ("BM", &obj2)->isNull ()) {
@@ -937,26 +899,22 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                 errSyntaxError, getPos (), "Invalid blend mode in ExtGState");
         }
     }
-    obj2.free ();
     if (obj1.dictLookup ("ca", &obj2)->isNum ()) {
         opac = obj2.getNum ();
         state->setFillOpacity (opac < 0 ? 0 : opac > 1 ? 1 : opac);
         out->updateFillOpacity (state);
     }
-    obj2.free ();
     if (obj1.dictLookup ("CA", &obj2)->isNum ()) {
         opac = obj2.getNum ();
         state->setStrokeOpacity (opac < 0 ? 0 : opac > 1 ? 1 : opac);
         out->updateStrokeOpacity (state);
     }
-    obj2.free ();
 
     // fill/stroke overprint, overprint mode
     if ((haveFillOP = (obj1.dictLookup ("op", &obj2)->isBool ()))) {
         state->setFillOverprint (obj2.getBool ());
         out->updateFillOverprint (state);
     }
-    obj2.free ();
     if (obj1.dictLookup ("OP", &obj2)->isBool ()) {
         state->setStrokeOverprint (obj2.getBool ());
         out->updateStrokeOverprint (state);
@@ -965,23 +923,19 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
             out->updateFillOverprint (state);
         }
     }
-    obj2.free ();
     if (obj1.dictLookup ("OPM", &obj2)->isInt ()) {
         state->setOverprintMode (obj2.getInt ());
         out->updateOverprintMode (state);
     }
-    obj2.free ();
 
     // stroke adjust
     if (obj1.dictLookup ("SA", &obj2)->isBool ()) {
         state->setStrokeAdjust (obj2.getBool ());
         out->updateStrokeAdjust (state);
     }
-    obj2.free ();
 
     // transfer function
     if (obj1.dictLookup ("TR2", &obj2)->isNull ()) {
-        obj2.free ();
         obj1.dictLookup ("TR", &obj2);
     }
     if (obj2.isName ("Default") || obj2.isName ("Identity")) {
@@ -1011,7 +965,6 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
             errSyntaxError, getPos (),
             "Invalid transfer function in ExtGState");
     }
-    obj2.free ();
 
     // soft mask
     if (!obj1.dictLookup ("SMask", &obj2)->isNull ()) {
@@ -1023,7 +976,6 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
             else { // "Luminosity"
                 alpha = false;
             }
-            obj3.free ();
             fill (funcs, funcs + 4, Function{ });
             if (!obj2.dictLookup ("TR", &obj3)->isNull ()) {
                 if (obj3.isName ("Default") || obj3.isName ("Identity")) {
@@ -1044,7 +996,6 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                     }
                 }
             }
-            obj3.free ();
             if ((haveBackdropColor =
                      obj2.dictLookup ("BC", &obj3)->isArray ())) {
                 for (i = 0; i < gfxColorMaxComps; ++i) {
@@ -1056,10 +1007,8 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                     if (obj4.isNum ()) {
                         backdropColor.c[i] = xpdf::to_color (obj4.getNum ());
                     }
-                    obj4.free ();
                 }
             }
-            obj3.free ();
             if (obj2.dictLookup ("G", &obj3)->isStream ()) {
                 if (obj3.streamGetDict ()->lookup ("Group", &obj4)->isDict ()) {
                     blendingColorSpace = NULL;
@@ -1067,15 +1016,12 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                     if (!obj4.dictLookup ("CS", &obj5)->isNull ()) {
                         blendingColorSpace = GfxColorSpace::parse (&obj5);
                     }
-                    obj5.free ();
                     if (obj4.dictLookup ("I", &obj5)->isBool ()) {
                         isolated = obj5.getBool ();
                     }
-                    obj5.free ();
                     if (obj4.dictLookup ("K", &obj5)->isBool ()) {
                         knockout = obj5.getBool ();
                     }
-                    obj5.free ();
                     if (!haveBackdropColor) {
                         if (blendingColorSpace) {
                             blendingColorSpace->getDefaultColor (
@@ -1093,7 +1039,6 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                         &obj3, &objRef3, alpha, blendingColorSpace, isolated,
                         knockout, funcs [0], &backdropColor);
 
-                    objRef3.free ();
                     funcs [0] = { };
                 }
                 else {
@@ -1101,22 +1046,18 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                         errSyntaxError, getPos (),
                         "Invalid soft mask in ExtGState - missing group");
                 }
-                obj4.free ();
             }
             else {
                 error (
                     errSyntaxError, getPos (),
                     "Invalid soft mask in ExtGState - missing group");
             }
-            obj3.free ();
         }
         else if (!obj2.isNull ()) {
             error (errSyntaxError, getPos (), "Invalid soft mask in ExtGState");
         }
     }
-    obj2.free ();
 
-    obj1.free ();
 }
 
 void Gfx::doSoftMask (
@@ -1139,21 +1080,17 @@ void Gfx::doSoftMask (
     if (!(obj1.isNull () || (obj1.isInt () && obj1.getInt () == 1))) {
         error (errSyntaxError, getPos (), "Unknown form type");
     }
-    obj1.free ();
 
     // get bounding box
     dict->lookup ("BBox", &obj1);
     if (!obj1.isArray ()) {
-        obj1.free ();
         error (errSyntaxError, getPos (), "Bad form bounding box");
         return;
     }
     for (i = 0; i < 4; ++i) {
         obj1.arrayGet (i, &obj2);
         bbox[i] = obj2.getNum ();
-        obj2.free ();
     }
-    obj1.free ();
 
     // get matrix
     dict->lookup ("Matrix", &obj1);
@@ -1161,7 +1098,6 @@ void Gfx::doSoftMask (
         for (i = 0; i < 6; ++i) {
             obj1.arrayGet (i, &obj2);
             m[i] = obj2.getNum ();
-            obj2.free ();
         }
     }
     else {
@@ -1172,7 +1108,6 @@ void Gfx::doSoftMask (
         m[4] = 0;
         m[5] = 0;
     }
-    obj1.free ();
 
     // get resources
     dict->lookup ("Resources", &obj1);
@@ -1186,7 +1121,6 @@ void Gfx::doSoftMask (
     --formDepth;
 
     if (blendingColorSpace) { delete blendingColorSpace; }
-    obj1.free ();
 }
 
 void Gfx::opSetRenderingIntent (Object args[], int numArgs) {}
@@ -1276,7 +1210,6 @@ void Gfx::opSetFillColorSpace (Object args[], int numArgs) {
     else {
         colorSpace = GfxColorSpace::parse (&obj);
     }
-    obj.free ();
     if (colorSpace) {
         state->setFillColorSpace (colorSpace);
         out->updateFillColorSpace (state);
@@ -1300,7 +1233,6 @@ void Gfx::opSetStrokeColorSpace (Object args[], int numArgs) {
     else {
         colorSpace = GfxColorSpace::parse (&obj);
     }
-    obj.free ();
     if (colorSpace) {
         state->setStrokeColorSpace (colorSpace);
         out->updateStrokeColorSpace (state);
@@ -3374,7 +3306,6 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
                     errSyntaxError, getPos (),
                     "Element of show/space array must be number or string");
             }
-            obj.free ();
         }
         out->endStringOp (state);
     }
@@ -3383,7 +3314,6 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
         for (i = 0; i < a->getLength (); ++i) {
             a->get (i, &obj);
             if (obj.isString ()) { doIncCharCount (obj.getString ()); }
-            obj.free ();
         }
     }
 }
@@ -3489,8 +3419,6 @@ void Gfx::doShowText (GString* s) {
                 }
                 out->endType3Char (state);
                 if (resDict) { popResources (); }
-                charProc.free ();
-                charProcRef.free ();
             }
             restoreStateStack (savedState);
             curX += tdx;
@@ -3626,7 +3554,6 @@ void Gfx::opXObject (Object args[], int numArgs) {
     if (!obj1.isStream ()) {
         error (
             errSyntaxError, getPos (), "XObject '{0:s}' is wrong type", name);
-        obj1.free ();
         return;
     }
 #if OPI_SUPPORT
@@ -3638,7 +3565,6 @@ void Gfx::opXObject (Object args[], int numArgs) {
         if (out->needNonText ()) {
             res->lookupXObjectNF (name, &refObj);
             doImage (&refObj, obj1.getStream (), false);
-            refObj.free ();
         }
     }
     else if (obj2.isName ("Form")) {
@@ -3649,7 +3575,6 @@ void Gfx::opXObject (Object args[], int numArgs) {
         else {
             doForm (&refObj, &obj1);
         }
-        refObj.free ();
     }
     else if (obj2.isName ("PS")) {
         obj1.streamGetDict ()->lookup ("Level1", &obj3);
@@ -3667,12 +3592,9 @@ void Gfx::opXObject (Object args[], int numArgs) {
             errSyntaxError, getPos (),
             "XObject subtype is missing or wrong type");
     }
-    obj2.free ();
 #if OPI_SUPPORT
     if (opiDict.isDict ()) { out->opiEnd (state, opiDict.getDict ()); }
-    opiDict.free ();
 #endif
-    obj1.free ();
 }
 
 void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
@@ -3705,27 +3627,22 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
     // get size
     dict->lookup ("Width", &obj1);
     if (obj1.isNull ()) {
-        obj1.free ();
         dict->lookup ("W", &obj1);
     }
     if (!obj1.isInt ()) { goto err2; }
     width = obj1.getInt ();
-    obj1.free ();
     if (width <= 0) { goto err1; }
     dict->lookup ("Height", &obj1);
     if (obj1.isNull ()) {
-        obj1.free ();
         dict->lookup ("H", &obj1);
     }
     if (!obj1.isInt ()) { goto err2; }
     height = obj1.getInt ();
-    obj1.free ();
     if (height <= 0) { goto err1; }
 
     // image or mask?
     dict->lookup ("ImageMask", &obj1);
     if (obj1.isNull ()) {
-        obj1.free ();
         dict->lookup ("IM", &obj1);
     }
     mask = false;
@@ -3733,13 +3650,11 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         mask = obj1.getBool ();
     else if (!obj1.isNull ())
         goto err2;
-    obj1.free ();
 
     // bit depth
     if (bits == 0) {
         dict->lookup ("BitsPerComponent", &obj1);
         if (obj1.isNull ()) {
-            obj1.free ();
             dict->lookup ("BPC", &obj1);
         }
         if (obj1.isInt ()) {
@@ -3752,17 +3667,14 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         else {
             goto err2;
         }
-        obj1.free ();
     }
 
     // interpolate flag
     dict->lookup ("Interpolate", &obj1);
     if (obj1.isNull ()) {
-        obj1.free ();
         dict->lookup ("I", &obj1);
     }
     interpolate = obj1.isBool () && obj1.getBool ();
-    obj1.free ();
 
     // display a mask
     if (mask) {
@@ -3771,18 +3683,15 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         invert = false;
         dict->lookup ("Decode", &obj1);
         if (obj1.isNull ()) {
-            obj1.free ();
             dict->lookup ("D", &obj1);
         }
         if (obj1.isArray ()) {
             obj1.arrayGet (0, &obj2);
             invert = obj2.isNum () && obj2.getNum () == 1;
-            obj2.free ();
         }
         else if (!obj1.isNull ()) {
             goto err2;
         }
-        obj1.free ();
 
         // if drawing is disabled, skip over inline image data
         if (!ocState) {
@@ -3809,17 +3718,14 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         // get color space and color map
         dict->lookup ("ColorSpace", &obj1);
         if (obj1.isNull ()) {
-            obj1.free ();
             dict->lookup ("CS", &obj1);
         }
         if (obj1.isName ()) {
             res->lookupColorSpace (obj1.getName (), &obj2);
             if (!obj2.isNull ()) {
-                obj1.free ();
                 obj1 = obj2;
             }
             else {
-                obj2.free ();
             }
         }
         if (!obj1.isNull ()) { colorSpace = GfxColorSpace::parse (&obj1); }
@@ -3835,15 +3741,12 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         else {
             colorSpace = NULL;
         }
-        obj1.free ();
         if (!colorSpace) { goto err1; }
         dict->lookup ("Decode", &obj1);
         if (obj1.isNull ()) {
-            obj1.free ();
             dict->lookup ("D", &obj1);
         }
         colorMap = new GfxImageColorMap (bits, &obj1, colorSpace);
-        obj1.free ();
         if (!colorMap->isOk ()) {
             delete colorMap;
             goto err1;
@@ -3864,56 +3767,44 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
             maskDict = smaskObj.streamGetDict ();
             maskDict->lookup ("Width", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("W", &obj1);
             }
             if (!obj1.isInt ()) { goto err2; }
             maskWidth = obj1.getInt ();
-            obj1.free ();
             maskDict->lookup ("Height", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("H", &obj1);
             }
             if (!obj1.isInt ()) { goto err2; }
             maskHeight = obj1.getInt ();
-            obj1.free ();
             maskDict->lookup ("BitsPerComponent", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("BPC", &obj1);
             }
             if (!obj1.isInt ()) { goto err2; }
             maskBits = obj1.getInt ();
-            obj1.free ();
             maskDict->lookup ("ColorSpace", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("CS", &obj1);
             }
             if (obj1.isName ()) {
                 res->lookupColorSpace (obj1.getName (), &obj2);
                 if (!obj2.isNull ()) {
-                    obj1.free ();
                     obj1 = obj2;
                 }
                 else {
-                    obj2.free ();
                 }
             }
             maskColorSpace = GfxColorSpace::parse (&obj1);
-            obj1.free ();
             if (!maskColorSpace || maskColorSpace->getMode () != csDeviceGray) {
                 goto err1;
             }
             maskDict->lookup ("Decode", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("D", &obj1);
             }
             maskColorMap =
                 new GfxImageColorMap (maskBits, &obj1, maskColorSpace);
-            obj1.free ();
             if (!maskColorMap->isOk ()) {
                 delete maskColorMap;
                 goto err1;
@@ -3929,24 +3820,20 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
                  i += 2) {
                 maskObj.arrayGet (i, &obj1);
                 if (!obj1.isInt ()) {
-                    obj1.free ();
                     haveColorKeyMask = false;
                     break;
                 }
                 maskColors[i] = obj1.getInt ();
-                obj1.free ();
                 if (maskColors[i] < 0 || maskColors[i] >= (1 << bits)) {
                     haveColorKeyMask = false;
                     break;
                 }
                 maskObj.arrayGet (i + 1, &obj1);
                 if (!obj1.isInt ()) {
-                    obj1.free ();
                     haveColorKeyMask = false;
                     break;
                 }
                 maskColors[i + 1] = obj1.getInt ();
-                obj1.free ();
                 if (maskColors[i + 1] < 0 || maskColors[i + 1] >= (1 << bits) ||
                     maskColors[i] > maskColors[i + 1]) {
                     haveColorKeyMask = false;
@@ -3961,42 +3848,33 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
             maskDict = maskObj.streamGetDict ();
             maskDict->lookup ("Width", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("W", &obj1);
             }
             if (!obj1.isInt ()) { goto err2; }
             maskWidth = obj1.getInt ();
-            obj1.free ();
             maskDict->lookup ("Height", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("H", &obj1);
             }
             if (!obj1.isInt ()) { goto err2; }
             maskHeight = obj1.getInt ();
-            obj1.free ();
             maskDict->lookup ("ImageMask", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("IM", &obj1);
             }
             if (!obj1.isBool () || !obj1.getBool ()) { goto err2; }
-            obj1.free ();
             maskInvert = false;
             maskDict->lookup ("Decode", &obj1);
             if (obj1.isNull ()) {
-                obj1.free ();
                 maskDict->lookup ("D", &obj1);
             }
             if (obj1.isArray ()) {
                 obj1.arrayGet (0, &obj2);
                 maskInvert = obj2.isNum () && obj2.getNum () == 1;
-                obj2.free ();
             }
             else if (!obj1.isNull ()) {
                 goto err2;
             }
-            obj1.free ();
             haveExplicitMask = true;
         }
 
@@ -4033,8 +3911,6 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         }
 
         delete colorMap;
-        maskObj.free ();
-        smaskObj.free ();
     }
 
     if ((i = width * height) > 1000) { i = 1000; }
@@ -4043,7 +3919,6 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
     return;
 
 err2:
-    obj1.free ();
 err1:
     error (errSyntaxError, getPos (), "Bad image parameters");
 }
@@ -4071,24 +3946,20 @@ void Gfx::doForm (Object* strRef, Object* str) {
     if (!(obj1.isNull () || (obj1.isInt () && obj1.getInt () == 1))) {
         error (errSyntaxError, getPos (), "Unknown form type");
     }
-    obj1.free ();
 
     // check for optional content key
     ocSaved = ocState;
     dict->lookupNF ("OC", &obj1);
     if (doc->getOptionalContent ()->evalOCObject (&obj1, &oc) && !oc) {
-        obj1.free ();
         if (out->needCharCount ()) { ocState = false; }
         else {
             return;
         }
     }
-    obj1.free ();
 
     // get bounding box
     dict->lookup ("BBox", &bboxObj);
     if (!bboxObj.isArray ()) {
-        bboxObj.free ();
         error (errSyntaxError, getPos (), "Bad form bounding box");
         ocState = ocSaved;
         return;
@@ -4096,9 +3967,7 @@ void Gfx::doForm (Object* strRef, Object* str) {
     for (i = 0; i < 4; ++i) {
         bboxObj.arrayGet (i, &obj1);
         bbox[i] = obj1.getNum ();
-        obj1.free ();
     }
-    bboxObj.free ();
 
     // get matrix
     dict->lookup ("Matrix", &matrixObj);
@@ -4106,7 +3975,6 @@ void Gfx::doForm (Object* strRef, Object* str) {
         for (i = 0; i < 6; ++i) {
             matrixObj.arrayGet (i, &obj1);
             m[i] = obj1.getNum ();
-            obj1.free ();
         }
     }
     else {
@@ -4117,7 +3985,6 @@ void Gfx::doForm (Object* strRef, Object* str) {
         m[4] = 0;
         m[5] = 0;
     }
-    matrixObj.free ();
 
     // get resources
     dict->lookup ("Resources", &resObj);
@@ -4132,19 +3999,14 @@ void Gfx::doForm (Object* strRef, Object* str) {
             if (!obj1.dictLookup ("CS", &obj3)->isNull ()) {
                 blendingColorSpace = GfxColorSpace::parse (&obj3);
             }
-            obj3.free ();
             if (obj1.dictLookup ("I", &obj3)->isBool ()) {
                 isolated = obj3.getBool ();
             }
-            obj3.free ();
             if (obj1.dictLookup ("K", &obj3)->isBool ()) {
                 knockout = obj3.getBool ();
             }
-            obj3.free ();
         }
-        obj2.free ();
     }
-    obj1.free ();
 
     // draw it
     ++formDepth;
@@ -4154,7 +4016,6 @@ void Gfx::doForm (Object* strRef, Object* str) {
     --formDepth;
 
     if (blendingColorSpace) { delete blendingColorSpace; }
-    resObj.free ();
 
     ocState = ocSaved;
 }
@@ -4297,11 +4158,9 @@ Stream* Gfx::buildImageStream () {
             error (
                 errSyntaxError, getPos (),
                 "Inline image dictionary key must be a name object");
-            obj.free ();
         }
         else {
             char* key = strdup (obj.getName ());
-            obj.free ();
             parser->getObj (&obj);
             if (obj.isEOF () || obj.isError ()) {
                 free (key);
@@ -4313,16 +4172,12 @@ Stream* Gfx::buildImageStream () {
     }
     if (obj.isEOF ()) {
         error (errSyntaxError, getPos (), "End of file in inline image");
-        obj.free ();
-        dict.free ();
         return NULL;
     }
-    obj.free ();
 
     // make stream
     if (!(str = parser->getStream ())) {
         error (errSyntaxError, getPos (), "Invalid inline image data");
-        dict.free ();
         return NULL;
     }
     str = new EmbedStream (str, &dict, false, 0);
@@ -4386,7 +4241,6 @@ void Gfx::opBeginMarkedContent (Object args[], int numArgs) {
         if (doc->getOptionalContent ()->evalOCObject (&obj, &ocStateNew)) {
             ocState = ocStateNew;
         }
-        obj.free ();
         mcKind = gfxMCOptionalContent;
     }
     else if (args[0].isName ("Span") && numArgs == 2 && args[1].isDict ()) {
@@ -4396,7 +4250,6 @@ void Gfx::opBeginMarkedContent (Object args[], int numArgs) {
             delete s;
             mcKind = gfxMCActualText;
         }
-        obj.free ();
     }
     mc = new GfxMarkedContent (mcKind, ocState);
     markedContentStack->append (mc);
@@ -4474,16 +4327,12 @@ void Gfx::drawAnnot (
         dict->lookup ("BBox", &bboxObj);
         if (!bboxObj.isArray ()) {
             error (errSyntaxError, getPos (), "Bad form bounding box");
-            bboxObj.free ();
-            str.free ();
             return;
         }
         for (i = 0; i < 4; ++i) {
             bboxObj.arrayGet (i, &obj1);
             bbox[i] = obj1.getNum ();
-            obj1.free ();
         }
-        bboxObj.free ();
 
         // get the form matrix
         dict->lookup ("Matrix", &matrixObj);
@@ -4491,7 +4340,6 @@ void Gfx::drawAnnot (
             for (i = 0; i < 6; ++i) {
                 matrixObj.arrayGet (i, &obj1);
                 m[i] = obj1.getNum ();
-                obj1.free ();
             }
         }
         else {
@@ -4502,7 +4350,6 @@ void Gfx::drawAnnot (
             m[4] = 0;
             m[5] = 0;
         }
-        matrixObj.free ();
 
         // transform the four corners of the form bbox to default user
         // space, and construct the transformed bbox
@@ -4577,9 +4424,7 @@ void Gfx::drawAnnot (
         // draw it
         drawForm (strRef, resDict, m, bbox);
 
-        resObj.free ();
     }
-    str.free ();
 
     // draw the border
     if (borderStyle && borderStyle->getWidth () > 0 &&

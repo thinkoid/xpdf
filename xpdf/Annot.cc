@@ -91,7 +91,6 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     if (dict->lookup ("Subtype", &obj1)->isName ()) {
         type = new GString (obj1.getName ());
     }
-    obj1.free ();
 
     //----- parse the rectangle
 
@@ -99,13 +98,9 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         obj1.arrayGetLength () == 4) {
         xMin = yMin = xMax = yMax = 0;
         if (obj1.arrayGet (0, &obj2)->isNum ()) { xMin = obj2.getNum (); }
-        obj2.free ();
         if (obj1.arrayGet (1, &obj2)->isNum ()) { yMin = obj2.getNum (); }
-        obj2.free ();
         if (obj1.arrayGet (2, &obj2)->isNum ()) { xMax = obj2.getNum (); }
-        obj2.free ();
         if (obj1.arrayGet (3, &obj2)->isNum ()) { yMax = obj2.getNum (); }
-        obj2.free ();
         if (xMin > xMax) {
             t = xMin;
             xMin = xMax;
@@ -121,7 +116,6 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         error (errSyntaxError, -1, "Bad bounding box for annotation");
         ok = false;
     }
-    obj1.free ();
 
     //----- parse the flags
 
@@ -129,7 +123,6 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     else {
         flags = 0;
     }
-    obj1.free ();
 
     //----- parse the border style
 
@@ -158,11 +151,9 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
                 borderType = annotBorderUnderlined;
             }
         }
-        obj2.free ();
         if (obj1.dictLookup ("W", &obj2)->isNum ()) {
             borderWidth = obj2.getNum ();
         }
-        obj2.free ();
         if (obj1.dictLookup ("D", &obj2)->isArray ()) {
             borderDashLength = obj2.arrayGetLength ();
             borderDash = (double*)calloc (borderDashLength, sizeof (double));
@@ -173,19 +164,15 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
                 else {
                     borderDash[i] = 1;
                 }
-                obj3.free ();
             }
         }
-        obj2.free ();
     }
     else {
-        obj1.free ();
         if (dict->lookup ("Border", &obj1)->isArray ()) {
             if (obj1.arrayGetLength () >= 3) {
                 if (obj1.arrayGet (2, &obj2)->isNum ()) {
                     borderWidth = obj2.getNum ();
                 }
-                obj2.free ();
                 if (obj1.arrayGetLength () >= 4) {
                     if (obj1.arrayGet (3, &obj2)->isArray ()) {
                         borderType = annotBorderDashed;
@@ -199,7 +186,6 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
                             else {
                                 borderDash[i] = 1;
                             }
-                            obj3.free ();
                         }
                     }
                     else {
@@ -207,7 +193,6 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
                         // the wrong type.
                         borderWidth = 0;
                     }
-                    obj2.free ();
                 }
             }
             else {
@@ -216,7 +201,6 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
             }
         }
     }
-    obj1.free ();
     if (dict->lookup ("C", &obj1)->isArray () &&
         (obj1.arrayGetLength () == 1 || obj1.arrayGetLength () == 3 ||
          obj1.arrayGetLength () == 4)) {
@@ -228,10 +212,8 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
             else {
                 borderColor[i] = 0;
             }
-            obj2.free ();
         }
     }
-    obj1.free ();
     borderStyle = new AnnotBorderStyle (
         borderType, borderWidth, borderDash, borderDashLength, borderColor,
         nBorderColorComps);
@@ -287,10 +269,8 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
 Annot::~Annot () {
     if (type) { delete type; }
     if (appearanceState) { delete appearanceState; }
-    appearance.free ();
     if (appearBuf) { delete appearBuf; }
     if (borderStyle) { delete borderStyle; }
-    ocObj.free ();
 }
 
 void Annot::generateAnnotAppearance () {
@@ -308,7 +288,6 @@ void Annot::generateAnnotAppearance () {
             }
         }
     }
-    obj.free ();
 }
 
 //~ this doesn't draw the caption
@@ -325,7 +304,6 @@ void Annot::generateLineAppearance () {
     bool fill;
 
     if (!getObject (&annotObj)->isDict ()) {
-        annotObj.free ();
         return;
     }
 
@@ -352,68 +330,48 @@ void Annot::generateLineAppearance () {
         obj1.arrayGetLength () == 4) {
         if (obj1.arrayGet (0, &obj2)->isNum ()) { x1 = obj2.getNum (); }
         else {
-            obj2.free ();
-            obj1.free ();
-            goto err1;
+            return;
         }
-        obj2.free ();
         if (obj1.arrayGet (1, &obj2)->isNum ()) { y1 = obj2.getNum (); }
         else {
-            obj2.free ();
-            obj1.free ();
-            goto err1;
+            return;
         }
-        obj2.free ();
         if (obj1.arrayGet (2, &obj2)->isNum ()) { x2 = obj2.getNum (); }
         else {
-            obj2.free ();
-            obj1.free ();
-            goto err1;
+            return;
         }
-        obj2.free ();
         if (obj1.arrayGet (3, &obj2)->isNum ()) { y2 = obj2.getNum (); }
         else {
-            obj2.free ();
-            obj1.free ();
-            goto err1;
+            return;
         }
-        obj2.free ();
     }
     else {
-        obj1.free ();
-        goto err1;
+        return;
     }
-    obj1.free ();
     lineEnd1 = lineEnd2 = annotLineEndNone;
     if (annotObj.dictLookup ("LE", &obj1)->isArray () &&
         obj1.arrayGetLength () == 2) {
         lineEnd1 = parseLineEndType (obj1.arrayGet (0, &obj2));
-        obj2.free ();
         lineEnd2 = parseLineEndType (obj1.arrayGet (1, &obj2));
-        obj2.free ();
     }
-    obj1.free ();
     if (annotObj.dictLookup ("LL", &obj1)->isNum ()) {
         leaderLen = obj1.getNum ();
     }
     else {
         leaderLen = 0;
     }
-    obj1.free ();
     if (annotObj.dictLookup ("LLE", &obj1)->isNum ()) {
         leaderExtLen = obj1.getNum ();
     }
     else {
         leaderExtLen = 0;
     }
-    obj1.free ();
     if (annotObj.dictLookup ("LLO", &obj1)->isNum ()) {
         leaderOffLen = obj1.getNum ();
     }
     else {
         leaderOffLen = 0;
     }
-    obj1.free ();
 
     //----- compute positions
     x1 -= xMin;
@@ -494,11 +452,7 @@ void Annot::generateLineAppearance () {
     //----- build the appearance stream
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
-    appearance.free ();
     appearance.initStream (appearStream);
-
-err1:
-    annotObj.free ();
 }
 
 //~ this doesn't handle line ends (arrows)
@@ -509,7 +463,6 @@ void Annot::generatePolyLineAppearance () {
     int i;
 
     if (!getObject (&annotObj)->isDict ()) {
-        annotObj.free ();
         return;
     }
 
@@ -536,24 +489,17 @@ void Annot::generatePolyLineAppearance () {
 
     //----- draw line
     if (!annotObj.dictLookup ("Vertices", &obj1)->isArray ()) {
-        obj1.free ();
-        goto err1;
+        return;
     }
     for (i = 0; i + 1 < obj1.arrayGetLength (); i += 2) {
         if (!obj1.arrayGet (i, &obj2)->isNum ()) {
-            obj2.free ();
-            obj1.free ();
-            goto err1;
+            return;
         }
         x1 = obj2.getNum ();
-        obj2.free ();
         if (!obj1.arrayGet (i + 1, &obj2)->isNum ()) {
-            obj2.free ();
-            obj1.free ();
-            goto err1;
+            return;
         }
         y1 = obj2.getNum ();
-        obj2.free ();
         x1 -= xMin;
         y1 -= yMin;
         if (i == 0) { appearBuf->appendf ("{0:.4f} {1:.4f} m\n", x1, y1); }
@@ -562,7 +508,6 @@ void Annot::generatePolyLineAppearance () {
         }
     }
     appearBuf->append ("S\n");
-    obj1.free ();
 
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
@@ -586,11 +531,8 @@ void Annot::generatePolyLineAppearance () {
     //----- build the appearance stream
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
-    appearance.free ();
-    appearance.initStream (appearStream);
 
-err1:
-    annotObj.free ();
+    appearance.initStream (appearStream);
 }
 
 void Annot::generatePolygonAppearance () {
@@ -600,7 +542,6 @@ void Annot::generatePolygonAppearance () {
     int i;
 
     if (!getObject (&annotObj)->isDict ()) {
-        annotObj.free ();
         return;
     }
 
@@ -616,31 +557,22 @@ void Annot::generatePolygonAppearance () {
     //----- set fill color
     if (!annotObj.dictLookup ("IC", &obj1)->isArray () ||
         !setFillColor (&obj1)) {
-        obj1.free ();
         goto err1;
     }
-    obj1.free ();
 
     //----- fill polygon
     if (!annotObj.dictLookup ("Vertices", &obj1)->isArray ()) {
-        obj1.free ();
         goto err1;
     }
     for (i = 0; i + 1 < obj1.arrayGetLength (); i += 2) {
         if (!obj1.arrayGet (i, &obj2)->isNum ()) {
-            obj2.free ();
-            obj1.free ();
             goto err1;
         }
         x1 = obj2.getNum ();
-        obj2.free ();
         if (!obj1.arrayGet (i + 1, &obj2)->isNum ()) {
-            obj2.free ();
-            obj1.free ();
             goto err1;
         }
         y1 = obj2.getNum ();
-        obj2.free ();
         x1 -= xMin;
         y1 -= yMin;
         if (i == 0) { appearBuf->appendf ("{0:.4f} {1:.4f} m\n", x1, y1); }
@@ -649,7 +581,6 @@ void Annot::generatePolygonAppearance () {
         }
     }
     appearBuf->append ("f\n");
-    obj1.free ();
 
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
@@ -673,11 +604,9 @@ void Annot::generatePolygonAppearance () {
     //----- build the appearance stream
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
-    appearance.free ();
     appearance.initStream (appearStream);
 
-err1:
-    annotObj.free ();
+err1: ;
 }
 
 void Annot::setLineStyle (AnnotBorderStyle* bs, double* lineWidth) {
@@ -729,7 +658,6 @@ bool Annot::setFillColor (Object* colorObj) {
         else {
             color[i] = 0;
         }
-        obj.free ();
     }
     switch (colorObj->arrayGetLength ()) {
     case 1: appearBuf->appendf ("{0:.2f} g\n", color[0]); return true;
@@ -1038,7 +966,6 @@ Annots::Annots (PDFDoc* docA, Object* annotsObj) {
         for (i = 0; i < annotsObj->arrayGetLength (); ++i) {
             if (annotsObj->arrayGetNF (i, &obj1)->isRef ()) {
                 ref = obj1.getRef ();
-                obj1.free ();
                 annotsObj->arrayGet (i, &obj1);
             }
             else {
@@ -1060,9 +987,7 @@ Annots::Annots (PDFDoc* docA, Object* annotsObj) {
                         delete annot;
                     }
                 }
-                obj2.free ();
             }
-            obj1.free ();
         }
     }
 }

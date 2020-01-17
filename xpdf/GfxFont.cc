@@ -156,7 +156,6 @@ GfxFont* GfxFont::makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict) {
     else if (obj1.isString ()) {
         nameA = obj1.getString ()->copy ();
     }
-    obj1.free ();
 
     // get embedded font ID and font type
     typeA = getFontType (xref, fontDict, &embFontIDA);
@@ -236,7 +235,6 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
             errSyntaxWarning, -1, "Unknown font type: '{0:s}'",
             subtype.isName () ? subtype.getName () : "???");
     }
-    subtype.free ();
 
     fontDict2 = fontDict;
     if (fontDict->lookup ("DescendantFonts", &obj1)->isArray ()) {
@@ -258,7 +256,6 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
             else if (subtype.isName ("CIDFontType2")) {
                 if (isType0) { expectedType = fontCIDType2; }
             }
-            subtype.free ();
         }
     }
     else {
@@ -270,7 +267,6 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
             *embID = obj3.getRef ();
             if (expectedType != fontType1) { err = true; }
         }
-        obj3.free ();
         if (embID->num == -1 &&
             fontDesc.dictLookupNF ("FontFile2", &obj3)->isRef ()) {
             *embID = obj3.getRef ();
@@ -279,7 +275,6 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
                 err = true;
             }
         }
-        obj3.free ();
         if (embID->num == -1 &&
             fontDesc.dictLookupNF ("FontFile3", &obj3)->isRef ()) {
             *embID = obj3.getRef ();
@@ -337,13 +332,9 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
                         errSyntaxError, -1, "Unknown font type '{0:s}'",
                         subtype.isName () ? subtype.getName () : "???");
                 }
-                subtype.free ();
             }
-            obj4.free ();
         }
-        obj3.free ();
     }
-    fontDesc.free ();
 
     t = fontUnknownType;
     if (embID->num >= 0) {
@@ -372,8 +363,6 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
                 break;
             }
         }
-        obj4.free ();
-        obj3.free ();
     }
 
     if (t == fontUnknownType) { t = expectedType; }
@@ -386,8 +375,6 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
             "Mismatch between font type and embedded font file");
     }
 
-    obj2.free ();
-    obj1.free ();
 
     return t;
 }
@@ -407,17 +394,14 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
         if (obj1.dictLookup ("Flags", &obj2)->isInt ()) {
             flags = obj2.getInt ();
         }
-        obj2.free ();
 
         // get name
         obj1.dictLookup ("FontName", &obj2);
         if (obj2.isName ()) { embFontName = new GString (obj2.getName ()); }
-        obj2.free ();
 
         // look for MissingWidth
         obj1.dictLookup ("MissingWidth", &obj2);
         if (obj2.isNum ()) { missingWidth = obj2.getNum (); }
-        obj2.free ();
 
         // get Ascent and Descent
         obj1.dictLookup ("Ascent", &obj2);
@@ -429,7 +413,6 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
             // others set it to ridiculous values (e.g., 32768)
             if (t != 0 && t < 1.9) { ascent = t; }
         }
-        obj2.free ();
         obj1.dictLookup ("Descent", &obj2);
         if (obj2.isNum ()) {
             t = 0.001 * obj2.getNum ();
@@ -438,7 +421,6 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
             // some broken font descriptors set ascent and descent to 0
             if (t != 0 && t > -1.9) { descent = t; }
         }
-        obj2.free ();
 
         // font FontBBox
         if (obj1.dictLookup ("FontBBox", &obj2)->isArray ()) {
@@ -446,12 +428,9 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
                 if (obj2.arrayGet (i, &obj3)->isNum ()) {
                     fontBBox[i] = 0.001 * obj3.getNum ();
                 }
-                obj3.free ();
             }
         }
-        obj2.free ();
     }
-    obj1.free ();
 }
 
 CharCodeToUnicode*
@@ -462,7 +441,6 @@ GfxFont::readToUnicodeCMap (Dict* fontDict, int nBits, CharCodeToUnicode* ctu) {
     int n;
 
     if (!fontDict->lookup ("ToUnicode", &obj1)->isStream ()) {
-        obj1.free ();
         return NULL;
     }
     buf = new GString ();
@@ -471,7 +449,6 @@ GfxFont::readToUnicodeCMap (Dict* fontDict, int nBits, CharCodeToUnicode* ctu) {
         buf->append (buf2, n);
     }
     obj1.streamClose ();
-    obj1.free ();
     if (ctu) { ctu->mergeCMap (buf, nBits); }
     else {
         ctu = CharCodeToUnicode::parseCMap (buf, nBits);
@@ -501,8 +478,6 @@ GfxFontLoc* GfxFont::locateFont (XRef* xref, bool ps) {
             error (errSyntaxError, -1, "Embedded font object is wrong type");
             embed = false;
         }
-        embFontObj.free ();
-        refObj.free ();
         if (embed) {
             if (ps) {
                 switch (type) {
@@ -760,8 +735,6 @@ char* GfxFont::readEmbFontFile (XRef* xref, int* len) {
     obj1.fetch (xref, &obj2);
     if (!obj2.isStream ()) {
         error (errSyntaxError, -1, "Embedded font file is not a stream");
-        obj2.free ();
-        obj1.free ();
         embFontID.num = -1;
         return NULL;
     }
@@ -782,8 +755,6 @@ char* GfxFont::readEmbFontFile (XRef* xref, int* len) {
     *len = size;
     str->close ();
 
-    obj2.free ();
-    obj1.free ();
 
     return buf;
 }
@@ -894,10 +865,8 @@ Gfx8BitFont::Gfx8BitFont (
             if (obj1.arrayGet (i, &obj2)->isNum ()) {
                 fontMat[i] = obj2.getNum ();
             }
-            obj2.free ();
         }
     }
-    obj1.free ();
 
     // get Type 3 bounding box, font definition, and resources
     if (type == fontType3) {
@@ -906,18 +875,14 @@ Gfx8BitFont::Gfx8BitFont (
                 if (obj1.arrayGet (i, &obj2)->isNum ()) {
                     fontBBox[i] = obj2.getNum ();
                 }
-                obj2.free ();
             }
         }
-        obj1.free ();
         if (!fontDict->lookup ("CharProcs", &charProcs)->isDict ()) {
             error (
                 errSyntaxError, -1,
                 "Missing or invalid CharProcs dictionary in Type 3 font");
-            charProcs.free ();
         }
         if (!fontDict->lookup ("Resources", &resources)->isDict ()) {
-            resources.free ();
         }
     }
 
@@ -956,7 +921,6 @@ Gfx8BitFont::Gfx8BitFont (
             hasEncoding = true;
             baseEnc = winAnsiEncoding;
         }
-        obj2.free ();
     }
     else if (obj1.isName ("MacRomanEncoding")) {
         hasEncoding = true;
@@ -1068,12 +1032,9 @@ Gfx8BitFont::Gfx8BitFont (
                         "({0:s})",
                         obj3.getTypeName ());
                 }
-                obj3.free ();
             }
         }
-        obj2.free ();
     }
-    obj1.free ();
     if (ffT1) { delete ffT1; }
     if (ffT1C) { delete ffT1C; }
 
@@ -1207,11 +1168,9 @@ Gfx8BitFont::Gfx8BitFont (
     // use widths from font dict, if present
     fontDict->lookup ("FirstChar", &obj1);
     firstChar = obj1.isInt () ? obj1.getInt () : 0;
-    obj1.free ();
     if (firstChar < 0 || firstChar > 255) { firstChar = 0; }
     fontDict->lookup ("LastChar", &obj1);
     lastChar = obj1.isInt () ? obj1.getInt () : 255;
-    obj1.free ();
     if (lastChar < 0 || lastChar > 255) { lastChar = 255; }
     mul = (type == fontType3) ? fontMat[0] : 0.001;
     fontDict->lookup ("Widths", &obj1);
@@ -1228,7 +1187,6 @@ Gfx8BitFont::Gfx8BitFont (
                     flags &= ~fontFixedWidth;
                 }
             }
-            obj2.free ();
         }
 
         // use widths from built-in font
@@ -1272,7 +1230,6 @@ Gfx8BitFont::Gfx8BitFont (
             }
         }
     }
-    obj1.free ();
 
     ok = true;
 }
@@ -1520,14 +1477,12 @@ GfxCIDFont::GfxCIDFont (
         error (
             errSyntaxError, -1,
             "Missing or empty DescendantFonts entry in Type 0 font");
-        obj1.free ();
         goto err1;
     }
     if (!obj1.arrayGet (0, &desFontDictObj)->isDict ()) {
         error (errSyntaxError, -1, "Bad descendant font in Type 0 font");
         goto err2;
     }
-    obj1.free ();
     desFontDict = desFontDictObj.getDict ();
 
     // get info from font descriptor
@@ -1552,9 +1507,6 @@ GfxCIDFont::GfxCIDFont (
     }
     collection =
         obj2.getString ()->copy ()->append ('-')->append (obj3.getString ());
-    obj3.free ();
-    obj2.free ();
-    obj1.free ();
 
     // look for a ToUnicode CMap
     if (!(ctu = readToUnicodeCMap (fontDict, 16, NULL))) {
@@ -1598,7 +1550,6 @@ GfxCIDFont::GfxCIDFont (
         goto err2;
     }
     if (!(cMap = CMap::parse (NULL, collection, &obj1))) { goto err2; }
-    obj1.free ();
 
     // CIDToGIDMap
     // (the PDF spec only allows these for TrueType fonts, but Acrobat
@@ -1623,7 +1574,6 @@ GfxCIDFont::GfxCIDFont (
         else if (!obj1.isName ("Identity") && !obj1.isNull ()) {
             error (errSyntaxError, -1, "Invalid CIDToGIDMap entry in CID font");
         }
-        obj1.free ();
     }
 
     //----- character metrics -----
@@ -1632,7 +1582,6 @@ GfxCIDFont::GfxCIDFont (
     if (desFontDict->lookup ("DW", &obj1)->isInt ()) {
         widths.defWidth = obj1.getInt () * 0.001;
     }
-    obj1.free ();
 
     // char width exceptions
     if (desFontDict->lookup ("W", &obj1)->isArray ()) {
@@ -1660,7 +1609,6 @@ GfxCIDFont::GfxCIDFont (
                     error (
                         errSyntaxError, -1, "Bad widths array in Type 0 font");
                 }
-                obj4.free ();
                 i += 3;
             }
             else if (obj2.isInt () && obj3.isArray ()) {
@@ -1686,7 +1634,6 @@ GfxCIDFont::GfxCIDFont (
                             errSyntaxError, -1,
                             "Bad widths array in Type 0 font");
                     }
-                    obj4.free ();
                 }
                 i += 2;
             }
@@ -1694,14 +1641,11 @@ GfxCIDFont::GfxCIDFont (
                 error (errSyntaxError, -1, "Bad widths array in Type 0 font");
                 ++i;
             }
-            obj3.free ();
-            obj2.free ();
         }
         std::sort (
             widths.exceps, widths.exceps + widths.nExceps,
             cmpWidthExcepFunctor ());
     }
-    obj1.free ();
 
     // default metrics for vertical font
     if (desFontDict->lookup ("DW2", &obj1)->isArray () &&
@@ -1709,13 +1653,10 @@ GfxCIDFont::GfxCIDFont (
         if (obj1.arrayGet (0, &obj2)->isNum ()) {
             widths.defVY = obj2.getNum () * 0.001;
         }
-        obj2.free ();
         if (obj1.arrayGet (1, &obj2)->isNum ()) {
             widths.defHeight = obj2.getNum () * 0.001;
         }
-        obj2.free ();
     }
-    obj1.free ();
 
     // char metric exceptions for vertical font
     if (desFontDict->lookup ("W2", &obj1)->isArray ()) {
@@ -1748,9 +1689,6 @@ GfxCIDFont::GfxCIDFont (
                         errSyntaxError, -1,
                         "Bad widths (W2) array in Type 0 font");
                 }
-                obj6.free ();
-                obj5.free ();
-                obj4.free ();
                 i += 5;
             }
             else if (obj2.isInt () && obj3.isArray ()) {
@@ -1783,9 +1721,6 @@ GfxCIDFont::GfxCIDFont (
                             errSyntaxError, -1,
                             "Bad widths (W2) array in Type 0 font");
                     }
-                    obj6.free ();
-                    obj5.free ();
-                    obj4.free ();
                 }
                 i += 2;
             }
@@ -1794,25 +1729,17 @@ GfxCIDFont::GfxCIDFont (
                     errSyntaxError, -1, "Bad widths (W2) array in Type 0 font");
                 ++i;
             }
-            obj3.free ();
-            obj2.free ();
         }
         std::sort (
             widths.excepsV, widths.excepsV + widths.nExcepsV,
             cmpWidthExcepVFunctor ());
     }
-    obj1.free ();
 
-    desFontDictObj.free ();
     ok = true;
     return;
 
 err3:
-    obj3.free ();
-    obj2.free ();
 err2:
-    obj1.free ();
-    desFontDictObj.free ();
 err1:
     error (errSyntaxError, -1, "Failed to parse font object for '{0:t}'", name);
 }
@@ -1953,8 +1880,6 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
             error (errSyntaxError, -1, "font resource is not a dictionary");
             fonts[i] = NULL;
         }
-        obj1.free ();
-        obj2.free ();
     }
 }
 

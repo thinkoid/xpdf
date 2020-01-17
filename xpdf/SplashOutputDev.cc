@@ -1132,11 +1132,9 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             fontBuf = new GString ();
             refObj.initRef (embRef.num, embRef.gen);
             refObj.fetch (xref, &strObj);
-            refObj.free ();
             if (!strObj.isStream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
-                strObj.free ();
                 delete fontLoc;
                 goto err2;
             }
@@ -1145,7 +1143,6 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 fontBuf->append (blk, n);
             }
             strObj.streamClose ();
-            strObj.free ();
 #else
             if (!openTempFile (&tmpFileName, &tmpFile, "wb")) {
                 error (errIO, -1, "Couldn't create temporary font file");
@@ -1154,11 +1151,9 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             }
             refObj.initRef (embRef.num, embRef.gen);
             refObj.fetch (xref, &strObj);
-            refObj.free ();
             if (!strObj.isStream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
-                strObj.free ();
                 fclose (tmpFile);
                 delete fontLoc;
                 goto err2;
@@ -1168,7 +1163,6 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 fwrite (blk, 1, n, tmpFile);
             }
             strObj.streamClose ();
-            strObj.free ();
             fclose (tmpFile);
             fileName = tmpFileName;
 #endif
@@ -2645,7 +2639,6 @@ void SplashOutputDev::drawMaskedImage (
         maskDecode.arrayAdd (&decodeHigh);
         maskColorMap = new GfxImageColorMap (
             1, &maskDecode, new GfxDeviceGrayColorSpace ());
-        maskDecode.free ();
         drawSoftMaskedImage (
             state, ref, str, width, height, colorMap, maskStr, maskWidth,
             maskHeight, maskColorMap, interpolate);

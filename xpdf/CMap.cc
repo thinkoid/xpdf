@@ -102,7 +102,6 @@ CMap* CMap::parse (CMapCache* cache, GString* collectionA, Stream* str) {
     if (!str->getDict ()->lookup ("UseCMap", &obj1)->isNull ()) {
         cMap->useCMap (cache, &obj1);
     }
-    obj1.free ();
 
     str->reset ();
     cMap->parse2 (cache, &getCharFromStream, str);

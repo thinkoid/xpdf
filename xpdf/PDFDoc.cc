@@ -251,7 +251,6 @@ bool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
         // document is not encrypted
         ret = true;
     }
-    encrypt.free ();
     return ret;
 }
 
@@ -319,12 +318,7 @@ bool PDFDoc::isLinearized () {
         obj4.isDict ()) {
         obj4.dictLookup ("Linearized", &obj5);
         if (obj5.isNum () && obj5.getNum () > 0) { lin = true; }
-        obj5.free ();
     }
-    obj4.free ();
-    obj3.free ();
-    obj2.free ();
-    obj1.free ();
     delete parser;
     return lin;
 }
@@ -368,7 +362,6 @@ bool PDFDoc::saveEmbeddedFile2 (int idx, FILE* f) {
         fwrite (buf, 1, n, f);
     }
     strObj.streamClose ();
-    strObj.free ();
     return true;
 }
 
@@ -393,7 +386,6 @@ char* PDFDoc::getEmbeddedFileMem (int idx, int* size) {
         bufSize += n;
     } while (n == sizeInc);
     strObj.streamClose ();
-    strObj.free ();
     *size = bufSize;
     return buf;
 }

@@ -24,8 +24,6 @@ Outline::Outline (Object* outlineObj, XRef* xref) {
     if (first.isRef () && last.isRef ()) {
         items = OutlineItem::readItemList (&first, &last, NULL, xref);
     }
-    first.free ();
-    last.free ();
 }
 
 Outline::~Outline () {
@@ -47,18 +45,15 @@ OutlineItem::OutlineItem (
     if (dict->lookup ("Title", &obj1)->isString ()) {
         title = new TextString (obj1.getString ());
     }
-    obj1.free ();
 
     if (!dict->lookup ("Dest", &obj1)->isNull ()) {
         action = LinkAction::parseDest (&obj1);
     }
     else {
-        obj1.free ();
         if (!dict->lookup ("A", &obj1)->isNull ()) {
             action = LinkAction::parseAction (&obj1);
         }
     }
-    obj1.free ();
 
     itemRef = *itemRefA;
 
@@ -70,17 +65,12 @@ OutlineItem::OutlineItem (
     if (dict->lookup ("Count", &obj1)->isInt ()) {
         if (obj1.getInt () > 0) { startsOpen = true; }
     }
-    obj1.free ();
 }
 
 OutlineItem::~OutlineItem () {
     close ();
     if (title) { delete title; }
     if (action) { delete action; }
-    itemRef.free ();
-    firstRef.free ();
-    lastRef.free ();
-    nextRef.free ();
 }
 
 GList* OutlineItem::readItemList (
@@ -98,11 +88,9 @@ GList* OutlineItem::readItemList (
     p = firstItemRef;
     do {
         if (!p->fetch (xrefA, &obj)->isDict ()) {
-            obj.free ();
             break;
         }
         item = new OutlineItem (p, obj.getDict (), parentA, xrefA);
-        obj.free ();
 
         // check for loops with parents
         for (ancestor = parentA; ancestor; ancestor = ancestor->parent) {
