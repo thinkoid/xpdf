@@ -33,9 +33,9 @@
 
 #include <xpdf/GlobalParams.hh>
 
-#include <xpdf/NameToUnicodeTable.hh>
-#include <xpdf/UnicodeMapTables.hh>
-#include <xpdf/UTF8.hh>
+#include "NameToUnicodeTable.cc"
+#include "UnicodeMapTables.cc"
+#include "UTF8.cc"
 
 //------------------------------------------------------------------------
 

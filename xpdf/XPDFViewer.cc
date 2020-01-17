@@ -118,7 +118,7 @@
 #include "printDis.xbm"
 #include "about.xbm"
 
-#include <xpdf/about-text.hh>
+#include "about-text.cc"
 
 //------------------------------------------------------------------------
 
