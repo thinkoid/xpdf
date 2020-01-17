@@ -10,7 +10,6 @@
 
 class GString;
 class PDFDoc;
-struct XpdfSecurityHandler;
 
 //------------------------------------------------------------------------
 // SecurityHandler
@@ -107,40 +106,5 @@ private:
     GString* fileID;
     bool ok;
 };
-
-#ifdef ENABLE_PLUGINS
-//------------------------------------------------------------------------
-// ExternalSecurityHandler
-//------------------------------------------------------------------------
-
-class ExternalSecurityHandler : public SecurityHandler {
-public:
-    ExternalSecurityHandler (
-        PDFDoc* docA, Object* encryptDictA, XpdfSecurityHandler* xshA);
-    virtual ~ExternalSecurityHandler ();
-
-    virtual void* makeAuthData (GString* ownerPassword, GString* userPassword);
-    virtual void* getAuthData ();
-    virtual void freeAuthData (void* authData);
-    virtual bool authorize (void* authData);
-    virtual int getPermissionFlags () { return permFlags; }
-    virtual bool getOwnerPasswordOk () { return false; }
-    virtual unsigned char* getFileKey () { return fileKey; }
-    virtual int getFileKeyLength () { return fileKeyLength; }
-    virtual int getEncVersion () { return encVersion; }
-    virtual CryptAlgorithm getEncAlgorithm () { return encAlgorithm; }
-
-private:
-    Object encryptDict;
-    XpdfSecurityHandler* xsh;
-    void* docData;
-    int permFlags;
-    unsigned char fileKey[16];
-    int fileKeyLength;
-    int encVersion;
-    CryptAlgorithm encAlgorithm;
-    bool ok;
-};
-#endif // ENABLE_PLUGINS
 
 #endif // XPDF_XPDF_SECURITYHANDLER_HH

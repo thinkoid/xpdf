@@ -9,9 +9,6 @@
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/PDFCore.hh>
-#ifdef ENABLE_PLUGINS
-#include <xpdf/XpdfPluginAPI.hh>
-#endif
 #include <xpdf/SecurityHandler.hh>
 
 //------------------------------------------------------------------------
@@ -21,29 +18,17 @@
 SecurityHandler* SecurityHandler::make (PDFDoc* docA, Object* encryptDictA) {
     Object filterObj;
     SecurityHandler* secHdlr;
-#ifdef ENABLE_PLUGINS
-    XpdfSecurityHandler* xsh;
-#endif
 
     encryptDictA->dictLookup ("Filter", &filterObj);
     if (filterObj.isName ("Standard")) {
         secHdlr = new StandardSecurityHandler (docA, encryptDictA);
     }
     else if (filterObj.isName ()) {
-#ifdef ENABLE_PLUGINS
-        if ((xsh = globalParams->getSecurityHandler (filterObj.getName ()))) {
-            secHdlr = new ExternalSecurityHandler (docA, encryptDictA, xsh);
-        }
-        else {
-#endif
             error (
                 errSyntaxError, -1,
                 "Couldn't find the '{0:s}' security handler",
                 filterObj.getName ());
             secHdlr = NULL;
-#ifdef ENABLE_PLUGINS
-        }
-#endif
     }
     else {
         error (
@@ -318,76 +303,3 @@ bool StandardSecurityHandler::authorize (void* authData) {
     }
     return true;
 }
-
-#ifdef ENABLE_PLUGINS
-
-//------------------------------------------------------------------------
-// ExternalSecurityHandler
-//------------------------------------------------------------------------
-
-ExternalSecurityHandler::ExternalSecurityHandler (
-    PDFDoc* docA, Object* encryptDictA, XpdfSecurityHandler* xshA)
-    : SecurityHandler (docA) {
-    encryptDict = *encryptDictA;
-    xsh = xshA;
-    encAlgorithm = cryptRC4; //~ this should be obtained via getKey
-    ok = false;
-
-    if (!(*xsh->newDoc) (
-            xsh->handlerData, (XpdfDoc)docA, (XpdfObject)encryptDictA,
-            &docData)) {
-        return;
-    }
-
-    ok = true;
-}
-
-ExternalSecurityHandler::~ExternalSecurityHandler () {
-    (*xsh->freeDoc) (xsh->handlerData, docData);
-}
-
-void* ExternalSecurityHandler::makeAuthData (
-    GString* ownerPassword, GString* userPassword) {
-    char *opw, *upw;
-    void* authData;
-
-    opw = ownerPassword ? ownerPassword->c_str () : (char*)NULL;
-    upw = userPassword ? userPassword->c_str () : (char*)NULL;
-    if (!(*xsh->makeAuthData) (
-            xsh->handlerData, docData, opw, upw, &authData)) {
-        return NULL;
-    }
-    return authData;
-}
-
-void* ExternalSecurityHandler::getAuthData () {
-    void* authData;
-
-    if (!(*xsh->getAuthData) (xsh->handlerData, docData, &authData)) {
-        return NULL;
-    }
-    return authData;
-}
-
-void ExternalSecurityHandler::freeAuthData (void* authData) {
-    (*xsh->freeAuthData) (xsh->handlerData, docData, authData);
-}
-
-bool ExternalSecurityHandler::authorize (void* authData) {
-    char* key;
-    int length;
-
-    if (!ok) { return false; }
-    permFlags = (*xsh->authorize) (xsh->handlerData, docData, authData);
-    if (!(permFlags & xpdfPermissionOpen)) { return false; }
-    if (!(*xsh->getKey) (
-            xsh->handlerData, docData, &key, &length, &encVersion)) {
-        return false;
-    }
-    if ((fileKeyLength = length) > 16) { fileKeyLength = 16; }
-    memcpy (fileKey, key, fileKeyLength);
-    (*xsh->freeKey) (xsh->handlerData, docData, key, length);
-    return true;
-}
-
-#endif // ENABLE_PLUGINS

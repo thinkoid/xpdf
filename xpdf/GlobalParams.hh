@@ -19,7 +19,6 @@ class UnicodeMap;
 class UnicodeMapCache;
 class CMap;
 class CMapCache;
-struct XpdfSecurityHandler;
 class GlobalParams;
 class SysFontList;
 
@@ -289,11 +288,6 @@ public:
     void setPrintCommands (bool printCommandsA);
     void setErrQuiet (bool errQuietA);
 
-    //----- security handlers
-
-    void addSecurityHandler (XpdfSecurityHandler* handler);
-    XpdfSecurityHandler* getSecurityHandler (char* name);
-
 private:
     void createDefaultKeyBindings ();
     void parseFile (GString* fileName, FILE* f);
@@ -337,9 +331,6 @@ private:
         const char* cmdName, double* val, GList* tokens, GString* fileName,
         int line);
     UnicodeMap* getUnicodeMap2 (GString* encodingName);
-#ifdef ENABLE_PLUGINS
-    bool loadPlugin (char* type, char* name);
-#endif
 
     //----- static tables
 
@@ -451,12 +442,6 @@ private:
     CharCodeToUnicodeCache* unicodeToUnicodeCache;
     UnicodeMapCache* unicodeMapCache;
     CMapCache* cMapCache;
-
-#ifdef ENABLE_PLUGINS
-    GList* plugins;          // list of plugins [Plugin]
-    GList* securityHandlers; // list of loaded security handlers
-        //   [XpdfSecurityHandler]
-#endif
 };
 
 #endif // XPDF_XPDF_GLOBALPARAMS_HH
