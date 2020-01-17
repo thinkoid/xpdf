@@ -703,9 +703,11 @@ Object* Catalog::getEmbeddedFileStreamRef (int idx) {
 
 Object* Catalog::getEmbeddedFileStreamObj (int idx, Object* strObj) {
     ((EmbeddedFile*)embeddedFiles->get (idx))->streamRef.fetch (xref, strObj);
+
     if (!strObj->isStream ()) {
-        strObj->free ();
-        return NULL;
+        *strObj = { };
+        return 0;
     }
+
     return strObj;
 }

@@ -164,8 +164,7 @@ Object* Parser::getObj (
                 obj->initStream (str);
             }
             else {
-                obj->free ();
-                obj->initError ();
+                *obj = xpdf::make_error_object ();
             }
         }
         else {

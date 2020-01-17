@@ -25,9 +25,7 @@ using fmt::format;
 
 namespace xpdf {
 
-struct object_free_t {
-    void operator() (Object* p) const { if (p) p->free (); }
-};
+struct object_free_t { void operator() (Object*) const { } };
 
 struct stream_free_t {
     void operator() (Stream* p) const { if (p) p->close (); }

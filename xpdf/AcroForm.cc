@@ -1858,11 +1858,16 @@ Object* AcroFormField::fieldLookup (const char* key, Object* obj) {
 }
 
 Object* AcroFormField::fieldLookup (Dict* dict, const char* key, Object* obj) {
-    Object parent;
+    dict->lookup (key, obj);
 
-    if (!dict->lookup (key, obj)->isNull ()) { return obj; }
-    obj->free ();
-    if (dict->lookup ("Parent", &parent)->isDict ()) {
+    if (!obj->isNull ()) {
+        return obj;
+    }
+
+    Object parent;
+    dict->lookup ("Parent", &parent);
+
+    if (parent.isDict ()) {
         fieldLookup (parent.getDict (), key, obj);
     }
     else {
@@ -1870,6 +1875,6 @@ Object* AcroFormField::fieldLookup (Dict* dict, const char* key, Object* obj) {
         // dictionary just in case
         acroForm->acroFormObj.dictLookup (key, obj);
     }
-    parent.free ();
+
     return obj;
 }

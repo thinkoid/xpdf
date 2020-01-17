@@ -145,6 +145,7 @@ XpdfObject _xpdfDictGet (XpdfObject obj, char* key) {
 }
 
 void _xpdfFreeObj (XpdfObject obj) {
+    // TODO: This insanity worked with a union-based Object class:
     ((Object*)obj)->free ();
     free (obj);
 }

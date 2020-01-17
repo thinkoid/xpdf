@@ -292,11 +292,16 @@ bool GfxResources::lookupXObject (const char* name, Object* obj) {
 
     for (resPtr = this; resPtr; resPtr = resPtr->next) {
         if (resPtr->xObjDict.isDict ()) {
-            if (!resPtr->xObjDict.dictLookup (name, obj)->isNull ())
+            resPtr->xObjDict.dictLookup (name, obj);
+
+            if (!obj->isNull ()) {
                 return true;
-            obj->free ();
+            }
+
+            *obj = { };
         }
     }
+
     error (errSyntaxError, -1, "XObject '{0:s}' is unknown", name);
     return false;
 }
@@ -306,9 +311,13 @@ bool GfxResources::lookupXObjectNF (const char* name, Object* obj) {
 
     for (resPtr = this; resPtr; resPtr = resPtr->next) {
         if (resPtr->xObjDict.isDict ()) {
-            if (!resPtr->xObjDict.dictLookupNF (name, obj)->isNull ())
+            resPtr->xObjDict.dictLookupNF (name, obj);
+
+            if (!obj->isNull ()) {
                 return true;
-            obj->free ();
+            }
+
+            *obj = { };
         }
     }
     error (errSyntaxError, -1, "XObject '{0:s}' is unknown", name);
@@ -326,10 +335,13 @@ void GfxResources::lookupColorSpace (const char* name, Object* obj) {
     }
     for (resPtr = this; resPtr; resPtr = resPtr->next) {
         if (resPtr->colorSpaceDict.isDict ()) {
-            if (!resPtr->colorSpaceDict.dictLookup (name, obj)->isNull ()) {
+            resPtr->colorSpaceDict.dictLookup (name, obj);
+
+            if (!obj->isNull ()) {
                 return;
             }
-            obj->free ();
+
+            *obj = { };
         }
     }
     obj->initNull ();
@@ -380,10 +392,13 @@ bool GfxResources::lookupGState (const char* name, Object* obj) {
 
     for (resPtr = this; resPtr; resPtr = resPtr->next) {
         if (resPtr->gStateDict.isDict ()) {
-            if (!resPtr->gStateDict.dictLookup (name, obj)->isNull ()) {
+            resPtr->gStateDict.dictLookup (name, obj);
+
+            if (!obj->isNull ()) {
                 return true;
             }
-            obj->free ();
+
+            *obj = { };
         }
     }
     error (errSyntaxError, -1, "ExtGState '{0:s}' is unknown", name);
@@ -395,12 +410,16 @@ bool GfxResources::lookupPropertiesNF (const char* name, Object* obj) {
 
     for (resPtr = this; resPtr; resPtr = resPtr->next) {
         if (resPtr->propsDict.isDict ()) {
-            if (!resPtr->propsDict.dictLookupNF (name, obj)->isNull ()) {
+            resPtr->propsDict.dictLookupNF (name, obj);
+
+            if (!obj->isNull ()) {
                 return true;
             }
-            obj->free ();
+
+            *obj = { };
         }
     }
+
     error (errSyntaxError, -1, "Properties '{0:s}' is unknown", name);
     return false;
 }

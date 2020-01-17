@@ -6532,17 +6532,17 @@ bool PSOutputDev::getFileSpec (Object* fileSpec, Object* fileName) {
     if (fileSpec->isDict ()) {
         fileSpec->dictLookup ("DOS", fileName);
         if (fileName->isString ()) { return true; }
-        fileName->free ();
+
         fileSpec->dictLookup ("Mac", fileName);
         if (fileName->isString ()) { return true; }
-        fileName->free ();
+
         fileSpec->dictLookup ("Unix", fileName);
         if (fileName->isString ()) { return true; }
-        fileName->free ();
+
         fileSpec->dictLookup ("F", fileName);
         if (fileName->isString ()) { return true; }
-        fileName->free ();
     }
+
     return false;
 }
 #endif // OPI_SUPPORT

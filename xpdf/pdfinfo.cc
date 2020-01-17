@@ -73,7 +73,6 @@ int main (int argc, char* argv[]) {
     GString *ownerPW, *userPW;
     UnicodeMap* uMap;
     Page* page;
-    Object info, xfa;
     Object* acroForm;
     char buf[256];
     double w, h, wISO, hISO;
@@ -91,9 +90,14 @@ int main (int argc, char* argv[]) {
     if (!ok || argc != 2 || printVersion || printHelp) {
         fprintf (stderr, "pdfinfo version %s\n", PACKAGE_VERSION);
         fprintf (stderr, "%s\n", XPDF_COPYRIGHT);
-        if (!printVersion) { printUsage ("pdfinfo", "<PDF-file>", argDesc); }
-        goto err0;
+
+        if (!printVersion) {
+            printUsage ("pdfinfo", "<PDF-file>", argDesc);
+        }
+
+        return exitCode;
     }
+
     fileName = new GString (argv[1]);
 
     // read config file
@@ -103,8 +107,11 @@ int main (int argc, char* argv[]) {
     // get mapping to output encoding
     if (!(uMap = globalParams->getTextEncoding ())) {
         error (errConfig, -1, "Couldn't get text encoding");
+
         delete fileName;
-        goto err1;
+        delete globalParams;
+
+        return exitCode;
     }
 
     // open PDF file
@@ -119,9 +126,14 @@ int main (int argc, char* argv[]) {
     doc = new PDFDoc (fileName, ownerPW, userPW);
     if (userPW) { delete userPW; }
     if (ownerPW) { delete ownerPW; }
+
     if (!doc->isOk ()) {
-        exitCode = 1;
-        goto err2;
+        uMap->decRefCnt ();
+
+        delete doc;
+        delete globalParams;
+
+        return 1;
     }
 
     // get page range
@@ -138,7 +150,9 @@ int main (int argc, char* argv[]) {
     }
 
     // print doc info
+    Object info;
     doc->getDocInfo (&info);
+
     if (info.isDict ()) {
         printInfoString (info.getDict (), "Title", "Title:          ", uMap);
         printInfoString (info.getDict (), "Subject", "Subject:        ", uMap);
@@ -157,7 +171,6 @@ int main (int argc, char* argv[]) {
             printInfoDate (info.getDict (), "ModDate", "ModDate:        ");
         }
     }
-    info.free ();
 
     // print tagging info
     printf (
@@ -166,14 +179,15 @@ int main (int argc, char* argv[]) {
 
     // print form info
     if ((acroForm = doc->getCatalog ()->getAcroForm ())->isDict ()) {
+        Object xfa;
         acroForm->dictLookup ("XFA", &xfa);
+
         if (xfa.isStream () || xfa.isArray ()) {
             printf ("Form:           XFA\n");
         }
         else {
             printf ("Form:           AcroForm\n");
         }
-        xfa.free ();
     }
     else {
         printf ("Form:           none\n");
@@ -277,23 +291,22 @@ int main (int argc, char* argv[]) {
     exitCode = 0;
 
     // clean up
-err2:
     uMap->decRefCnt ();
     delete doc;
-err1:
+
     delete globalParams;
-err0:
 
     return exitCode;
 }
 
 static void printInfoString (
     Dict* infoDict, const char* key, const char* text, UnicodeMap* uMap) {
-    Object obj;
     TextString* s;
     Unicode* u;
     char buf[8];
     int i, n;
+
+    Object obj;
 
     if (infoDict->lookup (key, &obj)->isString ()) {
         fputs (text, stdout);
@@ -306,15 +319,15 @@ static void printInfoString (
         fputc ('\n', stdout);
         delete s;
     }
-    obj.free ();
 }
 
 static void printInfoDate (Dict* infoDict, const char* key, const char* text) {
-    Object obj;
     const char* s;
     int year, mon, day, hour, min, sec, n;
     struct tm tmStruct;
     char buf[256];
+
+    Object obj;
 
     if (infoDict->lookup (key, &obj)->isString ()) {
         fputs (text, stdout);
@@ -353,7 +366,6 @@ static void printInfoDate (Dict* infoDict, const char* key, const char* text) {
         }
         fputc ('\n', stdout);
     }
-    obj.free ();
 }
 
 static void printBox (const char* text, PDFRectangle* box) {

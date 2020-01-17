@@ -220,7 +220,7 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
 
 static void scanFonts (Dict* resDict, PDFDoc* doc) {
     Object obj1, obj2, xObjDict, xObj;
-    Object patternDict, pattern, gsDict, gs, smask, smaskGroup, resObj;
+    Object patternDict, pattern, resObj;
     Ref r;
     GfxFontDict* gfxFontDict;
     GfxFont* font;
@@ -283,30 +283,32 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
 
     // recursively scan any resource dictionaries in ExtGStates in this
     // resource dictionary
+    Object gsDict;
     resDict->lookup ("ExtGState", &gsDict);
+
     if (gsDict.isDict ()) {
         for (i = 0; i < gsDict.dictGetLength (); ++i) {
+            Object gs;
+
             if (gsDict.dictGetVal (i, &gs)->isDict ()) {
+                Object smask;
+
                 if (gs.dictLookup ("SMask", &smask)->isDict ()) {
+                    Object smaskGroup;
+
                     if (smask.dictLookup ("G", &smaskGroup)->isStream ()) {
                         smaskGroup.streamGetDict ()->lookupNF (
                             "Resources", &resObj);
                         scanFonts (&resObj, doc);
-                        resObj.free ();
                     }
-                    smaskGroup.free ();
                 }
-                smask.free ();
             }
-            gs.free ();
         }
     }
-    gsDict.free ();
 }
 
 static void scanFont (GfxFont* font, PDFDoc* doc) {
     Ref fontRef, embRef;
-    Object fontObj, toUnicodeObj;
     GString* name;
     bool emb, subset, hasToUnicode;
     GfxFontLoc* loc;
@@ -332,14 +334,15 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
 
     // look for a ToUnicode map
     hasToUnicode = false;
-    if (doc->getXRef ()
-            ->fetch (fontRef.num, fontRef.gen, &fontObj)
-            ->isDict ()) {
-        hasToUnicode =
-            fontObj.dictLookup ("ToUnicode", &toUnicodeObj)->isStream ();
-        toUnicodeObj.free ();
+
+    Object fontObj;
+    doc->getXRef ()->fetch (fontRef.num, fontRef.gen, &fontObj);
+
+    if (fontObj.isDict ()) {
+        Object toUnicodeObj;
+        hasToUnicode = fontObj.dictLookup (
+            "ToUnicode", &toUnicodeObj)->isStream ();
     }
-    fontObj.free ();
 
     // check for a font subset name: capital letters followed by a '+'
     // sign
