@@ -1,8 +1,5 @@
-/*
- * XpdfPluginAPI.h
- *
- * Copyright 2004 Glyph & Cog, LLC
- */
+// -*- mode: c++; -*-
+// Copyright 2004 Glyph & Cog, LLC
 
 #ifndef XPDFPLUGINAPI_H
 #define XPDFPLUGINAPI_H
