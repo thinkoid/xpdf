@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef XREF_H
-#define XREF_H
+#ifndef XPDF_XPDF_XREF_HH
+#define XPDF_XPDF_XREF_HH
 
 #include <defs.hh>
 
@@ -133,4 +133,4 @@ private:
     GFileOffset strToFileOffset (char* s);
 };
 
-#endif
+#endif // XPDF_XPDF_XREF_HH

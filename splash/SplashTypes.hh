@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHTYPES_H
-#define SPLASHTYPES_H
+#ifndef XPDF_SPLASH_SPLASHTYPES_HH
+#define XPDF_SPLASH_SPLASHTYPES_HH
 
 #include <defs.hh>
 
@@ -121,4 +121,4 @@ struct SplashScreenParams {
 
 typedef int SplashError;
 
-#endif
+#endif // XPDF_SPLASH_SPLASHTYPES_HH

@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHFTFONTFILE_H
-#define SPLASHFTFONTFILE_H
+#ifndef XPDF_SPLASH_SPLASHFTFONTFILE_HH
+#define XPDF_SPLASH_SPLASHFTFONTFILE_HH
 
 #include <defs.hh>
 
@@ -71,4 +71,4 @@ private:
     friend class SplashFTFont;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHFTFONTFILE_HH

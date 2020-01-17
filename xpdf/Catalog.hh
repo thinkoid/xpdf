@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2007 Glyph & Cog, LLC
 
-#ifndef CATALOG_H
-#define CATALOG_H
+#ifndef XPDF_XPDF_CATALOG_HH
+#define XPDF_XPDF_CATALOG_HH
 
 #include <defs.hh>
 
@@ -113,4 +113,4 @@ private:
     void readEmbeddedFile (Object* fileSpec, Object* name1);
 };
 
-#endif
+#endif // XPDF_XPDF_CATALOG_HH

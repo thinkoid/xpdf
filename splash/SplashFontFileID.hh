@@ -1,11 +1,10 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHFONTFILEID_H
-#define SPLASHFONTFILEID_H
+#ifndef XPDF_SPLASH_SPLASHFONTFILEID_HH
+#define XPDF_SPLASH_SPLASHFONTFILEID_HH
 
 #include <defs.hh>
-
 
 //------------------------------------------------------------------------
 // SplashFontFileID
@@ -18,4 +17,4 @@ public:
     virtual bool matches (SplashFontFileID* id) = 0;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHFONTFILEID_HH

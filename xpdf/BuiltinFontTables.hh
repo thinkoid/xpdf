@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef BUILTINFONTTABLES_H
-#define BUILTINFONTTABLES_H
+#ifndef XPDF_XPDF_BUILTINFONTTABLES_HH
+#define XPDF_XPDF_BUILTINFONTTABLES_HH
 
 #include <xpdf/BuiltinFont.hh>
 
@@ -15,4 +15,4 @@ extern BuiltinFont* builtinFontSubst[nBuiltinFontSubsts];
 extern void initBuiltinFontTables ();
 extern void freeBuiltinFontTables ();
 
-#endif
+#endif // XPDF_XPDF_BUILTINFONTTABLES_HH

@@ -1,10 +1,9 @@
 // -*- mode: c++; -*-
 
-#ifndef ZOOX_H
-#define ZOOX_H
+#ifndef XPDF_XPDF_ZOOX_HH
+#define XPDF_XPDF_ZOOX_HH
 
 #include <defs.hh>
-
 
 class GString;
 class GList;
@@ -210,4 +209,4 @@ private:
     bool parsed;
 };
 
-#endif
+#endif // XPDF_XPDF_ZOOX_HH

@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef GFXSTATE_H
-#define GFXSTATE_H
+#ifndef XPDF_XPDF_GFXSTATE_HH
+#define XPDF_XPDF_GFXSTATE_HH
 
 #include <defs.hh>
 
@@ -1275,4 +1275,4 @@ private:
     GfxState (GfxState* state, bool copyPath);
 };
 
-#endif
+#endif // XPDF_XPDF_GFXSTATE_HH

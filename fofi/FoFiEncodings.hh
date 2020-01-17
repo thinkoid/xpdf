@@ -1,11 +1,10 @@
 // -*- mode: c++; -*-
 // Copyright 1999-2003 Glyph & Cog, LLC
 
-#ifndef FOFIENCODINGS_H
-#define FOFIENCODINGS_H
+#ifndef XPDF_FOFI_FOFIENCODINGS_HH
+#define XPDF_FOFI_FOFIENCODINGS_HH
 
 #include <defs.hh>
-
 
 //------------------------------------------------------------------------
 // Type 1 and 1C font data
@@ -23,4 +22,4 @@ extern unsigned short fofiType1CISOAdobeCharset[229];
 extern unsigned short fofiType1CExpertCharset[166];
 extern unsigned short fofiType1CExpertSubsetCharset[87];
 
-#endif
+#endif // XPDF_FOFI_FOFIENCODINGS_HH

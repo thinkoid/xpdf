@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2009 Glyph & Cog, LLC
 
-#ifndef FOFIIDENTIFIER_H
-#define FOFIIDENTIFIER_H
+#ifndef XPDF_FOFI_FOFIIDENTIFIER_HH
+#define XPDF_FOFI_FOFIIDENTIFIER_HH
 
 #include <defs.hh>
 
@@ -34,4 +34,4 @@ public:
     static FoFiIdentifierType identifyStream (int (*) (void*), void*);
 };
 
-#endif
+#endif // XPDF_FOFI_FOFIIDENTIFIER_HH

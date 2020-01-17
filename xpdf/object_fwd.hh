@@ -16,4 +16,4 @@ struct object_t;
 using Object = xpdf::object_t;
 using Ref = xpdf::ref_t;
 
-#endif // XPDF_LEGACY_XPDF_OBJECT_FWD_HH
+#endif // XPDF_XPDF_OBJECT_FWD_HH

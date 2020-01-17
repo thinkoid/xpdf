@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef GFX_H
-#define GFX_H
+#ifndef XPDF_XPDF_GFX_HH
+#define XPDF_XPDF_GFX_HH
 
 #include <defs.hh>
 
@@ -347,4 +347,4 @@ private:
     void popResources ();
 };
 
-#endif
+#endif // XPDF_XPDF_GFX_HH

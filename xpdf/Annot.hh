@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2000-2003 Glyph & Cog, LLC
 
-#ifndef ANNOT_H
-#define ANNOT_H
+#ifndef XPDF_XPDF_ANNOT_HH
+#define XPDF_XPDF_ANNOT_HH
 
 #include <defs.hh>
 
@@ -161,4 +161,4 @@ private:
     int nAnnots;
 };
 
-#endif
+#endif // XPDF_XPDF_ANNOT_HH

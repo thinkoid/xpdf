@@ -1,11 +1,10 @@
 // -*- mode: c++; -*-
 // Copyright 1999-2003 Glyph & Cog, LLC
 
-#ifndef FOFIBASE_H
-#define FOFIBASE_H
+#ifndef XPDF_FOFI_FOFIBASE_HH
+#define XPDF_FOFI_FOFIBASE_HH
 
 #include <defs.hh>
-
 
 //------------------------------------------------------------------------
 
@@ -44,4 +43,4 @@ protected:
     bool freeFileData;
 };
 
-#endif
+#endif // XPDF_FOFI_FOFIBASE_HH

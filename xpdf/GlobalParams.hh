@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef GLOBALPARAMS_H
-#define GLOBALPARAMS_H
+#ifndef XPDF_XPDF_GLOBALPARAMS_HH
+#define XPDF_XPDF_GLOBALPARAMS_HH
 
 #include <defs.hh>
 
@@ -459,4 +459,4 @@ private:
 #endif
 };
 
-#endif
+#endif // XPDF_XPDF_GLOBALPARAMS_HH

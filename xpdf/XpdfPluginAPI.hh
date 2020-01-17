@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2004 Glyph & Cog, LLC
 
-#ifndef XPDFPLUGINAPI_H
-#define XPDFPLUGINAPI_H
+#ifndef XPDF_XPDF_XPDFPLUGINAPI_HH
+#define XPDF_XPDF_XPDFPLUGINAPI_HH
 
 #define Object XtObject
 #include <X11/Intrinsic.h>
@@ -294,4 +294,4 @@ extern XpdfPluginVecTable xpdfPluginVecTable;
 }
 #endif
 
-#endif
+#endif // XPDF_XPDF_XPDFPLUGINAPI_HH

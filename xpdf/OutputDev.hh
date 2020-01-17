@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef OUTPUTDEV_H
-#define OUTPUTDEV_H
+#ifndef XPDF_XPDF_OUTPUTDEV_HH
+#define XPDF_XPDF_OUTPUTDEV_HH
 
 #include <defs.hh>
 
@@ -252,4 +252,4 @@ private:
     double defICTM[6]; // inverse of default CTM
 };
 
-#endif
+#endif // XPDF_XPDF_OUTPUTDEV_HH

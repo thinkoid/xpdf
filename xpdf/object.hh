@@ -333,4 +333,4 @@ object_t make_dictionary_object (XRef*);
 using Object = xpdf::object_t;
 using Ref = xpdf::ref_t;
 
-#endif // XPDF_LEGACY_XPDF_OBJECT_HH
+#endif // XPDF_XPDF_OBJECT_HH

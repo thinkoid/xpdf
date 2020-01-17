@@ -1,9 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef UNICODETYPETABLE_H
-#define UNICODETYPETABLE_H
-
+#ifndef XPDF_XPDF_UNICODETYPETABLE_HH
+#define XPDF_XPDF_UNICODETYPETABLE_HH
 
 extern bool unicodeTypeL (Unicode c);
 
@@ -17,4 +16,4 @@ extern bool unicodeTypeWord (Unicode c);
 
 extern Unicode unicodeToUpper (Unicode c);
 
-#endif
+#endif // XPDF_XPDF_UNICODETYPETABLE_HH

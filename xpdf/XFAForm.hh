@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2012 Glyph & Cog, LLC
 
-#ifndef XFAFORM_H
-#define XFAFORM_H
+#ifndef XPDF_XPDF_XFAFORM_HH
+#define XPDF_XPDF_XFAFORM_HH
 
 #include <defs.hh>
 
@@ -123,4 +123,4 @@ private:
     friend class XFAFormField;
 };
 
-#endif
+#endif // XPDF_XPDF_XFAFORM_HH

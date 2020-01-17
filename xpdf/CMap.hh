@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef CMAP_H
-#define CMAP_H
+#ifndef XPDF_XPDF_CMAP_HH
+#define XPDF_XPDF_CMAP_HH
 
 #include <defs.hh>
 
@@ -90,4 +90,4 @@ private:
     CMap* cache[cMapCacheSize];
 };
 
-#endif
+#endif // XPDF_XPDF_CMAP_HH

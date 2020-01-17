@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHXPATHSCANNER_H
-#define SPLASHXPATHSCANNER_H
+#ifndef XPDF_SPLASH_SPLASHXPATHSCANNER_HH
+#define XPDF_SPLASH_SPLASHXPATHSCANNER_HH
 
 #include <defs.hh>
 
@@ -66,4 +66,4 @@ private:
     int nextSeg;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHXPATHSCANNER_HH

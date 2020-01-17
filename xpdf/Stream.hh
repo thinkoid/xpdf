@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef STREAM_H
-#define STREAM_H
+#ifndef XPDF_XPDF_STREAM_HH
+#define XPDF_XPDF_STREAM_HH
 
 #include <defs.hh>
 
@@ -930,4 +930,4 @@ private:
     void fillBuf ();
 };
 
-#endif
+#endif // XPDF_XPDF_STREAM_HH

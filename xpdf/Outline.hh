@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2002-2013 Glyph & Cog, LLC
 
-#ifndef OUTLINE_H
-#define OUTLINE_H
+#ifndef XPDF_XPDF_OUTLINE_HH
+#define XPDF_XPDF_OUTLINE_HH
 
 #include <defs.hh>
 
@@ -65,4 +65,4 @@ private:
     OutlineItem* parent;
 };
 
-#endif
+#endif // XPDF_XPDF_OUTLINE_HH

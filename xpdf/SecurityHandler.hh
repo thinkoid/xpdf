@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2004 Glyph & Cog, LLC
 
-#ifndef SECURITYHANDLER_H
-#define SECURITYHANDLER_H
+#ifndef XPDF_XPDF_SECURITYHANDLER_HH
+#define XPDF_XPDF_SECURITYHANDLER_HH
 
 #include <defs.hh>
 
@@ -143,4 +143,4 @@ private:
 };
 #endif // ENABLE_PLUGINS
 
-#endif
+#endif // XPDF_XPDF_SECURITYHANDLER_HH

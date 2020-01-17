@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHFONT_H
-#define SPLASHFONT_H
+#ifndef XPDF_SPLASH_SPLASHFONT_HH
+#define XPDF_SPLASH_SPLASHFONT_HH
 
 #include <defs.hh>
 
@@ -94,4 +94,4 @@ protected:
     int cacheAssoc;     // cache associativity (glyphs per set)
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHFONT_HH

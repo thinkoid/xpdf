@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2008-2013 Glyph & Cog, LLC
 
-#ifndef OPTIONALCONTENT_H
-#define OPTIONALCONTENT_H
+#ifndef XPDF_XPDF_OPTIONALCONTENT_HH
+#define XPDF_XPDF_OPTIONALCONTENT_HH
 
 #include <defs.hh>
 
@@ -111,4 +111,4 @@ private:
         //   [OCDisplayNode]
 };
 
-#endif
+#endif // XPDF_XPDF_OPTIONALCONTENT_HH

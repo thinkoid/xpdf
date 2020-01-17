@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2012 Glyph & Cog, LLC
 
-#ifndef ACROFORM_H
-#define ACROFORM_H
+#ifndef XPDF_XPDF_ACROFORM_HH
+#define XPDF_XPDF_ACROFORM_HH
 
 #include <defs.hh>
 
@@ -129,4 +129,4 @@ private:
 
 //------------------------------------------------------------------------
 
-#endif
+#endif // XPDF_XPDF_ACROFORM_HH

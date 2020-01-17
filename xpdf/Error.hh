@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef XPDF_XPDF_ERROR_HH
+#define XPDF_XPDF_ERROR_HH
 
 #include <defs.hh>
 
@@ -32,4 +32,4 @@ extern void setErrorCallback (
 extern void
 error (ErrorCategory category, GFileOffset pos, const char* msg, ...);
 
-#endif
+#endif // XPDF_XPDF_ERROR_HH

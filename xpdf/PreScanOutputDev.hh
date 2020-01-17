@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2005 Glyph & Cog, LLC
 
-#ifndef PRESCANOUTPUTDEV_H
-#define PRESCANOUTPUTDEV_H
+#ifndef XPDF_XPDF_PRESCANOUTPUTDEV_HH
+#define XPDF_XPDF_PRESCANOUTPUTDEV_HH
 
 #include <defs.hh>
 
@@ -137,4 +137,4 @@ private:
     bool gdi;
 };
 
-#endif
+#endif // XPDF_XPDF_PRESCANOUTPUTDEV_HH

@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1997-2012 Glyph & Cog, LLC
 
-#ifndef TEXTOUTPUTDEV_H
-#define TEXTOUTPUTDEV_H
+#ifndef XPDF_XPDF_TEXTOUTPUTDEV_HH
+#define XPDF_XPDF_TEXTOUTPUTDEV_HH
 
 #include <defs.hh>
 
@@ -547,4 +547,4 @@ private:
     bool ok;                  // set up ok?
 };
 
-#endif
+#endif // XPDF_XPDF_TEXTOUTPUTDEV_HH

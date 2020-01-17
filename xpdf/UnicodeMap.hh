@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef UNICODEMAP_H
-#define UNICODEMAP_H
+#ifndef XPDF_XPDF_UNICODEMAP_HH
+#define XPDF_XPDF_UNICODEMAP_HH
 
 #include <defs.hh>
 
@@ -98,4 +98,4 @@ private:
     UnicodeMap* cache[unicodeMapCacheSize];
 };
 
-#endif
+#endif // XPDF_XPDF_UNICODEMAP_HH

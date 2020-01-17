@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
 
-#ifndef XPDFCORE_H
-#define XPDFCORE_H
+#ifndef XPDF_XPDF_XPDFCORE_HH
+#define XPDF_XPDF_XPDFCORE_HH
 
 #include <defs.hh>
 
@@ -247,4 +247,4 @@ private:
     GString* password;
 };
 
-#endif
+#endif // XPDF_XPDF_XPDFCORE_HH

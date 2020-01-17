@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2011-2013 Glyph & Cog, LLC
 
-#ifndef TEXTSTRING_H
-#define TEXTSTRING_H
+#ifndef XPDF_XPDF_TEXTSTRING_HH
+#define XPDF_XPDF_TEXTSTRING_HH
 
 #include <defs.hh>
 
@@ -48,4 +48,4 @@ private:
     int size;
 };
 
-#endif
+#endif // XPDF_XPDF_TEXTSTRING_HH

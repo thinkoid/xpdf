@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2010 Glyph & Cog, LLC
 
-#ifndef HTMLGEN_H
-#define HTMLGEN_H
+#ifndef XPDF_XPDF_HTMLGEN_HH
+#define XPDF_XPDF_HTMLGEN_HH
 
 #include <defs.hh>
 
@@ -52,4 +52,4 @@ private:
     bool ok;
 };
 
-#endif
+#endif // XPDF_XPDF_HTMLGEN_HH

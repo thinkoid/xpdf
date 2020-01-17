@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef GSTRING_H
-#define GSTRING_H
+#ifndef XPDF_GOO_GSTRING_HH
+#define XPDF_GOO_GSTRING_HH
 
 #include <defs.hh>
 
@@ -10,7 +10,6 @@
 #include <cstdarg>
 
 #include <string>
-
 
 class GString : std::string {
 public:
@@ -203,4 +202,4 @@ public:
     GString* sanitizedName (bool psmode) const;
 };
 
-#endif
+#endif // XPDF_GOO_GSTRING_HH

@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
 
-#ifndef XPDFTREE_H
-#define XPDFTREE_H
+#ifndef XPDF_XPDF_XPDFTREE_HH
+#define XPDF_XPDF_XPDFTREE_HH
 
 #include <defs.hh>
 #include <Xm/Xm.h>
@@ -38,4 +38,4 @@ XPDFCreateTree (Widget parent, char* name, ArgList argList, Cardinal argCount);
 
 } // extern "C"
 
-#endif
+#endif // XPDF_XPDF_XPDFTREE_HH

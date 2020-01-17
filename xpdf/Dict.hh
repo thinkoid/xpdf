@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef DICT_H
-#define DICT_H
+#ifndef XPDF_XPDF_DICT_HH
+#define XPDF_XPDF_DICT_HH
 
 #include <defs.hh>
 
@@ -72,4 +72,4 @@ private:
     std::list< std::tuple< std::string, Object > > xs;
 };
 
-#endif
+#endif // XPDF_XPDF_DICT_HH

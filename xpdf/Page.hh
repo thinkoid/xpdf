@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef PAGE_H
-#define PAGE_H
+#ifndef XPDF_XPDF_PAGE_HH
+#define XPDF_XPDF_PAGE_HH
 
 #include <defs.hh>
 
@@ -201,4 +201,4 @@ private:
     bool ok;         // true if page is valid
 };
 
-#endif
+#endif // XPDF_XPDF_PAGE_HH

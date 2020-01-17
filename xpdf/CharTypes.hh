@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef CHARTYPES_H
-#define CHARTYPES_H
+#ifndef XPDF_XPDF_CHARTYPES_HH
+#define XPDF_XPDF_CHARTYPES_HH
 
 // Unicode character.
 typedef unsigned int Unicode;
@@ -16,4 +16,4 @@ typedef unsigned int CID;
 // - Unicode
 typedef unsigned int CharCode;
 
-#endif
+#endif // XPDF_XPDF_CHARTYPES_HH

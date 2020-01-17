@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef GFILE_H
-#define GFILE_H
+#ifndef XPDF_GOO_GFILE_HH
+#define XPDF_GOO_GFILE_HH
 
 #include <cstdio>
 #include <cstdlib>
@@ -13,7 +13,6 @@
 
 #include <dirent.h>
 #define NAMLEN(d) strlen ((d)->d_name)
-
 
 class GString;
 
@@ -106,4 +105,4 @@ private:
     DIR* dir;      // the DIR structure from opendir()
 };
 
-#endif
+#endif // XPDF_GOO_GFILE_HH

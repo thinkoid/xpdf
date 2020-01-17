@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef GFXFONT_H
-#define GFXFONT_H
+#ifndef XPDF_XPDF_GFXFONT_HH
+#define XPDF_XPDF_GFXFONT_HH
 
 #include <defs.hh>
 
@@ -349,4 +349,4 @@ private:
     int numFonts;    // number of fonts
 };
 
-#endif
+#endif // XPDF_XPDF_GFXFONT_HH

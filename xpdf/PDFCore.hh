@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2004 Glyph & Cog, LLC
 
-#ifndef PDFCORE_H
-#define PDFCORE_H
+#ifndef XPDF_XPDF_PDFCORE_HH
+#define XPDF_XPDF_PDFCORE_HH
 
 #include <defs.hh>
 
@@ -311,4 +311,4 @@ protected:
     friend class PDFCoreTile;
 };
 
-#endif
+#endif // XPDF_XPDF_PDFCORE_HH

@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
 
-#ifndef XPDFAPP_H
-#define XPDFAPP_H
+#ifndef XPDF_XPDF_XPDFAPP_HH
+#define XPDF_XPDF_XPDFAPP_HH
 
 #include <defs.hh>
 
@@ -100,4 +100,4 @@ private:
     bool fullScreen;
 };
 
-#endif
+#endif // XPDF_XPDF_XPDFAPP_HH

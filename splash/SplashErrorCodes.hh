@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHERRORCODES_H
-#define SPLASHERRORCODES_H
+#ifndef XPDF_SPLASH_SPLASHERRORCODES_HH
+#define XPDF_SPLASH_SPLASHERRORCODES_HH
 
 #include <defs.hh>
 
@@ -26,4 +26,4 @@
 
 #define splashErrSingularMatrix 8 // matrix is singular
 
-#endif
+#endif // XPDF_SPLASH_SPLASHERRORCODES_HH

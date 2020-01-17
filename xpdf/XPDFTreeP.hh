@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
 
-#ifndef XPDFTREEP_H
-#define XPDFTREEP_H
+#ifndef XPDF_XPDF_XPDFTREEP_HH
+#define XPDF_XPDF_XPDFTREEP_HH
 
 #include <defs.hh>
 #include <Xm/ManagerP.h>
@@ -80,4 +80,4 @@ typedef struct _XPDFTreeConstraintRec {
 
 } // extern "C"
 
-#endif
+#endif // XPDF_XPDF_XPDFTREEP_HH

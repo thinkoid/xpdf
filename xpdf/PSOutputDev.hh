@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef PSOUTPUTDEV_H
-#define PSOUTPUTDEV_H
+#ifndef XPDF_XPDF_PSOUTPUTDEV_HH
+#define XPDF_XPDF_PSOUTPUTDEV_HH
 
 #include <defs.hh>
 
@@ -396,4 +396,4 @@ private:
     friend class WinPDFPrinter;
 };
 
-#endif
+#endif // XPDF_XPDF_PSOUTPUTDEV_HH

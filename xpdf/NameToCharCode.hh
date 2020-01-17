@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef NAMETOCHARCODE_H
-#define NAMETOCHARCODE_H
+#ifndef XPDF_XPDF_NAMETOCHARCODE_HH
+#define XPDF_XPDF_NAMETOCHARCODE_HH
 
 #include <defs.hh>
 
@@ -28,4 +28,4 @@ private:
     int len;
 };
 
-#endif
+#endif // XPDF_XPDF_NAMETOCHARCODE_HH

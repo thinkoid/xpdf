@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
 
-#ifndef XPDFVIEWER_H
-#define XPDFVIEWER_H
+#ifndef XPDF_XPDF_XPDFVIEWER_HH
+#define XPDF_XPDF_XPDFVIEWER_HH
 
 #include <defs.hh>
 
@@ -321,4 +321,4 @@ private:
     Widget printLastPage;
 };
 
-#endif
+#endif // XPDF_XPDF_XPDFVIEWER_HH

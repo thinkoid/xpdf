@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1999-2003 Glyph & Cog, LLC
 
-#ifndef FOFITYPE1C_H
-#define FOFITYPE1C_H
+#ifndef XPDF_FOFI_FOFITYPE1C_HH
+#define XPDF_FOFI_FOFITYPE1C_HH
 
 #include <defs.hh>
 
@@ -239,4 +239,4 @@ private:
     bool openPath;   // true if there is an unclosed path
 };
 
-#endif
+#endif // XPDF_FOFI_FOFITYPE1C_HH

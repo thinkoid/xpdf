@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef LINK_H
-#define LINK_H
+#ifndef XPDF_XPDF_LINK_HH
+#define XPDF_XPDF_LINK_HH
 
 #include <defs.hh>
 
@@ -419,4 +419,4 @@ private:
     int numLinks;
 };
 
-#endif
+#endif // XPDF_XPDF_LINK_HH

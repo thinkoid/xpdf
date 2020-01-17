@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef XPDF_XPDF_PARSER_HH
+#define XPDF_XPDF_PARSER_HH
 
 #include <defs.hh>
 
@@ -49,4 +49,4 @@ private:
     void shift ();
 };
 
-#endif
+#endif // XPDF_XPDF_PARSER_HH

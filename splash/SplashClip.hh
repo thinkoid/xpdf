@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
 
-#ifndef SPLASHCLIP_H
-#define SPLASHCLIP_H
+#ifndef XPDF_SPLASH_SPLASHCLIP_HH
+#define XPDF_SPLASH_SPLASHCLIP_HH
 
 #include <defs.hh>
 
@@ -110,4 +110,4 @@ private:
     unsigned char* buf;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHCLIP_HH

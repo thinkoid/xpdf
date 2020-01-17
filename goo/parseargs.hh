@@ -1,13 +1,12 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef PARSEARGS_H
-#define PARSEARGS_H
+#ifndef XPDF_GOO_PARSEARGS_HH
+#define XPDF_GOO_PARSEARGS_HH
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /*
  * Argument kinds.
@@ -63,4 +62,4 @@ extern bool isFP (char* s);
 }
 #endif
 
-#endif
+#endif // XPDF_GOO_PARSEARGS_HH
