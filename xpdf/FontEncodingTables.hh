@@ -1,10 +1,5 @@
-//========================================================================
-//
-// FontEncodingTables.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef FONTENCODINGTABLES_H
 #define FONTENCODINGTABLES_H

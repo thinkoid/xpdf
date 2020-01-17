@@ -1,10 +1,5 @@
-//========================================================================
-//
-// BuiltinFontTables.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef BUILTINFONTTABLES_H
 #define BUILTINFONTTABLES_H

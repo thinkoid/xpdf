@@ -1,10 +1,5 @@
-/*
- * parseargs.h
- *
- * Command line argument parser.
- *
- * Copyright 1996-2003 Glyph & Cog, LLC
- */
+// -*- mode: c++; -*-
+// Copyright 1996-2003 Glyph & Cog, LLC
 
 #ifndef PARSEARGS_H
 #define PARSEARGS_H

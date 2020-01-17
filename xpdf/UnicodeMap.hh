@@ -1,12 +1,5 @@
-//========================================================================
-//
-// UnicodeMap.h
-//
-// Mapping from Unicode to an encoding.
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef UNICODEMAP_H
 #define UNICODEMAP_H

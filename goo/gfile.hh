@@ -1,12 +1,5 @@
-//========================================================================
-//
-// gfile.h
-//
-// Miscellaneous file and directory name manipulation.
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef GFILE_H
 #define GFILE_H

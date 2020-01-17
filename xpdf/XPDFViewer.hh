@@ -1,10 +1,5 @@
-//========================================================================
-//
-// XPDFViewer.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef XPDFVIEWER_H
 #define XPDFVIEWER_H
@@ -171,7 +166,7 @@ private:
     //----- GUI code: main window
     void initWindow (bool fullScreen);
     void initToolbar (Widget parent);
-#ifndef DISABLE_OUTLINE
+#if !defined (DISABLE_OUTLINE)
     void initPanedWin (Widget parent);
 #endif
     void initCore (Widget parent, bool fullScreen);
@@ -221,7 +216,7 @@ private:
         const char* linkString);
 
     //----- GUI code: outline
-#ifndef DISABLE_OUTLINE
+#if !defined (DISABLE_OUTLINE)
     void setupOutline ();
     void setupOutlineItems (GList* items, Widget parent, UnicodeMap* uMap);
     static void
@@ -271,7 +266,7 @@ private:
     Widget win; // top-level window
     Widget form;
     Widget panedWin;
-#ifndef DISABLE_OUTLINE
+#if !defined (DISABLE_OUTLINE)
     Widget outlineScroll;
     Widget outlineTree;
     Widget* outlineLabels;

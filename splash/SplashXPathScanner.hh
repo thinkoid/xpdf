@@ -1,10 +1,5 @@
-//========================================================================
-//
-// SplashXPathScanner.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef SPLASHXPATHSCANNER_H
 #define SPLASHXPATHSCANNER_H

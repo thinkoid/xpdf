@@ -1,10 +1,5 @@
-//========================================================================
-//
-// PreScanOutputDev.h
-//
+// -*- mode: c++; -*-
 // Copyright 2005 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef PRESCANOUTPUTDEV_H
 #define PRESCANOUTPUTDEV_H

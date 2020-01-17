@@ -1,10 +1,5 @@
-//========================================================================
-//
-// SplashFTFontEngine.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef SPLASHFTFONTENGINE_H
 #define SPLASHFTFONTENGINE_H

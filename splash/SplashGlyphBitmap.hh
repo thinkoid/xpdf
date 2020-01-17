@@ -1,10 +1,5 @@
-//========================================================================
-//
-// SplashGlyphBitmap.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef SPLASHGLYPHBITMAP_H
 #define SPLASHGLYPHBITMAP_H

@@ -1,12 +1,5 @@
-//========================================================================
-//
-// Stream-CCITT.h
-//
-// Tables for CCITT Fax decoding.
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef STREAM_CCITT_H
 #define STREAM_CCITT_H
