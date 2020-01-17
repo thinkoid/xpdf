@@ -224,8 +224,6 @@ struct object_t {
     const char* getTypeName () const;
     void print (FILE* = stdout);
 
-    void free ();
-
     //
     // Fetch referenced objects if object_t is a reference. Otherwise, copy this
     // object:

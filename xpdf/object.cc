@@ -81,10 +81,6 @@ object_t* object_t::initStream (Stream* p) {
     return this;
 }
 
-void object_t::free () {
-    initNull ();
-}
-
 object_t* object_t::fetch (XRef* xref, object_t* obj, int recursion) {
     return *obj = xpdf::fetch (*this, *xref, recursion), obj;
 }

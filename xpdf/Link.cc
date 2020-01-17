@@ -685,7 +685,7 @@ LinkHide::LinkHide (Object* fieldsObj, Object* hideFlagObj) {
     }
 }
 
-LinkHide::~LinkHide () { fields.free (); }
+LinkHide::~LinkHide () { }
 
 //------------------------------------------------------------------------
 // LinkUnknown

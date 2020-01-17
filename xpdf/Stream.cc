@@ -242,7 +242,7 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
 
 BaseStream::BaseStream (Object* dictA) { dict = *dictA; }
 
-BaseStream::~BaseStream () { dict.free (); }
+BaseStream::~BaseStream () { }
 
 //------------------------------------------------------------------------
 // FilterStream

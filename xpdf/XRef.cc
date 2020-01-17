@@ -237,12 +237,7 @@ err1:
 }
 
 ObjectStream::~ObjectStream () {
-    int i;
-
-    if (objs) {
-        for (i = 0; i < nObjects; ++i) { objs[i].free (); }
-        delete[] objs;
-    }
+    if (objs) { delete[] objs; }
     free (objNums);
 }
 

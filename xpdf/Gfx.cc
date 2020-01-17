@@ -613,7 +613,8 @@ void Gfx::go (bool topLevel) {
                 fflush (stdout);
             }
             if (!execOp (&obj, args, numArgs)) { ++errCount; }
-            for (i = 0; i < numArgs; ++i) args[i].free ();
+
+            fill (args, args + numArgs, xpdf::object_t{ });
             numArgs = 0;
 
             // periodically update display
@@ -672,7 +673,8 @@ void Gfx::go (bool topLevel) {
             printf ("\n");
             fflush (stdout);
         }
-        for (i = 0; i < numArgs; ++i) args[i].free ();
+
+        fill (args, args + numArgs, xpdf::object_t{ });
     }
 
     // update display
@@ -868,14 +870,19 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
     if (obj1.dictLookup ("LC", &obj2)->isInt ()) { opSetLineCap (&obj2, 1); }
     if (obj1.dictLookup ("LJ", &obj2)->isInt ()) { opSetLineJoin (&obj2, 1); }
     if (obj1.dictLookup ("ML", &obj2)->isNum ()) { opSetMiterLimit (&obj2, 1); }
-    if (obj1.dictLookup ("D", &obj2)->isArray () &&
-        obj2.arrayGetLength () == 2) {
+
+    if (obj1.dictLookup ("D", &obj2)->isArray () && obj2.arrayGetLength () == 2) {
         obj2.arrayGet (0, &args2[0]);
         obj2.arrayGet (1, &args2[1]);
-        if (args2[0].isArray () && args2[1].isNum ()) { opSetDash (args2, 2); }
-        args2[0].free ();
-        args2[1].free ();
+
+        if (args2[0].isArray () && args2[1].isNum ()) {
+            opSetDash (args2, 2);
+        }
+
+        args2 [0] = { };
+        args2 [1] = { };
     }
+
     if (obj1.dictLookup ("FL", &obj2)->isNum ()) { opSetFlat (&obj2, 1); }
 
     // font

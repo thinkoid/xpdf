@@ -1241,8 +1241,6 @@ Gfx8BitFont::~Gfx8BitFont () {
         if (encFree[i] && enc[i]) { free (enc[i]); }
     }
     ctu->decRefCnt ();
-    if (charProcs.isDict ()) { charProcs.free (); }
-    if (resources.isDict ()) { resources.free (); }
 }
 
 int Gfx8BitFont::getNextChar (
