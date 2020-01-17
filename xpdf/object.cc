@@ -121,7 +121,7 @@ int object_t::dictGetLength () {
     return getDict ()->getLength ();
 }
 
-void object_t::dictAdd (char* key, object_t* val) {
+void object_t::dictAdd (const char* key, object_t* val) {
     getDict ()->add (key, val);
 }
 

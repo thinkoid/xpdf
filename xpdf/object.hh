@@ -245,7 +245,7 @@ struct object_t {
     // Dict accessors:
     //
     int dictGetLength ();
-    void dictAdd (char* key, object_t* val);
+    void dictAdd (const char* key, object_t* val);
     bool dictIs (const char* dictType) const;
     object_t* dictLookup (const char* key, object_t* obj, int recursion = 0);
     object_t* dictLookupNF (const char* key, object_t* obj);

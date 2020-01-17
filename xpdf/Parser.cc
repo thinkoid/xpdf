@@ -84,7 +84,6 @@ Parser::~Parser () {
 Object* Parser::getObj (
     Object* obj, bool simpleOnly, unsigned char* fileKey, CryptAlgorithm encAlgorithm,
     int keyLength, int objNum, int objGen, int recursion) {
-    char* key;
     Stream* str;
     Object obj2;
     int num;
@@ -138,17 +137,15 @@ Object* Parser::getObj (
                 shift ();
             }
             else {
-                key = strdup (buf1.s.c_str ());
-
+                auto s = buf1.s;
                 shift ();
 
                 if (is_eof (buf1) || is_error (buf1)) {
-                    free (key);
                     break;
                 }
 
                 obj->dictAdd (
-                    key, getObj (
+                    s.c_str (), getObj (
                         &obj2, false, fileKey, encAlgorithm, keyLength,
                         objNum, objGen, recursion + 1));
             }
