@@ -117,6 +117,10 @@ void object_t::dictAdd (const char* key, object_t* val) {
     getDict ()->add (key, val);
 }
 
+void object_t::dictAdd (const std::string& key, object_t* val) {
+    getDict ()->add (key, *val);
+}
+
 bool object_t::dictIs (const char* dictType) const {
     return getDict ()->is (dictType);
 }

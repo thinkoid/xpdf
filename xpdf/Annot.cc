@@ -432,21 +432,20 @@ void Annot::generateLineAppearance () {
 
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
-    appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
+    appearDict.dictAdd ("Length", obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd ("Subtype", obj1.initName ("Form"));
     obj1.initArray (doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (strdup ("BBox"), &obj1);
+    appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.isDict ()) {
         obj1.initDict (doc->getXRef ());
         obj2.initDict (doc->getXRef ());
-        obj2.dictAdd (strdup ("GS1"), &gfxStateDict);
-        obj1.dictAdd (strdup ("ExtGState"), &obj2);
-        appearDict.dictAdd (strdup ("Resources"), &obj1);
+        obj2.dictAdd ("GS1", &gfxStateDict);
+        obj1.dictAdd ("ExtGState", &obj2);
+        appearDict.dictAdd ("Resources", &obj1);
     }
 
     //----- build the appearance stream
@@ -511,21 +510,20 @@ void Annot::generatePolyLineAppearance () {
 
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
-    appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
+    appearDict.dictAdd ("Length", obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd ("Subtype", obj1.initName ("Form"));
     obj1.initArray (doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (strdup ("BBox"), &obj1);
+    appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.isDict ()) {
         obj1.initDict (doc->getXRef ());
         obj2.initDict (doc->getXRef ());
-        obj2.dictAdd (strdup ("GS1"), &gfxStateDict);
-        obj1.dictAdd (strdup ("ExtGState"), &obj2);
-        appearDict.dictAdd (strdup ("Resources"), &obj1);
+        obj2.dictAdd ("GS1", &gfxStateDict);
+        obj1.dictAdd ("ExtGState", &obj2);
+        appearDict.dictAdd ("Resources", &obj1);
     }
 
     //----- build the appearance stream
@@ -584,21 +582,20 @@ void Annot::generatePolygonAppearance () {
 
     //----- build the appearance stream dictionary
     appearDict.initDict (doc->getXRef ());
-    appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
+    appearDict.dictAdd ("Length", obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd ("Subtype", obj1.initName ("Form"));
     obj1.initArray (doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (strdup ("BBox"), &obj1);
+    appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.isDict ()) {
         obj1.initDict (doc->getXRef ());
         obj2.initDict (doc->getXRef ());
-        obj2.dictAdd (strdup ("GS1"), &gfxStateDict);
-        obj1.dictAdd (strdup ("ExtGState"), &obj2);
-        appearDict.dictAdd (strdup ("Resources"), &obj1);
+        obj2.dictAdd ("GS1", &gfxStateDict);
+        obj1.dictAdd ("ExtGState", &obj2);
+        appearDict.dictAdd ("Resources", &obj1);
     }
 
     //----- build the appearance stream

@@ -268,8 +268,7 @@ public:
 private:
     Base14FontMapEntry* base14; // for Base-14 fonts only; NULL otherwise
     char* enc[256];             // char code --> char name
-    char encFree[256];          // boolean for each char name: if set,
-                                //   the string is malloc'ed
+    char encFree[256];          // boolean for each char name: if set, the string is malloc'ed
     CharCodeToUnicode* ctu;     // char code --> Unicode
     bool hasEncoding;
     bool usesMacRomanEnc;

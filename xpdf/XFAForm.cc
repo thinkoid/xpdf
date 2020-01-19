@@ -666,18 +666,18 @@ void XFAFormField::draw (
 
     // create the appearance stream
     appearDict.initDict (xfaForm->doc->getXRef ());
-    appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
 
-    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
+    appearDict.dictAdd ("Length", obj1.initInt (appearBuf->getLength ()));
+    appearDict.dictAdd ("Subtype", obj1.initName ("Form"));
 
     obj1.initArray (xfaForm->doc->getXRef ());
+
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (w));
     obj1.arrayAdd (obj2.initReal (h));
 
-    appearDict.dictAdd (strdup ("BBox"), &obj1);
+    appearDict.dictAdd ("BBox", &obj1);
 
     obj1.initArray (xfaForm->doc->getXRef ());
     obj1.arrayAdd (obj2.initReal (mat[0]));
@@ -687,7 +687,7 @@ void XFAFormField::draw (
     obj1.arrayAdd (obj2.initReal (mat[4]));
     obj1.arrayAdd (obj2.initReal (mat[5]));
 
-    appearDict.dictAdd (strdup ("Matrix"), &obj1);
+    appearDict.dictAdd ("Matrix", &obj1);
 
     if (xfaForm->resourceDict.isDict ()) {
         appearDict.dictAdd ("Resources", &xfaForm->resourceDict);

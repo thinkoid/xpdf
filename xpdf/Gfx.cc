@@ -4167,14 +4167,17 @@ Stream* Gfx::buildImageStream () {
                 "Inline image dictionary key must be a name object");
         }
         else {
-            char* key = strdup (obj.getName ());
+            std::string key (obj.getName ());
+
             parser->getObj (&obj);
+
             if (obj.isEOF () || obj.isError ()) {
-                free (key);
                 break;
             }
+
             dict.dictAdd (key, &obj);
         }
+
         parser->getObj (&obj);
     }
     if (obj.isEOF ()) {

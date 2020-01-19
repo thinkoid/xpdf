@@ -1005,19 +1005,22 @@ void AcroFormField::drawNewAppearance (
 
     // build the appearance stream dictionary
     appearDict.initDict (acroForm->doc->getXRef ());
-    appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf.size ()));
-    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
+
+    appearDict.dictAdd ("Length", obj1.initInt (appearBuf.size ()));
+    appearDict.dictAdd ("Subtype", obj1.initName ("Form"));
+
     obj1.initArray (acroForm->doc->getXRef ());
+
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (0));
     obj1.arrayAdd (obj2.initReal (xMax - xMin));
     obj1.arrayAdd (obj2.initReal (yMax - yMin));
-    appearDict.dictAdd (strdup ("BBox"), &obj1);
+
+    appearDict.dictAdd ("BBox", &obj1);
 
     // set the resource dictionary
     if (drObj.isDict ()) {
-        appearDict.dictAdd (strdup ("Resources"), &drObj);
+        appearDict.dictAdd ("Resources", &drObj);
     }
 
     // build the appearance stream
@@ -1027,7 +1030,6 @@ void AcroFormField::drawNewAppearance (
 
     // draw it
     gfx->drawAnnot (&appearance, NULL, xMin, yMin, xMax, yMax);
-
 
     if (fontDict) {
         delete fontDict;
