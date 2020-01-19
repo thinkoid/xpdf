@@ -24,7 +24,7 @@ class Stream;
 ////////////////////////////////////////////////////////////////////////
 
 namespace xpdf {
-
+namespace ast {
 //
 // Used in parsing:
 //
@@ -283,52 +283,54 @@ private:
     > var_;
 };
 
+} // namespace ast
+
 //
 // Formerly object_t::fetch
 //
-object_t fetch (object_t&, XRef&, int recursion = 0);
+ast::object_t fetch (ast::object_t&, XRef&, int recursion = 0);
 
 //
 // Convenience factories:
 //
-inline object_t make_null_object () {
-    return object_t ();
+inline ast::object_t make_null_object () {
+    return ast::object_t ();
 }
 
-inline object_t make_error_object () {
-    return object_t (error_t{ });
+inline ast::object_t make_error_object () {
+    return ast::object_t (ast::error_t{ });
 }
 
-inline object_t make_eof_object () {
-    return object_t (eof_t{ });
+inline ast::object_t make_eof_object () {
+    return ast::object_t (ast::eof_t{ });
 }
 
-inline object_t make_string_object (const std::string& arg) {
-    return object_t (arg);
+inline ast::object_t make_string_object (const std::string& arg) {
+    return ast::object_t (arg);
 }
 
-inline object_t make_name_object (const std::string& arg) {
-    return object_t (name_t (arg));
+inline ast::object_t make_name_object (const std::string& arg) {
+    return ast::object_t (ast::name_t (arg));
 }
 
-inline object_t make_command_object (const std::string& arg) {
-    return object_t (command_t (arg));
+inline ast::object_t make_command_object (const std::string& arg) {
+    return ast::object_t (ast::command_t (arg));
 }
 
-inline object_t make_ref_object (int a, int b) {
-    return object_t (ref_t{ a, b });
+inline ast::object_t make_ref_object (int a, int b) {
+    return ast::object_t (ast::ref_t{ a, b });
 }
 
-inline object_t make_ref_object (ref_t arg) {
-    return object_t (arg);
+inline ast::object_t make_ref_object (ast::ref_t arg) {
+    return ast::object_t (arg);
 }
 
-object_t make_array_object (XRef*);
-object_t make_dictionary_object (XRef*);
+ast::object_t make_array_object (XRef*);
+ast::object_t make_dictionary_object (XRef*);
 
 } // namespace xpdf
 
-using Object = xpdf::object_t;
-using Ref = xpdf::ref_t;
+using Object = xpdf::ast::object_t;
+using Ref = xpdf::ast::ref_t;
 
 #endif // XPDF_XPDF_OBJECT_HH

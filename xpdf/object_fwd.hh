@@ -7,13 +7,14 @@
 #include <defs.hh>
 
 namespace xpdf {
+namespace ast {
 
 struct ref_t;
 struct object_t;
 
-} // namespace xpdf
+}} // namespace xpdf::ast
 
-using Object = xpdf::object_t;
-using Ref = xpdf::ref_t;
+using Object = xpdf::ast::object_t;
+using Ref = xpdf::ast::ref_t;
 
 #endif // XPDF_XPDF_OBJECT_FWD_HH

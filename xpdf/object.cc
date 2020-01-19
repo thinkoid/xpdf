@@ -16,30 +16,7 @@
 
 namespace xpdf {
 
-object_t make_array_object (XRef* p) {
-    return object_t (new Array (p));
-}
-
-object_t make_dictionary_object (XRef* p) {
-    return object_t (new Dict (p));
-}
-
-//
-// Formerly object_t::fetch
-//
-object_t fetch (object_t& obj, XRef& xref, int recursion /* = 0 */) {
-    if (obj.isRef ()) {
-        auto& ref = obj.getRef ();
-
-        Object result;
-        xref.fetch (ref.num, ref.gen, &result, recursion);
-
-        return result;
-    }
-    else {
-        return obj;
-    }
-}
+namespace ast {
 
 object_t::object_t (GString* p)
     : var_ (std::shared_ptr< GString > (p))
@@ -255,5 +232,31 @@ void object_t::print (FILE*) {
 #endif // 0
 }
 
+} // namespace ast
+
+ast::object_t make_array_object (XRef* p) {
+    return ast::object_t (new Array (p));
+}
+
+ast::object_t make_dictionary_object (XRef* p) {
+    return ast::object_t (new Dict (p));
+}
+
+//
+// Formerly object_t::fetch
+//
+ast::object_t fetch (ast::object_t& obj, XRef& xref, int recursion /* = 0 */) {
+    if (obj.isRef ()) {
+        auto& ref = obj.getRef ();
+
+        ast::object_t result;
+        xref.fetch (ref.num, ref.gen, &result, recursion);
+
+        return result;
+    }
+    else {
+        return obj;
+    }
+}
 
 } // namespace xpdf

@@ -614,7 +614,7 @@ void Gfx::go (bool topLevel) {
             }
             if (!execOp (&obj, args, numArgs)) { ++errCount; }
 
-            fill (args, args + numArgs, xpdf::object_t{ });
+            fill (args, args + numArgs, xpdf::ast::object_t{ });
             numArgs = 0;
 
             // periodically update display
@@ -674,7 +674,7 @@ void Gfx::go (bool topLevel) {
             fflush (stdout);
         }
 
-        fill (args, args + numArgs, xpdf::object_t{ });
+        fill (args, args + numArgs, xpdf::ast::object_t{ });
     }
 
     // update display
