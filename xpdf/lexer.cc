@@ -62,7 +62,7 @@ lexer_t::lexer_t (XRef* xref, Object* obj) {
 
     strPtr = 0;
 
-    if (streams->getLength () > 0) {
+    if (streams->size () > 0) {
         streams->get (strPtr, &curStr);
         curStr.streamReset ();
     }
@@ -77,24 +77,26 @@ lexer_t::~lexer_t () {
 }
 
 int lexer_t::getChar () {
-    int c;
+    int c = EOF;
 
-    c = EOF;
     while (!curStr.isNone () && (c = curStr.streamGetChar ()) == EOF) {
         curStr.streamClose ();
         curStr = { };
 
-        ++strPtr;
-        if (strPtr < streams->getLength ()) {
+        if (++strPtr < streams->size ()) {
             streams->get (strPtr, &curStr);
             curStr.streamReset ();
         }
     }
+
     return c;
 }
 
 int lexer_t::lookChar () {
-    if (curStr.isNone ()) { return EOF; }
+    if (curStr.isNone ()) {
+        return EOF;
+    }
+
     return curStr.streamLookChar ();
 }
 

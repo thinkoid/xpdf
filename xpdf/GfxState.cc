@@ -240,7 +240,7 @@ GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array* arr, int recursion) {
     GfxCalibratedGrayColorSpace* cs;
     Object obj1, obj2, obj3;
 
-    if (arr->getLength () < 2) {
+    if (arr->size () < 2) {
         error (errSyntaxError, -1, "Bad CalGray color space");
         return NULL;
     }
@@ -382,7 +382,7 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array* arr, int recursion) {
     Object obj1, obj2, obj3;
     int i;
 
-    if (arr->getLength () < 2) {
+    if (arr->size () < 2) {
         error (errSyntaxError, -1, "Bad CalRGB color space");
         return NULL;
     }
@@ -601,7 +601,7 @@ GfxColorSpace* GfxLabColorSpace::parse (Array* arr, int recursion) {
     GfxLabColorSpace* cs;
     Object obj1, obj2, obj3;
 
-    if (arr->getLength () < 2) {
+    if (arr->size () < 2) {
         error (errSyntaxError, -1, "Bad Lab color space");
         return NULL;
     }
@@ -774,7 +774,7 @@ GfxColorSpace* GfxICCBasedColorSpace::parse (Array* arr, int recursion) {
     Object obj1, obj2, obj3;
     int i;
 
-    if (arr->getLength () < 2) {
+    if (arr->size () < 2) {
         error (errSyntaxError, -1, "Bad ICCBased color space");
         return NULL;
     }
@@ -904,7 +904,7 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
     int x;
     int n, i, j;
 
-    if (arr->getLength () != 4) {
+    if (arr->size () != 4) {
         error (errSyntaxError, -1, "Bad Indexed color space");
         goto err1;
     }
@@ -1074,7 +1074,7 @@ GfxColorSpace* GfxSeparationColorSpace::parse (Array* arr, int recursion) {
     Function funcA;
     Object obj1;
 
-    if (arr->getLength () != 4) {
+    if (arr->size () != 4) {
         error (errSyntaxError, -1, "Bad Separation color space");
         goto err1;
     }
@@ -1211,7 +1211,7 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array* arr, int recursion) {
     Object obj1, obj2;
     int i;
 
-    if (arr->getLength () != 4 && arr->getLength () != 5) {
+    if (arr->size () != 4 && arr->size () != 5) {
         error (errSyntaxError, -1, "Bad DeviceN color space");
         goto err1;
     }
@@ -1317,12 +1317,12 @@ GfxColorSpace* GfxPatternColorSpace::parse (Array* arr, int recursion) {
     GfxColorSpace* underA;
     Object obj1;
 
-    if (arr->getLength () != 1 && arr->getLength () != 2) {
+    if (arr->size () != 1 && arr->size () != 2) {
         error (errSyntaxError, -1, "Bad Pattern color space");
         return NULL;
     }
     underA = NULL;
-    if (arr->getLength () == 2) {
+    if (arr->size () == 2) {
         arr->get (1, &obj1);
         if (!(underA = GfxColorSpace::parse (&obj1, recursion + 1))) {
             error (

@@ -1046,7 +1046,7 @@ void AcroFormField::setColor (Array* a, bool fill, int adjust) {
     double color[4];
     int nComps, i;
 
-    nComps = a->getLength ();
+    nComps = a->size ();
     if (nComps > 4) { nComps = 4; }
     for (i = 0; i < nComps && i < 4; ++i) {
         if (a->get (i, &obj1)->isNum ()) { color[i] = obj1.getNum (); }

@@ -90,7 +90,7 @@ object_t* object_t::fetch (XRef* xref, object_t* obj, int recursion) {
 //------------------------------------------------------------------------
 
 int object_t::arrayGetLength () {
-    return getArray ()->getLength ();
+    return getArray ()->size ();
 }
 
 void object_t::arrayAdd (object_t* pobj) {

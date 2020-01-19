@@ -22,12 +22,7 @@ public:
     // Constructor.
     Array (XRef* xrefA);
 
-    // Reference counting.
-    int incRef () const { return 1; }
-    int decRef () const { return 1; }
-
-    // Get number of elements.
-    int getLength () { return xs.size (); }
+    size_t size () const { return xs.size (); }
 
     // Add an element.
     void add (Object* elem);

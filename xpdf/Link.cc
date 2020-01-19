@@ -163,7 +163,7 @@ LinkDest::LinkDest (Array* a) {
     ok = false;
 
     // get page
-    if (a->getLength () < 2) {
+    if (a->size () < 2) {
         error (
             errSyntaxWarning, -1, "Annotation destination array is too short");
         return;
@@ -189,7 +189,7 @@ LinkDest::LinkDest (Array* a) {
     // XYZ link
     if (obj1.isName ("XYZ")) {
         kind = destXYZ;
-        if (a->getLength () < 3) { changeLeft = false; }
+        if (a->size () < 3) { changeLeft = false; }
         else {
             a->get (2, &obj2);
             if (obj2.isNull ()) { changeLeft = false; }
@@ -204,7 +204,7 @@ LinkDest::LinkDest (Array* a) {
                 return;
             }
         }
-        if (a->getLength () < 4) { changeTop = false; }
+        if (a->size () < 4) { changeTop = false; }
         else {
             a->get (3, &obj2);
             if (obj2.isNull ()) { changeTop = false; }
@@ -219,7 +219,7 @@ LinkDest::LinkDest (Array* a) {
                 return;
             }
         }
-        if (a->getLength () < 5) { changeZoom = false; }
+        if (a->size () < 5) { changeZoom = false; }
         else {
             a->get (4, &obj2);
             if (obj2.isNull ()) { changeZoom = false; }
@@ -238,7 +238,7 @@ LinkDest::LinkDest (Array* a) {
         // Fit link
     }
     else if (obj1.isName ("Fit")) {
-        if (a->getLength () < 2) {
+        if (a->size () < 2) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -249,7 +249,7 @@ LinkDest::LinkDest (Array* a) {
         // FitH link
     }
     else if (obj1.isName ("FitH")) {
-        if (a->getLength () < 3) {
+        if (a->size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -271,7 +271,7 @@ LinkDest::LinkDest (Array* a) {
         // FitV link
     }
     else if (obj1.isName ("FitV")) {
-        if (a->getLength () < 3) {
+        if (a->size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -293,7 +293,7 @@ LinkDest::LinkDest (Array* a) {
         // FitR link
     }
     else if (obj1.isName ("FitR")) {
-        if (a->getLength () < 6) {
+        if (a->size () < 6) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -324,7 +324,7 @@ LinkDest::LinkDest (Array* a) {
         // FitB link
     }
     else if (obj1.isName ("FitB")) {
-        if (a->getLength () < 2) {
+        if (a->size () < 2) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -335,7 +335,7 @@ LinkDest::LinkDest (Array* a) {
         // FitBH link
     }
     else if (obj1.isName ("FitBH")) {
-        if (a->getLength () < 3) {
+        if (a->size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -357,7 +357,7 @@ LinkDest::LinkDest (Array* a) {
         // FitBV link
     }
     else if (obj1.isName ("FitBV")) {
-        if (a->getLength () < 3) {
+        if (a->size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");

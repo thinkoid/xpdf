@@ -802,7 +802,7 @@ void Gfx::opSetDash (Object args[], int numArgs) {
     int i;
 
     a = args[0].getArray ();
-    length = a->getLength ();
+    length = a->size ();
     if (length == 0) { dash = NULL; }
     else {
         dash = (double*)calloc (length, sizeof (double));
@@ -3290,7 +3290,7 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
         out->beginStringOp (state);
         wMode = state->getFont ()->getWMode ();
         a = args[0].getArray ();
-        for (i = 0; i < a->getLength (); ++i) {
+        for (i = 0; i < a->size (); ++i) {
             a->get (i, &obj);
             if (obj.isNum ()) {
                 if (wMode) {
@@ -3318,7 +3318,7 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
     }
     else {
         a = args[0].getArray ();
-        for (i = 0; i < a->getLength (); ++i) {
+        for (i = 0; i < a->size (); ++i) {
             a->get (i, &obj);
             if (obj.isString ()) { doIncCharCount (obj.getString ()); }
         }
