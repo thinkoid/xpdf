@@ -143,7 +143,6 @@ private:
 
 ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
     Stream* str;
-    Parser* parser;
     int* offsets;
     Object objStr, obj1, obj2;
     int first, i;
@@ -154,56 +153,69 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
     objNums = NULL;
     ok = false;
 
-    if (!xref->fetch (objStrNum, 0, &objStr)->isStream ()) { goto err1; }
+    if (!xref->fetch (objStrNum, 0, &objStr)->isStream ()) {
+        return;
+    }
 
     if (!objStr.streamGetDict ()->lookup ("N", &obj1)->isInt ()) {
-        goto err1;
+        return;
     }
+
     nObjects = obj1.getInt ();
-    if (nObjects <= 0) { goto err1; }
+
+    if (nObjects <= 0) {
+        return;
+    }
 
     if (!objStr.streamGetDict ()->lookup ("First", &obj1)->isInt ()) {
-        goto err1;
+        return;
     }
+
     first = obj1.getInt ();
-    if (first < 0) { goto err1; }
+
+    if (first < 0) {
+        return;
+    }
 
     // this is an arbitrary limit to avoid integer overflow problems
     // in the 'new Object[nObjects]' call (Acrobat apparently limits
     // object streams to 100-200 objects)
     if (nObjects > 1000000) {
         error (errSyntaxError, -1, "Too many objects in an object stream");
-        goto err1;
+        return;
     }
+
     objs = new Object[nObjects];
+
     objNums = (int*)calloc (nObjects, sizeof (int));
     offsets = (int*)calloc (nObjects, sizeof (int));
 
     // parse the header: object numbers and offsets
     objStr.streamReset ();
     obj1.initNull ();
+
     str = new EmbedStream (objStr.getStream (), &obj1, true, first);
-    parser = new Parser (xref, new xpdf::lexer_t (xref, str), false);
+
+    Parser parser (xref, new xpdf::lexer_t (xref, str), false);
+
     for (i = 0; i < nObjects; ++i) {
-        parser->getObj (&obj1, true);
-        parser->getObj (&obj2, true);
+        parser.getObj (&obj1, true);
+        parser.getObj (&obj2, true);
+
         if (!obj1.isInt () || !obj2.isInt ()) {
-            delete parser;
             free (offsets);
-            goto err2;
+            return;
         }
+
         objNums[i] = obj1.getInt ();
         offsets[i] = obj2.getInt ();
-        if (objNums[i] < 0 || offsets[i] < 0 ||
-            (i > 0 && offsets[i] < offsets[i - 1])) {
-            delete parser;
+
+        if (objNums[i] < 0 || offsets[i] < 0 || (i > 0 && offsets[i] < offsets[i - 1])) {
             free (offsets);
-            goto err2;
+            return;
         }
     }
-    while (str->getChar () != EOF)
-        ;
-    delete parser;
+    while (str->getChar () != EOF) ;
 
     // skip to the first object - this shouldn't be necessary because
     // the First key is supposed to be equal to offsets[0], but just in
@@ -220,20 +232,15 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
             str = new EmbedStream (
                 objStr.getStream (), &obj1, true, offsets[i + 1] - offsets[i]);
         }
-        parser = new Parser (xref, new xpdf::lexer_t (xref, str), false);
-        parser->getObj (&objs[i]);
-        while (str->getChar () != EOF)
-            ;
-        delete parser;
+
+        Parser parser (xref, new xpdf::lexer_t (xref, str), false);
+        parser.getObj (&objs[i]);
+
+        while (str->getChar () != EOF) ;
     }
 
     free (offsets);
     ok = true;
-
-err2:
-    objStr.streamClose ();
-err1:
-    ;
 }
 
 ObjectStream::~ObjectStream () {
@@ -256,7 +263,6 @@ Object* ObjectStream::getObject (int objIdx, int objNum, Object* obj) {
 XRef::XRef (BaseStream* strA, bool repair) {
     GFileOffset pos;
     Object obj;
-    XRefPosSet* posSet;
     int i;
 
     ok = true;
@@ -294,10 +300,9 @@ XRef::XRef (BaseStream* strA, bool repair) {
         }
 
         // read the xref table
-        posSet = new XRefPosSet ();
-        while (readXRef (&pos, posSet))
-            ;
-        delete posSet;
+        XRefPosSet posSet;
+        while (readXRef (&pos, &posSet)) ;
+
         if (!ok) {
             errCode = errDamaged;
             return;
@@ -306,6 +311,7 @@ XRef::XRef (BaseStream* strA, bool repair) {
 
     // get the root dictionary (catalog) object
     trailerDict.dictLookupNF ("Root", &obj);
+
     if (obj.isRef ()) {
         rootNum = obj.getRefNum ();
         rootGen = obj.getRefGen ();
@@ -362,7 +368,6 @@ GFileOffset XRef::getStartXref () {
 // Read one xref table section.  Also reads the associated trailer
 // dictionary, and returns the prev pointer (if any).
 bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
-    Parser* parser;
     Object obj;
     bool more;
     char buf[100];
@@ -385,17 +390,19 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
     }
     else if (i < n && buf[i] >= '0' && buf[i] <= '9') {
         obj.initNull ();
-        parser = new Parser (
+
+        Parser parser (
             NULL,
             new xpdf::lexer_t (
                 NULL, str->makeSubStream (start + *pos, false, 0, &obj)),
             true);
-        if (!parser->getObj (&obj, true)->isInt ()) { goto err2; }
-        if (!parser->getObj (&obj, true)->isInt ()) { goto err2; }
-        if (!parser->getObj (&obj, true)->isCmd ("obj")) { goto err2; }
-        if (!parser->getObj (&obj)->isStream ()) { goto err2; }
+
+        if (!parser.getObj (&obj, true)->isInt ())      { goto err1; }
+        if (!parser.getObj (&obj, true)->isInt ())      { goto err1; }
+        if (!parser.getObj (&obj, true)->isCmd ("obj")) { goto err1; }
+        if (!parser.getObj (&obj)->isStream ())         { goto err1; }
+
         more = readXRefStream (obj.getStream (), pos);
-        delete parser;
     }
     else {
         goto err1;
@@ -403,8 +410,6 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
 
     return more;
 
-err2:
-    delete parser;
 err1:
     ok = false;
     return false;
@@ -412,7 +417,6 @@ err1:
 
 bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     XRefEntry entry;
-    Parser* parser;
     Object obj, obj2;
     char buf[6];
     GFileOffset off, pos2;
@@ -431,30 +435,30 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
         do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
         if (c == 't') {
             if (str->getBlock (buf, 6) != 6 || memcmp (buf, "railer", 6)) {
-                goto err1;
+                return ok = false;
             }
             break;
         }
-        if (c < '0' || c > '9') { goto err1; }
+        if (c < '0' || c > '9') { return ok = false; }
         first = 0;
         do {
             first = (first * 10) + (c - '0');
             c = str->getChar ();
         } while (c >= '0' && c <= '9');
-        if (!xpdf::lexer_t::isSpace (c)) { goto err1; }
+        if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
         do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
         n = 0;
         do {
             n = (n * 10) + (c - '0');
             c = str->getChar ();
         } while (c >= '0' && c <= '9');
-        if (!xpdf::lexer_t::isSpace (c)) { goto err1; }
-        if (first < 0 || n < 0 || first > INT_MAX - n) { goto err1; }
+        if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
+        if (first < 0 || n < 0 || first > INT_MAX - n) { return ok = false; }
         if (first + n > size) {
             for (newSize = size ? 2 * size : 1024;
                  first + n > newSize && newSize > 0; newSize <<= 1)
                 ;
-            if (newSize < 0) { goto err1; }
+            if (newSize < 0) { return ok = false; }
             entries =
                 (XRefEntry*)reallocarray (entries, newSize, sizeof (XRefEntry));
             for (i = size; i < newSize; ++i) {
@@ -470,7 +474,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
                 off = (off * 10) + (c - '0');
                 c = str->getChar ();
             } while (c >= '0' && c <= '9');
-            if (!xpdf::lexer_t::isSpace (c)) { goto err1; }
+            if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
             entry.offset = off;
             do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
             gen = 0;
@@ -478,7 +482,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
                 gen = (gen * 10) + (c - '0');
                 c = str->getChar ();
             } while (c >= '0' && c <= '9');
-            if (!xpdf::lexer_t::isSpace (c)) { goto err1; }
+            if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
             entry.gen = gen;
             do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
             if (c == 'n') { entry.type = xrefEntryUncompressed; }
@@ -486,10 +490,10 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
                 entry.type = xrefEntryFree;
             }
             else {
-                goto err1;
+                return ok = false;
             }
             c = str->getChar ();
-            if (!xpdf::lexer_t::isSpace (c)) { goto err1; }
+            if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
             if (entries[i].offset == (GFileOffset)-1) {
                 entries[i] = entry;
                 // PDF files of patents from the IBM Intellectual Property
@@ -509,14 +513,16 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     // read the trailer dictionary
     obj.initNull ();
-    parser = new Parser (
+
+    Parser parser (
         NULL,
         new xpdf::lexer_t (NULL, str->makeSubStream (str->getPos (), false, 0, &obj)),
         true);
-    parser->getObj (&obj);
-    delete parser;
+
+    parser.getObj (&obj);
+
     if (!obj.isDict ()) {
-        goto err1;
+        return ok = false;
     }
 
     // get the 'Prev' pointer
@@ -547,15 +553,11 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
         pos2 = (GFileOffset) (unsigned)obj2.getInt ();
         readXRef (&pos2, posSet);
         if (!ok) {
-            goto err1;
+            return ok = false;
         }
     }
 
     return more;
-
-err1:
-    ok = false;
-    return false;
 }
 
 bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
@@ -626,7 +628,10 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     else {
         more = false;
     }
-    if (trailerDict.isNone ()) { trailerDict.initDict (dict); }
+
+    if (trailerDict.isNone ()) {
+        trailerDict.initDict (new Dict (*dict));
+    }
 
     return more;
 
@@ -697,7 +702,6 @@ bool XRef::readXRefStreamSection (Stream* xrefStr, int* w, int first, int n) {
 
 // Attempt to construct an xref table for a damaged file.
 bool XRef::constructXRef () {
-    Parser* parser;
     Object newTrailerDict, obj;
     char buf[256];
     GFileOffset pos;
@@ -728,12 +732,12 @@ bool XRef::constructXRef () {
         if (!strncmp (p, "trailer", 7)) {
             obj.initNull ();
 
-            parser = new Parser (
+            Parser parser (
                 NULL,
                 new xpdf::lexer_t (NULL, str->makeSubStream (pos + 7, false, 0, &obj)),
                 false);
 
-            parser->getObj (&newTrailerDict);
+            parser.getObj (&newTrailerDict);
 
             if (newTrailerDict.isDict ()) {
                 newTrailerDict.dictLookupNF ("Root", &obj);
@@ -744,8 +748,6 @@ bool XRef::constructXRef () {
                     gotRoot = true;
                 }
             }
-
-            delete parser;
         }
         else if (isdigit (*p & 0xff)) {
             // look for object
@@ -840,7 +842,6 @@ bool XRef::okToAddNotes (bool ignoreOwnerPW) {
 
 Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
     XRefEntry* e;
-    Parser* parser;
     ObjectStream* objStr;
     Object obj1, obj2, obj3;
 
@@ -852,38 +853,33 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
     e = &entries[num];
 
     switch (e->type) {
-    case xrefEntryUncompressed:
+    case xrefEntryUncompressed: {
         if (e->gen != gen) {
             goto err;
         }
 
         obj1.initNull ();
 
-        parser = new Parser (
+        Parser parser (
             this,
             new xpdf::lexer_t (
                 this, str->makeSubStream (start + e->offset, false, 0, &obj1)),
             true);
 
-        parser->getObj (&obj1, true);
-        parser->getObj (&obj2, true);
-        parser->getObj (&obj3, true);
+        parser.getObj (&obj1, true);
+        parser.getObj (&obj2, true);
+        parser.getObj (&obj3, true);
 
         if (!obj1.isInt () || obj1.getInt () != num ||
             !obj2.isInt () || obj2.getInt () != gen ||
             !obj3.isCmd ("obj")) {
-
-
-            delete parser;
             goto err;
         }
 
-        parser->getObj (
+        parser.getObj (
             obj, false, encrypted ? fileKey : (unsigned char*)NULL, encAlgorithm,
             keyLength, num, gen, recursion);
-
-
-        delete parser;
+    }
         break;
 
     case xrefEntryCompressed:
