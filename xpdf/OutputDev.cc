@@ -4,7 +4,7 @@
 #include <defs.hh>
 
 #include <cstddef>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/OutputDev.hh>

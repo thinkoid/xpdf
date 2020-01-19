@@ -13,7 +13,7 @@
 #include <goo/GString.hh>
 
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/PDFDoc.hh>
 #include <splash/SplashBitmap.hh>
 #include <splash/Splash.hh>

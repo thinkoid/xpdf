@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/object_fwd.hh>
+#include <xpdf/ast_fwd.hh>
 #include <xpdf/XRef.hh>
 
 class Catalog;

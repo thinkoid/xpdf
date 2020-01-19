@@ -8,7 +8,7 @@
 
 #include <goo/memory.hh>
 
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Dict.hh>
 

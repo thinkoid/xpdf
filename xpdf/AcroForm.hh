@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <xpdf/Form.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 
 class AcroForm;
 class TextString;

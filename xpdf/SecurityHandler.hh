@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 
 class GString;
 class PDFDoc;

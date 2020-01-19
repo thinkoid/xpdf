@@ -11,7 +11,7 @@
 #include <goo/gfile.hh>
 #include <goo/GList.hh>
 
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/CharTypes.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/XRef.hh>

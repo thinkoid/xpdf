@@ -9,7 +9,7 @@
 #include <goo/gfile.hh>
 
 #include <xpdf/function.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 
 class AnnotBorderStyle;
 class Array;

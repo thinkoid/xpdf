@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #include <goo/GString.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/CharTypes.hh>
 
 class Dict;

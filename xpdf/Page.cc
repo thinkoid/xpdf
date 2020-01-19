@@ -5,7 +5,7 @@
 
 #include <cstddef>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/PDFDoc.hh>

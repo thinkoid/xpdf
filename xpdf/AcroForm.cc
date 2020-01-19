@@ -17,7 +17,7 @@
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/lexer.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/OptionalContent.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>

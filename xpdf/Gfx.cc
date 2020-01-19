@@ -12,7 +12,7 @@
 #include <goo/GList.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/CharTypes.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>

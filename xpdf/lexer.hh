@@ -7,7 +7,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/Stream.hh>
 
 class XRef;

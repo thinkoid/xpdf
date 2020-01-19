@@ -9,7 +9,7 @@
 #include <goo/gfile.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/Link.hh>

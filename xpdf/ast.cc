@@ -10,7 +10,7 @@
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/XRef.hh>
 

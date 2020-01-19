@@ -3,7 +3,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/CoreOutputDev.hh>
 

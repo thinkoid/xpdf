@@ -10,7 +10,7 @@
 #include <string>
 #include <tuple>
 
-#include <xpdf/object_fwd.hh>
+#include <xpdf/ast_fwd.hh>
 
 class XRef;
 struct DictEntry;

@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <goo/gfile.hh>
 
-#include <xpdf/object.hh>
+#include <xpdf/ast.hh>
 
 class BaseStream;
 
