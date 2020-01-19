@@ -1041,15 +1041,15 @@ void AcroFormField::drawNewAppearance (
 // have 1, 3, or 4 elements).  If <adjust> is +1, color is brightened;
 // if <adjust> is -1, color is darkened; otherwise color is not
 // modified.
-void AcroFormField::setColor (Array* a, bool fill, int adjust) {
+void AcroFormField::setColor (Array& arr, bool fill, int adjust) {
     Object obj1;
     double color[4];
     int nComps, i;
 
-    nComps = a->size ();
+    nComps = arr.size ();
     if (nComps > 4) { nComps = 4; }
     for (i = 0; i < nComps && i < 4; ++i) {
-        if (a->get (i, &obj1)->isNum ()) { color[i] = obj1.getNum (); }
+        if (arr.get (i, &obj1)->isNum ()) { color[i] = obj1.getNum (); }
         else {
             color[i] = 0;
         }

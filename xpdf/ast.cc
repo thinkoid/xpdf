@@ -67,19 +67,19 @@ object_t* object_t::fetch (XRef* xref, object_t* obj, int recursion) {
 //------------------------------------------------------------------------
 
 int object_t::arrayGetLength () {
-    return getArray ()->size ();
+    return getArray ().size ();
 }
 
 void object_t::arrayAdd (object_t* pobj) {
-    getArray ()->add (pobj);
+    getArray ().add (pobj);
 }
 
 object_t* object_t::arrayGet (int i, object_t* pobj) {
-    return getArray ()->get (i, pobj);
+    return getArray ().get (i, pobj);
 }
 
 object_t* object_t::arrayGetNF (int i, object_t* pobj) {
-    return getArray ()->getNF (i, pobj);
+    return getArray ().getNF (i, pobj);
 }
 
 //------------------------------------------------------------------------

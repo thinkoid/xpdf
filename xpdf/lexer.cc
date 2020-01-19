@@ -32,38 +32,43 @@ static const char specialChars [256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  // fx
 };
 
+static inline Array make_array (XRef* xref, Object* pobj = 0) {
+    if (pobj) {
+        if (pobj->isStream ()) {
+            Array arr (xref);
+
+            Object tmp = *pobj;
+            arr.add (&tmp);
+
+            return arr;
+        }
+        else {
+            return pobj->getArray ();
+        }
+    }
+    else {
+        return Array (xref);
+    }
+}
+
 namespace xpdf {
 
-lexer_t::lexer_t (XRef* xref, Stream* str) {
-    curStr.initStream (str);
+lexer_t::lexer_t (XRef* xref, Stream* pstr)
+    : streams (make_array (xref)) {
+    // TODO: array of streams and nested parsing need some std-ing.
+    curStr.initStream (pstr);
     Object obj = curStr;
-
-    streams = new Array (xref);
-    streams->add (&obj);
-
+    streams.add (&obj);
     strPtr = 0;
-    freeArray = true;
-
     curStr.streamReset ();
 }
 
-lexer_t::lexer_t (XRef* xref, Object* obj) {
-    if (obj->isStream ()) {
-        streams = new Array (xref);
-        freeArray = true;
-
-        Object obj2 = *obj;
-        streams->add (&obj2);
-    }
-    else {
-        streams = obj->getArray ();
-        freeArray = false;
-    }
-
+lexer_t::lexer_t (XRef* xref, Object* pobj)
+    : streams (make_array (xref, pobj)) {
     strPtr = 0;
 
-    if (streams->size () > 0) {
-        streams->get (strPtr, &curStr);
+    if (streams.size () > 0) {
+        streams.get (strPtr, &curStr);
         curStr.streamReset ();
     }
 }
@@ -73,7 +78,6 @@ lexer_t::~lexer_t () {
         curStr.streamClose ();
         curStr = { };
     }
-    if (freeArray) { delete streams; }
 }
 
 int lexer_t::getChar () {
@@ -83,8 +87,8 @@ int lexer_t::getChar () {
         curStr.streamClose ();
         curStr = { };
 
-        if (++strPtr < streams->size ()) {
-            streams->get (strPtr, &curStr);
+        if (++strPtr < streams.size ()) {
+            streams.get (strPtr, &curStr);
             curStr.streamReset ();
         }
     }

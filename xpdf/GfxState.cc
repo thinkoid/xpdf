@@ -236,15 +236,15 @@ GfxColorSpace* GfxCalibratedGrayColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array& arr, int recursion) {
     GfxCalibratedGrayColorSpace* cs;
     Object obj1, obj2, obj3;
 
-    if (arr->size () < 2) {
+    if (arr.size () < 2) {
         error (errSyntaxError, -1, "Bad CalGray color space");
         return NULL;
     }
-    arr->get (1, &obj1);
+    arr.get (1, &obj1);
     if (!obj1.isDict ()) {
         error (errSyntaxError, -1, "Bad CalGray color space");
         return NULL;
@@ -377,16 +377,16 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array& arr, int recursion) {
     GfxCalibratedRGBColorSpace* cs;
     Object obj1, obj2, obj3;
     int i;
 
-    if (arr->size () < 2) {
+    if (arr.size () < 2) {
         error (errSyntaxError, -1, "Bad CalRGB color space");
         return NULL;
     }
-    arr->get (1, &obj1);
+    arr.get (1, &obj1);
     if (!obj1.isDict ()) {
         error (errSyntaxError, -1, "Bad CalRGB color space");
         return NULL;
@@ -597,15 +597,15 @@ GfxColorSpace* GfxLabColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxLabColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxLabColorSpace::parse (Array& arr, int recursion) {
     GfxLabColorSpace* cs;
     Object obj1, obj2, obj3;
 
-    if (arr->size () < 2) {
+    if (arr.size () < 2) {
         error (errSyntaxError, -1, "Bad Lab color space");
         return NULL;
     }
-    arr->get (1, &obj1);
+    arr.get (1, &obj1);
     if (!obj1.isDict ()) {
         error (errSyntaxError, -1, "Bad Lab color space");
         return NULL;
@@ -765,7 +765,7 @@ GfxColorSpace* GfxICCBasedColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxICCBasedColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxICCBasedColorSpace::parse (Array& arr, int recursion) {
     GfxICCBasedColorSpace* cs;
     Ref iccProfileStreamA;
     int nCompsA;
@@ -774,17 +774,17 @@ GfxColorSpace* GfxICCBasedColorSpace::parse (Array* arr, int recursion) {
     Object obj1, obj2, obj3;
     int i;
 
-    if (arr->size () < 2) {
+    if (arr.size () < 2) {
         error (errSyntaxError, -1, "Bad ICCBased color space");
         return NULL;
     }
-    arr->getNF (1, &obj1);
+    arr.getNF (1, &obj1);
     if (obj1.isRef ()) { iccProfileStreamA = obj1.getRef (); }
     else {
         iccProfileStreamA.num = 0;
         iccProfileStreamA.gen = 0;
     }
-    arr->get (1, &obj1);
+    arr.get (1, &obj1);
     if (!obj1.isStream ()) {
         error (errSyntaxError, -1, "Bad ICCBased color space (stream)");
         return NULL;
@@ -896,7 +896,7 @@ GfxColorSpace* GfxIndexedColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxIndexedColorSpace::parse (Array& arr, int recursion) {
     GfxIndexedColorSpace* cs;
     GfxColorSpace* baseA;
     int indexHighA;
@@ -904,17 +904,17 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
     int x;
     int n, i, j;
 
-    if (arr->size () != 4) {
+    if (arr.size () != 4) {
         error (errSyntaxError, -1, "Bad Indexed color space");
         goto err1;
     }
-    arr->get (1, &obj1);
+    arr.get (1, &obj1);
     if (!(baseA = GfxColorSpace::parse (&obj1, recursion + 1))) {
         error (
             errSyntaxError, -1, "Bad Indexed color space (base color space)");
         goto err2;
     }
-    if (!arr->get (2, &obj1)->isInt ()) {
+    if (!arr.get (2, &obj1)->isInt ()) {
         error (errSyntaxError, -1, "Bad Indexed color space (hival)");
         delete baseA;
         goto err2;
@@ -932,7 +932,7 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array* arr, int recursion) {
         goto err2;
     }
     cs = new GfxIndexedColorSpace (baseA, indexHighA);
-    arr->get (3, &obj1);
+    arr.get (3, &obj1);
     n = baseA->getNComps ();
     if (obj1.isStream ()) {
         obj1.streamReset ();
@@ -1067,30 +1067,30 @@ GfxColorSpace* GfxSeparationColorSpace::copy () {
 }
 
 //~ handle the 'All' and 'None' colorants
-GfxColorSpace* GfxSeparationColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxSeparationColorSpace::parse (Array& arr, int recursion) {
     GfxSeparationColorSpace* cs;
     GString* nameA;
     GfxColorSpace* altA;
     Function funcA;
     Object obj1;
 
-    if (arr->size () != 4) {
+    if (arr.size () != 4) {
         error (errSyntaxError, -1, "Bad Separation color space");
         goto err1;
     }
-    if (!arr->get (1, &obj1)->isName ()) {
+    if (!arr.get (1, &obj1)->isName ()) {
         error (errSyntaxError, -1, "Bad Separation color space (name)");
         goto err2;
     }
     nameA = new GString (obj1.getName ());
-    arr->get (2, &obj1);
+    arr.get (2, &obj1);
     if (!(altA = GfxColorSpace::parse (&obj1, recursion + 1))) {
         error (
             errSyntaxError, -1,
             "Bad Separation color space (alternate color space)");
         goto err3;
     }
-    arr->get (3, &obj1);
+    arr.get (3, &obj1);
     if (!(funcA = xpdf::make_function (obj1))) { goto err4; }
     cs = new GfxSeparationColorSpace (nameA, altA, funcA);
     return cs;
@@ -1202,7 +1202,7 @@ GfxColorSpace* GfxDeviceNColorSpace::copy () {
 }
 
 //~ handle the 'None' colorant
-GfxColorSpace* GfxDeviceNColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxDeviceNColorSpace::parse (Array& arr, int recursion) {
     GfxDeviceNColorSpace* cs;
     int nCompsA;
     GString* namesA[gfxColorMaxComps];
@@ -1211,11 +1211,11 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array* arr, int recursion) {
     Object obj1, obj2;
     int i;
 
-    if (arr->size () != 4 && arr->size () != 5) {
+    if (arr.size () != 4 && arr.size () != 5) {
         error (errSyntaxError, -1, "Bad DeviceN color space");
         goto err1;
     }
-    if (!arr->get (1, &obj1)->isArray ()) {
+    if (!arr.get (1, &obj1)->isArray ()) {
         error (errSyntaxError, -1, "Bad DeviceN color space (names)");
         goto err2;
     }
@@ -1234,14 +1234,14 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array* arr, int recursion) {
         }
         namesA[i] = new GString (obj2.getName ());
     }
-    arr->get (2, &obj1);
+    arr.get (2, &obj1);
     if (!(altA = GfxColorSpace::parse (&obj1, recursion + 1))) {
         error (
             errSyntaxError, -1,
             "Bad DeviceN color space (alternate color space)");
         goto err3;
     }
-    arr->get (3, &obj1);
+    arr.get (3, &obj1);
     if (!(funcA = xpdf::make_function (obj1))) { goto err4; }
     cs = new GfxDeviceNColorSpace (nCompsA, namesA, altA, funcA);
     return cs;
@@ -1312,18 +1312,18 @@ GfxColorSpace* GfxPatternColorSpace::copy () {
     return cs;
 }
 
-GfxColorSpace* GfxPatternColorSpace::parse (Array* arr, int recursion) {
+GfxColorSpace* GfxPatternColorSpace::parse (Array& arr, int recursion) {
     GfxPatternColorSpace* cs;
     GfxColorSpace* underA;
     Object obj1;
 
-    if (arr->size () != 1 && arr->size () != 2) {
+    if (arr.size () != 1 && arr.size () != 2) {
         error (errSyntaxError, -1, "Bad Pattern color space");
         return NULL;
     }
     underA = NULL;
-    if (arr->size () == 2) {
-        arr->get (1, &obj1);
+    if (arr.size () == 2) {
+        arr.get (1, &obj1);
         if (!(underA = GfxColorSpace::parse (&obj1, recursion + 1))) {
             error (
                 errSyntaxError, -1,

@@ -210,7 +210,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csCalGray; }
 
     // Construct a CalGray color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -267,7 +267,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csCalRGB; }
 
     // Construct a CalRGB color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -328,7 +328,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csLab; }
 
     // Construct a Lab color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -372,7 +372,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csICCBased; }
 
     // Construct an ICCBased color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -407,7 +407,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csIndexed; }
 
     // Construct an Indexed color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -444,7 +444,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csSeparation; }
 
     // Construct a Separation color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -484,7 +484,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csDeviceN; }
 
     // Construct a DeviceN color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -525,7 +525,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csPattern; }
 
     // Construct a Pattern color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);

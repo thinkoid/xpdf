@@ -16,6 +16,8 @@
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 
+#include <xpdf/ast_fwd.hh>
+
 class XRef;
 class Array;
 class Dict;
@@ -138,9 +140,9 @@ struct object_t {
         return std::get< command_t > (var_).c_str ();
     }
 
-    Array* getArray () const {
+    Array& getArray () const {
         using pointer = std::shared_ptr< Array >;
-        return std::get< pointer > (var_).get ();
+        return *std::get< pointer > (var_);
     }
 
     Dict* getDict () const {

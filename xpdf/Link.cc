@@ -155,7 +155,7 @@ GString* LinkAction::getFileSpecName (Object* fileSpecObj) {
 // LinkDest
 //------------------------------------------------------------------------
 
-LinkDest::LinkDest (Array* a) {
+LinkDest::LinkDest (Array& arr) {
     Object obj1, obj2;
 
     // initialize fields
@@ -163,12 +163,12 @@ LinkDest::LinkDest (Array* a) {
     ok = false;
 
     // get page
-    if (a->size () < 2) {
+    if (arr.size () < 2) {
         error (
             errSyntaxWarning, -1, "Annotation destination array is too short");
         return;
     }
-    a->getNF (0, &obj1);
+    arr.getNF (0, &obj1);
     if (obj1.isInt ()) {
         pageNum = obj1.getInt () + 1;
         pageIsRef = false;
@@ -184,14 +184,14 @@ LinkDest::LinkDest (Array* a) {
     }
 
     // get destination type
-    a->get (1, &obj1);
+    arr.get (1, &obj1);
 
     // XYZ link
     if (obj1.isName ("XYZ")) {
         kind = destXYZ;
-        if (a->size () < 3) { changeLeft = false; }
+        if (arr.size () < 3) { changeLeft = false; }
         else {
-            a->get (2, &obj2);
+            arr.get (2, &obj2);
             if (obj2.isNull ()) { changeLeft = false; }
             else if (obj2.isNum ()) {
                 changeLeft = true;
@@ -204,9 +204,9 @@ LinkDest::LinkDest (Array* a) {
                 return;
             }
         }
-        if (a->size () < 4) { changeTop = false; }
+        if (arr.size () < 4) { changeTop = false; }
         else {
-            a->get (3, &obj2);
+            arr.get (3, &obj2);
             if (obj2.isNull ()) { changeTop = false; }
             else if (obj2.isNum ()) {
                 changeTop = true;
@@ -219,9 +219,9 @@ LinkDest::LinkDest (Array* a) {
                 return;
             }
         }
-        if (a->size () < 5) { changeZoom = false; }
+        if (arr.size () < 5) { changeZoom = false; }
         else {
-            a->get (4, &obj2);
+            arr.get (4, &obj2);
             if (obj2.isNull ()) { changeZoom = false; }
             else if (obj2.isNum ()) {
                 changeZoom = true;
@@ -238,7 +238,7 @@ LinkDest::LinkDest (Array* a) {
         // Fit link
     }
     else if (obj1.isName ("Fit")) {
-        if (a->size () < 2) {
+        if (arr.size () < 2) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -249,14 +249,14 @@ LinkDest::LinkDest (Array* a) {
         // FitH link
     }
     else if (obj1.isName ("FitH")) {
-        if (a->size () < 3) {
+        if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
             return;
         }
         kind = destFitH;
-        if (a->get (2, &obj2)->isNum ()) {
+        if (arr.get (2, &obj2)->isNum ()) {
             top = obj2.getNum ();
             changeTop = true;
         }
@@ -271,14 +271,14 @@ LinkDest::LinkDest (Array* a) {
         // FitV link
     }
     else if (obj1.isName ("FitV")) {
-        if (a->size () < 3) {
+        if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
             return;
         }
         kind = destFitV;
-        if (a->get (2, &obj2)->isNum ()) {
+        if (arr.get (2, &obj2)->isNum ()) {
             left = obj2.getNum ();
             changeLeft = true;
         }
@@ -293,29 +293,29 @@ LinkDest::LinkDest (Array* a) {
         // FitR link
     }
     else if (obj1.isName ("FitR")) {
-        if (a->size () < 6) {
+        if (arr.size () < 6) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
             return;
         }
         kind = destFitR;
-        if (a->get (2, &obj2)->isNum ()) { left = obj2.getNum (); }
+        if (arr.get (2, &obj2)->isNum ()) { left = obj2.getNum (); }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        if (!a->get (3, &obj2)->isNum ()) {
+        if (!arr.get (3, &obj2)->isNum ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         bottom = obj2.getNum ();
-        if (!a->get (4, &obj2)->isNum ()) {
+        if (!arr.get (4, &obj2)->isNum ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         right = obj2.getNum ();
-        if (!a->get (5, &obj2)->isNum ()) {
+        if (!arr.get (5, &obj2)->isNum ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
@@ -324,7 +324,7 @@ LinkDest::LinkDest (Array* a) {
         // FitB link
     }
     else if (obj1.isName ("FitB")) {
-        if (a->size () < 2) {
+        if (arr.size () < 2) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
@@ -335,14 +335,14 @@ LinkDest::LinkDest (Array* a) {
         // FitBH link
     }
     else if (obj1.isName ("FitBH")) {
-        if (a->size () < 3) {
+        if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
             return;
         }
         kind = destFitBH;
-        if (a->get (2, &obj2)->isNum ()) {
+        if (arr.get (2, &obj2)->isNum ()) {
             top = obj2.getNum ();
             changeTop = true;
         }
@@ -357,14 +357,14 @@ LinkDest::LinkDest (Array* a) {
         // FitBV link
     }
     else if (obj1.isName ("FitBV")) {
-        if (a->size () < 3) {
+        if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
                 "Annotation destination array is too short");
             return;
         }
         kind = destFitBV;
-        if (a->get (2, &obj2)->isNum ()) {
+        if (arr.get (2, &obj2)->isNum ()) {
             left = obj2.getNum ();
             changeLeft = true;
         }

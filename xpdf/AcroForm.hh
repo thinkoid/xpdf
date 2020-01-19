@@ -58,7 +58,7 @@ private:
     void drawNewAppearance (
         Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax,
         double yMax);
-    void setColor (Array* a, bool fill, int adjust);
+    void setColor (Array& arr, bool fill, int adjust);
     void drawText (
         GString* text, GString* da, GfxFontDict* fontDict, bool multiline,
         int comb, int quadding, bool txField, bool forceZapfDingbats, int rot,

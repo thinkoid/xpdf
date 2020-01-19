@@ -8,6 +8,7 @@
 #include <defs.hh>
 
 #include <xpdf/ast.hh>
+#include <xpdf/Array.hh>
 #include <xpdf/Stream.hh>
 
 class XRef;
@@ -76,10 +77,9 @@ private:
     int getChar ();
     int lookChar ();
 
-    Array* streams;          // array of input streams
+    Array streams;          // array of input streams
     int strPtr;              // index of current stream
     Object curStr;           // current stream
-    bool freeArray;         // should lexer free the streams array?
 
 #define tokBufSize 128 // size of token buffer
     char tokBuf[tokBufSize]; // temporary token buffer

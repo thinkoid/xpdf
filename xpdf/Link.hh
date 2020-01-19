@@ -69,7 +69,7 @@ enum LinkDestKind {
 class LinkDest {
 public:
     // Build a LinkDest from the array.
-    LinkDest (Array* a);
+    LinkDest (Array&);
 
     // Copy a LinkDest.
     LinkDest* copy () { return new LinkDest (this); }

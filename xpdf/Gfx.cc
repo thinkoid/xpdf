@@ -795,21 +795,25 @@ void Gfx::opConcat (Object args[], int numArgs) {
 }
 
 void Gfx::opSetDash (Object args[], int numArgs) {
-    Array* a;
     int length;
     Object obj;
     double* dash;
     int i;
 
-    a = args[0].getArray ();
-    length = a->size ();
-    if (length == 0) { dash = NULL; }
+    Array& arr = args[0].getArray ();
+    length = arr.size ();
+
+    if (length == 0) {
+        dash = NULL;
+    }
     else {
         dash = (double*)calloc (length, sizeof (double));
+
         for (i = 0; i < length; ++i) {
-            dash[i] = a->get (i, &obj)->getNum ();
+            dash[i] = arr.get (i, &obj)->getNum ();
         }
     }
+
     state->setLineDash (dash, length, args[1].getNum ());
     out->updateLineDash (state);
 }
@@ -3273,7 +3277,6 @@ void Gfx::opMoveSetShowText (Object args[], int numArgs) {
 }
 
 void Gfx::opShowSpaceText (Object args[], int numArgs) {
-    Array* a;
     Object obj;
     int wMode;
     int i;
@@ -3289,9 +3292,9 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
     if (ocState) {
         out->beginStringOp (state);
         wMode = state->getFont ()->getWMode ();
-        a = args[0].getArray ();
-        for (i = 0; i < a->size (); ++i) {
-            a->get (i, &obj);
+        Array& a = args[0].getArray ();
+        for (i = 0; i < a.size (); ++i) {
+            a.get (i, &obj);
             if (obj.isNum ()) {
                 if (wMode) {
                     state->textShift (
@@ -3317,9 +3320,9 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
         out->endStringOp (state);
     }
     else {
-        a = args[0].getArray ();
-        for (i = 0; i < a->size (); ++i) {
-            a->get (i, &obj);
+        Array& a = args[0].getArray ();
+        for (i = 0; i < a.size (); ++i) {
+            a.get (i, &obj);
             if (obj.isString ()) { doIncCharCount (obj.getString ()); }
         }
     }
