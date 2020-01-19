@@ -137,7 +137,7 @@ Object* Parser::getObj (
                 shift ();
             }
             else {
-                auto s = buf1.s;
+                std::string s = buf1.s;
                 shift ();
 
                 if (is_eof (buf1) || is_error (buf1)) {
