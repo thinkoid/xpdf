@@ -7,7 +7,7 @@
 #include <goo/GList.hh>
 
 #include <xpdf/Error.hh>
-#include <xpdf/XPDFViewer.hh>
+#include <xpdf/XPDFUI.hh>
 #include <xpdf/XPDFApp.hh>
 
 #include <xpdf/XPDFAppRes.h>
@@ -141,18 +141,18 @@ void XPDFApp::getResources () {
 }
 
 XPDFApp::~XPDFApp () {
-    deleteGList (viewers, XPDFViewer);
+    deleteGList (viewers, XPDFUI);
     if (geometry) { delete geometry; }
     if (title) { delete title; }
     if (initialZoom) { delete initialZoom; }
 }
 
-XPDFViewer* XPDFApp::open (
+XPDFUI* XPDFApp::open (
     GString* fileName, int page, GString* ownerPassword,
     GString* userPassword) {
-    XPDFViewer* viewer;
+    XPDFUI* viewer;
 
-    viewer = new XPDFViewer (
+    viewer = new XPDFUI (
         this, fileName, page, NULL, fullScreen, ownerPassword, userPassword);
     if (!viewer->isOk ()) {
         delete viewer;
@@ -170,12 +170,12 @@ XPDFViewer* XPDFApp::open (
     return viewer;
 }
 
-XPDFViewer* XPDFApp::openAtDest (
+XPDFUI* XPDFApp::openAtDest (
     GString* fileName, GString* dest, GString* ownerPassword,
     GString* userPassword) {
-    XPDFViewer* viewer;
+    XPDFUI* viewer;
 
-    viewer = new XPDFViewer (
+    viewer = new XPDFUI (
         this, fileName, 1, dest, fullScreen, ownerPassword, userPassword);
     if (!viewer->isOk ()) {
         delete viewer;
@@ -193,17 +193,17 @@ XPDFViewer* XPDFApp::openAtDest (
     return viewer;
 }
 
-XPDFViewer*
-XPDFApp::reopen (XPDFViewer* viewer, PDFDoc* doc, int page, bool fullScreenA) {
+XPDFUI*
+XPDFApp::reopen (XPDFUI* viewer, PDFDoc* doc, int page, bool fullScreenA) {
     int i;
 
     for (i = 0; i < viewers->getLength (); ++i) {
-        if (((XPDFViewer*)viewers->get (i)) == viewer) {
+        if (((XPDFUI*)viewers->get (i)) == viewer) {
             viewers->del (i);
             delete viewer;
         }
     }
-    viewer = new XPDFViewer (this, doc, page, NULL, fullScreenA);
+    viewer = new XPDFUI (this, doc, page, NULL, fullScreenA);
     if (!viewer->isOk ()) {
         delete viewer;
         return NULL;
@@ -220,11 +220,11 @@ XPDFApp::reopen (XPDFViewer* viewer, PDFDoc* doc, int page, bool fullScreenA) {
     return viewer;
 }
 
-void XPDFApp::close (XPDFViewer* viewer, bool closeLast) {
+void XPDFApp::close (XPDFUI* viewer, bool closeLast) {
     int i;
 
     if (viewers->getLength () == 1) {
-        if (viewer != (XPDFViewer*)viewers->get (0)) { return; }
+        if (viewer != (XPDFUI*)viewers->get (0)) { return; }
         if (closeLast) { quit (); }
         else {
             viewer->clear ();
@@ -232,11 +232,11 @@ void XPDFApp::close (XPDFViewer* viewer, bool closeLast) {
     }
     else {
         for (i = 0; i < viewers->getLength (); ++i) {
-            if (((XPDFViewer*)viewers->get (i)) == viewer) {
+            if (((XPDFUI*)viewers->get (i)) == viewer) {
                 viewers->del (i);
                 if (remoteAtom != None && remoteViewer == viewer) {
                     remoteViewer =
-                        (XPDFViewer*)viewers->get (viewers->getLength () - 1);
+                        (XPDFUI*)viewers->get (viewers->getLength () - 1);
                     remoteWin = remoteViewer->getWindow ();
                     XSetSelectionOwner (
                         display, remoteAtom, XtWindow (remoteWin), CurrentTime);
@@ -252,7 +252,7 @@ void XPDFApp::quit () {
     if (remoteAtom != None) {
         XSetSelectionOwner (display, remoteAtom, None, CurrentTime);
     }
-    while (viewers->getLength () > 0) { delete (XPDFViewer*)viewers->del (0); }
+    while (viewers->getLength () > 0) { delete (XPDFUI*)viewers->del (0); }
     XtAppSetExitFlag (appContext);
 }
 

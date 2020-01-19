@@ -22,37 +22,37 @@ class GList;
 class UnicodeMap;
 class LinkDest;
 class XPDFApp;
-class XPDFViewer;
+class XPDFUI;
 
 //------------------------------------------------------------------------
 
-// NB: this must match the defn of zoomMenuBtnInfo in XPDFViewer.cc
+// NB: this must match the defn of zoomMenuBtnInfo in XPDFUI.cc
 #define nZoomMenuItems 10
 
 //------------------------------------------------------------------------
 
-struct XPDFViewerCmd {
+struct XPDFUICmd {
     const char* name;
     int nArgs;
     bool requiresDoc;
     bool requiresEvent;
-    void (XPDFViewer::*func) (GString* args[], int nArgs, XEvent* event);
+    void (XPDFUI::*func) (GString* args[], int nArgs, XEvent* event);
 };
 
 //------------------------------------------------------------------------
-// XPDFViewer
+// XPDFUI
 //------------------------------------------------------------------------
 
-class XPDFViewer {
+class XPDFUI {
 public:
-    XPDFViewer (
+    XPDFUI (
         XPDFApp* appA, GString* fileName, int pageA, GString* destName,
         bool fullScreen, GString* ownerPassword, GString* userPassword);
-    XPDFViewer (
+    XPDFUI (
         XPDFApp* appA, PDFDoc* doc, int pageA, GString* destName,
         bool fullScreen);
     bool isOk () { return ok; }
-    ~XPDFViewer ();
+    ~XPDFUI ();
 
     void open (GString* fileName, int pageA, GString* destName);
     void clear ();
@@ -256,7 +256,7 @@ private:
     //----- Motif support
     XmFontList createFontList (char* xlfd);
 
-    static XPDFViewerCmd cmdTab[];
+    static XPDFUICmd cmdTab[];
 
     XPDFApp* app;
     bool ok;

@@ -50,19 +50,15 @@ libxpdf_a_SOURCES =                             \
    UnicodeMap.cc                                \
    UnicodeTypeTable.cc                          \
    XFAForm.cc                                   \
-   XPDFApp.cc                                   \
-   XPDFAppRes.c                                 \
-   XPDFCore.cc                                  \
-   XPDFTree.cc                                  \
-   XPDFViewer.cc                                \
    XRef.cc                                      \
    Zoox.cc                                      \
    bitpack.cc                                   \
    function.cc                                  \
    lexer.cc                                     \
-   object.cc
+   object.cc                                    \
+   xpdf.cc
 
-bin_PROGRAMS = xpdf                             \
+bin_PROGRAMS = xpdfview                         \
 	pdfdetach                                   \
 	pdffonts                                    \
 	pdfimages                                   \
@@ -73,7 +69,13 @@ bin_PROGRAMS = xpdf                             \
 	pdftops                                     \
 	pdftotext
 
-xpdf_SOURCES = xpdf.cc
+xpdfview_SOURCES = xpdfview.cc                  \
+   XPDFApp.cc                                   \
+   XPDFAppRes.c                                 \
+   XPDFCore.cc                                  \
+   XPDFTree.cc                                  \
+   XPDFUI.cc
+
 pdfdetach_SOURCES = pdfdetach.cc
 pdffonts_SOURCES = pdffonts.cc
 pdfimages_SOURCES = pdfimages.cc
@@ -94,4 +96,3 @@ LDADD = libxpdf.a                                       \
 	$(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS)    \
 	$(LIBPNG_LIBS) $(PAPER_LIBS)                        \
 	$(FMT_LIBS)
-

@@ -14,7 +14,7 @@
 class GString;
 class GList;
 class PDFDoc;
-class XPDFViewer;
+class XPDFUI;
 
 //------------------------------------------------------------------------
 
@@ -29,15 +29,15 @@ public:
     XPDFApp (int* argc, char* argv[]);
     ~XPDFApp ();
 
-    XPDFViewer* open (
+    XPDFUI* open (
         GString* fileName, int page = 1, GString* ownerPassword = NULL,
         GString* userPassword = NULL);
-    XPDFViewer* openAtDest (
+    XPDFUI* openAtDest (
         GString* fileName, GString* dest, GString* ownerPassword = NULL,
         GString* userPassword = NULL);
-    XPDFViewer*
-    reopen (XPDFViewer* viewer, PDFDoc* doc, int page, bool fullScreenA);
-    void close (XPDFViewer* viewer, bool closeLast);
+    XPDFUI*
+    reopen (XPDFUI* viewer, PDFDoc* doc, int page, bool fullScreenA);
+    void close (XPDFUI* viewer, bool closeLast);
     void quit ();
 
     void run ();
@@ -79,11 +79,11 @@ private:
     int screenNum;
     XtAppContext appContext;
     Widget appShell;
-    GList* viewers; // [XPDFViewer]
+    GList* viewers; // [XPDFUI]
 
     Atom remoteAtom;
     Window remoteXWin;
-    XPDFViewer* remoteViewer;
+    XPDFUI* remoteViewer;
     Widget remoteWin;
 
     //----- resource/option values
