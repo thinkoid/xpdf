@@ -58,16 +58,16 @@ libxpdf_a_SOURCES =                             \
    lexer.cc                                     \
    xpdf.cc
 
-bin_PROGRAMS = xpdfview                         \
-	pdfdetach                                   \
-	pdffonts                                    \
-	pdfimages                                   \
-	pdfinfo                                     \
-	pdftohtml                                   \
-	pdftopng                                    \
-	pdftoppm                                    \
-	pdftops                                     \
-	pdftotext
+bin_PROGRAMS = xpdfview
+#   pdfdetach
+#   pdffonts
+#   pdfimages
+#   pdfinfo
+#   pdftohtml
+#   pdftopng
+#   pdftoppm
+#   pdftops
+#   pdftotext
 
 xpdfview_SOURCES = xpdfview.cc                  \
    XPDFApp.cc                                   \
@@ -76,15 +76,15 @@ xpdfview_SOURCES = xpdfview.cc                  \
    XPDFTree.cc                                  \
    XPDFUI.cc
 
-pdfdetach_SOURCES = pdfdetach.cc
-pdffonts_SOURCES = pdffonts.cc
-pdfimages_SOURCES = pdfimages.cc
-pdfinfo_SOURCES = pdfinfo.cc
-pdftohtml_SOURCES = pdftohtml.cc
-pdftopng_SOURCES = pdftopng.cc
-pdftoppm_SOURCES = pdftoppm.cc
-pdftops_SOURCES = pdftops.cc
-pdftotext_SOURCES = pdftotext.cc
+#pdfdetach_SOURCES = pdfdetach.cc
+#pdffonts_SOURCES = pdffonts.cc
+#pdfimages_SOURCES = pdfimages.cc
+#pdfinfo_SOURCES = pdfinfo.cc
+#pdftohtml_SOURCES = pdftohtml.cc
+#pdftopng_SOURCES = pdftopng.cc
+#pdftoppm_SOURCES = pdftoppm.cc
+#pdftops_SOURCES = pdftops.cc
+#pdftotext_SOURCES = pdftotext.cc
 
 AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
 
