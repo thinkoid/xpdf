@@ -23,6 +23,14 @@ void Array::add (Object* elem) {
     xs.push_back (*elem);
 }
 
+void Array::add (const Object& obj) {
+    xs.push_back (obj);
+}
+
+void Array::add (Object&& obj) {
+    xs.push_back (std::move (obj));
+}
+
 Object* Array::get (int i, Object* obj) {
     if (size_t (i) < xs.size ()) {
         auto iter = xs.begin ();
@@ -30,7 +38,8 @@ Object* Array::get (int i, Object* obj) {
         return iter->fetch (xref, obj);
     }
     else {
-        return obj->initNull ();
+        *obj = { };
+        return obj;
     }
 }
 
@@ -41,6 +50,7 @@ Object* Array::getNF (int i, Object* obj) {
         return *obj = *iter, obj;
     }
     else {
-        return obj->initNull ();
+        *obj = { };
+        return obj;
     }
 }

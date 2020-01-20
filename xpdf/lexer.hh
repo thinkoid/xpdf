@@ -56,18 +56,18 @@ struct lexer_t {
     void skipChar () { getChar (); }
 
     // Get stream.
-    Stream* getStream () {
-        return curStr.isNone () ? (Stream*)NULL : curStr.getStream ();
+    Stream* as_stream () {
+        return curStr.is_none () ? (Stream*)NULL : curStr.as_stream ();
     }
 
     // Get current position in file.
     GFileOffset getPos () {
-        return curStr.isNone () ? -1 : curStr.streamGetPos ();
+        return curStr.is_none () ? -1 : curStr.streamGetPos ();
     }
 
     // Set position in file.
     void setPos (GFileOffset pos, int dir = 0) {
-        if (!curStr.isNone ()) curStr.streamSetPos (pos, dir);
+        if (!curStr.is_none ()) curStr.streamSetPos (pos, dir);
     }
 
     // Returns true if <c> is a whitespace character.

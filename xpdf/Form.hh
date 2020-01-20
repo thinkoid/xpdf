@@ -43,7 +43,7 @@ public:
     virtual ~FormField ();
 
     virtual const char* getType () = 0;
-    virtual Unicode* getName (int* length) = 0;
+    virtual Unicode* as_name (int* length) = 0;
     virtual Unicode* getValue (int* length) = 0;
 
     // Return the resource dictionaries used to draw this field.  The

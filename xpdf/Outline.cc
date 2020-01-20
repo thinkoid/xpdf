@@ -18,10 +18,10 @@ Outline::Outline (Object* outlineObj, XRef* xref) {
     Object first, last;
 
     items = NULL;
-    if (!outlineObj->isDict ()) { return; }
+    if (!outlineObj->is_dict ()) { return; }
     outlineObj->dictLookupNF ("First", &first);
     outlineObj->dictLookupNF ("Last", &last);
-    if (first.isRef () && last.isRef ()) {
+    if (first.is_ref () && last.is_ref ()) {
         items = OutlineItem::readItemList (&first, &last, NULL, xref);
     }
 }
@@ -42,15 +42,15 @@ OutlineItem::OutlineItem (
     kids = NULL;
     parent = parentA;
 
-    if (dict->lookup ("Title", &obj1)->isString ()) {
-        title = new TextString (obj1.getString ());
+    if (dict->lookup ("Title", &obj1)->is_string ()) {
+        title = new TextString (obj1.as_string ());
     }
 
-    if (!dict->lookup ("Dest", &obj1)->isNull ()) {
+    if (!dict->lookup ("Dest", &obj1)->is_null ()) {
         action = LinkAction::parseDest (&obj1);
     }
     else {
-        if (!dict->lookup ("A", &obj1)->isNull ()) {
+        if (!dict->lookup ("A", &obj1)->is_null ()) {
             action = LinkAction::parseAction (&obj1);
         }
     }
@@ -62,8 +62,8 @@ OutlineItem::OutlineItem (
     dict->lookupNF ("Next", &nextRef);
 
     startsOpen = false;
-    if (dict->lookup ("Count", &obj1)->isInt ()) {
-        if (obj1.getInt () > 0) { startsOpen = true; }
+    if (dict->lookup ("Count", &obj1)->is_int ()) {
+        if (obj1.as_int () > 0) { startsOpen = true; }
     }
 }
 
@@ -84,13 +84,13 @@ GList* OutlineItem::readItemList (
     int i;
 
     items = new GList ();
-    if (!firstItemRef->isRef () || !lastItemRef->isRef ()) { return items; }
+    if (!firstItemRef->is_ref () || !lastItemRef->is_ref ()) { return items; }
     p = firstItemRef;
     do {
-        if (!p->fetch (xrefA, &obj)->isDict ()) {
+        if (!p->fetch (xrefA, &obj)->is_dict ()) {
             break;
         }
-        item = new OutlineItem (p, obj.getDict (), parentA, xrefA);
+        item = new OutlineItem (p, obj.as_dict (), parentA, xrefA);
 
         // check for loops with parents
         for (ancestor = parentA; ancestor; ancestor = ancestor->parent) {
@@ -120,12 +120,12 @@ GList* OutlineItem::readItemList (
         }
 
         items->append (item);
-        if (p->getRefNum () == lastItemRef->getRef ().num &&
-            p->getRefGen () == lastItemRef->getRef ().gen) {
+        if (p->getRefNum () == lastItemRef->as_ref ().num &&
+            p->getRefGen () == lastItemRef->as_ref ().gen) {
             break;
         }
         p = &item->nextRef;
-        if (!p->isRef ()) { break; }
+        if (!p->is_ref ()) { break; }
     } while (p);
     return items;
 }

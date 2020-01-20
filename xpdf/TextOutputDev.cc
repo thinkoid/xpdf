@@ -401,7 +401,7 @@ TextFontInfo::TextFontInfo (GfxState* state) {
         ascent = 0.75;
         descent = -0.25;
     }
-    fontName = (gfxFont && gfxFont->getName ()) ? gfxFont->getName ()->copy ()
+    fontName = (gfxFont && gfxFont->as_name ()) ? gfxFont->as_name ()->copy ()
                                                 : (GString*)NULL;
     flags = gfxFont ? gfxFont->getFlags () : 0;
     mWidth = 0;

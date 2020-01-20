@@ -43,14 +43,14 @@ inline bool contains (T&& t, U&& ... u) { return ((t == u) || ...); }
 
 template< typename T > bool is (Object&);
 
-template<> inline bool is<    int > (Object& obj) { return obj.isInt   (); }
-template<> inline bool is< double > (Object& obj) { return obj.isNum   (); }
-template<> inline bool is< Array  > (Object& obj) { return obj.isArray (); }
+template<> inline bool is<    int > (Object& obj) { return obj.is_int   (); }
+template<> inline bool is< double > (Object& obj) { return obj.is_num   (); }
+template<> inline bool is< Array  > (Object& obj) { return obj.is_array (); }
 
 template< typename T > T get (Object&);
 
-template<> inline    int get<    int > (Object& obj) { return obj.getInt (); }
-template<> inline double get< double > (Object& obj) { return obj.getNum (); }
+template<> inline    int get<    int > (Object& obj) { return obj.as_int (); }
+template<> inline double get< double > (Object& obj) { return obj.as_num (); }
 
 template< typename T >
 inline T as (Object& obj) {
@@ -111,7 +111,7 @@ template< >
 inline auto as_array< std::tuple< double, double > > (Object& src) {
     std::vector< std::tuple< double, double > > xs;
 
-    if (!src.isArray ()) {
+    if (!src.is_array ()) {
         throw std::runtime_error ("not an array");
     }
 
@@ -128,7 +128,7 @@ template< typename T >
 inline auto as_array (Dict& dict, const char* s) {
     Object obj;
 
-    if (0 == dict.lookup (s, &obj) || obj.isNull ()) {
+    if (0 == dict.lookup (s, &obj) || obj.is_null ()) {
         throw std::runtime_error (format ("missing array \"{}\"", s));
     }
 
@@ -140,7 +140,7 @@ template< typename T >
 std::vector< T > optional_array (Dict& dict, const char* s) {
     Object obj;
 
-    if (0 == dict.lookup (s, &obj) || obj.isNull ()) {
+    if (0 == dict.lookup (s, &obj) || obj.is_null ()) {
         return { };
     }
 

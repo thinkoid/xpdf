@@ -1066,9 +1066,9 @@ JBIG2Stream::~JBIG2Stream () {
 void JBIG2Stream::reset () {
     // read the globals stream
     globalSegments = new GList ();
-    if (globalsStream.isStream ()) {
+    if (globalsStream.is_stream ()) {
         segments = globalSegments;
-        curStr = globalsStream.getStream ();
+        curStr = globalsStream.as_stream ();
         curStr->reset ();
         arithDecoder->setStream (curStr);
         huffDecoder->setStream (curStr);

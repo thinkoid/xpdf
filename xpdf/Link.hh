@@ -231,7 +231,7 @@ public:
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionNamed; }
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
 
 private:
     GString* name;
@@ -318,7 +318,7 @@ public:
     virtual ~LinkHide ();
 
     // Was the LinkHide created successfully?
-    virtual bool isOk () { return !fields.isNull (); }
+    virtual bool isOk () { return !fields.is_null (); }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionHide; }

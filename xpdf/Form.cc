@@ -19,7 +19,7 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     Form* form;
     Object xfaObj, catDict, needsRenderingObj;
 
-    if (!acroFormObj->isDict ()) {
+    if (!acroFormObj->is_dict ()) {
         error (errSyntaxError, -1, "AcroForm object is wrong type");
         return NULL;
     }
@@ -27,8 +27,8 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     acroFormObj->dictLookup ("XFA", &xfaObj);
     docA->getXRef ()->getCatalog (&catDict);
     catDict.dictLookup ("NeedsRendering", &needsRenderingObj);
-    if (globalParams->getEnableXFA () && !xfaObj.isNull () &&
-        !(needsRenderingObj.isBool () && needsRenderingObj.getBool ())) {
+    if (globalParams->getEnableXFA () && !xfaObj.is_null () &&
+        !(needsRenderingObj.is_bool () && needsRenderingObj.as_bool ())) {
         form = XFAForm::load (docA, acroFormObj, &xfaObj);
     }
     else {

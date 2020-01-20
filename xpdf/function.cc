@@ -209,7 +209,7 @@ inline size_t bps_from (Dict& dict) {
 
 std::vector< char >
 block_from (Object& obj, size_t n) {
-    auto str = obj.getStream ();
+    auto str = obj.as_stream ();
     STREAM_GUARD (str);
 
     std::vector< char > xs (n);
@@ -843,7 +843,7 @@ postscript_function_t::postscript_function_t (Object& obj, Dict& dict)
     ASSERT (range.size () <= function_t::max_arity);
     ASSERT (!range.empty ());
 
-    auto str = obj.getStream ();
+    auto str = obj.as_stream ();
     STREAM_GUARD (str);
 
     str->reset ();
@@ -1185,9 +1185,9 @@ std::string postscript_function_t::to_ps () const {
 
 static inline Dict*
 dictionary_from (Object& obj) {
-    return obj.isStream ()
+    return obj.is_stream ()
         ? obj.streamGetDict ()
-        : obj.isDict () ? obj.getDict () : 0;
+        : obj.is_dict () ? obj.as_dict () : 0;
 }
 
 std::shared_ptr< function_t::impl_t >
@@ -1196,7 +1196,7 @@ make_function (Object& obj, size_t recursion /* = 0 */) {
         throw std::runtime_error ("function definition recursion limit");
     }
 
-    if (obj.isName ("Identity")) {
+    if (obj.is_name ("Identity")) {
         return std::make_shared< identity_function_t > ();
     }
     else {

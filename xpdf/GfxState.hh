@@ -456,7 +456,7 @@ public:
     virtual bool isNonMarking () { return nonMarking; }
 
     // Separation-specific access.
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
     GfxColorSpace* getAlt () { return alt; }
     const Function& getFunc () const { return func; }
 
@@ -578,7 +578,7 @@ public:
     double getXStep () { return xStep; }
     double getYStep () { return yStep; }
     Dict* getResDict () {
-        return resDict.isDict () ? resDict.getDict () : (Dict*)NULL;
+        return resDict.is_dict () ? resDict.as_dict () : (Dict*)NULL;
     }
     double* getMatrix () { return matrix; }
     Object* getContentStreamRef () { return &contentStreamRef; }

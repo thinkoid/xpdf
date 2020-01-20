@@ -27,6 +27,9 @@ public:
     // Add an element.
     void add (Object* elem);
 
+    void add (const Object&);
+    void add (Object&&);
+
     // Accessors.
     Object* get (int i, Object* obj);
     Object* getNF (int i, Object* obj);

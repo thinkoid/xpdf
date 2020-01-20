@@ -34,7 +34,7 @@ static const char specialChars [256] = {
 
 static inline Array make_array (XRef* xref, Object* pobj = 0) {
     if (pobj) {
-        if (pobj->isStream ()) {
+        if (pobj->is_stream ()) {
             Array arr (xref);
 
             Object tmp = *pobj;
@@ -43,7 +43,7 @@ static inline Array make_array (XRef* xref, Object* pobj = 0) {
             return arr;
         }
         else {
-            return pobj->getArray ();
+            return pobj->as_array ();
         }
     }
     else {
@@ -56,7 +56,7 @@ namespace xpdf {
 lexer_t::lexer_t (XRef* xref, Stream* pstr)
     : streams (make_array (xref)) {
     // TODO: array of streams and nested parsing need some std-ing.
-    curStr.initStream (pstr);
+    curStr = xpdf::make_stream_obj (pstr);
     Object obj = curStr;
     streams.add (&obj);
     strPtr = 0;
@@ -74,7 +74,7 @@ lexer_t::lexer_t (XRef* xref, Object* pobj)
 }
 
 lexer_t::~lexer_t () {
-    if (!curStr.isNone ()) {
+    if (!curStr.is_none ()) {
         curStr.streamClose ();
         curStr = { };
     }
@@ -83,7 +83,7 @@ lexer_t::~lexer_t () {
 int lexer_t::getChar () {
     int c = EOF;
 
-    while (!curStr.isNone () && (c = curStr.streamGetChar ()) == EOF) {
+    while (!curStr.is_none () && (c = curStr.streamGetChar ()) == EOF) {
         curStr.streamClose ();
         curStr = { };
 
@@ -97,7 +97,7 @@ int lexer_t::getChar () {
 }
 
 int lexer_t::lookChar () {
-    if (curStr.isNone ()) {
+    if (curStr.is_none ()) {
         return EOF;
     }
 

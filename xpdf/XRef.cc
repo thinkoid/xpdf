@@ -153,25 +153,25 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
     objNums = NULL;
     ok = false;
 
-    if (!xref->fetch (objStrNum, 0, &objStr)->isStream ()) {
+    if (!xref->fetch (objStrNum, 0, &objStr)->is_stream ()) {
         return;
     }
 
-    if (!objStr.streamGetDict ()->lookup ("N", &obj1)->isInt ()) {
+    if (!objStr.streamGetDict ()->lookup ("N", &obj1)->is_int ()) {
         return;
     }
 
-    nObjects = obj1.getInt ();
+    nObjects = obj1.as_int ();
 
     if (nObjects <= 0) {
         return;
     }
 
-    if (!objStr.streamGetDict ()->lookup ("First", &obj1)->isInt ()) {
+    if (!objStr.streamGetDict ()->lookup ("First", &obj1)->is_int ()) {
         return;
     }
 
-    first = obj1.getInt ();
+    first = obj1.as_int ();
 
     if (first < 0) {
         return;
@@ -192,9 +192,9 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
 
     // parse the header: object numbers and offsets
     objStr.streamReset ();
-    obj1.initNull ();
+    obj1 = { };
 
-    str = new EmbedStream (objStr.getStream (), &obj1, true, first);
+    str = new EmbedStream (objStr.as_stream (), &obj1, true, first);
 
     Parser parser (xref, new xpdf::lexer_t (xref, str), false);
 
@@ -202,13 +202,13 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         parser.getObj (&obj1, true);
         parser.getObj (&obj2, true);
 
-        if (!obj1.isInt () || !obj2.isInt ()) {
+        if (!obj1.is_int () || !obj2.is_int ()) {
             free (offsets);
             return;
         }
 
-        objNums[i] = obj1.getInt ();
-        offsets[i] = obj2.getInt ();
+        objNums[i] = obj1.as_int ();
+        offsets[i] = obj2.as_int ();
 
         if (objNums[i] < 0 || offsets[i] < 0 || (i > 0 && offsets[i] < offsets[i - 1])) {
             free (offsets);
@@ -220,17 +220,17 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
     // skip to the first object - this shouldn't be necessary because
     // the First key is supposed to be equal to offsets[0], but just in
     // case...
-    if (i < offsets[0]) { objStr.getStream ()->discardChars (offsets[0] - i); }
+    if (i < offsets[0]) { objStr.as_stream ()->discardChars (offsets[0] - i); }
 
     // parse the objects
     for (i = 0; i < nObjects; ++i) {
-        obj1.initNull ();
+        obj1 = { };
         if (i == nObjects - 1) {
-            str = new EmbedStream (objStr.getStream (), &obj1, false, 0);
+            str = new EmbedStream (objStr.as_stream (), &obj1, false, 0);
         }
         else {
             str = new EmbedStream (
-                objStr.getStream (), &obj1, true, offsets[i + 1] - offsets[i]);
+                objStr.as_stream (), &obj1, true, offsets[i + 1] - offsets[i]);
         }
 
         Parser parser (xref, new xpdf::lexer_t (xref, str), false);
@@ -250,7 +250,8 @@ ObjectStream::~ObjectStream () {
 
 Object* ObjectStream::getObject (int objIdx, int objNum, Object* obj) {
     if (objIdx < 0 || objIdx >= nObjects || objNum != objNums[objIdx]) {
-        return obj->initNull ();
+        *obj = { };
+        return obj;
     }
 
     return *obj = objs [objIdx], obj;
@@ -312,7 +313,7 @@ XRef::XRef (BaseStream* strA, bool repair) {
     // get the root dictionary (catalog) object
     trailerDict.dictLookupNF ("Root", &obj);
 
-    if (obj.isRef ()) {
+    if (obj.is_ref ()) {
         rootNum = obj.getRefNum ();
         rootGen = obj.getRefGen ();
     }
@@ -325,7 +326,7 @@ XRef::XRef (BaseStream* strA, bool repair) {
 
     // now set the trailer dictionary's xref pointer so we can fetch
     // indirect objects from it
-    trailerDict.getDict ()->setXRef (this);
+    trailerDict.as_dict ()->setXRef (this);
 }
 
 XRef::~XRef () {
@@ -389,7 +390,7 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
         // parse an xref stream
     }
     else if (i < n && buf[i] >= '0' && buf[i] <= '9') {
-        obj.initNull ();
+        obj = { };
 
         Parser parser (
             NULL,
@@ -397,12 +398,12 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
                 NULL, str->makeSubStream (start + *pos, false, 0, &obj)),
             true);
 
-        if (!parser.getObj (&obj, true)->isInt ())      { goto err1; }
-        if (!parser.getObj (&obj, true)->isInt ())      { goto err1; }
-        if (!parser.getObj (&obj, true)->isCmd ("obj")) { goto err1; }
-        if (!parser.getObj (&obj)->isStream ())         { goto err1; }
+        if (!parser.getObj (&obj, true)->is_int ())      { goto err1; }
+        if (!parser.getObj (&obj, true)->is_int ())      { goto err1; }
+        if (!parser.getObj (&obj, true)->is_cmd ("obj")) { goto err1; }
+        if (!parser.getObj (&obj)->is_stream ())         { goto err1; }
 
-        more = readXRefStream (obj.getStream (), pos);
+        more = readXRefStream (obj.as_stream (), pos);
     }
     else {
         goto err1;
@@ -512,7 +513,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     }
 
     // read the trailer dictionary
-    obj.initNull ();
+    obj = { };
 
     Parser parser (
         NULL,
@@ -521,18 +522,18 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     parser.getObj (&obj);
 
-    if (!obj.isDict ()) {
+    if (!obj.is_dict ()) {
         return ok = false;
     }
 
     // get the 'Prev' pointer
     //~ this can be a 64-bit int (?)
-    obj.getDict ()->lookupNF ("Prev", &obj2);
-    if (obj2.isInt ()) {
-        *pos = (GFileOffset) (unsigned)obj2.getInt ();
+    obj.as_dict ()->lookupNF ("Prev", &obj2);
+    if (obj2.is_int ()) {
+        *pos = (GFileOffset) (unsigned)obj2.as_int ();
         more = true;
     }
-    else if (obj2.isRef ()) {
+    else if (obj2.is_ref ()) {
         // certain buggy PDF generators generate "/Prev NNN 0 R" instead
         // of "/Prev NNN"
         *pos = (GFileOffset) (unsigned)obj2.getRefNum ();
@@ -543,14 +544,14 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     }
 
     // save the first trailer dictionary
-    if (trailerDict.isNone ()) {
+    if (trailerDict.is_none ()) {
         trailerDict = obj;
     }
 
     // check for an 'XRefStm' key
     //~ this can be a 64-bit int (?)
-    if (obj.getDict ()->lookup ("XRefStm", &obj2)->isInt ()) {
-        pos2 = (GFileOffset) (unsigned)obj2.getInt ();
+    if (obj.as_dict ()->lookup ("XRefStm", &obj2)->is_int ()) {
+        pos2 = (GFileOffset) (unsigned)obj2.as_int ();
         readXRef (&pos2, posSet);
         if (!ok) {
             return ok = false;
@@ -567,10 +568,10 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     Object obj, obj2, idx;
     int newSize, first, n, i;
 
-    dict = xrefStr->getDict ();
+    dict = xrefStr->as_dict ();
 
-    if (!dict->lookupNF ("Size", &obj)->isInt ()) { goto err1; }
-    newSize = obj.getInt ();
+    if (!dict->lookupNF ("Size", &obj)->is_int ()) { goto err1; }
+    newSize = obj.as_int ();
     if (newSize < 0) { goto err1; }
     if (newSize > size) {
         entries = (XRefEntry*)reallocarray (entries, newSize, sizeof (XRefEntry));
@@ -581,14 +582,14 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
         size = newSize;
     }
 
-    if (!dict->lookupNF ("W", &obj)->isArray () || obj.arrayGetLength () < 3) {
+    if (!dict->lookupNF ("W", &obj)->is_array () || obj.arrayGetLength () < 3) {
         goto err1;
     }
     for (i = 0; i < 3; ++i) {
-        if (!obj.arrayGet (i, &obj2)->isInt ()) {
+        if (!obj.arrayGet (i, &obj2)->is_int ()) {
             goto err1;
         }
-        w[i] = obj2.getInt ();
+        w[i] = obj2.as_int ();
     }
     if (w[0] < 0 || w[0] > 4 || w[1] < 0 || w[1] > (int)sizeof (GFileOffset) ||
         w[2] < 0 || w[2] > 4) {
@@ -597,16 +598,16 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
 
     xrefStr->reset ();
     dict->lookupNF ("Index", &idx);
-    if (idx.isArray ()) {
+    if (idx.is_array ()) {
         for (i = 0; i + 1 < idx.arrayGetLength (); i += 2) {
-            if (!idx.arrayGet (i, &obj)->isInt ()) {
+            if (!idx.arrayGet (i, &obj)->is_int ()) {
                 goto err1;
             }
-            first = obj.getInt ();
-            if (!idx.arrayGet (i + 1, &obj)->isInt ()) {
+            first = obj.as_int ();
+            if (!idx.arrayGet (i + 1, &obj)->is_int ()) {
                 goto err1;
             }
-            n = obj.getInt ();
+            n = obj.as_int ();
             if (first < 0 || n < 0 ||
                 !readXRefStreamSection (xrefStr, w, first, n)) {
                 goto err0;
@@ -621,16 +622,16 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
 
     //~ this can be a 64-bit int (?)
     dict->lookupNF ("Prev", &obj);
-    if (obj.isInt ()) {
-        *pos = (GFileOffset) (unsigned)obj.getInt ();
+    if (obj.is_int ()) {
+        *pos = (GFileOffset) (unsigned)obj.as_int ();
         more = true;
     }
     else {
         more = false;
     }
 
-    if (trailerDict.isNone ()) {
-        trailerDict.initDict (new Dict (*dict));
+    if (trailerDict.is_none ()) {
+        trailerDict = xpdf::make_dict_obj (new Dict (*dict));
     }
 
     return more;
@@ -730,7 +731,7 @@ bool XRef::constructXRef () {
 
         // got trailer dictionary
         if (!strncmp (p, "trailer", 7)) {
-            obj.initNull ();
+            obj = { };
 
             Parser parser (
                 NULL,
@@ -739,9 +740,9 @@ bool XRef::constructXRef () {
 
             parser.getObj (&newTrailerDict);
 
-            if (newTrailerDict.isDict ()) {
+            if (newTrailerDict.is_dict ()) {
                 newTrailerDict.dictLookupNF ("Root", &obj);
-                if (obj.isRef ()) {
+                if (obj.is_ref ()) {
                     rootNum = obj.getRefNum ();
                     rootGen = obj.getRefGen ();
                     trailerDict = newTrailerDict;
@@ -858,7 +859,7 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
             goto err;
         }
 
-        obj1.initNull ();
+        obj1 = { };
 
         Parser parser (
             this,
@@ -870,9 +871,9 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
         parser.getObj (&obj2, true);
         parser.getObj (&obj3, true);
 
-        if (!obj1.isInt () || obj1.getInt () != num ||
-            !obj2.isInt () || obj2.getInt () != gen ||
-            !obj3.isCmd ("obj")) {
+        if (!obj1.is_int () || obj1.as_int () != num ||
+            !obj2.is_int () || obj2.as_int () != gen ||
+            !obj3.is_cmd ("obj")) {
             goto err;
         }
 
@@ -903,7 +904,8 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
     return obj;
 
 err:
-    return obj->initNull ();
+    *obj = { };
+    return obj;
 }
 
 ObjectStream* XRef::getObjectStream (int objStrNum) {

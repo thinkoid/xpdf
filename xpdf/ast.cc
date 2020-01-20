@@ -18,47 +18,31 @@ namespace xpdf {
 
 namespace ast {
 
-object_t::object_t (GString* p) noexcept
+obj_t::obj_t (GString* p) noexcept
     : var_ (std::shared_ptr< GString > (p))
 { }
 
-object_t::object_t (const std::string& s)
+obj_t::obj_t (const char* s)
     : var_ (std::make_shared< GString > (s))
 { }
 
-object_t::object_t (Array*  p) noexcept
+obj_t::obj_t (const std::string& s)
+    : var_ (std::make_shared< GString > (s))
+{ }
+
+obj_t::obj_t (Array*  p) noexcept
     : var_ (std::shared_ptr<  Array > (p))
 { }
 
-object_t::object_t (Dict*   p) noexcept
+obj_t::obj_t (Dict*   p) noexcept
     : var_ (std::shared_ptr<   Dict > (p))
 { }
 
-object_t::object_t (Stream* p) noexcept
+obj_t::obj_t (Stream* p) noexcept
     : var_ (std::shared_ptr< Stream > (p))
 { }
 
-object_t* object_t::initArray (XRef* p) {
-    var_ = std::make_shared< Array > (p);
-    return this;
-}
-
-object_t* object_t::initDict (XRef* p) {
-    var_ = std::make_shared< Dict > (p);
-    return this;
-}
-
-object_t* object_t::initDict (Dict* p) {
-    var_ = std::shared_ptr< Dict > (p);
-    return this;
-}
-
-object_t* object_t::initStream (Stream* p) {
-    var_ = std::shared_ptr< Stream > (p);
-    return this;
-}
-
-object_t* object_t::fetch (XRef* xref, object_t* obj, int recursion) {
+obj_t* obj_t::fetch (XRef* xref, obj_t* obj, int recursion) {
     return *obj = xpdf::fetch (*this, *xref, recursion), obj;
 }
 
@@ -66,119 +50,135 @@ object_t* object_t::fetch (XRef* xref, object_t* obj, int recursion) {
 // Array accessors.
 //------------------------------------------------------------------------
 
-int object_t::arrayGetLength () {
-    return getArray ().size ();
+int obj_t::arrayGetLength () {
+    return as_array ().size ();
 }
 
-void object_t::arrayAdd (object_t* pobj) {
-    getArray ().add (pobj);
+void obj_t::arrayAdd (obj_t* pobj) {
+    as_array ().add (pobj);
 }
 
-object_t* object_t::arrayGet (int i, object_t* pobj) {
-    return getArray ().get (i, pobj);
+void obj_t::arrayAdd (const obj_t& obj) {
+    as_array ().add (obj);
 }
 
-object_t* object_t::arrayGetNF (int i, object_t* pobj) {
-    return getArray ().getNF (i, pobj);
+void obj_t::arrayAdd (obj_t&& obj) {
+    as_array ().add (std::move (obj));
+}
+
+obj_t* obj_t::arrayGet (int i, obj_t* pobj) {
+    return as_array ().get (i, pobj);
+}
+
+obj_t* obj_t::arrayGetNF (int i, obj_t* pobj) {
+    return as_array ().getNF (i, pobj);
 }
 
 //------------------------------------------------------------------------
 // Dict accessors.
 //------------------------------------------------------------------------
 
-int object_t::dictGetLength () {
-    return getDict ()->getLength ();
+int obj_t::dictGetLength () {
+    return as_dict ()->getLength ();
 }
 
-void object_t::dictAdd (const char* key, object_t* val) {
-    getDict ()->add (key, val);
+void obj_t::dictAdd (const char* key, const obj_t& val) {
+    as_dict ()->add (key, val);
 }
 
-void object_t::dictAdd (const std::string& key, object_t* val) {
-    getDict ()->add (key, *val);
+void obj_t::dictAdd (const char* key, obj_t&& val) {
+    as_dict ()->add (key, std::move (val));
 }
 
-bool object_t::dictIs (const char* dictType) const {
-    return getDict ()->is (dictType);
+void obj_t::dictAdd (const char* key, obj_t* val) {
+    as_dict ()->add (key, val);
 }
 
-bool object_t::isDict (const char* dictType) const {
-    return isDict () && dictIs (dictType);
+void obj_t::dictAdd (const std::string& key, obj_t* val) {
+    as_dict ()->add (key, *val);
 }
 
-object_t*
-object_t::dictLookup (const char* key, object_t* obj, int recursion) {
-    return getDict ()->lookup (key, obj, recursion);
+bool obj_t::dictIs (const char* dictType) const {
+    return as_dict ()->is (dictType);
 }
 
-object_t* object_t::dictLookupNF (const char* key, object_t* obj) {
-    return getDict ()->lookupNF (key, obj);
+bool obj_t::is_dict (const char* dictType) const {
+    return is_dict () && dictIs (dictType);
 }
 
-char* object_t::dictGetKey (int i) {
-    return getDict ()->getKey (i);
+obj_t*
+obj_t::dictLookup (const char* key, obj_t* obj, int recursion) {
+    return as_dict ()->lookup (key, obj, recursion);
 }
 
-object_t* object_t::dictGetVal (int i, object_t* obj) {
-    return getDict ()->getVal (i, obj);
+obj_t* obj_t::dictLookupNF (const char* key, obj_t* obj) {
+    return as_dict ()->lookupNF (key, obj);
 }
 
-object_t* object_t::dictGetValNF (int i, object_t* obj) {
-    return getDict ()->getValNF (i, obj);
+char* obj_t::dictGetKey (int i) {
+    return as_dict ()->getKey (i);
+}
+
+obj_t* obj_t::dictGetVal (int i, obj_t* obj) {
+    return as_dict ()->getVal (i, obj);
+}
+
+obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
+    return as_dict ()->getValNF (i, obj);
 }
 
 //------------------------------------------------------------------------
 // Stream accessors.
 //------------------------------------------------------------------------
 
-bool object_t::streamIs (const char* dictType) const {
-    return getStream ()->getDict ()->is (dictType);
+bool obj_t::streamIs (const char* dictType) const {
+    return as_stream ()->as_dict ()->is (dictType);
 }
 
-bool object_t::isStream (const char* dictType) const {
-    return isStream () && streamIs (dictType);
+bool obj_t::is_stream (const char* dictType) const {
+    return is_stream () && streamIs (dictType);
 }
 
-void object_t::streamReset () {
-    getStream ()->reset ();
+void obj_t::streamReset () {
+    as_stream ()->reset ();
 }
 
-void object_t::streamClose () {
-    getStream ()->close ();
+void obj_t::streamClose () {
+    as_stream ()->close ();
 }
 
-int object_t::streamGetChar () {
-    return getStream ()->getChar ();
+int obj_t::streamGetChar () {
+    return as_stream ()->getChar ();
 }
 
-int object_t::streamLookChar () {
-    return getStream ()->lookChar ();
+int obj_t::streamLookChar () {
+    return as_stream ()->lookChar ();
 }
 
-int object_t::streamGetBlock (char* blk, int size) {
-    return getStream ()->getBlock (blk, size);
+int obj_t::streamGetBlock (char* blk, int size) {
+    return as_stream ()->getBlock (blk, size);
 }
 
-char* object_t::streamGetLine (char* buf, int size) {
-    return getStream ()->getLine (buf, size);
+char* obj_t::streamGetLine (char* buf, int size) {
+    return as_stream ()->getLine (buf, size);
 }
 
-GFileOffset object_t::streamGetPos () {
-    return getStream ()->getPos ();
+GFileOffset obj_t::streamGetPos () {
+    return as_stream ()->getPos ();
 }
 
-void object_t::streamSetPos (GFileOffset pos, int dir) {
-    getStream ()->setPos (pos, dir);
+void obj_t::streamSetPos (GFileOffset pos, int dir) {
+    as_stream ()->setPos (pos, dir);
 }
 
-Dict* object_t::streamGetDict () {
-    return getStream ()->getDict ();
+Dict* obj_t::streamGetDict () {
+    return as_stream ()->as_dict ();
 }
 
 //
 // More legacy stuff
 //
-const char* object_t::getTypeName () const {
+const char* obj_t::getTypeName () const {
     static const char* arr [] = {
         "null", "eof", "error", "boolean", "integer", "real",
         "string", "name", "cmd", "ref", "array", "dictionary",
@@ -188,7 +188,7 @@ const char* object_t::getTypeName () const {
     return arr [var_.index ()];
 };
 
-void object_t::print (FILE*) {
+void obj_t::print (FILE*) {
 #if 0
     Object obj;
     int i;
@@ -234,22 +234,30 @@ void object_t::print (FILE*) {
 
 } // namespace ast
 
-ast::object_t make_array_object (XRef* p) {
-    return ast::object_t (new Array (p));
+ast::obj_t make_arr_obj (XRef* p) {
+    return ast::obj_t (new Array (p));
 }
 
-ast::object_t make_dictionary_object (XRef* p) {
-    return ast::object_t (new Dict (p));
+ast::obj_t make_dict_obj (XRef* p) {
+    return ast::obj_t (new Dict (p));
+}
+
+ast::obj_t make_dict_obj (Dict* p) {
+    return ast::obj_t (p);
+}
+
+ast::obj_t make_stream_obj (Stream* p) {
+    return ast::obj_t (p);
 }
 
 //
-// Formerly object_t::fetch
+// Formerly obj_t::fetch
 //
-ast::object_t fetch (ast::object_t& obj, XRef& xref, int recursion /* = 0 */) {
-    if (obj.isRef ()) {
-        auto& ref = obj.getRef ();
+ast::obj_t fetch (ast::obj_t& obj, XRef& xref, int recursion /* = 0 */) {
+    if (obj.is_ref ()) {
+        auto& ref = obj.as_ref ();
 
-        ast::object_t result;
+        ast::obj_t result;
         xref.fetch (ref.num, ref.gen, &result, recursion);
 
         return result;

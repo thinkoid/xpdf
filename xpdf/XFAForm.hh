@@ -34,7 +34,7 @@ public:
     virtual ~XFAFormField ();
 
     virtual const char* getType ();
-    virtual Unicode* getName (int* length);
+    virtual Unicode* as_name (int* length);
     virtual Unicode* getValue (int* length);
 
     virtual Object* getResources (Object* res);

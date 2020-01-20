@@ -10,11 +10,11 @@ namespace xpdf {
 namespace ast {
 
 struct ref_t;
-struct object_t;
+struct obj_t;
 
 }} // namespace xpdf::ast
 
-using Object = xpdf::ast::object_t;
+using Object = xpdf::ast::obj_t;
 using Ref = xpdf::ast::ref_t;
 
 #endif // XPDF_XPDF_OBJECT_FWD_HH

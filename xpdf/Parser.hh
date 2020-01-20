@@ -29,7 +29,7 @@ public:
         int objNum = 0, int objGen = 0, int recursion = 0);
 
     // Get stream.
-    Stream* getStream () { return lexer->getStream (); }
+    Stream* as_stream () { return lexer->as_stream (); }
 
     // Get current position in file.
     GFileOffset getPos () { return lexer->getPos (); }

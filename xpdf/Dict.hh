@@ -34,7 +34,8 @@ public:
     //
     // Add an entry (taking ownership of key pointer):
     //
-    void add (const std::string&, Object&);
+    void add (const std::string&, const Object&);
+    void add (const std::string&, Object&&);
 
     void add (const char* key, Object* pobj) {
         add (key, *pobj);

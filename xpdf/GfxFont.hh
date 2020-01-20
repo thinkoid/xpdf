@@ -136,7 +136,7 @@ public:
 
     // Get the original font name (ignornig any munging that might have
     // been done to map to a canonical Base-14 font name).
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
 
     // Get font type.
     GfxFontType getType () { return type; }

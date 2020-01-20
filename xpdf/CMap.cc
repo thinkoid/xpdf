@@ -43,8 +43,8 @@ CMap* CMap::parse (CMapCache* cache, GString* collectionA, Object* obj) {
     CMap* cMap;
     GString* cMapNameA;
 
-    if (obj->isName ()) {
-        cMapNameA = new GString (obj->getName ());
+    if (obj->is_name ()) {
+        cMapNameA = new GString (obj->as_name ());
         if (!(cMap = globalParams->getCMap (collectionA, cMapNameA))) {
             error (
                 errSyntaxError, -1,
@@ -53,8 +53,8 @@ CMap* CMap::parse (CMapCache* cache, GString* collectionA, Object* obj) {
         }
         delete cMapNameA;
     }
-    else if (obj->isStream ()) {
-        if (!(cMap = CMap::parse (NULL, collectionA, obj->getStream ()))) {
+    else if (obj->is_stream ()) {
+        if (!(cMap = CMap::parse (NULL, collectionA, obj->as_stream ()))) {
             error (errSyntaxError, -1, "Invalid CMap in Type 0 font");
         }
     }
@@ -99,7 +99,7 @@ CMap* CMap::parse (CMapCache* cache, GString* collectionA, Stream* str) {
 
     cMap = new CMap (collectionA->copy (), NULL);
 
-    if (!str->getDict ()->lookup ("UseCMap", &obj1)->isNull ()) {
+    if (!str->as_dict ()->lookup ("UseCMap", &obj1)->is_null ()) {
         cMap->useCMap (cache, &obj1);
     }
 

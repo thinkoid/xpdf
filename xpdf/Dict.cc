@@ -21,7 +21,18 @@ const auto sequential_find = [](auto& xs, auto& key) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void Dict::add (const std::string& key, Object& obj) {
+void Dict::add (const std::string& key, Object&& obj) {
+    auto iter = sequential_find (xs, key);
+
+    if (iter == xs.end ()) {
+        xs.emplace_back (std::string (key), std::move (obj));
+    }
+    else {
+        std::get< 1 > (*iter) = std::move (obj);
+    }
+}
+
+void Dict::add (const std::string& key, const Object& obj) {
     auto iter = sequential_find (xs, key);
 
     if (iter == xs.end ()) {
@@ -34,7 +45,7 @@ void Dict::add (const std::string& key, Object& obj) {
 
 bool Dict::is (const char* type) {
     auto iter = sequential_find (xs, type);
-    return iter != xs.end () && std::get< 1 > (*iter).isName (type);
+    return iter != xs.end () && std::get< 1 > (*iter).is_name (type);
 }
 
 Object* Dict::lookup (const char* key, Object* pobj, int recursion) {
@@ -44,7 +55,8 @@ Object* Dict::lookup (const char* key, Object* pobj, int recursion) {
         return std::get< 1 > (*iter).fetch (xref, pobj, recursion);
     }
     else {
-        return pobj->initNull ();
+        *pobj = { };
+        return pobj;
     }
 }
 
@@ -55,7 +67,8 @@ Object* Dict::lookupNF (const char* key, Object* pobj) {
         return *pobj = std::get< 1 > (*iter), pobj;
     }
     else {
-        return pobj->initNull ();
+        *pobj = { };
+        return pobj;
     }
 }
 

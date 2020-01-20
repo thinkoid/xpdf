@@ -70,7 +70,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
         cropBox.x1 = cropBox.y1 = cropBox.x2 = cropBox.y2 = 0;
         haveCropBox = false;
         rotate = 0;
-        resources.initNull ();
+        resources = { };
     }
 
     // media box
@@ -90,7 +90,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
 
     // rotate
     dict->lookup ("Rotate", &obj1);
-    if (obj1.isInt ()) { rotate = obj1.getInt (); }
+    if (obj1.is_int ()) { rotate = obj1.as_int (); }
     while (rotate < 0) { rotate += 360; }
     while (rotate >= 360) { rotate -= 360; }
 
@@ -102,8 +102,8 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     dict->lookup ("PieceInfo", &pieceInfo);
     dict->lookup ("SeparationInfo", &separationInfo);
 
-    if (dict->lookup ("UserUnit", &obj1)->isNum ()) {
-        userUnit = obj1.getNum ();
+    if (dict->lookup ("UserUnit", &obj1)->is_num ()) {
+        userUnit = obj1.as_num ();
         if (userUnit < 1) { userUnit = 1; }
     }
     else {
@@ -113,7 +113,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     // resource dictionary
     dict->lookup ("Resources", &obj1);
 
-    if (obj1.isDict ()) {
+    if (obj1.is_dict ()) {
         resources = obj1;
     }
 }
@@ -127,13 +127,13 @@ PageAttrs::PageAttrs () {
     trimBox = cropBox;
     artBox = cropBox;
     rotate = 0;
-    lastModified.initNull ();
-    boxColorInfo.initNull ();
-    group.initNull ();
-    metadata.initNull ();
-    pieceInfo.initNull ();
-    separationInfo.initNull ();
-    resources.initNull ();
+    lastModified = { };
+    boxColorInfo = { };
+    group = { };
+    metadata = { };
+    pieceInfo = { };
+    separationInfo = { };
+    resources = { };
 }
 
 PageAttrs::~PageAttrs () {
@@ -153,25 +153,25 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     bool ok;
 
     dict->lookup (key, &obj1);
-    if (obj1.isArray () && obj1.arrayGetLength () == 4) {
+    if (obj1.is_array () && obj1.arrayGetLength () == 4) {
         ok = true;
         obj1.arrayGet (0, &obj2);
-        if (obj2.isNum ()) { tmp.x1 = obj2.getNum (); }
+        if (obj2.is_num ()) { tmp.x1 = obj2.as_num (); }
         else {
             ok = false;
         }
         obj1.arrayGet (1, &obj2);
-        if (obj2.isNum ()) { tmp.y1 = obj2.getNum (); }
+        if (obj2.is_num ()) { tmp.y1 = obj2.as_num (); }
         else {
             ok = false;
         }
         obj1.arrayGet (2, &obj2);
-        if (obj2.isNum ()) { tmp.x2 = obj2.getNum (); }
+        if (obj2.is_num ()) { tmp.x2 = obj2.as_num (); }
         else {
             ok = false;
         }
         obj1.arrayGet (3, &obj2);
-        if (obj2.isNum ()) { tmp.y2 = obj2.getNum (); }
+        if (obj2.is_num ()) { tmp.y2 = obj2.as_num (); }
         else {
             ok = false;
         }
@@ -211,7 +211,7 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
 
     // annotations
     pageDict->lookupNF ("Annots", &annots);
-    if (!(annots.isRef () || annots.isArray () || annots.isNull ())) {
+    if (!(annots.is_ref () || annots.is_array () || annots.is_null ())) {
         error (
             errSyntaxError, -1,
             "Page annotations object (page {0:d}) is wrong type ({1:s})", num,
@@ -221,7 +221,7 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
 
     // contents
     pageDict->lookupNF ("Contents", &contents);
-    if (!(contents.isRef () || contents.isArray () || contents.isNull ())) {
+    if (!(contents.is_ref () || contents.is_array () || contents.is_null ())) {
         error (
             errSyntaxError, -1,
             "Page contents object (page {0:d}) is wrong type ({1:s})", num,
@@ -232,9 +232,9 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
     return;
 
 err2:
-    annots.initNull ();
+    annots = { };
 err1:
-    contents.initNull ();
+    contents = { };
     ok = false;
 }
 
@@ -243,8 +243,8 @@ Page::Page (PDFDoc* docA, int numA) {
     xref = doc->getXRef ();
     num = numA;
     attrs = new PageAttrs ();
-    annots.initNull ();
-    contents.initNull ();
+    annots = { };
+    contents = { };
     ok = true;
 }
 
@@ -315,7 +315,7 @@ void Page::displaySlice (
         crop ? cropBox : (PDFRectangle*)NULL, rotate, abortCheckCbk,
         abortCheckCbkData);
     contents.fetch (xref, &obj);
-    if (!obj.isNull ()) {
+    if (!obj.is_null ()) {
         gfx->saveState ();
         gfx->display (&contents);
         while (gfx->getState ()->hasSaves ()) { gfx->restoreState (); }

@@ -47,19 +47,25 @@ static inline bool is_name (const xpdf::lexer_t::token_t& tok) {
 static inline Object make_generic_object (const xpdf::lexer_t::token_t& tok) {
     Object obj;
 
-    switch (tok.type) {
-    case xpdf::lexer_t::token_t::NULL_    : obj.initNull ();                      break;
-    case xpdf::lexer_t::token_t::EOF_     : obj.initEOF ();                       break;
-    case xpdf::lexer_t::token_t::BOOL_    : obj.initBool (tok.s [0] == 't');      break;
-    case xpdf::lexer_t::token_t::INT_     : obj.initInt (std::stoi (tok.s));      break;
-    case xpdf::lexer_t::token_t::REAL_    : obj.initReal (std::stod (tok.s));     break;
-    case xpdf::lexer_t::token_t::STRING_  : obj.initString (new GString (tok.s)); break;
-    case xpdf::lexer_t::token_t::NAME_    : obj.initName (tok.s);                 break;
-    case xpdf::lexer_t::token_t::KEYWORD_ : obj.initCmd (tok.s);                  break;
+#define XPDF_CASE_DEF(tok, name, ...)                                   \
+    case xpdf::lexer_t::token_t::tok:                                   \
+        obj = XPDF_CAT (XPDF_CAT(xpdf::make_, name), _obj) (__VA_ARGS__); \
+        break
 
-    case xpdf::lexer_t::token_t::ERROR_:
+    switch (tok.type) {
+        XPDF_CASE_DEF (NULL_,    null);
+        XPDF_CASE_DEF (EOF_,     eof);
+        XPDF_CASE_DEF (BOOL_,    bool,    tok.s [0] == 't');
+        XPDF_CASE_DEF (INT_,     int,     std::stoi (tok.s));
+        XPDF_CASE_DEF (REAL_,    real,    std::stod (tok.s));
+        XPDF_CASE_DEF (STRING_,  string,  tok.s);
+        XPDF_CASE_DEF (NAME_,    name,    tok.s);
+        XPDF_CASE_DEF (KEYWORD_, cmd,     tok.s);
+        XPDF_CASE_DEF (ERROR_,   err);
+#undef XPDF_CASE_DEF
+
     default:
-        obj.initError ();
+        obj = xpdf::make_err_obj ();
         break;
     }
 
@@ -104,7 +110,7 @@ Object* Parser::getObj (
         //
         shift ();
 
-        obj->initArray (xref);
+        *obj = xpdf::make_arr_obj (xref);
 
         while (!is_keyword (buf1, "]") && !is_eof (buf1)) {
             obj->arrayAdd (
@@ -126,7 +132,7 @@ Object* Parser::getObj (
         //
         shift ();
 
-        obj->initDict (xref);
+        *obj = xpdf::make_dict_obj (xref);
 
         while (!is_keyword (buf1, ">>") && !is_eof (buf1)) {
             if (!is_name (buf1)) {
@@ -161,10 +167,10 @@ Object* Parser::getObj (
             if ((str = makeStream (
                      obj, fileKey, encAlgorithm, keyLength, objNum, objGen,
                      recursion + 1))) {
-                obj->initStream (str);
+                *obj = xpdf::make_stream_obj (str);
             }
             else {
-                *obj = xpdf::make_error_object ();
+                *obj = xpdf::make_err_obj ();
             }
         }
         else {
@@ -181,12 +187,13 @@ Object* Parser::getObj (
 
         if (is_int (buf1) && is_keyword (buf2, "R")) {
             int gen = std::stoi (buf1.s);
-            obj->initRef (num, gen);
+            *obj = xpdf::make_ref_obj (num, gen);
+
             shift ();
             shift ();
         }
         else {
-            obj->initInt (num);
+            *obj = xpdf::make_int_obj (num);
         }
     }
     else if (is_string (buf1) && fileKey) {
@@ -195,7 +202,7 @@ Object* Parser::getObj (
         //
         std::string s;
 
-        obj2.initNull ();
+        obj2 = { };
 
         decrypt = new DecryptStream (
             new MemStream (buf1.s.c_str (), 0, buf1.s.size (), &obj2),
@@ -208,7 +215,7 @@ Object* Parser::getObj (
         }
 
         delete decrypt;
-        obj->initString (s);
+        *obj = xpdf::make_string_obj (s);
 
         shift ();
     }
@@ -231,7 +238,7 @@ Stream* Parser::makeStream (
 
     // get stream start position
     lexer->skipToNextLine ();
-    if (!(str = lexer->getStream ())) { return NULL; }
+    if (!(str = lexer->as_stream ())) { return NULL; }
     pos = str->getPos ();
 
     // check for length in damaged file
@@ -242,8 +249,8 @@ Stream* Parser::makeStream (
     }
     else {
         dict->dictLookup ("Length", &obj, recursion);
-        if (obj.isInt ()) {
-            length = (GFileOffset) (unsigned)obj.getInt ();
+        if (obj.is_int ()) {
+            length = (GFileOffset) (unsigned)obj.as_int ();
         }
         else {
             error (
@@ -254,8 +261,8 @@ Stream* Parser::makeStream (
 
     // in badly damaged PDF files, we can run off the end of the input
     // stream immediately after the "stream" token
-    if (!lexer->getStream ()) { return NULL; }
-    baseStr = lexer->getStream ()->getBaseStream ();
+    if (!lexer->as_stream ()) { return NULL; }
+    baseStr = lexer->as_stream ()->getBaseStream ();
 
     // skip over stream data
     lexer->setPos (pos + length);

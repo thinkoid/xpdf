@@ -111,7 +111,7 @@ public:
     virtual Stream* getUndecodedStream () = 0;
 
     // Get the dictionary associated with this stream.
-    virtual Dict* getDict () = 0;
+    virtual Dict* as_dict () = 0;
 
     // Is this an encoding filter?
     virtual bool isEncoder () { return false; }
@@ -149,7 +149,7 @@ public:
     virtual bool isBinary (bool last = true) { return last; }
     virtual BaseStream* getBaseStream () { return this; }
     virtual Stream* getUndecodedStream () { return this; }
-    virtual Dict* getDict () { return dict.getDict (); }
+    virtual Dict* as_dict () { return dict.as_dict (); }
     virtual GString* getFileName () { return NULL; }
 
     // Get/set position of first byte of stream within the file.
@@ -175,7 +175,7 @@ public:
     virtual void setPos (GFileOffset pos, int dir = 0);
     virtual BaseStream* getBaseStream () { return str->getBaseStream (); }
     virtual Stream* getUndecodedStream () { return str->getUndecodedStream (); }
-    virtual Dict* getDict () { return str->getDict (); }
+    virtual Dict* as_dict () { return str->as_dict (); }
     virtual Stream* getNextStream () { return str; }
 
 protected:

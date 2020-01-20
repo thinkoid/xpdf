@@ -91,25 +91,25 @@ Stream* Stream::addFilters (Object* dict, int recursion) {
 
     str = this;
     dict->dictLookup ("Filter", &obj);
-    if (obj.isNull ()) {
+    if (obj.is_null ()) {
         dict->dictLookup ("F", &obj);
     }
     dict->dictLookup ("DecodeParms", &params);
-    if (params.isNull ()) {
+    if (params.is_null ()) {
         dict->dictLookup ("DP", &params);
     }
-    if (obj.isName ()) {
-        str = makeFilter (obj.getName (), str, &params, recursion);
+    if (obj.is_name ()) {
+        str = makeFilter (obj.as_name (), str, &params, recursion);
     }
-    else if (obj.isArray ()) {
+    else if (obj.is_array ()) {
         for (i = 0; i < obj.arrayGetLength (); ++i) {
             obj.arrayGet (i, &obj2);
-            if (params.isArray ())
+            if (params.is_array ())
                 params.arrayGet (i, &params2);
             else
-                params2.initNull ();
-            if (obj2.isName ()) {
-                str = makeFilter (obj2.getName (), str, &params2, recursion);
+                params2 = { };
+            if (obj2.is_name ()) {
+                str = makeFilter (obj2.as_name (), str, &params2, recursion);
             }
             else {
                 error (errSyntaxError, getPos (), "Bad filter name");
@@ -117,7 +117,7 @@ Stream* Stream::addFilters (Object* dict, int recursion) {
             }
         }
     }
-    else if (!obj.isNull ()) {
+    else if (!obj.is_null ()) {
         error (errSyntaxError, getPos (), "Bad 'Filter' attribute in stream");
     }
 
@@ -148,17 +148,17 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
         colors = 1;
         bits = 8;
         early = 1;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("Predictor", &obj, recursion);
-            if (obj.isInt ()) pred = obj.getInt ();
+            if (obj.is_int ()) pred = obj.as_int ();
             params->dictLookup ("Columns", &obj, recursion);
-            if (obj.isInt ()) columns = obj.getInt ();
+            if (obj.is_int ()) columns = obj.as_int ();
             params->dictLookup ("Colors", &obj, recursion);
-            if (obj.isInt ()) colors = obj.getInt ();
+            if (obj.is_int ()) colors = obj.as_int ();
             params->dictLookup ("BitsPerComponent", &obj, recursion);
-            if (obj.isInt ()) bits = obj.getInt ();
+            if (obj.is_int ()) bits = obj.as_int ();
             params->dictLookup ("EarlyChange", &obj, recursion);
-            if (obj.isInt ()) early = obj.getInt ();
+            if (obj.is_int ()) early = obj.as_int ();
         }
         str = new LZWStream (str, pred, columns, colors, bits, early);
     }
@@ -173,21 +173,21 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
         rows = 0;
         endOfBlock = true;
         black = false;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("K", &obj, recursion);
-            if (obj.isInt ()) { encoding = obj.getInt (); }
+            if (obj.is_int ()) { encoding = obj.as_int (); }
             params->dictLookup ("EndOfLine", &obj, recursion);
-            if (obj.isBool ()) { endOfLine = obj.getBool (); }
+            if (obj.is_bool ()) { endOfLine = obj.as_bool (); }
             params->dictLookup ("EncodedByteAlign", &obj, recursion);
-            if (obj.isBool ()) { byteAlign = obj.getBool (); }
+            if (obj.is_bool ()) { byteAlign = obj.as_bool (); }
             params->dictLookup ("Columns", &obj, recursion);
-            if (obj.isInt ()) { columns = obj.getInt (); }
+            if (obj.is_int ()) { columns = obj.as_int (); }
             params->dictLookup ("Rows", &obj, recursion);
-            if (obj.isInt ()) { rows = obj.getInt (); }
+            if (obj.is_int ()) { rows = obj.as_int (); }
             params->dictLookup ("EndOfBlock", &obj, recursion);
-            if (obj.isBool ()) { endOfBlock = obj.getBool (); }
+            if (obj.is_bool ()) { endOfBlock = obj.as_bool (); }
             params->dictLookup ("BlackIs1", &obj, recursion);
-            if (obj.isBool ()) { black = obj.getBool (); }
+            if (obj.is_bool ()) { black = obj.as_bool (); }
         }
         str = new CCITTFaxStream (
             str, encoding, endOfLine, byteAlign, columns, rows, endOfBlock,
@@ -195,10 +195,10 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
     }
     else if (!strcmp (name, "DCTDecode") || !strcmp (name, "DCT")) {
         colorXform = -1;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             if (params->dictLookup ("ColorTransform", &obj, recursion)
-                    ->isInt ()) {
-                colorXform = obj.getInt ();
+                    ->is_int ()) {
+                colorXform = obj.as_int ();
             }
         }
         str = new DCTStream (str, colorXform);
@@ -208,20 +208,20 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
         columns = 1;
         colors = 1;
         bits = 8;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("Predictor", &obj, recursion);
-            if (obj.isInt ()) pred = obj.getInt ();
+            if (obj.is_int ()) pred = obj.as_int ();
             params->dictLookup ("Columns", &obj, recursion);
-            if (obj.isInt ()) columns = obj.getInt ();
+            if (obj.is_int ()) columns = obj.as_int ();
             params->dictLookup ("Colors", &obj, recursion);
-            if (obj.isInt ()) colors = obj.getInt ();
+            if (obj.is_int ()) colors = obj.as_int ();
             params->dictLookup ("BitsPerComponent", &obj, recursion);
-            if (obj.isInt ()) bits = obj.getInt ();
+            if (obj.is_int ()) bits = obj.as_int ();
         }
         str = new FlateStream (str, pred, columns, colors, bits);
     }
     else if (!strcmp (name, "JBIG2Decode")) {
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("JBIG2Globals", &globals, recursion);
         }
         str = new JBIG2Stream (str, &globals);

@@ -1120,7 +1120,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
         if (!(fontLoc = gfxFont->locateFont (xref, false))) {
             error (
                 errSyntaxError, -1, "Couldn't find a font for '{0:s}'",
-                gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                     : "(unnamed)");
             goto err2;
         }
@@ -1130,9 +1130,9 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             gfxFont->getEmbeddedFontID (&embRef);
 #if LOAD_FONTS_FROM_MEM
             fontBuf = new GString ();
-            refObj.initRef (embRef.num, embRef.gen);
+            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen);
             refObj.fetch (xref, &strObj);
-            if (!strObj.isStream ()) {
+            if (!strObj.is_stream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
                 delete fontLoc;
@@ -1149,9 +1149,9 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 delete fontLoc;
                 goto err2;
             }
-            refObj.initRef (embRef.num, embRef.gen);
+            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen);
             refObj.fetch (xref, &strObj);
-            if (!strObj.isStream ()) {
+            if (!strObj.is_stream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
                 fclose (tmpFile);
@@ -1204,7 +1204,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1221,7 +1221,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1238,7 +1238,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1282,7 +1282,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                           : (char*)NULL))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1301,7 +1301,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1329,7 +1329,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       codeToGID, n))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1396,7 +1396,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                     error (
                         errSyntaxError, -1,
                         "Couldn't find a mapping to Unicode for font '{0:s}'",
-                        gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                        gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                             : "(unnamed)");
                 }
             }
@@ -1413,7 +1413,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                           : (char*)NULL))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -2632,16 +2632,20 @@ void SplashOutputDev::drawMaskedImage (
     // If the mask is higher resolution than the image, use
     // drawSoftMaskedImage() instead.
     if (maskWidth > width || maskHeight > height) {
-        decodeLow.initInt (maskInvert ? 0 : 1);
-        decodeHigh.initInt (maskInvert ? 1 : 0);
-        maskDecode.initArray (xref);
+        decodeLow  = xpdf::make_int_obj (maskInvert ? 0 : 1);
+        decodeHigh = xpdf::make_int_obj (maskInvert ? 1 : 0);
+
+        maskDecode = xpdf::make_arr_obj (xref);
         maskDecode.arrayAdd (&decodeLow);
         maskDecode.arrayAdd (&decodeHigh);
+
         maskColorMap = new GfxImageColorMap (
             1, &maskDecode, new GfxDeviceGrayColorSpace ());
+
         drawSoftMaskedImage (
             state, ref, str, width, height, colorMap, maskStr, maskWidth,
             maskHeight, maskColorMap, interpolate);
+
         delete maskColorMap;
     }
     else {

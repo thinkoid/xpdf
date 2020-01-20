@@ -20,14 +20,14 @@ SecurityHandler* SecurityHandler::make (PDFDoc* docA, Object* encryptDictA) {
     SecurityHandler* secHdlr;
 
     encryptDictA->dictLookup ("Filter", &filterObj);
-    if (filterObj.isName ("Standard")) {
+    if (filterObj.is_name ("Standard")) {
         secHdlr = new StandardSecurityHandler (docA, encryptDictA);
     }
-    else if (filterObj.isName ()) {
+    else if (filterObj.is_name ()) {
             error (
                 errSyntaxError, -1,
                 "Couldn't find the '{0:s}' security handler",
-                filterObj.getName ());
+                filterObj.as_name ());
             secHdlr = NULL;
     }
     else {
@@ -113,26 +113,26 @@ StandardSecurityHandler::StandardSecurityHandler (
     encryptDictA->dictLookup ("UE", &userEncObj);
     encryptDictA->dictLookup ("P", &permObj);
     doc->getXRef ()->getTrailerDict ()->dictLookup ("ID", &fileIDObj);
-    if (versionObj.isInt () && revisionObj.isInt () && permObj.isInt () &&
-        ownerKeyObj.isString () && userKeyObj.isString ()) {
-        encVersion = versionObj.getInt ();
-        encRevision = revisionObj.getInt ();
-        if ((encRevision <= 4 && ownerKeyObj.getString ()->getLength () == 32 &&
-             userKeyObj.getString ()->getLength () == 32) ||
+    if (versionObj.is_int () && revisionObj.is_int () && permObj.is_int () &&
+        ownerKeyObj.is_string () && userKeyObj.is_string ()) {
+        encVersion = versionObj.as_int ();
+        encRevision = revisionObj.as_int ();
+        if ((encRevision <= 4 && ownerKeyObj.as_string ()->getLength () == 32 &&
+             userKeyObj.as_string ()->getLength () == 32) ||
             ((encRevision == 5 || encRevision == 6) &&
              // the spec says 48 bytes, but Acrobat pads them out longer
-             ownerKeyObj.getString ()->getLength () >= 48 &&
-             userKeyObj.getString ()->getLength () >= 48 &&
-             ownerEncObj.isString () &&
-             ownerEncObj.getString ()->getLength () == 32 &&
-             userEncObj.isString () &&
-             userEncObj.getString ()->getLength () == 32)) {
+             ownerKeyObj.as_string ()->getLength () >= 48 &&
+             userKeyObj.as_string ()->getLength () >= 48 &&
+             ownerEncObj.is_string () &&
+             ownerEncObj.as_string ()->getLength () == 32 &&
+             userEncObj.is_string () &&
+             userEncObj.as_string ()->getLength () == 32)) {
             encAlgorithm = cryptRC4;
             // revision 2 forces a 40-bit key - some buggy PDF generators
             // set the Length value incorrectly
-            if (encRevision == 2 || !lengthObj.isInt ()) { fileKeyLength = 5; }
+            if (encRevision == 2 || !lengthObj.is_int ()) { fileKeyLength = 5; }
             else {
-                fileKeyLength = lengthObj.getInt () / 8;
+                fileKeyLength = lengthObj.as_int () / 8;
             }
             encryptMetadata = true;
             //~ this currently only handles a subset of crypt filter functionality
@@ -144,43 +144,43 @@ StandardSecurityHandler::StandardSecurityHandler (
                 encryptDictA->dictLookup ("CF", &cryptFiltersObj);
                 encryptDictA->dictLookup ("StmF", &streamFilterObj);
                 encryptDictA->dictLookup ("StrF", &stringFilterObj);
-                if (cryptFiltersObj.isDict () && streamFilterObj.isName () &&
-                    stringFilterObj.isName () &&
+                if (cryptFiltersObj.is_dict () && streamFilterObj.is_name () &&
+                    stringFilterObj.is_name () &&
                     !strcmp (
-                        streamFilterObj.getName (),
-                        stringFilterObj.getName ())) {
-                    if (!strcmp (streamFilterObj.getName (), "Identity")) {
+                        streamFilterObj.as_name (),
+                        stringFilterObj.as_name ())) {
+                    if (!strcmp (streamFilterObj.as_name (), "Identity")) {
                         // no encryption on streams or strings
                         encVersion = encRevision = -1;
                     }
                     else {
                         if (cryptFiltersObj
                                 .dictLookup (
-                                    streamFilterObj.getName (), &cryptFilterObj)
-                                ->isDict ()) {
+                                    streamFilterObj.as_name (), &cryptFilterObj)
+                                ->is_dict ()) {
                             cryptFilterObj.dictLookup ("CFM", &cfmObj);
-                            if (cfmObj.isName ("V2")) {
+                            if (cfmObj.is_name ("V2")) {
                                 encVersion = 2;
                                 encRevision = 3;
                                 if (cryptFilterObj
                                         .dictLookup ("Length", &cfLengthObj)
-                                        ->isInt ()) {
+                                        ->is_int ()) {
                                     //~ according to the spec, this should be cfLengthObj / 8
-                                    fileKeyLength = cfLengthObj.getInt ();
+                                    fileKeyLength = cfLengthObj.as_int ();
                                 }
                             }
-                            else if (cfmObj.isName ("AESV2")) {
+                            else if (cfmObj.is_name ("AESV2")) {
                                 encVersion = 2;
                                 encRevision = 3;
                                 encAlgorithm = cryptAES;
                                 if (cryptFilterObj
                                         .dictLookup ("Length", &cfLengthObj)
-                                        ->isInt ()) {
+                                        ->is_int ()) {
                                     //~ according to the spec, this should be cfLengthObj / 8
-                                    fileKeyLength = cfLengthObj.getInt ();
+                                    fileKeyLength = cfLengthObj.as_int ();
                                 }
                             }
-                            else if (cfmObj.isName ("AESV3")) {
+                            else if (cfmObj.is_name ("AESV3")) {
                                 encVersion = 5;
                                 if (encRevision != 5 && encRevision != 6) {
                                     encRevision = 6;
@@ -188,9 +188,9 @@ StandardSecurityHandler::StandardSecurityHandler (
                                 encAlgorithm = cryptAES256;
                                 if (cryptFilterObj
                                         .dictLookup ("Length", &cfLengthObj)
-                                        ->isInt ()) {
+                                        ->is_int ()) {
                                     //~ according to the spec, this should be cfLengthObj / 8
-                                    fileKeyLength = cfLengthObj.getInt ();
+                                    fileKeyLength = cfLengthObj.as_int ();
                                 }
                             }
                         }
@@ -198,18 +198,18 @@ StandardSecurityHandler::StandardSecurityHandler (
                 }
                 if (encryptDictA
                         ->dictLookup ("EncryptMetadata", &encryptMetadataObj)
-                        ->isBool ()) {
-                    encryptMetadata = encryptMetadataObj.getBool ();
+                        ->is_bool ()) {
+                    encryptMetadata = encryptMetadataObj.as_bool ();
                 }
             }
-            permFlags = permObj.getInt ();
-            ownerKey = ownerKeyObj.getString ()->copy ();
-            userKey = userKeyObj.getString ()->copy ();
+            permFlags = permObj.as_int ();
+            ownerKey = ownerKeyObj.as_string ()->copy ();
+            userKey = userKeyObj.as_string ()->copy ();
             if (encVersion >= 1 && encVersion <= 2 && encRevision >= 2 &&
                 encRevision <= 3) {
-                if (fileIDObj.isArray ()) {
-                    if (fileIDObj.arrayGet (0, &fileIDObj1)->isString ()) {
-                        fileID = fileIDObj1.getString ()->copy ();
+                if (fileIDObj.is_array ()) {
+                    if (fileIDObj.arrayGet (0, &fileIDObj1)->is_string ()) {
+                        fileID = fileIDObj1.as_string ()->copy ();
                     }
                     else {
                         fileID = new GString ();
@@ -226,8 +226,8 @@ StandardSecurityHandler::StandardSecurityHandler (
             else if (
                 encVersion == 5 && (encRevision == 5 || encRevision == 6)) {
                 fileID = new GString (); // unused for V=R=5
-                ownerEnc = ownerEncObj.getString ()->copy ();
-                userEnc = userEncObj.getString ()->copy ();
+                ownerEnc = ownerEncObj.as_string ()->copy ();
+                userEnc = userEncObj.as_string ()->copy ();
                 if (fileKeyLength > 32 || fileKeyLength <= 0) {
                     fileKeyLength = 32;
                 }

@@ -41,12 +41,12 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
     ocgs = new GList ();
     display = NULL;
 
-    if ((ocProps = doc->getCatalog ()->getOCProperties ())->isDict ()) {
-        if (ocProps->dictLookup ("OCGs", &ocgList)->isArray ()) {
+    if ((ocProps = doc->getCatalog ()->getOCProperties ())->is_dict ()) {
+        if (ocProps->dictLookup ("OCGs", &ocgList)->is_array ()) {
             //----- read the OCG list
             for (i = 0; i < ocgList.arrayGetLength (); ++i) {
-                if (ocgList.arrayGetNF (i, &obj1)->isRef ()) {
-                    ref1 = obj1.getRef ();
+                if (ocgList.arrayGetNF (i, &obj1)->is_ref ()) {
+                    ref1 = obj1.as_ref ();
                     obj1.fetch (xref, &obj2);
                     if ((ocg = OptionalContentGroup::parse (&ref1, &obj2))) {
                         ocgs->append (ocg);
@@ -55,12 +55,12 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
             }
 
             //----- read the default viewing OCCD
-            if (ocProps->dictLookup ("D", &defView)->isDict ()) {
+            if (ocProps->dictLookup ("D", &defView)->is_dict ()) {
                 //----- initial state
-                if (defView.dictLookup ("OFF", &obj1)->isArray ()) {
+                if (defView.dictLookup ("OFF", &obj1)->is_array ()) {
                     for (i = 0; i < obj1.arrayGetLength (); ++i) {
-                        if (obj1.arrayGetNF (i, &obj2)->isRef ()) {
-                            ref1 = obj2.getRef ();
+                        if (obj1.arrayGetNF (i, &obj2)->is_ref ()) {
+                            ref1 = obj2.as_ref ();
                             if ((ocg = findOCG (&ref1))) {
                                 ocg->setState (false);
                             }
@@ -75,7 +75,7 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
                 }
 
                 //----- display order
-                if (defView.dictLookup ("Order", &obj1)->isArray ()) {
+                if (defView.dictLookup ("Order", &obj1)->is_array ()) {
                     display = OCDisplayNode::parse (&obj1, this, xref);
                 }
             }
@@ -119,39 +119,39 @@ bool OptionalContent::evalOCObject (Object* obj, bool* visible) {
     Object obj2, obj3, obj4, obj5;
     int i;
 
-    if (obj->isNull ()) { return false; }
-    if (obj->isRef ()) {
-        ref = obj->getRef ();
+    if (obj->is_null ()) { return false; }
+    if (obj->is_ref ()) {
+        ref = obj->as_ref ();
         if ((ocg = findOCG (&ref))) {
             *visible = ocg->getState ();
             return true;
         }
     }
     obj->fetch (xref, &obj2);
-    if (!obj2.isDict ("OCMD")) {
+    if (!obj2.is_dict ("OCMD")) {
         return false;
     }
-    if (obj2.dictLookup ("VE", &obj3)->isArray ()) {
+    if (obj2.dictLookup ("VE", &obj3)->is_array ()) {
         *visible = evalOCVisibilityExpr (&obj3, 0);
     }
     else {
         policy = ocPolicyAnyOn;
-        if (obj2.dictLookup ("P", &obj3)->isName ()) {
-            if (obj3.isName ("AllOn")) { policy = ocPolicyAllOn; }
-            else if (obj3.isName ("AnyOn")) {
+        if (obj2.dictLookup ("P", &obj3)->is_name ()) {
+            if (obj3.is_name ("AllOn")) { policy = ocPolicyAllOn; }
+            else if (obj3.is_name ("AnyOn")) {
                 policy = ocPolicyAnyOn;
             }
-            else if (obj3.isName ("AnyOff")) {
+            else if (obj3.is_name ("AnyOff")) {
                 policy = ocPolicyAnyOff;
             }
-            else if (obj3.isName ("AllOff")) {
+            else if (obj3.is_name ("AllOff")) {
                 policy = ocPolicyAllOff;
             }
         }
         obj2.dictLookupNF ("OCGs", &obj3);
         ocg = NULL;
-        if (obj3.isRef ()) {
-            ref = obj3.getRef ();
+        if (obj3.is_ref ()) {
+            ref = obj3.as_ref ();
             ocg = findOCG (&ref);
         }
         if (ocg) {
@@ -161,13 +161,13 @@ bool OptionalContent::evalOCObject (Object* obj, bool* visible) {
         }
         else {
             *visible = policy == ocPolicyAllOn || policy == ocPolicyAllOff;
-            if (!obj3.fetch (xref, &obj4)->isArray ()) {
+            if (!obj3.fetch (xref, &obj4)->is_array ()) {
                 return false;
             }
             for (i = 0; i < obj4.arrayGetLength (); ++i) {
                 obj4.arrayGetNF (i, &obj5);
-                if (obj5.isRef ()) {
-                    ref = obj5.getRef ();
+                if (obj5.is_ref ()) {
+                    ref = obj5.as_ref ();
                     if (!(ocg = findOCG (&ref))) {
                         return false;
                     }
@@ -205,19 +205,19 @@ bool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
             "Loop detected in optional content visibility expression");
         return true;
     }
-    if (expr->isRef ()) {
-        ref = expr->getRef ();
+    if (expr->is_ref ()) {
+        ref = expr->as_ref ();
         if ((ocg = findOCG (&ref))) { return ocg->getState (); }
     }
     expr->fetch (xref, &expr2);
-    if (!expr2.isArray () || expr2.arrayGetLength () < 1) {
+    if (!expr2.is_array () || expr2.arrayGetLength () < 1) {
         error (
             errSyntaxError, -1,
             "Invalid optional content visibility expression");
         return true;
     }
     expr2.arrayGet (0, &op);
-    if (op.isName ("Not")) {
+    if (op.is_name ("Not")) {
         if (expr2.arrayGetLength () == 2) {
             expr2.arrayGetNF (1, &obj);
             ret = !evalOCVisibilityExpr (&obj, recursion + 1);
@@ -229,14 +229,14 @@ bool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
             ret = true;
         }
     }
-    else if (op.isName ("And")) {
+    else if (op.is_name ("And")) {
         ret = true;
         for (i = 1; i < expr2.arrayGetLength () && ret; ++i) {
             expr2.arrayGetNF (i, &obj);
             ret = evalOCVisibilityExpr (&obj, recursion + 1);
         }
     }
-    else if (op.isName ("Or")) {
+    else if (op.is_name ("Or")) {
         ret = false;
         for (i = 1; i < expr2.arrayGetLength () && !ret; ++i) {
             expr2.arrayGetNF (i, &obj);
@@ -259,26 +259,26 @@ OptionalContentGroup* OptionalContentGroup::parse (Ref* refA, Object* obj) {
     Object obj1, obj2, obj3;
     OCUsageState viewStateA, printStateA;
 
-    if (!obj->isDict ()) { return NULL; }
-    if (!obj->dictLookup ("Name", &obj1)->isString ()) {
+    if (!obj->is_dict ()) { return NULL; }
+    if (!obj->dictLookup ("Name", &obj1)->is_string ()) {
         error (errSyntaxError, -1, "Missing or invalid Name in OCG");
         return NULL;
     }
-    nameA = new TextString (obj1.getString ());
+    nameA = new TextString (obj1.as_string ());
 
     viewStateA = printStateA = ocUsageUnset;
-    if (obj->dictLookup ("Usage", &obj1)->isDict ()) {
-        if (obj1.dictLookup ("View", &obj2)->isDict ()) {
-            if (obj2.dictLookup ("ViewState", &obj3)->isName ()) {
-                if (obj3.isName ("ON")) { viewStateA = ocUsageOn; }
+    if (obj->dictLookup ("Usage", &obj1)->is_dict ()) {
+        if (obj1.dictLookup ("View", &obj2)->is_dict ()) {
+            if (obj2.dictLookup ("ViewState", &obj3)->is_name ()) {
+                if (obj3.is_name ("ON")) { viewStateA = ocUsageOn; }
                 else {
                     viewStateA = ocUsageOff;
                 }
             }
         }
-        if (obj1.dictLookup ("Print", &obj2)->isDict ()) {
-            if (obj2.dictLookup ("PrintState", &obj3)->isName ()) {
-                if (obj3.isName ("ON")) { printStateA = ocUsageOn; }
+        if (obj1.dictLookup ("Print", &obj2)->is_dict ()) {
+            if (obj2.dictLookup ("PrintState", &obj3)->is_name ()) {
+                if (obj3.is_name ("ON")) { printStateA = ocUsageOn; }
                 else {
                     printStateA = ocUsageOff;
                 }
@@ -305,7 +305,7 @@ bool OptionalContentGroup::matches (Ref* refA) {
     return refA->num == ref.num && refA->gen == ref.gen;
 }
 
-Unicode* OptionalContentGroup::getName () { return name->getUnicode (); }
+Unicode* OptionalContentGroup::as_name () { return name->getUnicode (); }
 
 int OptionalContentGroup::getNameLength () { return name->getLength (); }
 
@@ -323,18 +323,18 @@ OCDisplayNode* OCDisplayNode::parse (
         error (errSyntaxError, -1, "Loop detected in optional content order");
         return NULL;
     }
-    if (obj->isRef ()) {
-        ref = obj->getRef ();
+    if (obj->is_ref ()) {
+        ref = obj->as_ref ();
         if ((ocgA = oc->findOCG (&ref))) { return new OCDisplayNode (ocgA); }
     }
     obj->fetch (xref, &obj2);
-    if (!obj2.isArray ()) {
+    if (!obj2.is_array ()) {
         return NULL;
     }
     i = 0;
     if (obj2.arrayGetLength () >= 1) {
-        if (obj2.arrayGet (0, &obj3)->isString ()) {
-            node = new OCDisplayNode (obj3.getString ());
+        if (obj2.arrayGet (0, &obj3)->is_string ()) {
+            node = new OCDisplayNode (obj3.as_string ());
             i = 1;
         }
         else {
@@ -404,7 +404,7 @@ OCDisplayNode::~OCDisplayNode () {
     if (children) { deleteGList (children, OCDisplayNode); }
 }
 
-Unicode* OCDisplayNode::getName () { return name->getUnicode (); }
+Unicode* OCDisplayNode::as_name () { return name->getUnicode (); }
 
 int OCDisplayNode::getNameLength () { return name->getLength (); }
 

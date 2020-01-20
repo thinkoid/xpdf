@@ -58,29 +58,29 @@ public:
     PDFRectangle* getArtBox () { return &artBox; }
     int getRotate () { return rotate; }
     GString* getLastModified () {
-        return lastModified.isString ()
-            ? lastModified.getString ()
+        return lastModified.is_string ()
+            ? lastModified.as_string ()
             : (GString*)NULL;
     }
     Dict* getBoxColorInfo () {
-        return boxColorInfo.isDict () ? boxColorInfo.getDict () : (Dict*)NULL;
+        return boxColorInfo.is_dict () ? boxColorInfo.as_dict () : (Dict*)NULL;
     }
     Dict* getGroup () {
-        return group.isDict () ? group.getDict () : (Dict*)NULL;
+        return group.is_dict () ? group.as_dict () : (Dict*)NULL;
     }
     Stream* getMetadata () {
-        return metadata.isStream () ? metadata.getStream () : (Stream*)NULL;
+        return metadata.is_stream () ? metadata.as_stream () : (Stream*)NULL;
     }
     Dict* getPieceInfo () {
-        return pieceInfo.isDict () ? pieceInfo.getDict () : (Dict*)NULL;
+        return pieceInfo.is_dict () ? pieceInfo.as_dict () : (Dict*)NULL;
     }
     Dict* getSeparationInfo () {
-        return separationInfo.isDict () ? separationInfo.getDict ()
+        return separationInfo.is_dict () ? separationInfo.as_dict ()
                                         : (Dict*)NULL;
     }
     double getUserUnit () { return userUnit; }
     Dict* getResourceDict () {
-        return resources.isDict () ? resources.getDict () : (Dict*)NULL;
+        return resources.is_dict () ? resources.as_dict () : (Dict*)NULL;
     }
 
     // Clip all other boxes to the MediaBox.
@@ -126,7 +126,7 @@ public:
     bool isOk () { return ok; }
 
     // Get page parameters.
-    int getNum () { return num; }
+    int as_num () { return num; }
     PDFRectangle* getMediaBox () { return attrs->getMediaBox (); }
     PDFRectangle* getCropBox () { return attrs->getCropBox (); }
     bool isCropped () { return attrs->isCropped (); }

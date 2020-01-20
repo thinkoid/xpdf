@@ -34,7 +34,7 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
     LinkAction* action;
     Object obj2, obj3, obj4, obj5;
 
-    if (!obj->isDict ()) {
+    if (!obj->is_dict ()) {
         error (errSyntaxWarning, -1, "Bad annotation action");
         return NULL;
     }
@@ -42,50 +42,50 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
     obj->dictLookup ("S", &obj2);
 
     // GoTo action
-    if (obj2.isName ("GoTo")) {
+    if (obj2.is_name ("GoTo")) {
         obj->dictLookup ("D", &obj3);
         action = new LinkGoTo (&obj3);
 
         // GoToR action
     }
-    else if (obj2.isName ("GoToR")) {
+    else if (obj2.is_name ("GoToR")) {
         obj->dictLookup ("F", &obj3);
         obj->dictLookup ("D", &obj4);
         action = new LinkGoToR (&obj3, &obj4);
 
         // Launch action
     }
-    else if (obj2.isName ("Launch")) {
+    else if (obj2.is_name ("Launch")) {
         action = new LinkLaunch (obj);
 
         // URI action
     }
-    else if (obj2.isName ("URI")) {
+    else if (obj2.is_name ("URI")) {
         obj->dictLookup ("URI", &obj3);
         action = new LinkURI (&obj3, baseURI);
 
         // Named action
     }
-    else if (obj2.isName ("Named")) {
+    else if (obj2.is_name ("Named")) {
         obj->dictLookup ("N", &obj3);
         action = new LinkNamed (&obj3);
 
         // Movie action
     }
-    else if (obj2.isName ("Movie")) {
+    else if (obj2.is_name ("Movie")) {
         obj->dictLookupNF ("Annot", &obj3);
         obj->dictLookup ("T", &obj4);
         action = new LinkMovie (&obj3, &obj4);
 
         // JavaScript action
     }
-    else if (obj2.isName ("JavaScript")) {
+    else if (obj2.is_name ("JavaScript")) {
         obj->dictLookup ("JS", &obj3);
         action = new LinkJavaScript (&obj3);
 
         // SubmitForm action
     }
-    else if (obj2.isName ("SubmitForm")) {
+    else if (obj2.is_name ("SubmitForm")) {
         obj->dictLookup ("F", &obj3);
         obj->dictLookup ("Fields", &obj4);
         obj->dictLookup ("Flags", &obj5);
@@ -93,15 +93,15 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
 
         // Hide action
     }
-    else if (obj2.isName ("Hide")) {
+    else if (obj2.is_name ("Hide")) {
         obj->dictLookupNF ("T", &obj3);
         obj->dictLookup ("H", &obj4);
         action = new LinkHide (&obj3, &obj4);
 
         // unknown action
     }
-    else if (obj2.isName ()) {
-        action = new LinkUnknown (obj2.getName ());
+    else if (obj2.is_name ()) {
+        action = new LinkUnknown (obj2.as_name ());
 
         // action is missing or wrong type
     }
@@ -125,16 +125,16 @@ GString* LinkAction::getFileSpecName (Object* fileSpecObj) {
     name = NULL;
 
     // string
-    if (fileSpecObj->isString ()) {
-        name = fileSpecObj->getString ()->copy ();
+    if (fileSpecObj->is_string ()) {
+        name = fileSpecObj->as_string ()->copy ();
 
         // dictionary
     }
-    else if (fileSpecObj->isDict ()) {
-        if (!fileSpecObj->dictLookup ("Unix", &obj1)->isString ()) {
+    else if (fileSpecObj->is_dict ()) {
+        if (!fileSpecObj->dictLookup ("Unix", &obj1)->is_string ()) {
             fileSpecObj->dictLookup ("F", &obj1);
         }
-        if (obj1.isString ()) { name = obj1.getString ()->copy (); }
+        if (obj1.is_string ()) { name = obj1.as_string ()->copy (); }
         else {
             error (errSyntaxWarning, -1, "Illegal file spec in link");
         }
@@ -169,11 +169,11 @@ LinkDest::LinkDest (Array& arr) {
         return;
     }
     arr.getNF (0, &obj1);
-    if (obj1.isInt ()) {
-        pageNum = obj1.getInt () + 1;
+    if (obj1.is_int ()) {
+        pageNum = obj1.as_int () + 1;
         pageIsRef = false;
     }
-    else if (obj1.isRef ()) {
+    else if (obj1.is_ref ()) {
         pageRef.num = obj1.getRefNum ();
         pageRef.gen = obj1.getRefGen ();
         pageIsRef = true;
@@ -187,15 +187,15 @@ LinkDest::LinkDest (Array& arr) {
     arr.get (1, &obj1);
 
     // XYZ link
-    if (obj1.isName ("XYZ")) {
+    if (obj1.is_name ("XYZ")) {
         kind = destXYZ;
         if (arr.size () < 3) { changeLeft = false; }
         else {
             arr.get (2, &obj2);
-            if (obj2.isNull ()) { changeLeft = false; }
-            else if (obj2.isNum ()) {
+            if (obj2.is_null ()) { changeLeft = false; }
+            else if (obj2.is_num ()) {
                 changeLeft = true;
-                left = obj2.getNum ();
+                left = obj2.as_num ();
             }
             else {
                 error (
@@ -207,10 +207,10 @@ LinkDest::LinkDest (Array& arr) {
         if (arr.size () < 4) { changeTop = false; }
         else {
             arr.get (3, &obj2);
-            if (obj2.isNull ()) { changeTop = false; }
-            else if (obj2.isNum ()) {
+            if (obj2.is_null ()) { changeTop = false; }
+            else if (obj2.is_num ()) {
                 changeTop = true;
-                top = obj2.getNum ();
+                top = obj2.as_num ();
             }
             else {
                 error (
@@ -222,10 +222,10 @@ LinkDest::LinkDest (Array& arr) {
         if (arr.size () < 5) { changeZoom = false; }
         else {
             arr.get (4, &obj2);
-            if (obj2.isNull ()) { changeZoom = false; }
-            else if (obj2.isNum ()) {
+            if (obj2.is_null ()) { changeZoom = false; }
+            else if (obj2.is_num ()) {
                 changeZoom = true;
-                zoom = obj2.getNum ();
+                zoom = obj2.as_num ();
             }
             else {
                 error (
@@ -237,7 +237,7 @@ LinkDest::LinkDest (Array& arr) {
 
         // Fit link
     }
-    else if (obj1.isName ("Fit")) {
+    else if (obj1.is_name ("Fit")) {
         if (arr.size () < 2) {
             error (
                 errSyntaxWarning, -1,
@@ -248,7 +248,7 @@ LinkDest::LinkDest (Array& arr) {
 
         // FitH link
     }
-    else if (obj1.isName ("FitH")) {
+    else if (obj1.is_name ("FitH")) {
         if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
@@ -256,11 +256,11 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitH;
-        if (arr.get (2, &obj2)->isNum ()) {
-            top = obj2.getNum ();
+        if (arr.get (2, &obj2)->is_num ()) {
+            top = obj2.as_num ();
             changeTop = true;
         }
-        else if (obj2.isNull ()) {
+        else if (obj2.is_null ()) {
             changeTop = false;
         }
         else {
@@ -270,7 +270,7 @@ LinkDest::LinkDest (Array& arr) {
 
         // FitV link
     }
-    else if (obj1.isName ("FitV")) {
+    else if (obj1.is_name ("FitV")) {
         if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
@@ -278,11 +278,11 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitV;
-        if (arr.get (2, &obj2)->isNum ()) {
-            left = obj2.getNum ();
+        if (arr.get (2, &obj2)->is_num ()) {
+            left = obj2.as_num ();
             changeLeft = true;
         }
-        else if (obj2.isNull ()) {
+        else if (obj2.is_null ()) {
             changeLeft = false;
         }
         else {
@@ -292,7 +292,7 @@ LinkDest::LinkDest (Array& arr) {
 
         // FitR link
     }
-    else if (obj1.isName ("FitR")) {
+    else if (obj1.is_name ("FitR")) {
         if (arr.size () < 6) {
             error (
                 errSyntaxWarning, -1,
@@ -300,30 +300,30 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitR;
-        if (arr.get (2, &obj2)->isNum ()) { left = obj2.getNum (); }
+        if (arr.get (2, &obj2)->is_num ()) { left = obj2.as_num (); }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        if (!arr.get (3, &obj2)->isNum ()) {
+        if (!arr.get (3, &obj2)->is_num ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        bottom = obj2.getNum ();
-        if (!arr.get (4, &obj2)->isNum ()) {
+        bottom = obj2.as_num ();
+        if (!arr.get (4, &obj2)->is_num ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        right = obj2.getNum ();
-        if (!arr.get (5, &obj2)->isNum ()) {
+        right = obj2.as_num ();
+        if (!arr.get (5, &obj2)->is_num ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        top = obj2.getNum ();
+        top = obj2.as_num ();
 
         // FitB link
     }
-    else if (obj1.isName ("FitB")) {
+    else if (obj1.is_name ("FitB")) {
         if (arr.size () < 2) {
             error (
                 errSyntaxWarning, -1,
@@ -334,7 +334,7 @@ LinkDest::LinkDest (Array& arr) {
 
         // FitBH link
     }
-    else if (obj1.isName ("FitBH")) {
+    else if (obj1.is_name ("FitBH")) {
         if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
@@ -342,11 +342,11 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitBH;
-        if (arr.get (2, &obj2)->isNum ()) {
-            top = obj2.getNum ();
+        if (arr.get (2, &obj2)->is_num ()) {
+            top = obj2.as_num ();
             changeTop = true;
         }
-        else if (obj2.isNull ()) {
+        else if (obj2.is_null ()) {
             changeTop = false;
         }
         else {
@@ -356,7 +356,7 @@ LinkDest::LinkDest (Array& arr) {
 
         // FitBV link
     }
-    else if (obj1.isName ("FitBV")) {
+    else if (obj1.is_name ("FitBV")) {
         if (arr.size () < 3) {
             error (
                 errSyntaxWarning, -1,
@@ -364,11 +364,11 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitBV;
-        if (arr.get (2, &obj2)->isNum ()) {
-            left = obj2.getNum ();
+        if (arr.get (2, &obj2)->is_num ()) {
+            left = obj2.as_num ();
             changeLeft = true;
         }
-        else if (obj2.isNull ()) {
+        else if (obj2.is_null ()) {
             changeLeft = false;
         }
         else {
@@ -413,14 +413,14 @@ LinkGoTo::LinkGoTo (Object* destObj) {
     namedDest = NULL;
 
     // named destination
-    if (destObj->isName ()) { namedDest = new GString (destObj->getName ()); }
-    else if (destObj->isString ()) {
-        namedDest = destObj->getString ()->copy ();
+    if (destObj->is_name ()) { namedDest = new GString (destObj->as_name ()); }
+    else if (destObj->is_string ()) {
+        namedDest = destObj->as_string ()->copy ();
 
         // destination dictionary
     }
-    else if (destObj->isArray ()) {
-        dest = new LinkDest (destObj->getArray ());
+    else if (destObj->is_array ()) {
+        dest = new LinkDest (destObj->as_array ());
         if (!dest->isOk ()) {
             delete dest;
             dest = NULL;
@@ -450,14 +450,14 @@ LinkGoToR::LinkGoToR (Object* fileSpecObj, Object* destObj) {
     fileName = getFileSpecName (fileSpecObj);
 
     // named destination
-    if (destObj->isName ()) { namedDest = new GString (destObj->getName ()); }
-    else if (destObj->isString ()) {
-        namedDest = destObj->getString ()->copy ();
+    if (destObj->is_name ()) { namedDest = new GString (destObj->as_name ()); }
+    else if (destObj->is_string ()) {
+        namedDest = destObj->as_string ()->copy ();
 
         // destination dictionary
     }
-    else if (destObj->isArray ()) {
-        dest = new LinkDest (destObj->getArray ());
+    else if (destObj->is_array ()) {
+        dest = new LinkDest (destObj->as_array ());
         if (!dest->isOk ()) {
             delete dest;
             dest = NULL;
@@ -486,18 +486,18 @@ LinkLaunch::LinkLaunch (Object* actionObj) {
     fileName = NULL;
     params = NULL;
 
-    if (actionObj->isDict ()) {
-        if (!actionObj->dictLookup ("F", &obj1)->isNull ()) {
+    if (actionObj->is_dict ()) {
+        if (!actionObj->dictLookup ("F", &obj1)->is_null ()) {
             fileName = getFileSpecName (&obj1);
         }
         else {
             //~ This hasn't been defined by Adobe yet, so assume it looks
             //~ just like the Win dictionary until they say otherwise.
-            if (actionObj->dictLookup ("Unix", &obj1)->isDict ()) {
+            if (actionObj->dictLookup ("Unix", &obj1)->is_dict ()) {
                 obj1.dictLookup ("F", &obj2);
                 fileName = getFileSpecName (&obj2);
-                if (obj1.dictLookup ("P", &obj2)->isString ()) {
-                    params = obj2.getString ()->copy ();
+                if (obj1.dictLookup ("P", &obj2)->is_string ()) {
+                    params = obj2.as_string ()->copy ();
                 }
             }
             else {
@@ -522,8 +522,8 @@ LinkURI::LinkURI (Object* uriObj, GString* baseURI) {
     char c;
 
     uri = NULL;
-    if (uriObj->isString ()) {
-        uri2 = uriObj->getString ();
+    if (uriObj->is_string ()) {
+        uri2 = uriObj->as_string ();
         n = (int)strcspn (uri2->c_str (), "/:");
         if (n < uri2->getLength () && uri2->getChar (n) == ':') {
             // "http:..." etc.
@@ -568,7 +568,7 @@ LinkURI::~LinkURI () {
 
 LinkNamed::LinkNamed (Object* nameObj) {
     name = NULL;
-    if (nameObj->isName ()) { name = new GString (nameObj->getName ()); }
+    if (nameObj->is_name ()) { name = new GString (nameObj->as_name ()); }
 }
 
 LinkNamed::~LinkNamed () {
@@ -582,9 +582,9 @@ LinkNamed::~LinkNamed () {
 LinkMovie::LinkMovie (Object* annotObj, Object* titleObj) {
     annotRef.num = -1;
     title = NULL;
-    if (annotObj->isRef ()) { annotRef = annotObj->getRef (); }
-    else if (titleObj->isString ()) {
-        title = titleObj->getString ()->copy ();
+    if (annotObj->is_ref ()) { annotRef = annotObj->as_ref (); }
+    else if (titleObj->is_string ()) {
+        title = titleObj->as_string ()->copy ();
     }
     else {
         error (
@@ -605,11 +605,11 @@ LinkJavaScript::LinkJavaScript (Object* jsObj) {
     char buf[4096];
     int n;
 
-    if (jsObj->isString ()) { js = jsObj->getString ()->copy (); }
-    else if (jsObj->isStream ()) {
+    if (jsObj->is_string ()) { js = jsObj->as_string ()->copy (); }
+    else if (jsObj->is_stream ()) {
         js = new GString ();
         jsObj->streamReset ();
-        while ((n = jsObj->getStream ()->getBlock (buf, sizeof (buf))) > 0) {
+        while ((n = jsObj->as_stream ()->getBlock (buf, sizeof (buf))) > 0) {
             js->append (buf, n);
         }
         jsObj->streamClose ();
@@ -630,29 +630,29 @@ LinkJavaScript::~LinkJavaScript () {
 
 LinkSubmitForm::LinkSubmitForm (
     Object* urlObj, Object* fieldsObj, Object* flagsObj) {
-    if (urlObj->isString ()) { url = urlObj->getString ()->copy (); }
+    if (urlObj->is_string ()) { url = urlObj->as_string ()->copy (); }
     else {
         error (errSyntaxError, -1, "SubmitForm action URL is wrong type");
         url = NULL;
     }
 
-    if (fieldsObj->isArray ()) {
+    if (fieldsObj->is_array ()) {
         fields = *fieldsObj;
     }
     else {
-        if (!fieldsObj->isNull ()) {
+        if (!fieldsObj->is_null ()) {
             error (
                 errSyntaxError, -1,
                 "SubmitForm action Fields value is wrong type");
         }
-        fields.initNull ();
+        fields = { };
     }
 
-    if (flagsObj->isInt ()) {
-        flags = flagsObj->getInt ();
+    if (flagsObj->is_int ()) {
+        flags = flagsObj->as_int ();
     }
     else {
-        if (!flagsObj->isNull ()) {
+        if (!flagsObj->is_null ()) {
             error (
                 errSyntaxError, -1,
                 "SubmitForm action Flags value is wrong type");
@@ -670,15 +670,15 @@ LinkSubmitForm::~LinkSubmitForm () {
 //------------------------------------------------------------------------
 
 LinkHide::LinkHide (Object* fieldsObj, Object* hideFlagObj) {
-    if (fieldsObj->isRef () || fieldsObj->isString () || fieldsObj->isArray ()) {
+    if (fieldsObj->is_ref () || fieldsObj->is_string () || fieldsObj->is_array ()) {
         fields = *fieldsObj;
     }
     else {
         error (errSyntaxError, -1, "Hide action T value is wrong type");
-        fields.initNull ();
+        fields = { };
     }
 
-    if (hideFlagObj->isBool ()) { hideFlag = hideFlagObj->getBool (); }
+    if (hideFlagObj->is_bool ()) { hideFlag = hideFlagObj->as_bool (); }
     else {
         error (errSyntaxError, -1, "Hide action H value is wrong type");
         hideFlag = false;
@@ -709,30 +709,30 @@ Link::Link (Dict* dict, GString* baseURI) {
     ok = false;
 
     // get rectangle
-    if (!dict->lookup ("Rect", &obj1)->isArray ()) {
+    if (!dict->lookup ("Rect", &obj1)->is_array ()) {
         error (errSyntaxError, -1, "Annotation rectangle is wrong type");
         return;
     }
-    if (!obj1.arrayGet (0, &obj2)->isNum ()) {
+    if (!obj1.arrayGet (0, &obj2)->is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
-    x1 = obj2.getNum ();
-    if (!obj1.arrayGet (1, &obj2)->isNum ()) {
+    x1 = obj2.as_num ();
+    if (!obj1.arrayGet (1, &obj2)->is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
-    y1 = obj2.getNum ();
-    if (!obj1.arrayGet (2, &obj2)->isNum ()) {
+    y1 = obj2.as_num ();
+    if (!obj1.arrayGet (2, &obj2)->is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
-    x2 = obj2.getNum ();
-    if (!obj1.arrayGet (3, &obj2)->isNum ()) {
+    x2 = obj2.as_num ();
+    if (!obj1.arrayGet (3, &obj2)->is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
-    y2 = obj2.getNum ();
+    y2 = obj2.as_num ();
     if (x1 > x2) {
         t = x1;
         x1 = x2;
@@ -745,13 +745,13 @@ Link::Link (Dict* dict, GString* baseURI) {
     }
 
     // look for destination
-    if (!dict->lookup ("Dest", &obj1)->isNull ()) {
+    if (!dict->lookup ("Dest", &obj1)->is_null ()) {
         action = LinkAction::parseDest (&obj1);
 
         // look for action
     }
     else {
-        if (dict->lookup ("A", &obj1)->isDict ()) {
+        if (dict->lookup ("A", &obj1)->is_dict ()) {
             action = LinkAction::parseAction (&obj1, baseURI);
         }
     }
@@ -778,15 +778,15 @@ Links::Links (Object* annots, GString* baseURI) {
     size = 0;
     numLinks = 0;
 
-    if (annots->isArray ()) {
+    if (annots->is_array ()) {
         for (i = 0; i < annots->arrayGetLength (); ++i) {
-            if (annots->arrayGet (i, &obj1)->isDict ()) {
+            if (annots->arrayGet (i, &obj1)->is_dict ()) {
                 obj1.dictLookup ("Subtype", &obj2);
                 obj1.dictLookup ("FT", &obj3);
-                if (obj2.isName ("Link") ||
-                    (obj2.isName ("Widget") &&
-                     (obj3.isName ("Btn") || obj3.isNull ()))) {
-                    link = new Link (obj1.getDict (), baseURI);
+                if (obj2.is_name ("Link") ||
+                    (obj2.is_name ("Widget") &&
+                     (obj3.is_name ("Btn") || obj3.is_null ()))) {
+                    link = new Link (obj1.as_dict (), baseURI);
                     if (link->isOk ()) {
                         if (numLinks >= size) {
                             size += 16;

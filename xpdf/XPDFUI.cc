@@ -492,7 +492,7 @@ void XPDFUI::doLink (
                 (action->getKind () == actionGoTo ||
                  action->getKind () == actionGoToR ||
                  (action->getKind () == actionNamed &&
-                  ((LinkNamed*)action)->getName ()->cmp ("Quit")))) {
+                  ((LinkNamed*)action)->as_name ()->cmp ("Quit")))) {
                 newViewer = app->open (core->getDoc ()->getFileName ());
                 newViewer->core->doAction (action);
             }

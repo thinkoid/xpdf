@@ -62,7 +62,7 @@ public:
 
     bool matches (Ref* refA);
 
-    Unicode* getName ();
+    Unicode* as_name ();
     int getNameLength ();
     OCUsageState getViewState () { return viewState; }
     OCUsageState getPrintState () { return printState; }
@@ -92,7 +92,7 @@ public:
     OCDisplayNode ();
     ~OCDisplayNode ();
 
-    Unicode* getName ();
+    Unicode* as_name ();
     int getNameLength ();
     OptionalContentGroup* getOCG () { return ocg; }
     int getNumChildren ();

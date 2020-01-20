@@ -153,36 +153,36 @@ int main (int argc, char* argv[]) {
     Object info;
     doc->getDocInfo (&info);
 
-    if (info.isDict ()) {
-        printInfoString (info.getDict (), "Title", "Title:          ", uMap);
-        printInfoString (info.getDict (), "Subject", "Subject:        ", uMap);
-        printInfoString (info.getDict (), "Keywords", "Keywords:       ", uMap);
-        printInfoString (info.getDict (), "Author", "Author:         ", uMap);
-        printInfoString (info.getDict (), "Creator", "Creator:        ", uMap);
-        printInfoString (info.getDict (), "Producer", "Producer:       ", uMap);
+    if (info.is_dict ()) {
+        printInfoString (info.as_dict (), "Title", "Title:          ", uMap);
+        printInfoString (info.as_dict (), "Subject", "Subject:        ", uMap);
+        printInfoString (info.as_dict (), "Keywords", "Keywords:       ", uMap);
+        printInfoString (info.as_dict (), "Author", "Author:         ", uMap);
+        printInfoString (info.as_dict (), "Creator", "Creator:        ", uMap);
+        printInfoString (info.as_dict (), "Producer", "Producer:       ", uMap);
         if (rawDates) {
             printInfoString (
-                info.getDict (), "CreationDate", "CreationDate:   ", uMap);
+                info.as_dict (), "CreationDate", "CreationDate:   ", uMap);
             printInfoString (
-                info.getDict (), "ModDate", "ModDate:        ", uMap);
+                info.as_dict (), "ModDate", "ModDate:        ", uMap);
         }
         else {
-            printInfoDate (info.getDict (), "CreationDate", "CreationDate:   ");
-            printInfoDate (info.getDict (), "ModDate", "ModDate:        ");
+            printInfoDate (info.as_dict (), "CreationDate", "CreationDate:   ");
+            printInfoDate (info.as_dict (), "ModDate", "ModDate:        ");
         }
     }
 
     // print tagging info
     printf (
         "Tagged:         %s\n",
-        doc->getStructTreeRoot ()->isDict () ? "yes" : "no");
+        doc->getStructTreeRoot ()->is_dict () ? "yes" : "no");
 
     // print form info
-    if ((acroForm = doc->getCatalog ()->getAcroForm ())->isDict ()) {
+    if ((acroForm = doc->getCatalog ()->getAcroForm ())->is_dict ()) {
         Object xfa;
         acroForm->dictLookup ("XFA", &xfa);
 
-        if (xfa.isStream () || xfa.isArray ()) {
+        if (xfa.is_stream () || xfa.is_array ()) {
             printf ("Form:           XFA\n");
         }
         else {
@@ -308,9 +308,9 @@ static void printInfoString (
 
     Object obj;
 
-    if (infoDict->lookup (key, &obj)->isString ()) {
+    if (infoDict->lookup (key, &obj)->is_string ()) {
         fputs (text, stdout);
-        s = new TextString (obj.getString ());
+        s = new TextString (obj.as_string ());
         u = s->getUnicode ();
         for (i = 0; i < s->getLength (); ++i) {
             n = uMap->mapUnicode (u[i], buf, sizeof (buf));
@@ -329,9 +329,9 @@ static void printInfoDate (Dict* infoDict, const char* key, const char* text) {
 
     Object obj;
 
-    if (infoDict->lookup (key, &obj)->isString ()) {
+    if (infoDict->lookup (key, &obj)->is_string ()) {
         fputs (text, stdout);
-        s = obj.getString ()->c_str ();
+        s = obj.as_string ()->c_str ();
         if (s[0] == 'D' && s[1] == ':') { s += 2; }
         if ((n = sscanf (
                  s, "%4d%2d%2d%2d%2d%2d", &year, &mon, &day, &hour, &min,

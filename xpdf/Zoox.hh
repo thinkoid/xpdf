@@ -117,7 +117,7 @@ public:
     virtual ~ZxDocTypeDecl ();
 
     virtual bool isDocTypeDecl () { return true; }
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
 
 private:
     GString* name;
@@ -180,7 +180,7 @@ public:
     ZxAttr (GString* nameA, GString* valueA);
     ~ZxAttr ();
 
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
     GString* getValue () { return value; }
     ZxAttr* getNextAttr () { return next; }
 

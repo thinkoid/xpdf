@@ -76,7 +76,7 @@ PDFDoc::PDFDoc (
     }
 
     // create stream
-    obj.initNull ();
+    obj = { };
     str = new FileStream (file, 0, false, 0, &obj);
 
     ok = setup (ownerPassword, userPassword);
@@ -221,7 +221,7 @@ bool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
     bool ret;
 
     xref->getTrailerDict ()->dictLookup ("Encrypt", &encrypt);
-    if ((encrypted = encrypt.isDict ())) {
+    if ((encrypted = encrypt.is_dict ())) {
         if ((secHdlr = SecurityHandler::make (this, &encrypt))) {
             if (secHdlr->isUnencrypted ()) {
                 // no encryption
@@ -304,7 +304,7 @@ bool PDFDoc::isLinearized () {
     bool lin;
 
     lin = false;
-    obj1.initNull ();
+    obj1 = { };
     parser = new Parser (
         xref,
         new xpdf::lexer_t (
@@ -314,10 +314,10 @@ bool PDFDoc::isLinearized () {
     parser->getObj (&obj2);
     parser->getObj (&obj3);
     parser->getObj (&obj4);
-    if (obj1.isInt () && obj2.isInt () && obj3.isCmd ("obj") &&
-        obj4.isDict ()) {
+    if (obj1.is_int () && obj2.is_int () && obj3.is_cmd ("obj") &&
+        obj4.is_dict ()) {
         obj4.dictLookup ("Linearized", &obj5);
-        if (obj5.isNum () && obj5.getNum () > 0) { lin = true; }
+        if (obj5.is_num () && obj5.as_num () > 0) { lin = true; }
     }
     delete parser;
     return lin;

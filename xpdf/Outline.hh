@@ -49,7 +49,7 @@ public:
     TextString* getTitleTextString () { return title; }
     LinkAction* getAction () { return action; }
     bool isOpen () { return startsOpen; }
-    bool hasKids () { return firstRef.isRef (); }
+    bool hasKids () { return firstRef.is_ref (); }
     GList* getKids () { return kids; }
 
 private:

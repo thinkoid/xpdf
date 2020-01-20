@@ -548,7 +548,7 @@ void XPDFCore::doAction (LinkAction* action) {
 
     // Named action
     case actionNamed:
-        actionName = ((LinkNamed*)action)->getName ();
+        actionName = ((LinkNamed*)action)->as_name ();
         if (!actionName->cmp ("NextPage")) { gotoNextPage (1, true); }
         else if (!actionName->cmp ("PrevPage")) {
             gotoPrevPage (1, true, false);
@@ -593,19 +593,19 @@ void XPDFCore::doAction (LinkAction* action) {
         else {
             //~ need to use the correct page num here
             doc->getCatalog ()->getPage (topPage)->getAnnots (&obj1);
-            if (obj1.isArray ()) {
+            if (obj1.is_array ()) {
                 for (i = 0; i < obj1.arrayGetLength (); ++i) {
-                    if (obj1.arrayGet (i, &movieAnnot)->isDict ()) {
+                    if (obj1.arrayGet (i, &movieAnnot)->is_dict ()) {
                         if (movieAnnot.dictLookup ("Subtype", &obj2)
-                                ->isName ("Movie")) {
+                                ->is_name ("Movie")) {
                             break;
                         }
                     }
                 }
             }
         }
-        if (movieAnnot.isDict ()) {
-            if (movieAnnot.dictLookup ("Movie", &obj1)->isDict ()) {
+        if (movieAnnot.is_dict ()) {
+            if (movieAnnot.dictLookup ("Movie", &obj1)->is_dict ()) {
                 if (obj1.dictLookup ("F", &obj2)) {
                     if ((fileName = LinkAction::getFileSpecName (&obj2))) {
                         if (!isAbsolutePath (fileName->c_str ()) &&
@@ -1120,7 +1120,7 @@ void XPDFCore::inputCbk (Widget widget, XtPointer ptr, XtPointer callData) {
                                 break;
                             case actionNamed:
                                 s = ((LinkNamed*)action)
-                                        ->getName ()
+                                        ->as_name ()
                                         ->c_str ();
                                 break;
                             case actionMovie: s = "[movie]"; break;
