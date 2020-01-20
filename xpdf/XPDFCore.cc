@@ -21,8 +21,6 @@
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/CoreOutputDev.hh>
-#include <xpdf/PSOutputDev.hh>
-#include <xpdf/TextOutputDev.hh>
 #include <xpdf/XPDFApp.hh>
 #include <xpdf/XPDFCore.hh>
 
