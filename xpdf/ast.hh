@@ -67,7 +67,7 @@ struct object_t {
     object_t (int    arg) noexcept : var_ (arg) { }
     object_t (double arg) noexcept : var_ (arg) { }
 
-    object_t (GString*);
+    object_t (GString*) noexcept;
     object_t (const std::string&);
 
     object_t (const name_t&    arg) : var_ (arg) { }
@@ -79,7 +79,9 @@ struct object_t {
     object_t (Dict*  ) noexcept;
     object_t (Stream*) noexcept;
 
-    // Type checking.
+    //
+    // Legacy type-checking interface:
+    //
     bool isNull   () const { return var_.index () == 0; }
 
     // TODO: might be a bad equivalence
@@ -116,7 +118,7 @@ struct object_t {
     bool isStream (const char*) const;
 
     //
-    // Accessors:
+    // Legacy accessors:
     //
     bool getBool () const { return std::get< bool > (var_); }
 
@@ -160,36 +162,27 @@ struct object_t {
     int getRefGen () const { return std::get< ref_t > (var_).gen; }
 
     //
-    // Legacy interface
+    // Legacy initialization interface:
     //
-#define XPDF_MB_DEF(name, type)                 \
-    object_t* XPDF_CAT(init, name) (type arg) { \
-        var_ = arg; return this;                \
-    }
+    object_t* initBool (bool arg) { return var_ = arg, this; }
 
-    XPDF_MB_DEF(Bool,   bool)
-    XPDF_MB_DEF(Int,    int)
-    XPDF_MB_DEF(Real,   double)
+    object_t* initInt (int arg) { return var_ = arg, this; }
+
+    object_t* initReal (double arg) { return var_ = arg, this; }
 
     object_t* initString (const std::string& s) {
-        var_ = std::make_shared< GString > (s);
-        return this;
+        return var_ = std::make_shared< GString > (s), this;
     }
 
     object_t* initString (GString* p) {
-        var_ = std::shared_ptr< GString > (p);
-        return this;
+        return var_ = std::shared_ptr< GString > (p), this;
     }
 
     object_t* initName (const std::string& arg) {
-        var_ = name_t (arg);
-        return this;
+        return var_ = name_t (arg), this;
     }
 
-    object_t* initNull () {
-        var_ = null_t{ };
-        return this;
-    }
+    object_t* initNull () { return var_ = null_t{ }, this; }
 
     object_t* initArray  (XRef*);
     object_t* initDict   (XRef*);
@@ -197,32 +190,28 @@ struct object_t {
     object_t* initStream (Stream*);
 
     object_t* initRef (int x, int y) {
-        var_ = ref_t{ x, y };
-        return this;
+        return var_ = ref_t{ x, y }, this;
     }
 
     object_t* initCmd (const char* arg) {
-        var_ = command_t (arg);
-        return this;
+        return var_ = command_t (arg), this;
     }
 
     object_t* initCmd (const std::string& arg) {
-        var_ = command_t (arg);
-        return this;
+        return var_ = command_t (arg), this;
     }
 
-    object_t* initError () {
-        var_ = error_t{ };
-        return this;
+    object_t* initError () noexcept {
+        return var_ = error_t{ }, this;
     }
 
-    object_t* initEOF () {
-        var_ = eof_t{ };
-        return this;
+    object_t* initEOF () noexcept {
+        return var_ = eof_t{ }, this;
     }
 
-#undef XPDF_MB_DEF
-
+    //
+    // Legacy misc:
+    //
     const char* getTypeName () const;
     void print (FILE* = stdout);
 

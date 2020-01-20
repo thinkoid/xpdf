@@ -18,7 +18,7 @@ namespace xpdf {
 
 namespace ast {
 
-object_t::object_t (GString* p)
+object_t::object_t (GString* p) noexcept
     : var_ (std::shared_ptr< GString > (p))
 { }
 
