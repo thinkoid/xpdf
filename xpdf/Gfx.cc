@@ -956,7 +956,6 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
     else if (obj2.is_array () && obj2.arrayGetLength () == 4) {
         for (i = 0; i < 4; ++i) {
             obj2.arrayGet (i, &obj3);
-            OBJECT_GUARD (&obj3);
             funcs[i] = xpdf::make_function (obj3);
             if (!funcs[i]) { break; }
         }

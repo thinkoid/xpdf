@@ -25,41 +25,8 @@ using fmt::format;
 
 namespace xpdf {
 
-struct object_free_t { void operator() (Object*) const { } };
-
-struct stream_free_t {
-    void operator() (Stream* p) const { if (p) p->close (); }
-};
-
-#define XPDF_GUARD(type, x, d) \
-    std::unique_ptr< type, std::function< void(type*) > > \
-    XPDF_CAT (guard_, __LINE__) (x, d)
-
-#define OBJECT_GUARD(x) XPDF_GUARD(Object, x, xpdf::object_free_t{ })
-#define STREAM_GUARD(x) XPDF_GUARD(Stream, x, xpdf::stream_free_t{ })
-
 template< typename T, typename ... U >
 inline bool contains (T&& t, U&& ... u) { return ((t == u) || ...); }
-
-template< typename T > bool is (Object&);
-
-template<> inline bool is<    int > (Object& obj) { return obj.is_int   (); }
-template<> inline bool is< double > (Object& obj) { return obj.is_num   (); }
-template<> inline bool is< Array  > (Object& obj) { return obj.is_array (); }
-
-template< typename T > T get (Object&);
-
-template<> inline    int get<    int > (Object& obj) { return obj.as_int (); }
-template<> inline double get< double > (Object& obj) { return obj.as_num (); }
-
-template< typename T >
-inline T as (Object& obj) {
-    if (!is< T > (obj)) {
-        throw std::runtime_error ("mismatched object type");
-    }
-
-    return get< T > (obj);
-}
 
 template< typename T >
 inline T as (Dict& dict, const char* s) {
@@ -69,8 +36,12 @@ inline T as (Dict& dict, const char* s) {
         throw std::runtime_error (format ("missing key {}", s));
     }
 
-    OBJECT_GUARD (&obj);
-    return as< T > (obj);
+    //
+    // Using object_t::operator T () because the parser has no semantic
+    // information to distinguish between an integer and a floating point value
+    // with no decimal part:
+    //
+    return T (obj);
 }
 
 template< typename T >
@@ -81,8 +52,7 @@ inline T array_get (Object& arr, size_t i) {
         throw std::runtime_error (format ("invalid array or index {}", i));
     }
 
-    OBJECT_GUARD (&tmp);
-    return as< T > (tmp);
+    return T (tmp);
 }
 
 template< typename T >
@@ -132,19 +102,17 @@ inline auto as_array (Dict& dict, const char* s) {
         throw std::runtime_error (format ("missing array \"{}\"", s));
     }
 
-    OBJECT_GUARD (&obj);
     return as_array< T > (obj);
 }
 
 template< typename T >
-std::vector< T > optional_array (Dict& dict, const char* s) {
+std::vector< T > maybe_array (Dict& dict, const char* s) {
     Object obj;
 
     if (0 == dict.lookup (s, &obj) || obj.is_null ()) {
         return { };
     }
 
-    OBJECT_GUARD (&obj);
     return { as_array< T > (obj) };
 }
 

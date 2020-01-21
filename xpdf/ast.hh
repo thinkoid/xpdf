@@ -27,11 +27,12 @@ class Stream;
 
 namespace xpdf {
 namespace ast {
+
+struct null_t { };
+
 //
 // Used in parsing:
 //
-struct null_t { };
-
 struct err_t { };
 struct eof_t { };
 
@@ -81,85 +82,116 @@ struct obj_t {
     obj_t (Dict*  ) noexcept;
     obj_t (Stream*) noexcept;
 
+    template< typename T >
+    bool is () const {
+        return std::holds_alternative< T > (var_);
+    }
+
     //
     // Legacy type-checking interface:
     //
-    bool is_null   () const { return var_.index () == 0; }
+    bool is_null () const { return is< null_t > (); }
+    bool is_none () const { return is< null_t > (); }
 
-    // TODO: might be a bad equivalence
-    bool is_none   () const { return is_null (); }
+    bool is_eof  () const { return is< eof_t > (); }
+    bool is_err  () const { return is< err_t > (); }
 
-    bool is_eof    () const { return var_.index () == 1; }
-    bool is_err  () const { return var_.index () == 2; }
+    bool is_bool () const { return is< bool > (); }
 
-    bool is_bool   () const { return var_.index () == 3; }
+    bool is_int  () const { return is< int > (); }
+    bool is_real () const { return is< double > (); }
+    bool is_num  () const { return is_int () || is_real (); }
 
-    bool is_int    () const { return var_.index () == 4; }
-    bool is_real   () const { return var_.index () == 5; }
-    bool is_num    () const { return is_int () || is_real (); }
+    bool is_string () const { return is< std::shared_ptr< GString > > (); }
 
-    bool is_string () const { return var_.index () == 6; }
-
-    bool is_name   () const { return var_.index () == 7; }
-    bool is_name   (const char* s) const {
+    bool is_name () const { return is< name_t > (); }
+    bool is_name (const char* s) const {
         return is_name () && 0 == strcmp (as_name (), s);
     }
 
-    bool is_cmd    () const { return var_.index () == 8; }
-    bool is_cmd    (const char* s) const {
+    bool is_cmd () const { return is< cmd_t > (); }
+    bool is_cmd (const char* s) const {
         return is_cmd () && 0 == strcmp (as_cmd (), s);
     }
 
-    bool is_ref    () const { return var_.index () == 9; }
-    bool is_array  () const { return var_.index () == 10; }
+    bool is_ref () const { return is< ref_t > (); }
 
-    bool is_dict   () const { return var_.index () == 11; }
-    bool is_dict   (const char*) const;
+    bool is_array () const { return is< std::shared_ptr< Array > > (); }
 
-    bool is_stream () const { return var_.index () == 12; }
+    bool is_dict () const { return is< std::shared_ptr< Dict > > (); }
+    bool is_dict (const char*) const;
+
+    bool is_stream () const { return is< std::shared_ptr< Stream > > (); }
     bool is_stream (const char*) const;
+
+    //
+    // Accessors:
+    //
+    template< typename T >
+    T& as () { return std::get< T > (var_); }
+
+    template< typename T >
+    const T& as () const { return std::get< T > (var_); }
+
+    operator int () const {
+        switch (var_.index ()) {
+        case 3: return int (as< bool > ());
+        case 4: return as< int > ();
+        case 5: return int (as< double > ());
+        default:
+            throw std::runtime_error ("invalid variant conversion");
+        }
+    }
+
+    operator double () const {
+        switch (var_.index ()) {
+        case 3: return double (as< bool > ());
+        case 4: return double (as< int > ());
+        case 5: return as< double > ();
+        default:
+            throw std::runtime_error ("invalid variant conversion");
+        }
+    }
 
     //
     // Legacy accessors:
     //
-    bool as_bool () const { return std::get< bool > (var_); }
+    bool as_bool () { return as< bool > (); }
 
-    int    as_int  () const { return std::get<    int > (var_); }
-    double as_real () const { return std::get< double > (var_); }
+    int    as_int  () { return as< int > (); }
+    double as_real () { return as< double > (); }
 
-    double as_num () const {
-        return is_int () ? as_int () : as_real ();
-    }
+    double as_num  () { return is_int () ? as_int () : as_real (); }
 
     GString* as_string () const {
         using pointer = std::shared_ptr< GString >;
-        return std::get< pointer > (var_).get ();
+        return as< pointer > ().get ();
     }
 
     const char* as_name () const {
-        return std::get< name_t > (var_).c_str ();
+        return as< name_t > ().c_str ();
     }
 
     const char* as_cmd  () const {
-        return std::get< cmd_t > (var_).c_str ();
+        return as< cmd_t > ().c_str ();
     }
 
     Array& as_array () const {
         using pointer = std::shared_ptr< Array >;
-        return *std::get< pointer > (var_);
+        return *as< pointer > ();
     }
 
     Dict* as_dict () const {
         using pointer = std::shared_ptr< Dict >;
-        return std::get< pointer > (var_).get ();
+        return as< pointer > ().get ();
     }
 
     Stream* as_stream () const {
         using pointer = std::shared_ptr< Stream >;
-        return std::get< pointer > (var_).get ();
+        return as< pointer > ().get ();
     }
 
-    const ref_t& as_ref () const { return std::get< ref_t > (var_); }
+    const ref_t& as_ref () const { return as< ref_t > (); }
 
     //
     // Legacy misc:

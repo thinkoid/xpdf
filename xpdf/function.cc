@@ -68,7 +68,7 @@ inline auto range_from (Dict& dict) {
 }
 
 inline auto optional_range_from (Dict& dict) {
-    return optional_array< std::tuple< double, double > > (dict, "Range");
+    return maybe_array< std::tuple< double, double > > (dict, "Range");
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -210,7 +210,6 @@ inline size_t bps_from (Dict& dict) {
 std::vector< char >
 block_from (Object& obj, size_t n) {
     auto str = obj.as_stream ();
-    STREAM_GUARD (str);
 
     std::vector< char > xs (n);
 
@@ -227,7 +226,7 @@ samples_from (const std::vector< char >& xs, size_t n, size_t bps) {
 
 std::vector< std::tuple< double, double > >
 encode_array_from (Dict& dict, const std::vector< size_t >& default_) {
-    auto xs = optional_array< std::tuple< double, double > > (dict, "Encode");
+    auto xs = maybe_array< std::tuple< double, double > > (dict, "Encode");
 
     if (xs.empty ()) {
         transform (default_, back_inserter (xs), [](auto x) {
@@ -241,7 +240,7 @@ encode_array_from (Dict& dict, const std::vector< size_t >& default_) {
 std::vector< std::tuple< double, double > >
 decode_array_from (
     Dict& dict, const std::vector< std::tuple< double, double > >& default_) {
-    auto xs = optional_array< std::tuple< double, double > > (dict, "Decode");
+    auto xs = maybe_array< std::tuple< double, double > > (dict, "Decode");
     return xs.empty () ? default_ : xs;
 }
 
@@ -407,7 +406,7 @@ struct exponential_function_t : function_t::impl_t {
 
 inline std::vector< double >
 exponential_array_from (Dict& dict, const char* s, int default_) {
-    auto xs = optional_array< double > (dict, s);
+    auto xs = maybe_array< double > (dict, s);
 
     if (xs.empty ()) {
         xs.push_back (default_);
@@ -497,17 +496,13 @@ struct stitching_function_t : function_t::impl_t {
 std::vector< std::shared_ptr< function_t::impl_t > >
 stitched_functions_from (Dict& dict, int recursion) {
     Object arr;
-
     dict.lookup ("Functions", &arr);
-    OBJECT_GUARD (&arr);
 
     std::vector< std::shared_ptr< function_t::impl_t > > fs;
 
     for (size_t i = 0, k = arr.arrayGetLength (); i < k; ++i) {
         Object fun;
-
         arr.arrayGet (i, &fun);
-        OBJECT_GUARD (&fun);
 
         if (auto p = make_function (fun, recursion + 1)) {
             fs.push_back (p);
@@ -844,9 +839,8 @@ postscript_function_t::postscript_function_t (Object& obj, Dict& dict)
     ASSERT (!range.empty ());
 
     auto str = obj.as_stream ();
-    STREAM_GUARD (str);
-
     str->reset ();
+
     const auto ts = tokenize (*str);
 
     auto iter = ts.begin ();
