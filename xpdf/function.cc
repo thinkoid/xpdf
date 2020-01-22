@@ -822,7 +822,7 @@ parse (Iterator& iter, Iterator last) {
                     format ("invalid PostScript: {}", tok));
             }
 
-            xs.push_back ({ int (std::distance (iter2, ns.end ())), 0 });
+            xs.push_back ({ int (std::distance (iter2, ns.end ())), { 0 } });
 
             ++iter;
         }
