@@ -75,6 +75,19 @@ public:
     // Fetch an indirect reference.
     Object* fetch (int num, int gen, Object* obj, int recursion = 0);
 
+    //
+    // Fetch a reference:
+    //
+    Object fetch (int num, int gen = 0, int recursion = 0) {
+        Object obj;
+        fetch (num, gen, &obj, recursion);
+        return obj;
+    }
+
+    Object fetch (const Ref& ref, int recursion = 0) {
+        return fetch (ref.num, ref.gen, recursion);
+    }
+
     // Return the document's Info dictionary (if any).
     Object* getDocInfo (Object* obj);
     Object* getDocInfoNF (Object* obj);
