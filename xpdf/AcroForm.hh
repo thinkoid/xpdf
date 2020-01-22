@@ -90,7 +90,7 @@ private:
 
 //------------------------------------------------------------------------
 
-class AcroFormAnnotPage;
+struct AcroFormAnnotPage;
 
 class AcroForm : public Form {
 public:
