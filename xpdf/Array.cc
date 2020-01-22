@@ -19,10 +19,6 @@ Array::Array (XRef* xrefA) {
     xref = xrefA;
 }
 
-void Array::add (Object* elem) {
-    xs.push_back (*elem);
-}
-
 void Array::add (const Object& obj) {
     xs.push_back (obj);
 }
