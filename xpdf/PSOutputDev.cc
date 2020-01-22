@@ -931,7 +931,7 @@ public:
     virtual int lookChar () {
         return (bufIdx >= bufSize && !fillBuf ()) ? EOF : buf[bufIdx];
     }
-    virtual GString* getPSFilter (int psLevel, char* indent) { return NULL; }
+    virtual GString* getPSFilter (int psLevel, const char* indent) { return NULL; }
     virtual bool isBinary (bool last = true) { return true; }
     virtual bool isEncoder () { return true; }
 
