@@ -25,12 +25,8 @@ public:
     size_t size () const { return xs.size (); }
 
     // Add an element.
-    void add (const Object&);
-    void add (Object&&);
-
-    void add (Object* pobj) {
-        add (*pobj);
-    }
+    void push_back (const Object&);
+    void push_back (Object&&);
 
     // Accessors.
     Object* get (int i, Object* obj);

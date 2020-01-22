@@ -36,11 +36,7 @@ static inline Array make_array (XRef* xref, Object* pobj = 0) {
     if (pobj) {
         if (pobj->is_stream ()) {
             Array arr (xref);
-
-            Object tmp = *pobj;
-            arr.add (&tmp);
-
-            return arr;
+            return arr.push_back (*pobj), arr;
         }
         else {
             return pobj->as_array ();
@@ -56,9 +52,7 @@ namespace xpdf {
 lexer_t::lexer_t (XRef* xref, Stream* pstr)
     : streams (make_array (xref)) {
     // TODO: array of streams and nested parsing need some std-ing.
-    curStr = xpdf::make_stream_obj (pstr);
-    Object obj = curStr;
-    streams.add (&obj);
+    streams.push_back (curStr = xpdf::make_stream_obj (pstr));
     strPtr = 0;
     curStr.streamReset ();
 }

@@ -53,15 +53,15 @@ int obj_t::arrayGetLength () {
 }
 
 void obj_t::arrayAdd (obj_t* pobj) {
-    as_array ().add (pobj);
+    arrayAdd (*pobj);
 }
 
 void obj_t::arrayAdd (const obj_t& obj) {
-    as_array ().add (obj);
+    as_array ().push_back (obj);
 }
 
 void obj_t::arrayAdd (obj_t&& obj) {
-    as_array ().add (std::move (obj));
+    as_array ().push_back (std::move (obj));
 }
 
 obj_t* obj_t::arrayGet (int i, obj_t* pobj) {

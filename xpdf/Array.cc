@@ -19,11 +19,11 @@ Array::Array (XRef* xrefA) {
     xref = xrefA;
 }
 
-void Array::add (const Object& obj) {
+void Array::push_back (const Object& obj) {
     xs.push_back (obj);
 }
 
-void Array::add (Object&& obj) {
+void Array::push_back (Object&& obj) {
     xs.push_back (std::move (obj));
 }
 
