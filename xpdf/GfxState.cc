@@ -25,7 +25,7 @@
 namespace xpdf {
 
 inline xpdf::color_t clamp_color (xpdf::color_t x) {
-    return std::clamp (x, 0U, XPDF_FIXED_POINT_ONE);
+    return std::clamp (x, 0, XPDF_FIXED_POINT_ONE);
 }
 
 inline double clamp_color (double x) {

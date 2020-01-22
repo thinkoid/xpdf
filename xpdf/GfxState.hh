@@ -18,9 +18,9 @@ class GfxShading;
 
 namespace xpdf {
 
-#define XPDF_FIXED_POINT_ONE 0x00010000U
+#define XPDF_FIXED_POINT_ONE 0x00010000
 
-using       color_t = uint32_t;
+using       color_t = int32_t;
 using small_color_t = uint8_t;
 
 //
@@ -35,7 +35,7 @@ inline color_t to_color (double x) {
 //
 inline double to_double (color_t x) {
     return
-        double (std::clamp (x, 0U, XPDF_FIXED_POINT_ONE))
+        double (std::clamp (x, 0, XPDF_FIXED_POINT_ONE))
         / XPDF_FIXED_POINT_ONE;
 }
 
@@ -50,7 +50,7 @@ inline color_t to_color (small_color_t x) {
 // Map int [0÷65535] (16-bit fixed-point) -> unsigned char [0÷255]
 //
 inline small_color_t to_small_color (color_t x) {
-    return std::clamp (x >> 8, 0U, 255U);
+    return std::clamp (x >> 8, 0, 255);
 }
 
 } // namespace xpdf

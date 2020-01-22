@@ -41,13 +41,6 @@
 #define type3FontCacheSize (128 * 1024)
 
 //------------------------------------------------------------------------
-
-// Divide a 16-bit value (in [0, 255*255]) by 255, returning an 8-bit result.
-static inline unsigned char div255 (int x) {
-    return (unsigned char) ((x + (x >> 8) + 0x80) >> 8);
-}
-
-//------------------------------------------------------------------------
 // Blend functions
 //------------------------------------------------------------------------
 
@@ -3323,7 +3316,7 @@ void SplashOutputDev::setFillColor (int r, int g, int b) {
     case splashModeMono8:
         gray.x = (xpdf::color_t) (
             0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.g + 0.5);
-        gray.x = std::clamp (gray.x, 0U, XPDF_FIXED_POINT_ONE);
+        gray.x = std::clamp (gray.x, 0, XPDF_FIXED_POINT_ONE);
         splash->setFillPattern (getColor (gray));
         break;
 
