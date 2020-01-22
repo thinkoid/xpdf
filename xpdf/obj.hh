@@ -295,10 +295,7 @@ private:
     > var_;
 };
 
-//
-// Formerly obj_t::fetch
-//
-obj_t fetch (obj_t&, XRef&, int recursion = 0);
+obj_t resolve (XRef&, const obj_t&, int /* = 0 */);
 
 //
 // Convenience factories:

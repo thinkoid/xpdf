@@ -41,7 +41,7 @@ obj_t::obj_t (Stream* p) noexcept
 { }
 
 obj_t* obj_t::fetch (XRef* xref, obj_t* obj, int recursion) {
-    return *obj = xpdf::fetch (*this, *xref, recursion), obj;
+    return *obj = resolve (*xref, *this, recursion), obj;
 }
 
 //------------------------------------------------------------------------
@@ -243,20 +243,10 @@ obj_t make_stream_obj (Stream* p) {
 }
 
 //
-// Formerly obj_t::fetch
+// Attempts to resolve references to the actual PDF objects:
 //
-obj_t fetch (obj_t& obj, XRef& xref, int recursion /* = 0 */) {
-    if (obj.is_ref ()) {
-        auto& ref = obj.as_ref ();
-
-        obj_t result;
-        xref.fetch (ref.num, ref.gen, &result, recursion);
-
-        return result;
-    }
-    else {
-        return obj;
-    }
+obj_t resolve (XRef& xref, const obj_t& obj, int recursion /* = 0 */) {
+    return obj.is_ref () ? xref.fetch (obj.as_ref (), recursion) : obj;
 }
 
 } // namespace xpdf
