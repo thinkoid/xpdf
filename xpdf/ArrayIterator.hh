@@ -91,10 +91,10 @@ template< typename T >
 using array_iterator_t = ranges::basic_iterator< array_cursor_t< T > >;
 
 template< typename T >
-inline auto make_array_subrange (Object* pobj) {
-    ASSERT (pobj && pobj->is_array ());
+inline auto make_array_subrange (Object& obj) {
+    ASSERT (obj.is_array ());
     return ranges::make_subrange (
-        array_iterator_t< T > (pobj, size_t (pobj->arrayGetLength ())),
+        array_iterator_t< T > (&obj, size_t (obj.arrayGetLength ())),
         array_iterator_t< T > ());
 }
 

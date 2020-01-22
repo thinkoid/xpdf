@@ -80,7 +80,7 @@ inline auto as_array< std::tuple< double, double > > (Object& src) {
         throw std::runtime_error ("not an array");
     }
 
-    auto rng = xpdf::make_array_subrange< double > (&src);
+    auto rng = xpdf::make_array_subrange< double > (src);
 
     transform (rng | views::chunk (2), back_inserter (xs), [](auto arg) {
         return std::make_tuple (arg [0], arg [1]);
