@@ -295,7 +295,7 @@ private:
     > var_;
 };
 
-obj_t resolve (XRef&, const obj_t&, int /* = 0 */);
+obj_t resolve (XRef&, const obj_t&, int = 0);
 
 //
 // Convenience factories:

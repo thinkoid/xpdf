@@ -11,9 +11,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/array.hh>
 
-#include <fmt/format.h>
-using fmt::format;
-
 namespace xpdf {
 
 Object* array_t::get (int i, Object* obj) {

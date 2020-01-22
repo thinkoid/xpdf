@@ -444,7 +444,6 @@ Gfx::Gfx (
     markedContentStack = new GList ();
     ocState = true;
     parser = NULL;
-    contentStreamStack = new GList ();
     abortCheckCbk = abortCheckCbkA;
     abortCheckCbkData = abortCheckCbkDataA;
 
@@ -487,7 +486,6 @@ Gfx::Gfx (
     markedContentStack = new GList ();
     ocState = true;
     parser = NULL;
-    contentStreamStack = new GList ();
     abortCheckCbk = abortCheckCbkA;
     abortCheckCbkData = abortCheckCbkDataA;
 
@@ -510,74 +508,72 @@ Gfx::~Gfx () {
     delete state;
     while (res) { popResources (); }
     deleteGList (markedContentStack, GfxMarkedContent);
-    delete contentStreamStack;
 }
 
 void Gfx::display (Object* objRef, bool topLevel) {
-    Object obj1, obj2;
-    int i;
+    Object obj = xpdf::resolve (*xref, *objRef);
 
-    objRef->fetch (xref, &obj1);
-    if (obj1.is_array ()) {
-        for (i = 0; i < obj1.arrayGetLength (); ++i) {
-            obj1.arrayGetNF (i, &obj2);
-            if (checkForContentStreamLoop (&obj2)) {
-                return;
-            }
+    if (obj.is_array ()) {
+        auto& arr = obj.as_array ();
+
+        auto iter = find_if (arr, [this](auto& x) {
+            return checkForContentStreamLoop (&x); });
+
+        if (iter != arr.end ()) {
+            return;
         }
-        for (i = 0; i < obj1.arrayGetLength (); ++i) {
-            obj1.arrayGet (i, &obj2);
-            if (!obj2.is_stream ()) {
-                error (
-                    errSyntaxError, -1,
-                    "Invalid object type for content stream");
-                return;
-            }
-        }
-        contentStreamStack->append (&obj1);
+
+        for_each (arr, [](auto& x) {
+            if (!x.is_stream ()) {
+                throw std::runtime_error ("not a content stream");
+            }});
+
+        contentStreamStack.push_back (obj);
     }
-    else if (obj1.is_stream ()) {
+    else if (obj.is_stream ()) {
         if (checkForContentStreamLoop (objRef)) {
             return;
         }
-        contentStreamStack->append (objRef);
+
+        contentStreamStack.push_back (*objRef);
     }
     else {
-        error (errSyntaxError, -1, "Invalid object type for content stream");
-        return;
+        throw std::runtime_error ("not a content stream");
     }
-    parser = new Parser (xref, new xpdf::lexer_t (xref, &obj1), false);
+
+    parser = new Parser (xref, new xpdf::lexer_t (xref, &obj), false);
     go (topLevel);
+
     delete parser;
-    parser = NULL;
-    contentStreamStack->del (contentStreamStack->getLength () - 1);
+    parser = 0;
+
+    contentStreamStack.pop_back ();
 }
 
 // If <ref> is already on contentStreamStack, i.e., if there is a loop
 // in the content streams, report an error, and return true.
 bool Gfx::checkForContentStreamLoop (Object* ref) {
-    Object* objPtr;
-    Object obj1;
-    int i, j;
-
     if (ref->is_ref ()) {
-        for (i = 0; i < contentStreamStack->getLength (); ++i) {
-            objPtr = (Object*)contentStreamStack->get (i);
-            if (objPtr->is_ref ()) {
-                if (ref->getRefNum () == objPtr->getRefNum () &&
-                    ref->getRefGen () == objPtr->getRefGen ()) {
+        for (size_t i = 0; i < contentStreamStack.size (); ++i) {
+            auto& obj = contentStreamStack [i];
+
+            if (obj.is_ref ()) {
+                if (ref->getRefNum () == obj.getRefNum () &&
+                    ref->getRefGen () == obj.getRefGen ()) {
                     error (errSyntaxError, -1, "Loop in content streams");
                     return true;
                 }
             }
-            else if (objPtr->is_array ()) {
-                for (j = 0; j < objPtr->arrayGetLength (); ++j) {
-                    objPtr->arrayGetNF (j, &obj1);
+            else if (obj.is_array ()) {
+                auto& arr = obj.as_array ();
+
+                for (size_t j = 0; j < arr.size (); ++j) {
+                    auto& obj1 = arr [j];
+
                     if (obj1.is_ref ()) {
                         if (ref->getRefNum () == obj1.getRefNum () &&
                             ref->getRefGen () == obj1.getRefGen ()) {
-                            error (
-                                errSyntaxError, -1, "Loop in content streams");
+                            error (errSyntaxError, -1, "Loop in content streams");
                             return true;
                         }
                     }
@@ -585,6 +581,7 @@ bool Gfx::checkForContentStreamLoop (Object* ref) {
             }
         }
     }
+
     return false;
 }
 
@@ -4120,7 +4117,10 @@ void Gfx::drawForm (
 }
 
 void Gfx::takeContentStreamStack (Gfx* oldGfx) {
-    contentStreamStack->append (oldGfx->contentStreamStack);
+    auto& dst = contentStreamStack;
+    auto& src = oldGfx->contentStreamStack;
+    dst.insert (dst.end (), src.begin (), src.end ());
+    src.clear ();
 }
 
 //------------------------------------------------------------------------

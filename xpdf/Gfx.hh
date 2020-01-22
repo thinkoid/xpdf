@@ -6,6 +6,8 @@
 
 #include <defs.hh>
 
+#include <vector>
+
 #include <goo/gfile.hh>
 
 #include <xpdf/array_fwd.hh>
@@ -173,8 +175,10 @@ private:
     GList* markedContentStack; // BMC/BDC/EMC stack [GfxMarkedContent]
 
     Parser* parser;            // parser for page content stream(s)
-    GList* contentStreamStack; // stack of open content streams, used
-                               //   for loop-checking
+
+    std::vector< Object > contentStreamStack;
+    // GList* contentStreamStack; // stack of open content streams, used
+    //                            //   for loop-checking
 
     enum typeCheckType {
         typeCheckBool,   // boolean
