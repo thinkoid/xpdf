@@ -250,9 +250,7 @@ struct obj_t {
 
     void dictAdd (const char*, const obj_t&);
     void dictAdd (const char*, obj_t&&);
-
     void dictAdd (const char* key, obj_t* val);
-    void dictAdd (const std::string& key, obj_t* val);
 
     bool dictIs (const char* dictType) const;
     obj_t* dictLookup (const char* key, obj_t* obj, int recursion = 0);
