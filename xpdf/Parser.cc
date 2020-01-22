@@ -5,7 +5,7 @@
 
 #include <cstddef>
 #include <xpdf/obj.hh>
-#include <xpdf/Array.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Decrypt.hh>
 #include <xpdf/Parser.hh>

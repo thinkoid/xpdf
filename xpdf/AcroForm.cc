@@ -11,7 +11,7 @@
 
 #include <xpdf/AcroForm.hh>
 #include <xpdf/Annot.hh>
-#include <xpdf/Array.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Gfx.hh>

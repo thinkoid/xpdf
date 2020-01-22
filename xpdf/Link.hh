@@ -6,10 +6,10 @@
 
 #include <defs.hh>
 
+#include <xpdf/array_fwd.hh>
 #include <xpdf/obj.hh>
 
 class GString;
-class Array;
 class Dict;
 
 //------------------------------------------------------------------------

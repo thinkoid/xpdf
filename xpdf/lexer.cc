@@ -9,7 +9,7 @@
 #include <cstring>
 #include <cctype>
 
-#include <xpdf/Array.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/lexer.hh>
 

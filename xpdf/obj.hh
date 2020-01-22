@@ -16,12 +16,12 @@
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 
+#include <xpdf/array_fwd.hh>
 #include <xpdf/obj_fwd.hh>
 
-class XRef;
-class Array;
 class Dict;
 class Stream;
+class XRef;
 
 ////////////////////////////////////////////////////////////////////////
 

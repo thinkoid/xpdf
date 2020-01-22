@@ -8,7 +8,7 @@
 #include <defs.hh>
 
 #include <xpdf/obj.hh>
-#include <xpdf/Array.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Stream.hh>
 
 class XRef;

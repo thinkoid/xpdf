@@ -8,7 +8,6 @@ noinst_LIBRARIES = libxpdf.a
 libxpdf_a_SOURCES =                             \
    AcroForm.cc                                  \
    Annot.cc                                     \
-   Array.cc                                     \
    BuiltinFont.cc                               \
    BuiltinFontTables.cc                         \
    CMap.cc                                      \
@@ -52,6 +51,7 @@ libxpdf_a_SOURCES =                             \
    XFAForm.cc                                   \
    XRef.cc                                      \
    Zoox.cc                                      \
+   array.cc                                     \
    bitpack.cc                                   \
    function.cc                                  \
    lexer.cc                                     \

@@ -25,7 +25,7 @@
 #include <xpdf/bitpack.hh>
 #include <xpdf/xpdf.hh>
 
-#include <xpdf/Array.hh>
+#include <xpdf/array.hh>
 #include <xpdf/ArrayIterator.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Dict.hh>

@@ -8,11 +8,11 @@
 
 #include <goo/gfile.hh>
 
+#include <xpdf/array_fwd.hh>
 #include <xpdf/function.hh>
 #include <xpdf/obj.hh>
 
 class AnnotBorderStyle;
-class Array;
 class Dict;
 class GList;
 class GString;

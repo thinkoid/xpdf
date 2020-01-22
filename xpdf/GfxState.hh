@@ -6,12 +6,12 @@
 
 #include <defs.hh>
 
+#include <xpdf/array_fwd.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/function.hh>
 
 #include <cnl/all.h>
 
-class Array;
 class GfxFont;
 class PDFRectangle;
 class GfxShading;

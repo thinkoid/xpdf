@@ -11,7 +11,7 @@
 
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
-#include <xpdf/Array.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/GfxState.hh>

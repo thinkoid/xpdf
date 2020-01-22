@@ -10,8 +10,7 @@
 #include <tuple>
 #include <vector>
 
-class Array;
-
+#include <xpdf/array_fwd.hh>
 #include <xpdf/ArrayIterator.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/obj.hh>
