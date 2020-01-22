@@ -52,10 +52,10 @@ libxpdf_a_SOURCES =                             \
    XFAForm.cc                                   \
    XRef.cc                                      \
    Zoox.cc                                      \
-   ast.cc                                       \
    bitpack.cc                                   \
    function.cc                                  \
    lexer.cc                                     \
+   obj.cc                                       \
    xpdf.cc
 
 bin_PROGRAMS = xpdfview

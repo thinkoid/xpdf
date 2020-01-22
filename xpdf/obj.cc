@@ -10,13 +10,11 @@
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/XRef.hh>
 
 namespace xpdf {
-
-namespace ast {
 
 obj_t::obj_t (GString* p) noexcept
     : var_ (std::shared_ptr< GString > (p))
@@ -228,32 +226,30 @@ void obj_t::print (FILE*) {
 #endif // 0
 }
 
-} // namespace ast
-
-ast::obj_t make_arr_obj (XRef* p) {
-    return ast::obj_t (new Array (p));
+obj_t make_arr_obj (XRef* p) {
+    return obj_t (new Array (p));
 }
 
-ast::obj_t make_dict_obj (XRef* p) {
-    return ast::obj_t (new Dict (p));
+obj_t make_dict_obj (XRef* p) {
+    return obj_t (new Dict (p));
 }
 
-ast::obj_t make_dict_obj (Dict* p) {
-    return ast::obj_t (p);
+obj_t make_dict_obj (Dict* p) {
+    return obj_t (p);
 }
 
-ast::obj_t make_stream_obj (Stream* p) {
-    return ast::obj_t (p);
+obj_t make_stream_obj (Stream* p) {
+    return obj_t (p);
 }
 
 //
 // Formerly obj_t::fetch
 //
-ast::obj_t fetch (ast::obj_t& obj, XRef& xref, int recursion /* = 0 */) {
+obj_t fetch (obj_t& obj, XRef& xref, int recursion /* = 0 */) {
     if (obj.is_ref ()) {
         auto& ref = obj.as_ref ();
 
-        ast::obj_t result;
+        obj_t result;
         xref.fetch (ref.num, ref.gen, &result, recursion);
 
         return result;

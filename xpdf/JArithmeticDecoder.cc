@@ -3,7 +3,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/JArithmeticDecoder.hh>
 

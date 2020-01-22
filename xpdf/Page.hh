@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 
 class Dict;
 class PDFDoc;

@@ -8,7 +8,7 @@
 
 #include <goo/gfile.hh>
 
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 class Dict;

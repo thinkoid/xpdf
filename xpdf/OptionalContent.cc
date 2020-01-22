@@ -6,7 +6,7 @@
 #include <goo/GString.hh>
 #include <goo/GList.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>
 #include <xpdf/OptionalContent.hh>

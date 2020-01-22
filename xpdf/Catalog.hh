@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
-#include <xpdf/ast_fwd.hh>
+#include <xpdf/obj_fwd.hh>
 
 class GList;
 class PDFDoc;

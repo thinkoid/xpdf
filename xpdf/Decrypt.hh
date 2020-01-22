@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #include <goo/GString.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------

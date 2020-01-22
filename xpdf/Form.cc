@@ -5,7 +5,7 @@
 
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/AcroForm.hh>
 #include <xpdf/XFAForm.hh>

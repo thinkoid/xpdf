@@ -9,7 +9,7 @@
 #include <cstddef>
 
 #include <xpdf/function.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/OutputDev.hh>
 

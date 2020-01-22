@@ -15,7 +15,7 @@
 #include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PSTokenizer.hh>
 #include <xpdf/Stream.hh>
 

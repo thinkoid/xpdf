@@ -8,7 +8,7 @@
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <splash/SplashBitmap.hh>
 #include <splash/Splash.hh>

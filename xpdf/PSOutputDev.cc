@@ -31,7 +31,7 @@
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/PSOutputDev.hh>
 #include <xpdf/Page.hh>

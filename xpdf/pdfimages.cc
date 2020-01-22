@@ -9,7 +9,7 @@
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>

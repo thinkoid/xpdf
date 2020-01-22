@@ -8,7 +8,7 @@
 #include <defs.hh>
 #include <memory>
 
-#include <xpdf/ast_fwd.hh>
+#include <xpdf/obj_fwd.hh>
 
 namespace xpdf {
 

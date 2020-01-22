@@ -14,7 +14,7 @@ class Array;
 
 #include <xpdf/ArrayIterator.hh>
 #include <xpdf/Dict.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 #include <range/v3/all.hpp>

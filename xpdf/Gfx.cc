@@ -12,7 +12,7 @@
 #include <goo/GList.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/CharTypes.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Array.hh>
 #include <xpdf/Dict.hh>
@@ -614,7 +614,7 @@ void Gfx::go (bool topLevel) {
             }
             if (!execOp (&obj, args, numArgs)) { ++errCount; }
 
-            fill (args, args + numArgs, xpdf::ast::obj_t{ });
+            fill (args, args + numArgs, xpdf::obj_t{ });
             numArgs = 0;
 
             // periodically update display
@@ -674,7 +674,7 @@ void Gfx::go (bool topLevel) {
             fflush (stdout);
         }
 
-        fill (args, args + numArgs, xpdf::ast::obj_t{ });
+        fill (args, args + numArgs, xpdf::obj_t{ });
     }
 
     // update display

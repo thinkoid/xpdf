@@ -16,7 +16,7 @@
 
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/Annot.hh>

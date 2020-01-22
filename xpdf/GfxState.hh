@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/function.hh>
 
 #include <cnl/all.h>

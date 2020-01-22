@@ -2,8 +2,8 @@
 // Copyright 1996-2003 Glyph & Cog, LLC
 // Copyright 2019-2020 Thinkoid, LLC.
 
-#ifndef XPDF_XPDF_OBJECT_HH
-#define XPDF_XPDF_OBJECT_HH
+#ifndef XPDF_XPDF_OBJ_HH
+#define XPDF_XPDF_OBJ_HH
 
 #include <defs.hh>
 
@@ -16,7 +16,7 @@
 #include <goo/gfile.hh>
 #include <goo/GString.hh>
 
-#include <xpdf/ast_fwd.hh>
+#include <xpdf/obj_fwd.hh>
 
 class XRef;
 class Array;
@@ -26,8 +26,6 @@ class Stream;
 ////////////////////////////////////////////////////////////////////////
 
 namespace xpdf {
-namespace ast {
-
 namespace detail {
 
 template< typename T, typename U, typename Enable = void >
@@ -297,68 +295,66 @@ private:
     > var_;
 };
 
-} // namespace ast
-
 //
 // Formerly obj_t::fetch
 //
-ast::obj_t fetch (ast::obj_t&, XRef&, int recursion = 0);
+obj_t fetch (obj_t&, XRef&, int recursion = 0);
 
 //
 // Convenience factories:
 //
-inline ast::obj_t make_null_obj () {
-    return ast::obj_t ();
+inline obj_t make_null_obj () {
+    return obj_t ();
 }
 
-inline ast::obj_t make_err_obj () {
-    return ast::obj_t (ast::err_t{ });
+inline obj_t make_err_obj () {
+    return obj_t (err_t{ });
 }
 
-inline ast::obj_t make_eof_obj () {
-    return ast::obj_t (ast::eof_t{ });
+inline obj_t make_eof_obj () {
+    return obj_t (eof_t{ });
 }
 
-inline ast::obj_t make_bool_obj (bool arg) {
-    return ast::obj_t (arg);
+inline obj_t make_bool_obj (bool arg) {
+    return obj_t (arg);
 }
 
-inline ast::obj_t make_int_obj (int arg) {
-    return ast::obj_t (arg);
+inline obj_t make_int_obj (int arg) {
+    return obj_t (arg);
 }
 
-inline ast::obj_t make_real_obj (double arg) {
-    return ast::obj_t (arg);
+inline obj_t make_real_obj (double arg) {
+    return obj_t (arg);
 }
 
-inline ast::obj_t make_string_obj (const std::string& arg) {
-    return ast::obj_t (arg);
+inline obj_t make_string_obj (const std::string& arg) {
+    return obj_t (arg);
 }
 
-inline ast::obj_t make_name_obj (const std::string& arg) {
-    return ast::obj_t (ast::name_t (arg));
+inline obj_t make_name_obj (const std::string& arg) {
+    return obj_t (name_t (arg));
 }
 
-inline ast::obj_t make_cmd_obj (const std::string& arg) {
-    return ast::obj_t (ast::cmd_t (arg));
+inline obj_t make_cmd_obj (const std::string& arg) {
+    return obj_t (cmd_t (arg));
 }
 
-inline ast::obj_t make_ref_obj (int a, int b) {
-    return ast::obj_t (ast::ref_t{ a, b });
+inline obj_t make_ref_obj (int a, int b) {
+    return obj_t (ref_t{ a, b });
 }
 
-inline ast::obj_t make_ref_obj (ast::ref_t arg) {
-    return ast::obj_t (arg);
+inline obj_t make_ref_obj (ref_t arg) {
+    return obj_t (arg);
 }
 
-ast::obj_t make_arr_obj (XRef*);
-ast::obj_t make_dict_obj (Dict*);
-ast::obj_t make_dict_obj (XRef*);
-ast::obj_t make_stream_obj (Stream*);
+obj_t make_arr_obj (XRef*);
+obj_t make_dict_obj (Dict*);
+obj_t make_dict_obj (XRef*);
+obj_t make_stream_obj (Stream*);
 
 } // namespace xpdf
 
-using Object = xpdf::ast::obj_t;
-using Ref = xpdf::ast::ref_t;
+using Object = xpdf::obj_t;
+using Ref = xpdf::ref_t;
 
-#endif // XPDF_XPDF_OBJECT_HH
+#endif // XPDF_XPDF_OBJ_HH

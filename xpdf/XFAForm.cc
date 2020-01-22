@@ -12,7 +12,7 @@
 #include <goo/GHash.hh>
 
 #include <xpdf/Error.hh>
-#include <xpdf/ast.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
