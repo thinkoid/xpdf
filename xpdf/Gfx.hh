@@ -166,7 +166,6 @@ private:
     double baseMatrix[6]; // default matrix for most recent
                           //   page/form/pattern
     int formDepth;
-    double textClipBBox[4];    // text clipping bounding box
     bool textClipBBoxEmpty;   // true if textClipBBox has not been
                                //   initialized yet
     bool ocState;             // true if drawing is enabled, false if

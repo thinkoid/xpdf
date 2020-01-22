@@ -80,9 +80,6 @@ private:
     Array streams;          // array of input streams
     int strPtr;              // index of current stream
     Object curStr;           // current stream
-
-#define tokBufSize 128 // size of token buffer
-    char tokBuf[tokBufSize]; // temporary token buffer
 };
 
 } // namespace xpdf

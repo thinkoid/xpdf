@@ -336,7 +336,6 @@ private:
     unsigned length;
     const char* bufEnd;
     const char* bufPtr;
-    bool needFree;
 };
 
 //------------------------------------------------------------------------
