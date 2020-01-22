@@ -28,6 +28,12 @@ public:
     void push_back (const Object&);
     void push_back (Object&&);
 
+    xpdf::obj_t& operator[] (size_t);
+
+    const xpdf::obj_t& operator[] (size_t i) const {
+        return const_cast< Array* > (this)->operator[] (i);
+    }
+
     // Accessors.
     Object* get (int i, Object* obj);
     Object* getNF (int i, Object* obj);

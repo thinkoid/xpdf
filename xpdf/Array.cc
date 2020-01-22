@@ -11,6 +11,9 @@
 #include <xpdf/obj.hh>
 #include <xpdf/Array.hh>
 
+#include <fmt/format.h>
+using fmt::format;
+
 //------------------------------------------------------------------------
 // Array
 //------------------------------------------------------------------------
@@ -25,6 +28,15 @@ void Array::push_back (const Object& obj) {
 
 void Array::push_back (Object&& obj) {
     xs.push_back (std::move (obj));
+}
+
+xpdf::obj_t& Array::operator[] (size_t i) {
+    if (size_t (i) >= xs.size ()) {
+        throw std::out_of_range ("Array::operator[]");
+    }
+
+    auto iter = xs.begin ();
+    return std::advance (iter, i), *iter;
 }
 
 Object* Array::get (int i, Object* obj) {
