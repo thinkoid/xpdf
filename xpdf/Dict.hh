@@ -24,10 +24,6 @@ public:
     // Constructor.
     Dict (XRef* p) : xref (p) { }
 
-    // Reference counting.
-    int incRef () const { return 1; }
-    int decRef () const { return 1; }
-
     // Get number of entries.
     int getLength () const { return xs.size (); }
 
