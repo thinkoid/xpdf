@@ -36,12 +36,7 @@ inline T as (Dict& dict, const char* s) {
         throw std::runtime_error (format ("missing key {}", s));
     }
 
-    //
-    // Using object_t::operator T () because the parser has no semantic
-    // information to distinguish between an integer and a floating point value
-    // with no decimal part:
-    //
-    return T (obj);
+    return obj.cast< T > ();
 }
 
 template< typename T >
@@ -52,7 +47,7 @@ inline T array_get (Object& arr, size_t i) {
         throw std::runtime_error (format ("invalid array or index {}", i));
     }
 
-    return T (tmp);
+    return tmp.cast< T > ();
 }
 
 template< typename T >

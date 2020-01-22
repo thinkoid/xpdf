@@ -28,6 +28,28 @@ class Stream;
 namespace xpdf {
 namespace ast {
 
+namespace detail {
+
+template< typename T, typename U, typename Enable = void >
+struct cast_t {
+    U operator() (const T&) const { throw_ (); return { }; }
+    U operator() (T&&) const { throw_ (); return { }; }
+private:
+    void throw_ () const { throw std::runtime_error ("invalid cast"); }
+};
+
+template< typename T, typename U>
+using is_convertible_t = typename std::enable_if<
+    std::is_convertible< T, U >::value >::type;
+
+template< typename T, typename U >
+struct cast_t< T, U, is_convertible_t< T, U > >  {
+    U operator() (const T& arg) const { return U (arg); }
+    U operator() (T&& arg) const { return U (std::forward (arg)); }
+};
+
+} // namespace detail
+
 struct null_t { };
 
 //
@@ -133,23 +155,30 @@ struct obj_t {
     template< typename T >
     const T& as () const { return std::get< T > (var_); }
 
-    operator int () const {
+    //
+    // Conversion between types because the parser has no semantic information
+    // about the numeric values:
+    //
+    template< typename U >
+    U cast () const {
+#define CAST(T) detail::cast_t< T, U >{ }(as< T > ());
         switch (var_.index ()) {
-        case 3: return int (as< bool > ());
-        case 4: return as< int > ();
-        case 5: return int (as< double > ());
+        case  0: return CAST (null_t);
+        case  1: return CAST (eof_t);
+        case  2: return CAST (err_t);
+        case  3: return CAST (bool);
+        case  4: return CAST (int);
+        case  5: return CAST (double);
+        case  6: return CAST (std::shared_ptr< GString >);
+        case  7: return CAST (name_t);
+        case  8: return CAST (cmd_t);
+        case  9: return CAST (ref_t);
+        case 10: return CAST (std::shared_ptr< Array >);
+        case 11: return CAST (std::shared_ptr< Dict >);
+        case 12: return CAST (std::shared_ptr< Stream >);
+#undef CAST
         default:
-            throw std::runtime_error ("invalid variant conversion");
-        }
-    }
-
-    operator double () const {
-        switch (var_.index ()) {
-        case 3: return double (as< bool > ());
-        case 4: return double (as< int > ());
-        case 5: return as< double > ();
-        default:
-            throw std::runtime_error ("invalid variant conversion");
+            ASSERT (0);
         }
     }
 
@@ -160,7 +189,6 @@ struct obj_t {
 
     int    as_int  () { return as< int > (); }
     double as_real () { return as< double > (); }
-
     double as_num  () { return is_int () ? as_int () : as_real (); }
 
     GString* as_string () const {

@@ -95,7 +95,7 @@ void obj_t::dictAdd (const char* key, obj_t* val) {
 }
 
 void obj_t::dictAdd (const std::string& key, obj_t* val) {
-    as_dict ()->add (key, *val);
+    as_dict ()->add (key.c_str (), val);
 }
 
 bool obj_t::dictIs (const char* dictType) const {

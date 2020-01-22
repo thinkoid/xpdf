@@ -21,7 +21,7 @@ const auto sequential_find = [](auto& xs, auto& key) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void Dict::add (const std::string& key, Object&& obj) {
+void Dict::add (const char* key, Object&& obj) {
     auto iter = sequential_find (xs, key);
 
     if (iter == xs.end ()) {
@@ -32,7 +32,7 @@ void Dict::add (const std::string& key, Object&& obj) {
     }
 }
 
-void Dict::add (const std::string& key, const Object& obj) {
+void Dict::add (const char* key, const Object& obj) {
     auto iter = sequential_find (xs, key);
 
     if (iter == xs.end ()) {
