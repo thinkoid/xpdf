@@ -71,7 +71,7 @@ bin_PROGRAMS = xpdfview
 
 xpdfview_SOURCES = xpdfview.cc                  \
    XPDFApp.cc                                   \
-   XPDFAppRes.c                                 \
+   XPDFAppRes.cc                                \
    XPDFCore.cc                                  \
    XPDFTree.cc                                  \
    XPDFUI.cc

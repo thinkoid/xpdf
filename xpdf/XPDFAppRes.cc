@@ -4,7 +4,7 @@
 //
 //========================================================================
 
-#include <XPDFAppRes.h>
+#include <xpdf/XPDFAppRes.hh>
 
 static int  defRGBCubeSize  = XPDF_RGBCUBE_MAX;
 
@@ -66,7 +66,7 @@ XrmOptionDescRec* xOpts () {
 }
 
 size_t xOptsSize () {
-    return sizeof (xOpts) / sizeof (XrmOptionDescRec);
+    return sizeof (xOptsData) / sizeof (XrmOptionDescRec);
 }
 
 static XtResource xResourcesData[] = {

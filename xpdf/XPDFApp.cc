@@ -10,7 +10,7 @@
 #include <xpdf/XPDFUI.hh>
 #include <xpdf/XPDFApp.hh>
 
-#include <xpdf/XPDFAppRes.h>
+#include <xpdf/XPDFAppRes.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION

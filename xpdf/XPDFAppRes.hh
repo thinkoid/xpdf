@@ -1,10 +1,8 @@
-//========================================================================
-//
-// XPDFAppRes.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
+
+#ifndef XPDF_XPDF_XPDFAPPRES_HH
+#define XPDF_XPDF_XPDFAPPRES_HH
 
 #include <defs.hh>
 
@@ -21,10 +19,6 @@ struct XPDFAppResources {
     String paperColor, matteColor, fullScreenMatteColor, initialZoom;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
-
 char** fallbackResources ();
 size_t fallbackResourcesSize ();
 
@@ -34,6 +28,4 @@ size_t xOptsSize ();
 XtResource* xResources ();
 size_t xResourcesSize ();
 
-#ifdef __cplusplus
-}
-#endif // __cplusplus
+#endif // XPDF_XPDF_XPDFAPPRES_HH
