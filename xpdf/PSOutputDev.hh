@@ -346,8 +346,10 @@ private:
     PDFDoc* doc;
     XRef* xref; // the xref table for this PDF file
 
-    // Font info for each font (type PSFontInfo)
-    std::vector< std::shared_ptr< PSFontInfo > > fontInfo;
+    //
+    // Font info for each font (type PSFontInfo):
+    //
+    std::vector< PSFontInfo > fontInfo;
 
     GHash* fontFileInfo;   // info for each font file [PSFontFileInfo]
     Ref* imgIDs;           // list of image IDs for in-memory images

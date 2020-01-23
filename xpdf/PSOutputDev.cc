@@ -1683,21 +1683,21 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
     int i, j;
 
     // check if font is already set up
-    for (auto fi : fontInfo) {
-        if (fi->fontID == *font->getID ()) {
+    for (auto& fi : fontInfo) {
+        if (fi.fontID == *font->getID ()) {
             return;
         }
     }
 
     // add fontInfo entry
-    fontInfo.push_back (std::make_shared< PSFontInfo > (*font->getID ()));
-    auto fi = fontInfo.back ();
+    fontInfo.push_back (*font->getID ());
+    auto& fi = fontInfo.back ();
 
     xs = ys = 1;
     subst = false;
 
     if (font->getType () == fontType3) {
-        fi->ff = setupType3Font (font, parentResDict);
+        fi.ff = setupType3Font (font, parentResDict);
     }
     else {
         if ((fontLoc = font->locateFont (xref, true))) {
@@ -1705,33 +1705,33 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
             case gfxFontLocEmbedded:
                 switch (fontLoc->fontType) {
                 case fontType1:
-                    fi->ff = setupEmbeddedType1Font (font, &fontLoc->embFontID);
+                    fi.ff = setupEmbeddedType1Font (font, &fontLoc->embFontID);
                     break;
                 case fontType1C:
-                    fi->ff =
+                    fi.ff =
                         setupEmbeddedType1CFont (font, &fontLoc->embFontID);
                     break;
                 case fontType1COT:
-                    fi->ff = setupEmbeddedOpenTypeT1CFont (
+                    fi.ff = setupEmbeddedOpenTypeT1CFont (
                         font, &fontLoc->embFontID);
                     break;
                 case fontTrueType:
                 case fontTrueTypeOT:
-                    fi->ff =
+                    fi.ff =
                         setupEmbeddedTrueTypeFont (font, &fontLoc->embFontID);
                     break;
                 case fontCIDType0C:
-                    fi->ff =
+                    fi.ff =
                         setupEmbeddedCIDType0Font (font, &fontLoc->embFontID);
                     break;
                 case fontCIDType2:
                 case fontCIDType2OT:
                     //~ should check to see if font actually uses vertical mode
-                    fi->ff = setupEmbeddedCIDTrueTypeFont (
+                    fi.ff = setupEmbeddedCIDTrueTypeFont (
                         font, &fontLoc->embFontID, true);
                     break;
                 case fontCIDType0COT:
-                    fi->ff = setupEmbeddedOpenTypeCFFFont (
+                    fi.ff = setupEmbeddedOpenTypeCFFFont (
                         font, &fontLoc->embFontID);
                     break;
                 default: break;
@@ -1741,36 +1741,36 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
                 //~ add cases for other external 16-bit fonts
                 switch (fontLoc->fontType) {
                 case fontType1:
-                    fi->ff = setupExternalType1Font (font, fontLoc->path);
+                    fi.ff = setupExternalType1Font (font, fontLoc->path);
                     break;
                 case fontTrueType:
                 case fontTrueTypeOT:
-                    fi->ff = setupExternalTrueTypeFont (
+                    fi.ff = setupExternalTrueTypeFont (
                         font, fontLoc->path, fontLoc->fontNum);
                     break;
                 case fontCIDType2:
                 case fontCIDType2OT:
                     //~ should check to see if font actually uses vertical mode
-                    fi->ff = setupExternalCIDTrueTypeFont (
+                    fi.ff = setupExternalCIDTrueTypeFont (
                         font, fontLoc->path, fontLoc->fontNum, true);
                     break;
                 default: break;
                 }
                 break;
             case gfxFontLocResident:
-                if (!(fi->ff = (PSFontFileInfo*)fontFileInfo->lookup (
+                if (!(fi.ff = (PSFontFileInfo*)fontFileInfo->lookup (
                           fontLoc->path))) {
                     // handle psFontPassthrough
-                    fi->ff = new PSFontFileInfo (
+                    fi.ff = new PSFontFileInfo (
                         fontLoc->path->copy (), fontLoc->fontType,
                         psFontFileResident);
-                    fontFileInfo->add (fi->ff->psName, fi->ff);
+                    fontFileInfo->add (fi.ff->psName, fi.ff);
                 }
                 break;
             }
         }
 
-        if (!fi->ff) {
+        if (!fi.ff) {
             if (font->isCIDFont ()) {
                 error (
                     errSyntaxError, -1,
@@ -1815,7 +1815,7 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
             fontLoc->fontType >= fontCIDType0) {
             subst = true;
             if ((uMap = globalParams->getUnicodeMap (fontLoc->encoding))) {
-                fi->ff->encoding = fontLoc->encoding->copy ();
+                fi.ff->encoding = fontLoc->encoding->copy ();
                 uMap->decRefCnt ();
             }
             else {
@@ -1835,20 +1835,20 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
         if (level == psLevel3 || level == psLevel3Sep) {
             writePSFmt (
                 "/F{0:d}_{1:d} /{2:t} {3:d} pdfMakeFont16L3\n",
-                font->getID ()->num, font->getID ()->gen, fi->ff->psName,
+                font->getID ()->num, font->getID ()->gen, fi.ff->psName,
                 font->getWMode ());
         }
         else {
             writePSFmt (
                 "/F{0:d}_{1:d} /{2:t} {3:d} pdfMakeFont16\n",
-                font->getID ()->num, font->getID ()->gen, fi->ff->psName,
+                font->getID ()->num, font->getID ()->gen, fi.ff->psName,
                 font->getWMode ());
         }
     }
     else {
         writePSFmt (
             "/F{0:d}_{1:d} /{2:t} {3:.6g} {4:.6g}\n", font->getID ()->num,
-            font->getID ()->gen, fi->ff->psName, xs, ys);
+            font->getID ()->gen, fi.ff->psName, xs, ys);
         for (i = 0; i < 256; i += 8) {
             writePS ((char*)((i == 0) ? "[ " : "  "));
             for (j = 0; j < 8; ++j) {
@@ -4506,34 +4506,38 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
     wMode = font->getWMode ();
 
     auto iter = find_if (fontInfo, [&](auto fi) {
-        return fi->fontID == *font->getID ();
+        return fi.fontID == *font->getID ();
     });
 
-    std::shared_ptr< PSFontInfo > fi;
-
-    if (iter != fontInfo.end ()) {
-        fi = *iter;
-    }
-
-    // check for a subtitute 16-bit font
+    //
+    // Check for a subtitute 16-bit font:
+    //
     uMap = NULL;
     codeToGID = NULL;
 
-    if (font->isCIDFont ()) {
-        if (!(fi && fi->ff)) {
-            // font substitution failed, so don't output any text
+    if (iter == fontInfo.end ()) {
+        if (font->isCIDFont ()) {
             return;
         }
-
-        if (fi->ff->encoding) {
-            uMap = globalParams->getUnicodeMap (fi->ff->encoding);
-        }
-
-        // check for an 8-bit code-to-GID map
     }
     else {
-        if (fi && fi->ff) {
-            codeToGID = fi->ff->codeToGID;
+        auto& fi = *iter;
+
+        if (font->isCIDFont ()) {
+            if (0 == fi.ff) {
+                return;
+            }
+
+            if (fi.ff->encoding) {
+                uMap = globalParams->getUnicodeMap (fi.ff->encoding);
+            }
+
+            // check for an 8-bit code-to-GID map
+        }
+        else {
+            if (fi.ff) {
+                codeToGID = fi.ff->codeToGID;
+            }
         }
     }
 
