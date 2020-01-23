@@ -43,7 +43,7 @@ using is_convertible_t = typename std::enable_if<
 template< typename T, typename U >
 struct cast_t< T, U, is_convertible_t< T, U > >  {
     U operator() (const T& arg) const { return U (arg); }
-    U operator() (T&& arg) const { return U (std::forward (arg)); }
+    U operator() (T&& arg) const { return U (std::move (arg)); }
 };
 
 } // namespace detail
