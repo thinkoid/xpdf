@@ -47,6 +47,7 @@ typedef GString* (*PSOutCustomCodeCbk) (
     PSOutputDev* psOut, PSOutCustomCodeLocation loc, int n, void* data);
 
 class PSFontInfo;
+struct PSOutPaperSize;
 
 class PSOutputDev : public OutputDev {
 public:
@@ -368,8 +369,11 @@ private:
     int numTilingPatterns; // current number of nested tiling patterns
     int nextFunc;          // next unique number to use for a function
 
-    GList* paperSizes;       // list of used paper sizes, if paperMatch
-                             //   is true [PSOutPaperSize]
+    //
+    // List of used paper sizes, if paperMatch is true [PSOutPaperSize]
+    //
+    std::vector< PSOutPaperSize > paperSizes;
+
     double tx0, ty0;         // global translation
     double xScale0, yScale0; // global scaling
     int rotate0;             // rotation angle (0, 90, 180, 270)

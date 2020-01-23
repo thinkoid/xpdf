@@ -1035,7 +1035,6 @@ PSOutputDev::PSOutputDev (
     fontFileInfo = new GHash ();
     imgIDs = NULL;
     formIDs = NULL;
-    paperSizes = NULL;
     embFontList = NULL;
     customColors = NULL;
     haveTextClip = false;
@@ -1086,7 +1085,6 @@ PSOutputDev::PSOutputDev (
     fontFileInfo = new GHash ();
     imgIDs = NULL;
     formIDs = NULL;
-    paperSizes = NULL;
     embFontList = NULL;
     customColors = NULL;
     haveTextClip = false;
@@ -1104,7 +1102,6 @@ void PSOutputDev::init (
     Catalog* catalog;
     Page* page;
     PDFRectangle* box;
-    PSOutPaperSize* size;
     PSFontFileInfo* ff;
     GList* names;
     int pg, w, h, i;
@@ -1130,7 +1127,6 @@ void PSOutputDev::init (
     }
     if (paperWidth < 0 || paperHeight < 0) {
         paperMatch = true;
-        paperSizes = new GList ();
         paperWidth = paperHeight = 1; // in case the document has zero pages
         for (pg = (firstPage >= 1) ? firstPage : 1;
              pg <= lastPage && pg <= catalog->getNumPages (); ++pg) {
@@ -1143,12 +1139,12 @@ void PSOutputDev::init (
                 w = (int)ceil (page->getMediaWidth ());
                 h = (int)ceil (page->getMediaHeight ());
             }
-            for (i = 0; i < paperSizes->getLength (); ++i) {
-                size = (PSOutPaperSize*)paperSizes->get (i);
-                if (size->w == w && size->h == h) { break; }
+            for (i = 0; i < paperSizes.size (); ++i) {
+                auto& size = paperSizes [i];
+                if (size.w == w && size.h == h) { break; }
             }
-            if (i == paperSizes->getLength ()) {
-                paperSizes->append (new PSOutPaperSize (w, h));
+            if (i == paperSizes.size ()) {
+                paperSizes.push_back (PSOutPaperSize (w, h));
             }
             if (w > paperWidth) { paperWidth = w; }
             if (h > paperHeight) { paperHeight = h; }
@@ -1247,7 +1243,6 @@ PSOutputDev::~PSOutputDev () {
             signal (SIGPIPE, (SignalFunc)SIG_DFL);
         }
     }
-    if (paperSizes) { deleteGList (paperSizes, PSOutPaperSize); }
     if (embFontList) { delete embFontList; }
     deleteGHash (fontFileInfo, PSFontFileInfo);
     free (imgIDs);
@@ -1273,7 +1268,6 @@ void PSOutputDev::writeHeader (
     int firstPage, int lastPage, PDFRectangle* mediaBox, PDFRectangle* cropBox,
     int pageRotate) {
     Object info, obj1;
-    PSOutPaperSize* size;
     double x1, y1, x2, y2;
     int i;
 
@@ -1307,11 +1301,12 @@ void PSOutputDev::writeHeader (
     switch (mode) {
     case psModePS:
         if (paperMatch) {
-            for (i = 0; i < paperSizes->getLength (); ++i) {
-                size = (PSOutPaperSize*)paperSizes->get (i);
+            for (i = 0; i < paperSizes.size (); ++i) {
+                auto& size = paperSizes [i];
+
                 writePSFmt (
                     "%%{0:s} {1:d}x{2:d} {1:d} {2:d} 0 () ()\n",
-                    i == 0 ? "DocumentMedia:" : "+", size->w, size->h);
+                    i == 0 ? "DocumentMedia:" : "+", size.w, size.h);
             }
         }
         else {
