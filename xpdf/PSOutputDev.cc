@@ -1035,7 +1035,6 @@ PSOutputDev::PSOutputDev (
     fontFileInfo = new GHash ();
     imgIDs = NULL;
     formIDs = NULL;
-    xobjStack = NULL;
     paperSizes = NULL;
     embFontList = NULL;
     customColors = NULL;
@@ -1087,7 +1086,6 @@ PSOutputDev::PSOutputDev (
     fontFileInfo = new GHash ();
     imgIDs = NULL;
     formIDs = NULL;
-    xobjStack = NULL;
     paperSizes = NULL;
     embFontList = NULL;
     customColors = NULL;
@@ -1199,7 +1197,6 @@ void PSOutputDev::init (
     formIDLen = 0;
     formIDSize = 0;
 
-    xobjStack = new GList ();
     numSaves = 0;
     numTilingPatterns = 0;
     nextFunc = 0;
@@ -1255,7 +1252,6 @@ PSOutputDev::~PSOutputDev () {
     deleteGHash (fontFileInfo, PSFontFileInfo);
     free (imgIDs);
     free (formIDs);
-    if (xobjStack) { delete xobjStack; }
     while (customColors) {
         cc = customColors;
         customColors = cc->next;
@@ -1528,7 +1524,7 @@ void PSOutputDev::writeTrailer () {
 void PSOutputDev::setupResources (Dict* resDict) {
     Object xObjDict, xObjRef, xObj, patDict, patRef, pat;
     Object gsDict, gsRef, gs, smask, smaskGroup, resObj;
-    Ref ref0, ref1;
+    Ref ref0;
     bool skip;
     int i, j;
 
@@ -1543,14 +1539,14 @@ void PSOutputDev::setupResources (Dict* resDict) {
             skip = false;
             if ((xObjDict.dictGetValNF (i, &xObjRef)->is_ref ())) {
                 ref0 = xObjRef.as_ref ();
-                for (j = 0; j < xobjStack->getLength (); ++j) {
-                    ref1 = *(Ref*)xobjStack->get (j);
-                    if (ref1.num == ref0.num && ref1.gen == ref0.gen) {
+                for (j = 0; j < xobjStack.size (); ++j) {
+                    auto& ref1 = xobjStack [j];
+                    if (ref1 == ref0) {
                         skip = true;
                         break;
                     }
                 }
-                if (!skip) { xobjStack->append (&ref0); }
+                if (!skip) { xobjStack.push_back (ref0); }
             }
             if (!skip) {
                 // process the XObject's resource dictionary
@@ -1564,7 +1560,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
             }
 
             if (xObjRef.is_ref () && !skip) {
-                xobjStack->del (xobjStack->getLength () - 1);
+                xobjStack.pop_back ();
             }
         }
     }
@@ -1578,14 +1574,14 @@ void PSOutputDev::setupResources (Dict* resDict) {
             skip = false;
             if ((patDict.dictGetValNF (i, &patRef)->is_ref ())) {
                 ref0 = patRef.as_ref ();
-                for (j = 0; j < xobjStack->getLength (); ++j) {
-                    ref1 = *(Ref*)xobjStack->get (j);
-                    if (ref1.num == ref0.num && ref1.gen == ref0.gen) {
+                for (j = 0; j < xobjStack.size (); ++j) {
+                    auto& ref1 = xobjStack [j];
+                    if (ref1 == ref0) {
                         skip = true;
                         break;
                     }
                 }
-                if (!skip) { xobjStack->append (&ref0); }
+                if (!skip) { xobjStack.push_back (ref0); }
             }
             if (!skip) {
                 // process the Pattern's resource dictionary
@@ -1599,7 +1595,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
             }
 
             if (patRef.is_ref () && !skip) {
-                xobjStack->del (xobjStack->getLength () - 1);
+                xobjStack.pop_back ();
             }
         }
         inType3Char = false;
@@ -1613,14 +1609,14 @@ void PSOutputDev::setupResources (Dict* resDict) {
             skip = false;
             if ((gsDict.dictGetValNF (i, &gsRef)->is_ref ())) {
                 ref0 = gsRef.as_ref ();
-                for (j = 0; j < xobjStack->getLength (); ++j) {
-                    ref1 = *(Ref*)xobjStack->get (j);
-                    if (ref1.num == ref0.num && ref1.gen == ref0.gen) {
+                for (j = 0; j < xobjStack.size (); ++j) {
+                    auto& ref1 = xobjStack [j];
+                    if (ref1 == ref0) {
                         skip = true;
                         break;
                     }
                 }
-                if (!skip) { xobjStack->append (&ref0); }
+                if (!skip) { xobjStack.push_back (ref0); }
             }
             if (!skip) {
                 // process the ExtGState's SMask's transparency group's resource dict
@@ -1638,7 +1634,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
             }
 
             if (gsRef.is_ref () && !skip) {
-                xobjStack->del (xobjStack->getLength () - 1);
+                xobjStack.pop_back ();
             }
         }
     }

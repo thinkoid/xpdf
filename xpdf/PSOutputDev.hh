@@ -356,8 +356,12 @@ private:
     Ref* formIDs;          // list of IDs for predefined forms
     int formIDLen;         // number of entries in formIDs array
     int formIDSize;        // size of formIDs array
-    GList* xobjStack;      // stack of XObject dicts currently being
-                           //   processed
+
+    //
+    // Stack of XObject dicts currently being processed:
+    //
+    std::vector< xpdf::ref_t > xobjStack;
+
     int numSaves;          // current number of gsaves
     int numTilingPatterns; // current number of nested tiling patterns
     int nextFunc;          // next unique number to use for a function
