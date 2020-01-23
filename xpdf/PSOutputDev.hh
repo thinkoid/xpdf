@@ -7,6 +7,7 @@
 #include <defs.hh>
 
 #include <cstddef>
+#include <vector>
 
 #include <xpdf/function.hh>
 #include <xpdf/obj.hh>
@@ -44,6 +45,8 @@ typedef void (*PSOutputFunc) (void* stream, const char* data, int len);
 
 typedef GString* (*PSOutCustomCodeCbk) (
     PSOutputDev* psOut, PSOutCustomCodeLocation loc, int n, void* data);
+
+class PSFontInfo;
 
 class PSOutputDev : public OutputDev {
 public:
@@ -343,7 +346,9 @@ private:
     PDFDoc* doc;
     XRef* xref; // the xref table for this PDF file
 
-    GList* fontInfo;       // info for each font [PSFontInfo]
+    // Font info for each font (type PSFontInfo)
+    std::vector< std::shared_ptr< PSFontInfo > > fontInfo;
+
     GHash* fontFileInfo;   // info for each font file [PSFontFileInfo]
     Ref* imgIDs;           // list of image IDs for in-memory images
     int imgIDLen;          // number of entries in imgIDs array

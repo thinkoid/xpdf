@@ -42,6 +42,9 @@
 #include <xpdf/UnicodeMap.hh>
 #include <xpdf/XRef.hh>
 
+#include <range/v3/all.hpp>
+using namespace ranges;
+
 //------------------------------------------------------------------------
 // PostScript prolog and setup
 //------------------------------------------------------------------------
@@ -1029,7 +1032,6 @@ PSOutputDev::PSOutputDev (
     customCodeCbk = customCodeCbkA;
     customCodeCbkData = customCodeCbkDataA;
 
-    fontInfo = new GList ();
     fontFileInfo = new GHash ();
     imgIDs = NULL;
     formIDs = NULL;
@@ -1082,7 +1084,6 @@ PSOutputDev::PSOutputDev (
     customCodeCbk = customCodeCbkA;
     customCodeCbkData = customCodeCbkDataA;
 
-    fontInfo = new GList ();
     fontFileInfo = new GHash ();
     imgIDs = NULL;
     formIDs = NULL;
@@ -1251,7 +1252,6 @@ PSOutputDev::~PSOutputDev () {
     }
     if (paperSizes) { deleteGList (paperSizes, PSOutPaperSize); }
     if (embFontList) { delete embFontList; }
-    deleteGList (fontInfo, PSFontInfo);
     deleteGHash (fontFileInfo, PSFontFileInfo);
     free (imgIDs);
     free (formIDs);
@@ -1676,7 +1676,6 @@ void PSOutputDev::setupFonts (Dict* resDict) {
 }
 
 void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
-    PSFontInfo* fi;
     GfxFontLoc* fontLoc;
     bool subst;
     char buf[16];
@@ -1688,17 +1687,15 @@ void PSOutputDev::setupFont (GfxFont* font, Dict* parentResDict) {
     int i, j;
 
     // check if font is already set up
-    for (i = 0; i < fontInfo->getLength (); ++i) {
-        fi = (PSFontInfo*)fontInfo->get (i);
-        if (fi->fontID.num == font->getID ()->num &&
-            fi->fontID.gen == font->getID ()->gen) {
+    for (auto fi : fontInfo) {
+        if (fi->fontID == *font->getID ()) {
             return;
         }
     }
 
     // add fontInfo entry
-    fi = new PSFontInfo (*font->getID ());
-    fontInfo->append (fi);
+    fontInfo.push_back (std::make_shared< PSFontInfo > (*font->getID ()));
+    auto fi = fontInfo.back ();
 
     xs = ys = 1;
     subst = false;
@@ -4488,7 +4485,6 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
     GString* s2;
     double dx, dy, originX, originY, originX0, originY0, tOriginX0, tOriginY0;
     const char* p;
-    PSFontInfo* fi;
     UnicodeMap* uMap;
     CharCode code;
     Unicode u[8];
@@ -4497,33 +4493,42 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
     int dxdySize, len, nChars, uLen, n, m, i, j;
 
     // check for invisible text -- this is used by Acrobat Capture
-    if (state->getRender () == 3) { return; }
+    if (3 == state->getRender ()) {
+        return;
+    }
 
     // ignore empty strings
-    if (s->getLength () == 0) { return; }
+    if (0 == s->getLength ()) {
+        return;
+    }
 
     // get the font
-    if (!(font = state->getFont ())) { return; }
+    if (0 == (font = state->getFont ())) {
+        return;
+    }
+
     wMode = font->getWMode ();
 
-    fi = NULL;
-    for (i = 0; i < fontInfo->getLength (); ++i) {
-        fi = (PSFontInfo*)fontInfo->get (i);
-        if (fi->fontID.num == font->getID ()->num &&
-            fi->fontID.gen == font->getID ()->gen) {
-            break;
-        }
-        fi = NULL;
+    auto iter = find_if (fontInfo, [&](auto fi) {
+        return fi->fontID == *font->getID ();
+    });
+
+    std::shared_ptr< PSFontInfo > fi;
+
+    if (iter != fontInfo.end ()) {
+        fi = *iter;
     }
 
     // check for a subtitute 16-bit font
     uMap = NULL;
     codeToGID = NULL;
+
     if (font->isCIDFont ()) {
         if (!(fi && fi->ff)) {
             // font substitution failed, so don't output any text
             return;
         }
+
         if (fi->ff->encoding) {
             uMap = globalParams->getUnicodeMap (fi->ff->encoding);
         }
@@ -4531,7 +4536,9 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
         // check for an 8-bit code-to-GID map
     }
     else {
-        if (fi && fi->ff) { codeToGID = fi->ff->codeToGID; }
+        if (fi && fi->ff) {
+            codeToGID = fi->ff->codeToGID;
+        }
     }
 
     // compute the positioning (dx, dy) for each char in the string

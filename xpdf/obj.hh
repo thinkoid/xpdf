@@ -78,6 +78,14 @@ struct ref_t {
     int num, gen;
 };
 
+inline bool operator== (const ref_t& lhs, const ref_t& rhs) {
+    return lhs.num == rhs.num && lhs.gen == rhs.gen;
+}
+
+inline bool operator!= (const ref_t& lhs, const ref_t& rhs) {
+    return !(lhs == rhs);
+}
+
 struct obj_t {
     obj_t () noexcept : var_ (null_t{ }) { }
 
