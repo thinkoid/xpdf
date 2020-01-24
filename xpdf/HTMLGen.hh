@@ -9,7 +9,7 @@
 class GString;
 class PDFDoc;
 class TextOutputDev;
-class TextFontInfo;
+struct TextFontInfo;
 class SplashOutputDev;
 
 //------------------------------------------------------------------------

@@ -60,8 +60,7 @@ public:
 // TextFontInfo
 //------------------------------------------------------------------------
 
-class TextFontInfo {
-public:
+struct TextFontInfo {
     TextFontInfo (GfxState* state);
     ~TextFontInfo ();
 
@@ -144,6 +143,7 @@ private:
     static int cmpYX (const void* p1, const void* p2);
     static int cmpCharPos (const void* p1, const void* p2);
 
+private:
     //
     // Rotation in multiple of 90°: 0, 1, 2, or 3.
     //

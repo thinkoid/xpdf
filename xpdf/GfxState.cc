@@ -73,7 +73,7 @@ static const char* gfxColorSpaceModeNames[] = {
 
 GfxColorSpace::GfxColorSpace () { overprintMask = 0x0f; }
 
-GfxColorSpace::~GfxColorSpace () {}
+GfxColorSpace::~GfxColorSpace () { }
 
 GfxColorSpace* GfxColorSpace::parse (Object* csObj, int recursion) {
     GfxColorSpace* cs;
@@ -3635,89 +3635,89 @@ GfxState::~GfxState () {
 }
 
 // Used for copy();
-GfxState::GfxState (GfxState* state, bool copyPath)
+GfxState::GfxState (GfxState* other, bool copyPath)
     :
-    hDPI{ state->hDPI },
-    vDPI{ state->vDPI },
+    hDPI{ other->hDPI },
+    vDPI{ other->vDPI },
     ctm{ },
-    px1{ state->px1 },
-    py1{ state->py1 },
-    px2{ state->px2 },
-    py2{ state->py2 },
-    pageWidth{ state->pageWidth },
-    pageHeight{ state->pageHeight },
-    rotate{ state->rotate },
-    fillColorSpace{ state->fillColorSpace },
-    strokeColorSpace{ state->strokeColorSpace },
-    fillColor{ state->fillColor },
-    strokeColor{ state->strokeColor },
-    fillPattern{ state->fillPattern },
-    strokePattern{ state->strokePattern },
-    blendMode{ state->blendMode },
-    fillOpacity{ state->fillOpacity },
-    strokeOpacity{ state->strokeOpacity },
-    fillOverprint{ state->fillOverprint },
-    strokeOverprint{ state->strokeOverprint },
-    overprintMode{ state->overprintMode },
+    px1{ other->px1 },
+    py1{ other->py1 },
+    px2{ other->px2 },
+    py2{ other->py2 },
+    pageWidth{ other->pageWidth },
+    pageHeight{ other->pageHeight },
+    rotate{ other->rotate },
+    fillColorSpace{ other->fillColorSpace },
+    strokeColorSpace{ other->strokeColorSpace },
+    fillColor{ other->fillColor },
+    strokeColor{ other->strokeColor },
+    fillPattern{ other->fillPattern },
+    strokePattern{ other->strokePattern },
+    blendMode{ other->blendMode },
+    fillOpacity{ other->fillOpacity },
+    strokeOpacity{ other->strokeOpacity },
+    fillOverprint{ other->fillOverprint },
+    strokeOverprint{ other->strokeOverprint },
+    overprintMode{ other->overprintMode },
     transfer{ },
-    lineWidth{ state->lineWidth },
-    lineDash{ state->lineDash },
-    lineDashLength{ state->lineDashLength },
-    lineDashStart{ state->lineDashStart },
-    flatness{ state->flatness },
-    lineJoin{ state->lineJoin },
-    lineCap{ state->lineCap },
-    miterLimit{ state->miterLimit },
-    strokeAdjust{ state->strokeAdjust },
-    font{ state->font },
-    fontSize{ state->fontSize },
+    lineWidth{ other->lineWidth },
+    lineDash{ other->lineDash },
+    lineDashLength{ other->lineDashLength },
+    lineDashStart{ other->lineDashStart },
+    flatness{ other->flatness },
+    lineJoin{ other->lineJoin },
+    lineCap{ other->lineCap },
+    miterLimit{ other->miterLimit },
+    strokeAdjust{ other->strokeAdjust },
+    font{ other->font },
+    fontSize{ other->fontSize },
     textMat{ },
-    charSpace{ state->charSpace },
-    wordSpace{ state->wordSpace },
-    horizScaling{ state->horizScaling },
-    leading{ state->leading },
-    rise{ state->rise },
-    render{ state->render },
-    path{ state->path },
-    curX{ state->curX },
-    curY{ state->curY },
-    lineX{ state->lineX },
-    lineY{ state->lineY },
-    clipXMin{ state->clipXMin },
-    clipYMin{ state->clipYMin },
-    clipXMax{ state->clipXMax },
-    clipYMax{ state->clipYMax },
+    charSpace{ other->charSpace },
+    wordSpace{ other->wordSpace },
+    horizScaling{ other->horizScaling },
+    leading{ other->leading },
+    rise{ other->rise },
+    render{ other->render },
+    path{ other->path },
+    curX{ other->curX },
+    curY{ other->curY },
+    lineX{ other->lineX },
+    lineY{ other->lineY },
+    clipXMin{ other->clipXMin },
+    clipYMin{ other->clipYMin },
+    clipXMax{ other->clipXMax },
+    clipYMax{ other->clipYMax },
     saved{ }
  {
-    // memcpy (this, state, sizeof (GfxState));
-     ::copy (state->ctm, state->ctm + 6, ctm);
-     ::copy (state->textMat, state->textMat + 6, textMat);
+    // memcpy (this, other, sizeof (GfxState));
+     ::copy (other->ctm, other->ctm + 6, ctm);
+     ::copy (other->textMat, other->textMat + 6, textMat);
 
      if (fillColorSpace) {
-         fillColorSpace = state->fillColorSpace->copy ();
+         fillColorSpace = other->fillColorSpace->copy ();
      }
 
      if (strokeColorSpace) {
-         strokeColorSpace = state->strokeColorSpace->copy ();
+         strokeColorSpace = other->strokeColorSpace->copy ();
      }
 
      if (fillPattern) {
-         fillPattern = state->fillPattern->copy ();
+         fillPattern = other->fillPattern->copy ();
      }
 
      if (strokePattern) {
-         strokePattern = state->strokePattern->copy ();
+         strokePattern = other->strokePattern->copy ();
      }
 
-     ::copy (state->transfer, state->transfer + 4, transfer);
+     ::copy (other->transfer, other->transfer + 4, transfer);
 
      if (lineDashLength > 0) {
          lineDash = (double*)calloc (lineDashLength, sizeof (double));
-         memcpy (lineDash, state->lineDash, lineDashLength * sizeof (double));
+         memcpy (lineDash, other->lineDash, lineDashLength * sizeof (double));
      }
 
      if (copyPath) {
-         path = state->path->copy ();
+         path = other->path->copy ();
      }
 }
 

@@ -380,9 +380,8 @@ TextOutputControl::TextOutputControl () {
 //------------------------------------------------------------------------
 
 TextFontInfo::TextFontInfo (GfxState* state) {
-    GfxFont* gfxFont;
+    GfxFont* gfxFont = state->getFont ();
 
-    gfxFont = state->getFont ();
     if (gfxFont) {
         fontID = *gfxFont->getID ();
         ascent = gfxFont->getAscent ();
@@ -401,6 +400,7 @@ TextFontInfo::TextFontInfo (GfxState* state) {
         ascent = 0.75;
         descent = -0.25;
     }
+
     fontName = (gfxFont && gfxFont->as_name ()) ? gfxFont->as_name ()->copy ()
                                                 : (GString*)NULL;
     flags = gfxFont ? gfxFont->getFlags () : 0;
@@ -3119,35 +3119,46 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     wordSp = computeWordSpacingThreshold (charsA, blk->rot);
 
     words = new GList ();
+
     lineFontSize = 0;
     spaceAfter = false;
-    i = 0;
-    while (i < charsA->getLength ()) {
+
+    for (size_t i = 0; i < charsA->getLength ();) {
         sp = wordSp - 1;
+
         for (j = i + 1; j < charsA->getLength (); ++j) {
             ch = (TextChar*)charsA->get (j - 1);
             ch2 = (TextChar*)charsA->get (j);
+
             sp = (blk->rot & 1) ? (ch2->yMin - ch->yMax)
                                 : (ch2->xMin - ch->xMax);
+
             if (sp > wordSp || ch->font != ch2->font ||
                 fabs (ch->fontSize - ch2->fontSize) > 0.01 ||
                 (control.mode == textOutRawOrder &&
                  ch2->charPos != ch->charPos + ch->charLen)) {
                 break;
             }
+
             sp = wordSp - 1;
         }
+
         spaceAfter2 = spaceAfter;
         spaceAfter = sp > wordSp;
+
         word = new TextWord (
-            charsA, i, j - i, blk->rot,
-            (blk->rot >= 2) ? spaceAfter2 : spaceAfter);
+            charsA, i, j - i, blk->rot, (blk->rot >= 2) ? spaceAfter2 : spaceAfter);
+
         i = j;
-        if (blk->rot >= 2) { words->insert (0, word); }
+
+        if (blk->rot >= 2) {
+            words->insert (0, word);
+        }
         else {
             words->append (word);
         }
-        if (i == 0 || word->fontSize > lineFontSize) {
+
+        if (0 == i || word->fontSize > lineFontSize) {
             lineFontSize = word->fontSize;
         }
     }
@@ -3159,11 +3170,11 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
 }
 
 void TextPage::getLineChars (TextBlock* blk, GList* charsA) {
-    int i;
-
-    if (blk->type == blkLeaf) { charsA->append (blk->children); }
+    if (blk->type == blkLeaf) {
+        charsA->append (blk->children);
+    }
     else {
-        for (i = 0; i < blk->children->getLength (); ++i) {
+        for (size_t i = 0; i < blk->children->getLength (); ++i) {
             getLineChars ((TextBlock*)blk->children->get (i), charsA);
         }
     }
