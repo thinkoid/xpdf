@@ -379,13 +379,21 @@ TextOutputControl::TextOutputControl () {
 // TextFontInfo
 //------------------------------------------------------------------------
 
-TextFontInfo::TextFontInfo (GfxState* state) {
+TextFontInfo::TextFontInfo (GfxState* state)
+    : fontID{ -1, -1 },
+      fontName{ },
+      mWidth{ },
+      ascent{ 0.75 },
+      descent{ -0.25 },
+      flags{ } {
     GfxFont* gfxFont = state->getFont ();
 
     if (gfxFont) {
         fontID = *gfxFont->getID ();
-        ascent = gfxFont->getAscent ();
+
+        ascent  = gfxFont->getAscent ();
         descent = gfxFont->getDescent ();
+
         // "odd" ascent/descent values cause trouble more often than not
         // (in theory these could be legitimate values for oddly designed
         // fonts -- but they are more often due to buggy PDF generators)
@@ -393,41 +401,34 @@ TextFontInfo::TextFontInfo (GfxState* state) {
         // to be more commonly legitimate)
         if (ascent > 1) { ascent = 0.75; }
         if (descent < -0.5) { descent = -0.25; }
+
+        flags = gfxFont->getFlags ();
+
+        if (gfxFont->as_name ()) {
+            fontName = gfxFont->as_name ();
+        }
     }
     else {
-        fontID.num = -1;
-        fontID.gen = -1;
         ascent = 0.75;
         descent = -0.25;
     }
 
-    fontName = (gfxFont && gfxFont->as_name ()) ? gfxFont->as_name ()->copy ()
-                                                : (GString*)NULL;
-    flags = gfxFont ? gfxFont->getFlags () : 0;
-    mWidth = 0;
     if (gfxFont && !gfxFont->isCIDFont ()) {
-        char* name;
-        int code;
-        for (code = 0; code < 256; ++code) {
-            if ((name = ((Gfx8BitFont*)gfxFont)->getCharName (code)) &&
-                name[0] == 'm' && name[1] == '\0') {
-                mWidth = ((Gfx8BitFont*)gfxFont)->getWidth (code);
+        Gfx8BitFont* pfont = (Gfx8BitFont*)gfxFont;
+
+        for (int code = 0; code < 256; ++code) {
+            const char* name = pfont->getCharName (code);
+
+            if (name && name [0] == 'm' && name [1] == '\0') {
+                mWidth = pfont->getWidth (code);
                 break;
             }
         }
     }
 }
 
-TextFontInfo::~TextFontInfo () {
-    if (fontName) { delete fontName; }
-}
-
-bool TextFontInfo::matches (GfxState* state) {
-    Ref* id;
-
-    if (!state->getFont ()) { return false; }
-    id = state->getFont ()->getID ();
-    return id->num == fontID.num && id->gen == fontID.gen;
+bool TextFontInfo::matches (GfxState* state) const {
+    return state->getFont () && *state->getFont ()->getID () == fontID;
 }
 
 //------------------------------------------------------------------------
@@ -838,11 +839,17 @@ void TextPage::updateFont (GfxState* state) {
 
     // get the font info object
     curFont = NULL;
+
     for (i = 0; i < fonts->getLength (); ++i) {
         curFont = (TextFontInfo*)fonts->get (i);
-        if (curFont->matches (state)) { break; }
+
+        if (curFont->matches (state)) {
+            break;
+        }
+
         curFont = NULL;
     }
+
     if (!curFont) {
         curFont = new TextFontInfo (state);
         fonts->append (curFont);
@@ -3111,7 +3118,6 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     TextWord* word;
     double wordSp, lineFontSize, sp;
     bool spaceAfter, spaceAfter2;
-    int i, j;
 
     charsA = new GList ();
     getLineChars (blk, charsA);
@@ -3123,7 +3129,7 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     lineFontSize = 0;
     spaceAfter = false;
 
-    for (size_t i = 0; i < charsA->getLength ();) {
+    for (size_t i = 0, j; i < charsA->getLength ();) {
         sp = wordSp - 1;
 
         for (j = i + 1; j < charsA->getLength (); ++j) {

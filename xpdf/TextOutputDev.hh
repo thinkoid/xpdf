@@ -39,10 +39,8 @@ enum TextOutputMode {
     textOutRawOrder      // keep text in content stream order
 };
 
-class TextOutputControl {
-public:
+struct TextOutputControl {
     TextOutputControl ();
-    ~TextOutputControl () {}
 
     TextOutputMode mode;     // formatting mode
     double fixedPitch;       // if this is non-zero, assume fixed-pitch
@@ -61,13 +59,12 @@ public:
 //------------------------------------------------------------------------
 
 struct TextFontInfo {
-    TextFontInfo (GfxState* state);
-    ~TextFontInfo ();
+    explicit TextFontInfo (GfxState*);
 
-    bool matches (GfxState* state);
+    bool matches (GfxState*) const;
 
     // Get the font name (which may be NULL).
-    GString* getFontName () { return fontName; }
+    GString* getFontName () const { return fontName; }
 
     // Get font descriptor flags.
     bool isFixedWidth () { return flags & fontFixedWidth; }
@@ -79,16 +76,11 @@ struct TextFontInfo {
     // Get the width of the 'm' character, if available.
     double getMWidth () { return mWidth; }
 
-private:
     Ref fontID;
     GString* fontName;
-    int flags;
-    double mWidth;
-    double ascent, descent;
+    double mWidth, ascent, descent;
 
-    friend class TextLine;
-    friend class TextPage;
-    friend struct TextWord;
+    int flags;
 };
 
 //------------------------------------------------------------------------
