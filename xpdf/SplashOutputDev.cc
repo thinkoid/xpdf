@@ -3,35 +3,40 @@
 
 #include <defs.hh>
 
-#include <cstring>
-#include <cmath>
 #include <climits>
+#include <cmath>
+#include <cstring>
+
 #include <goo/gfile.hh>
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/Error.hh>
-#include <xpdf/obj.hh>
-#include <xpdf/Gfx.hh>
-#include <xpdf/GfxFont.hh>
-#include <xpdf/Link.hh>
-#include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/FontEncodingTables.hh>
-#include <xpdf/BuiltinFont.hh>
-#include <xpdf/BuiltinFontTables.hh>
+
 #include <fofi/FoFiTrueType.hh>
-#include <xpdf/JPXStream.hh>
+
+#include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>
-#include <splash/SplashGlyphBitmap.hh>
-#include <splash/SplashPattern.hh>
-#include <splash/SplashScreen.hh>
-#include <splash/SplashPath.hh>
-#include <splash/SplashState.hh>
 #include <splash/SplashErrorCodes.hh>
-#include <splash/SplashFontEngine.hh>
 #include <splash/SplashFont.hh>
+#include <splash/SplashFontEngine.hh>
 #include <splash/SplashFontFile.hh>
 #include <splash/SplashFontFileID.hh>
-#include <splash/Splash.hh>
+#include <splash/SplashGlyphBitmap.hh>
+#include <splash/SplashPath.hh>
+#include <splash/SplashPattern.hh>
+#include <splash/SplashScreen.hh>
+#include <splash/SplashState.hh>
+
+#include <xpdf/array.hh>
+#include <xpdf/BuiltinFont.hh>
+#include <xpdf/BuiltinFontTables.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/FontEncodingTables.hh>
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/JPXStream.hh>
+#include <xpdf/Link.hh>
 #include <xpdf/SplashOutputDev.hh>
+#include <xpdf/obj.hh>
 
 //------------------------------------------------------------------------
 
@@ -1123,8 +1128,8 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             gfxFont->getEmbeddedFontID (&embRef);
 #if LOAD_FONTS_FROM_MEM
             fontBuf = new GString ();
-            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen);
-            refObj.fetch (xref, &strObj);
+            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen, xref);
+            strObj = resolve (refObj);
             if (!strObj.is_stream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
@@ -1142,8 +1147,8 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 delete fontLoc;
                 goto err2;
             }
-            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen);
-            refObj.fetch (xref, &strObj);
+            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen, xref);
+            strObj = resolve (refObj);
             if (!strObj.is_stream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
@@ -2628,9 +2633,9 @@ void SplashOutputDev::drawMaskedImage (
         decodeLow  = xpdf::make_int_obj (maskInvert ? 0 : 1);
         decodeHigh = xpdf::make_int_obj (maskInvert ? 1 : 0);
 
-        maskDecode = xpdf::make_arr_obj (xref);
-        maskDecode.arrayAdd (&decodeLow);
-        maskDecode.arrayAdd (&decodeHigh);
+        maskDecode = xpdf::make_arr_obj ();
+        maskDecode.as_array ().push_back (decodeLow);
+        maskDecode.as_array ().push_back (decodeHigh);
 
         maskColorMap = new GfxImageColorMap (
             1, &maskDecode, new GfxDeviceGrayColorSpace ());

@@ -12,9 +12,13 @@
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/array.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/GfxState.hh>
+
+#include <range/v3/all.hpp>
+using namespace ranges;
 
 //------------------------------------------------------------------------
 
@@ -103,8 +107,8 @@ GfxColorSpace* GfxColorSpace::parse (Object* csObj, int recursion) {
                 csObj->as_name ());
         }
     }
-    else if (csObj->is_array () && csObj->arrayGetLength () > 0) {
-        csObj->arrayGet (0, &obj1);
+    else if (csObj->is_array () && csObj->as_array ().size () > 0) {
+        obj1 = resolve ((*csObj) [0]);
         if (obj1.is_name ("DeviceGray") || obj1.is_name ("G")) {
             cs = GfxColorSpace::create (csDeviceGray);
         }
@@ -244,28 +248,28 @@ GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad CalGray color space");
         return NULL;
     }
-    arr.get (1, &obj1);
+    obj1 = resolve (arr [1]);
     if (!obj1.is_dict ()) {
         error (errSyntaxError, -1, "Bad CalGray color space");
         return NULL;
     }
     cs = new GfxCalibratedGrayColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->whiteX = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->whiteY = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->whiteZ = obj3.as_num ();
     }
     if (obj1.dictLookup ("BlackPoint", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->blackX = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->blackY = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->blackZ = obj3.as_num ();
     }
     if (obj1.dictLookup ("Gamma", &obj2)->is_num ()) {
@@ -386,43 +390,43 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad CalRGB color space");
         return NULL;
     }
-    arr.get (1, &obj1);
+    obj1 = resolve (arr [1]);
     if (!obj1.is_dict ()) {
         error (errSyntaxError, -1, "Bad CalRGB color space");
         return NULL;
     }
     cs = new GfxCalibratedRGBColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->whiteX = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->whiteY = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->whiteZ = obj3.as_num ();
     }
     if (obj1.dictLookup ("BlackPoint", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->blackX = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->blackY = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->blackZ = obj3.as_num ();
     }
     if (obj1.dictLookup ("Gamma", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->gammaR = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->gammaG = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->gammaB = obj3.as_num ();
     }
     if (obj1.dictLookup ("Matrix", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 9) {
+        obj2.as_array ().size () == 9) {
         for (i = 0; i < 9; ++i) {
-            obj2.arrayGet (i, &obj3);
+            obj3 = resolve (obj2 [i]);
             cs->mat[i] = obj3.as_num ();
         }
     }
@@ -605,39 +609,39 @@ GfxColorSpace* GfxLabColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad Lab color space");
         return NULL;
     }
-    arr.get (1, &obj1);
+    obj1 = resolve (arr [1]);
     if (!obj1.is_dict ()) {
         error (errSyntaxError, -1, "Bad Lab color space");
         return NULL;
     }
     cs = new GfxLabColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->whiteX = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->whiteY = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->whiteZ = obj3.as_num ();
     }
     if (obj1.dictLookup ("BlackPoint", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 3) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 3) {
+        obj3 = resolve (obj2 [0]);
         cs->blackX = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->blackY = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->blackZ = obj3.as_num ();
     }
     if (obj1.dictLookup ("Range", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 4) {
-        obj2.arrayGet (0, &obj3);
+        obj2.as_array ().size () == 4) {
+        obj3 = resolve (obj2 [0]);
         cs->aMin = obj3.as_num ();
-        obj2.arrayGet (1, &obj3);
+        obj3 = resolve (obj2 [1]);
         cs->aMax = obj3.as_num ();
-        obj2.arrayGet (2, &obj3);
+        obj3 = resolve (obj2 [2]);
         cs->bMin = obj3.as_num ();
-        obj2.arrayGet (3, &obj3);
+        obj3 = resolve (obj2 [3]);
         cs->bMax = obj3.as_num ();
     }
 
@@ -778,13 +782,13 @@ GfxColorSpace* GfxICCBasedColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad ICCBased color space");
         return NULL;
     }
-    arr.getNF (1, &obj1);
+    obj1 = arr [1];
     if (obj1.is_ref ()) { iccProfileStreamA = obj1.as_ref (); }
     else {
         iccProfileStreamA.num = 0;
         iccProfileStreamA.gen = 0;
     }
-    arr.get (1, &obj1);
+    obj1 = resolve (arr [1]);
     if (!obj1.is_stream ()) {
         error (errSyntaxError, -1, "Bad ICCBased color space (stream)");
         return NULL;
@@ -815,11 +819,11 @@ GfxColorSpace* GfxICCBasedColorSpace::parse (Array& arr, int recursion) {
     }
     cs = new GfxICCBasedColorSpace (nCompsA, altA, &iccProfileStreamA);
     if (dict->lookup ("Range", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 2 * nCompsA) {
+        obj2.as_array ().size () == 2 * nCompsA) {
         for (i = 0; i < nCompsA; ++i) {
-            obj2.arrayGet (2 * i, &obj3);
+            obj3 = resolve (obj2 [2 * i]);
             cs->rangeMin[i] = obj3.as_num ();
-            obj2.arrayGet (2 * i + 1, &obj3);
+            obj3 = resolve (obj2 [2 * i + 1]);
             cs->rangeMax[i] = obj3.as_num ();
         }
     }
@@ -908,13 +912,13 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad Indexed color space");
         goto err1;
     }
-    arr.get (1, &obj1);
+    obj1 = resolve (arr [1]);
     if (!(baseA = GfxColorSpace::parse (&obj1, recursion + 1))) {
         error (
             errSyntaxError, -1, "Bad Indexed color space (base color space)");
         goto err2;
     }
-    if (!arr.get (2, &obj1)->is_int ()) {
+    if (!(obj1 = resolve (arr [2])).is_int ()) {
         error (errSyntaxError, -1, "Bad Indexed color space (hival)");
         delete baseA;
         goto err2;
@@ -932,7 +936,7 @@ GfxColorSpace* GfxIndexedColorSpace::parse (Array& arr, int recursion) {
         goto err2;
     }
     cs = new GfxIndexedColorSpace (baseA, indexHighA);
-    arr.get (3, &obj1);
+    obj1 = resolve (arr [3]);
     n = baseA->getNComps ();
     if (obj1.is_stream ()) {
         obj1.streamReset ();
@@ -1078,19 +1082,19 @@ GfxColorSpace* GfxSeparationColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad Separation color space");
         goto err1;
     }
-    if (!arr.get (1, &obj1)->is_name ()) {
+    if (!(obj1 = resolve (arr [1])).is_name ()) {
         error (errSyntaxError, -1, "Bad Separation color space (name)");
         goto err2;
     }
     nameA = new GString (obj1.as_name ());
-    arr.get (2, &obj1);
+    obj1 = resolve (arr [2]);
     if (!(altA = GfxColorSpace::parse (&obj1, recursion + 1))) {
         error (
             errSyntaxError, -1,
             "Bad Separation color space (alternate color space)");
         goto err3;
     }
-    arr.get (3, &obj1);
+    obj1 = resolve (arr [3]);
     if (!(funcA = xpdf::make_function (obj1))) { goto err4; }
     cs = new GfxSeparationColorSpace (nameA, altA, funcA);
     return cs;
@@ -1215,11 +1219,11 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array& arr, int recursion) {
         error (errSyntaxError, -1, "Bad DeviceN color space");
         goto err1;
     }
-    if (!arr.get (1, &obj1)->is_array ()) {
+    if (!(obj1 = resolve (arr [1])).is_array ()) {
         error (errSyntaxError, -1, "Bad DeviceN color space (names)");
         goto err2;
     }
-    nCompsA = obj1.arrayGetLength ();
+    nCompsA = obj1.as_array ().size ();
     if (nCompsA > gfxColorMaxComps) {
         error (
             errSyntaxError, -1,
@@ -1228,20 +1232,20 @@ GfxColorSpace* GfxDeviceNColorSpace::parse (Array& arr, int recursion) {
         nCompsA = gfxColorMaxComps;
     }
     for (i = 0; i < nCompsA; ++i) {
-        if (!obj1.arrayGet (i, &obj2)->is_name ()) {
+        if (!(obj2 = resolve (obj1 [i])).is_name ()) {
             error (errSyntaxError, -1, "Bad DeviceN color space (names)");
             goto err2;
         }
         namesA[i] = new GString (obj2.as_name ());
     }
-    arr.get (2, &obj1);
+    obj1 = resolve (arr [2]);
     if (!(altA = GfxColorSpace::parse (&obj1, recursion + 1))) {
         error (
             errSyntaxError, -1,
             "Bad DeviceN color space (alternate color space)");
         goto err3;
     }
-    arr.get (3, &obj1);
+    obj1 = resolve (arr [3]);
     if (!(funcA = xpdf::make_function (obj1))) { goto err4; }
     cs = new GfxDeviceNColorSpace (nCompsA, namesA, altA, funcA);
     return cs;
@@ -1323,7 +1327,7 @@ GfxColorSpace* GfxPatternColorSpace::parse (Array& arr, int recursion) {
     }
     underA = NULL;
     if (arr.size () == 2) {
-        arr.get (1, &obj1);
+        obj1 = resolve (arr [1]);
         if (!(underA = GfxColorSpace::parse (&obj1, recursion + 1))) {
             error (
                 errSyntaxError, -1,
@@ -1416,9 +1420,9 @@ GfxTilingPattern* GfxTilingPattern::parse (Object* patObjRef, Object* patObj) {
     bboxA[0] = bboxA[1] = 0;
     bboxA[2] = bboxA[3] = 1;
     if (dict->lookup ("BBox", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 4) {
+        obj1.as_array ().size () == 4) {
         for (i = 0; i < 4; ++i) {
-            if (obj1.arrayGet (i, &obj2)->is_num ()) {
+            if ((obj2 = resolve (obj1 [i])).is_num ()) {
                 bboxA[i] = obj2.as_num ();
             }
         }
@@ -1447,9 +1451,9 @@ GfxTilingPattern* GfxTilingPattern::parse (Object* patObjRef, Object* patObj) {
     matrixA[4] = 0;
     matrixA[5] = 0;
     if (dict->lookup ("Matrix", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 6) {
+        obj1.as_array ().size () == 6) {
         for (i = 0; i < 6; ++i) {
-            if (obj1.arrayGet (i, &obj2)->is_num ()) {
+            if ((obj2 = resolve (obj1 [i])).is_num ()) {
                 matrixA[i] = obj2.as_num ();
             }
         }
@@ -1511,9 +1515,9 @@ GfxShadingPattern* GfxShadingPattern::parse (Object* patObj) {
     matrixA[4] = 0;
     matrixA[5] = 0;
     if (dict->lookup ("Matrix", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 6) {
+        obj1.as_array ().size () == 6) {
         for (i = 0; i < 6; ++i) {
-            if (obj1.arrayGet (i, &obj2)->is_num ()) {
+            if ((obj2 = resolve (obj1 [i])).is_num ()) {
                 matrixA[i] = obj2.as_num ();
             }
         }
@@ -1651,11 +1655,11 @@ bool GfxShading::init (Dict* dict) {
     for (i = 0; i < gfxColorMaxComps; ++i) { background.c[i] = 0; }
     hasBackground = false;
     if (dict->lookup ("Background", &obj1)->is_array ()) {
-        if (obj1.arrayGetLength () == colorSpace->getNComps ()) {
+        if (obj1.as_array ().size () == colorSpace->getNComps ()) {
             hasBackground = true;
             for (i = 0; i < colorSpace->getNComps (); ++i) {
-                background.c[i] =
-                    xpdf::to_color (obj1.arrayGet (i, &obj2)->as_num ());
+                background.c[i] = xpdf::to_color (
+                    resolve (obj1 [i]).as_num ());
             }
         }
         else {
@@ -1666,18 +1670,14 @@ bool GfxShading::init (Dict* dict) {
     xMin = yMin = xMax = yMax = 0;
     hasBBox = false;
     if (dict->lookup ("BBox", &obj1)->is_array ()) {
-        auto n = obj1.arrayGetLength ();
+        auto n = obj1.as_array ().size ();
 
         if (4 == n) {
             hasBBox = true;
-
-            xMin = obj1.arrayGet (0, &obj2)->as_num ();
-
-            yMin = obj1.arrayGet (1, &obj2)->as_num ();
-
-            xMax = obj1.arrayGet (2, &obj2)->as_num ();
-
-            yMax = obj1.arrayGet (3, &obj2)->as_num ();
+            xMin = resolve (obj1 [0]).as_num ();
+            yMin = resolve (obj1 [1]).as_num ();
+            xMax = resolve (obj1 [2]).as_num ();
+            yMax = resolve (obj1 [3]).as_num ();
         }
         else {
             error (
@@ -1739,11 +1739,11 @@ GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
     x0A = y0A = 0;
     x1A = y1A = 1;
     if (dict->lookup ("Domain", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 4) {
-        x0A = obj1.arrayGet (0, &obj2)->as_num ();
-        x1A = obj1.arrayGet (1, &obj2)->as_num ();
-        y0A = obj1.arrayGet (2, &obj2)->as_num ();
-        y1A = obj1.arrayGet (3, &obj2)->as_num ();
+        obj1.as_array ().size () == 4) {
+        x0A = resolve (obj1 [0]).as_num ();
+        x1A = resolve (obj1 [1]).as_num ();
+        y0A = resolve (obj1 [2]).as_num ();
+        y1A = resolve (obj1 [3]).as_num ();
     }
 
     matrixA[0] = 1;
@@ -1752,19 +1752,20 @@ GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
     matrixA[3] = 1;
     matrixA[4] = 0;
     matrixA[5] = 0;
+
     if (dict->lookup ("Matrix", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 6) {
-        matrixA[0] = obj1.arrayGet (0, &obj2)->as_num ();
-        matrixA[1] = obj1.arrayGet (1, &obj2)->as_num ();
-        matrixA[2] = obj1.arrayGet (2, &obj2)->as_num ();
-        matrixA[3] = obj1.arrayGet (3, &obj2)->as_num ();
-        matrixA[4] = obj1.arrayGet (4, &obj2)->as_num ();
-        matrixA[5] = obj1.arrayGet (5, &obj2)->as_num ();
+        obj1.as_array ().size () == 6) {
+        matrixA[0] = resolve (obj1 [0]).as_num ();
+        matrixA[1] = resolve (obj1 [1]).as_num ();
+        matrixA[2] = resolve (obj1 [2]).as_num ();
+        matrixA[3] = resolve (obj1 [3]).as_num ();
+        matrixA[4] = resolve (obj1 [4]).as_num ();
+        matrixA[5] = resolve (obj1 [5]).as_num ();
     }
 
     dict->lookup ("Function", &obj1);
     if (obj1.is_array ()) {
-        nFuncsA = obj1.arrayGetLength ();
+        nFuncsA = obj1.as_array ().size ();
         if (nFuncsA > gfxColorMaxComps) {
             error (
                 errSyntaxError, -1,
@@ -1772,7 +1773,7 @@ GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
             goto err1;
         }
         for (i = 0; i < nFuncsA; ++i) {
-            obj1.arrayGet (i, &obj2);
+            obj2 = resolve (obj1 [i]);
             if (!(funcsA[i] = xpdf::make_function (obj2))) { goto err2; }
         }
     }
@@ -1865,11 +1866,11 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
 
     x0A = y0A = x1A = y1A = 0;
     if (dict->lookup ("Coords", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 4) {
-        x0A = obj1.arrayGet (0, &obj2)->as_num ();
-        y0A = obj1.arrayGet (1, &obj2)->as_num ();
-        x1A = obj1.arrayGet (2, &obj2)->as_num ();
-        y1A = obj1.arrayGet (3, &obj2)->as_num ();
+        obj1.as_array ().size () == 4) {
+        x0A = resolve (obj1 [0]).as_num ();
+        y0A = resolve (obj1 [1]).as_num ();
+        x1A = resolve (obj1 [2]).as_num ();
+        y1A = resolve (obj1 [3]).as_num ();
     }
     else {
         error (
@@ -1881,14 +1882,14 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     t0A = 0;
     t1A = 1;
     if (dict->lookup ("Domain", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 2) {
-        t0A = obj1.arrayGet (0, &obj2)->as_num ();
-        t1A = obj1.arrayGet (1, &obj2)->as_num ();
+        obj1.as_array ().size () == 2) {
+        t0A = resolve (obj1 [0]).as_num ();
+        t1A = resolve (obj1 [1]).as_num ();
     }
 
     dict->lookup ("Function", &obj1);
     if (obj1.is_array ()) {
-        nFuncsA = obj1.arrayGetLength ();
+        nFuncsA = obj1.as_array ().size ();
         if (nFuncsA > gfxColorMaxComps) {
             error (
                 errSyntaxError, -1,
@@ -1896,7 +1897,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
             goto err1;
         }
         for (i = 0; i < nFuncsA; ++i) {
-            obj1.arrayGet (i, &obj2);
+            obj2 = resolve (obj1 [i]);
             if (!(funcsA[i] = xpdf::make_function (obj2))) {
                 goto err1;
             }
@@ -1911,9 +1912,9 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
 
     extend0A = extend1A = false;
     if (dict->lookup ("Extend", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 2) {
-        extend0A = obj1.arrayGet (0, &obj2)->as_bool ();
-        extend1A = obj1.arrayGet (1, &obj2)->as_bool ();
+        obj1.as_array ().size () == 2) {
+        extend0A = resolve (obj1 [0]).as_bool ();
+        extend1A = resolve (obj1 [1]).as_bool ();
     }
 
     shading = new GfxAxialShading (
@@ -2002,13 +2003,13 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
 
     x0A = y0A = r0A = x1A = y1A = r1A = 0;
     if (dict->lookup ("Coords", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 6) {
-        x0A = obj1.arrayGet (0, &obj2)->as_num ();
-        y0A = obj1.arrayGet (1, &obj2)->as_num ();
-        r0A = obj1.arrayGet (2, &obj2)->as_num ();
-        x1A = obj1.arrayGet (3, &obj2)->as_num ();
-        y1A = obj1.arrayGet (4, &obj2)->as_num ();
-        r1A = obj1.arrayGet (5, &obj2)->as_num ();
+        obj1.as_array ().size () == 6) {
+        x0A = resolve (obj1 [0]).as_num ();
+        y0A = resolve (obj1 [1]).as_num ();
+        r0A = resolve (obj1 [2]).as_num ();
+        x1A = resolve (obj1 [3]).as_num ();
+        y1A = resolve (obj1 [4]).as_num ();
+        r1A = resolve (obj1 [5]).as_num ();
     }
     else {
         error (
@@ -2020,14 +2021,14 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     t0A = 0;
     t1A = 1;
     if (dict->lookup ("Domain", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 2) {
-        t0A = obj1.arrayGet (0, &obj2)->as_num ();
-        t1A = obj1.arrayGet (1, &obj2)->as_num ();
+        obj1.as_array ().size () == 2) {
+        t0A = resolve (obj1 [0]).as_num ();
+        t1A = resolve (obj1 [1]).as_num ();
     }
 
     dict->lookup ("Function", &obj1);
     if (obj1.is_array ()) {
-        nFuncsA = obj1.arrayGetLength ();
+        nFuncsA = obj1.as_array ().size ();
         if (nFuncsA > gfxColorMaxComps) {
             error (
                 errSyntaxError, -1,
@@ -2035,7 +2036,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
             goto err1;
         }
         for (i = 0; i < nFuncsA; ++i) {
-            obj1.arrayGet (i, &obj2);
+            obj2 = resolve (obj1 [i]);
             if (!(funcsA[i] = xpdf::make_function (obj2))) {
                 goto err1;
             }
@@ -2050,9 +2051,9 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
 
     extend0A = extend1A = false;
     if (dict->lookup ("Extend", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 2) {
-        extend0A = obj1.arrayGet (0, &obj2)->as_bool ();
-        extend1A = obj1.arrayGet (1, &obj2)->as_bool ();
+        obj1.as_array ().size () == 2) {
+        extend0A = resolve (obj1 [0]).as_bool ();
+        extend1A = resolve (obj1 [1]).as_bool ();
     }
 
     shading = new GfxRadialShading (
@@ -2254,17 +2255,17 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
         }
     }
     if (dict->lookup ("Decode", &obj1)->is_array () &&
-        obj1.arrayGetLength () >= 6) {
-        xMin = obj1.arrayGet (0, &obj2)->as_num ();
-        xMax = obj1.arrayGet (1, &obj2)->as_num ();
+        obj1.as_array ().size () >= 6) {
+        xMin = resolve (obj1 [0]).as_num ();
+        xMax = resolve (obj1 [1]).as_num ();
         xMul = (xMax - xMin) / (pow (2.0, coordBits) - 1);
-        yMin = obj1.arrayGet (2, &obj2)->as_num ();
-        yMax = obj1.arrayGet (3, &obj2)->as_num ();
+        yMin = resolve (obj1 [2]).as_num ();
+        yMax = resolve (obj1 [3]).as_num ();
         yMul = (yMax - yMin) / (pow (2.0, coordBits) - 1);
-        for (i = 0; 5 + 2 * i < obj1.arrayGetLength () && i < gfxColorMaxComps;
+        for (i = 0; 5 + 2 * i < obj1.as_array ().size () && i < gfxColorMaxComps;
              ++i) {
-            cMin[i] = obj1.arrayGet (4 + 2 * i, &obj2)->as_num ();
-            cMax[i] = obj1.arrayGet (5 + 2 * i, &obj2)->as_num ();
+            cMin[i] = resolve (obj1 [4 + 2 * i]).as_num ();
+            cMax[i] = resolve (obj1 [5 + 2 * i]).as_num ();
             cMul[i] = (cMax[i] - cMin[i]) / (double)((1 << compBits) - 1);
         }
         nCompsA = i;
@@ -2278,7 +2279,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
 
     if (!dict->lookup ("Function", &obj1)->is_null ()) {
         if (obj1.is_array ()) {
-            nFuncsA = obj1.arrayGetLength ();
+            nFuncsA = obj1.as_array ().size ();
             if (nFuncsA > gfxColorMaxComps) {
                 error (
                     errSyntaxError, -1,
@@ -2286,7 +2287,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
                 goto err1;
             }
             for (i = 0; i < nFuncsA; ++i) {
-                obj1.arrayGet (i, &obj2);
+                obj2 = resolve (obj1 [i]);
                 if (!(funcsA[i] = xpdf::make_function (obj2))) {
                     goto err1;
                 }
@@ -2524,17 +2525,17 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
         goto err2;
     }
     if (dict->lookup ("Decode", &obj1)->is_array () &&
-        obj1.arrayGetLength () >= 6) {
-        xMin = obj1.arrayGet (0, &obj2)->as_num ();
-        xMax = obj1.arrayGet (1, &obj2)->as_num ();
+        obj1.as_array ().size () >= 6) {
+        xMin = resolve (obj1 [0]).as_num ();
+        xMax = resolve (obj1 [1]).as_num ();
         xMul = (xMax - xMin) / (pow (2.0, coordBits) - 1);
-        yMin = obj1.arrayGet (2, &obj2)->as_num ();
-        yMax = obj1.arrayGet (3, &obj2)->as_num ();
+        yMin = resolve (obj1 [2]).as_num ();
+        yMax = resolve (obj1 [3]).as_num ();
         yMul = (yMax - yMin) / (pow (2.0, coordBits) - 1);
-        for (i = 0; 5 + 2 * i < obj1.arrayGetLength () && i < gfxColorMaxComps;
+        for (i = 0; 5 + 2 * i < obj1.as_array ().size () && i < gfxColorMaxComps;
              ++i) {
-            cMin[i] = obj1.arrayGet (4 + 2 * i, &obj2)->as_num ();
-            cMax[i] = obj1.arrayGet (5 + 2 * i, &obj2)->as_num ();
+            cMin[i] = resolve (obj1 [4 + 2 * i]).as_num ();
+            cMax[i] = resolve (obj1 [5 + 2 * i]).as_num ();
             cMul[i] = (cMax[i] - cMin[i]) / (double)((1 << compBits) - 1);
         }
         nCompsA = i;
@@ -2548,7 +2549,7 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
 
     if (!dict->lookup ("Function", &obj1)->is_null ()) {
         if (obj1.is_array ()) {
-            nFuncsA = obj1.arrayGetLength ();
+            nFuncsA = obj1.as_array ().size ();
             if (nFuncsA > gfxColorMaxComps) {
                 error (
                     errSyntaxError, -1,
@@ -2556,7 +2557,7 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
                 goto err1;
             }
             for (i = 0; i < nFuncsA; ++i) {
-                obj1.arrayGet (i, &obj2);
+                obj2 = resolve (obj1 [i]);
                 if (!(funcsA[i] = xpdf::make_function (obj2))) {
                     goto err1;
                 }
@@ -3047,17 +3048,17 @@ GfxImageColorMap::GfxImageColorMap (
         colorSpace->getDefaultRanges (decodeLow, decodeRange, maxPixel);
     }
     else if (decode->is_array ()) {
-        nComps = decode->arrayGetLength () / 2;
+        nComps = decode->as_array ().size () / 2;
         if (nComps < colorSpace->getNComps ()) { goto err1; }
         if (nComps > colorSpace->getNComps ()) {
             error (errSyntaxWarning, -1, "Too many elements in Decode array");
             nComps = colorSpace->getNComps ();
         }
         for (i = 0; i < nComps; ++i) {
-            decode->arrayGet (2 * i, &obj);
+            obj = resolve ((*decode) [2 * i]);
             if (!obj.is_num ()) { goto err2; }
             decodeLow[i] = obj.as_num ();
-            decode->arrayGet (2 * i + 1, &obj);
+            obj = resolve ((*decode) [2 * i + 1]);
             if (!obj.is_num ()) { goto err2; }
             decodeRange[i] = obj.as_num () - decodeLow[i];
         }
@@ -4086,8 +4087,8 @@ bool GfxState::parseBlendMode (Object* obj, GfxBlendMode* mode) {
         return false;
     }
     else if (obj->is_array ()) {
-        for (i = 0; i < obj->arrayGetLength (); ++i) {
-            obj->arrayGet (i, &obj2);
+        for (i = 0; i < obj->as_array ().size (); ++i) {
+            obj2 = resolve ((*obj) [i]);
             if (!obj2.is_name ()) {
                 return false;
             }

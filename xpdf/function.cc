@@ -26,7 +26,6 @@
 #include <xpdf/xpdf.hh>
 
 #include <xpdf/array.hh>
-#include <xpdf/ArrayIterator.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
@@ -500,9 +499,9 @@ stitched_functions_from (Dict& dict, int recursion) {
 
     std::vector< std::shared_ptr< function_t::impl_t > > fs;
 
-    for (size_t i = 0, k = arr.arrayGetLength (); i < k; ++i) {
+    for (size_t i = 0, k = arr.as_array ().size (); i < k; ++i) {
         Object fun;
-        arr.arrayGet (i, &fun);
+        fun = resolve (arr [i]);
 
         if (auto p = make_function (fun, recursion + 1)) {
             fs.push_back (p);

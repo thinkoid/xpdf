@@ -32,37 +32,36 @@ static const char specialChars [256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  // fx
 };
 
-static inline Array make_array (XRef* xref, Object* pobj = 0) {
+static inline Array make_array (Object* pobj = 0) {
     if (pobj) {
         if (pobj->is_stream ()) {
-            Array arr (xref);
-            return arr.push_back (*pobj), arr;
+            return Array{ *pobj };
         }
         else {
             return pobj->as_array ();
         }
     }
     else {
-        return Array (xref);
+        return Array{ };
     }
 }
 
 namespace xpdf {
 
-lexer_t::lexer_t (XRef* xref, Stream* pstr)
-    : streams (make_array (xref)) {
+lexer_t::lexer_t (Stream* pstr)
+    : streams (make_array ()) {
     // TODO: array of streams and nested parsing need some std-ing.
     streams.push_back (curStr = xpdf::make_stream_obj (pstr));
     strPtr = 0;
     curStr.streamReset ();
 }
 
-lexer_t::lexer_t (XRef* xref, Object* pobj)
-    : streams (make_array (xref, pobj)) {
+lexer_t::lexer_t (Object* pobj)
+    : streams (make_array (pobj)) {
     strPtr = 0;
 
     if (streams.size () > 0) {
-        streams.get (strPtr, &curStr);
+        curStr = resolve (streams [strPtr]);
         curStr.streamReset ();
     }
 }
@@ -82,7 +81,7 @@ int lexer_t::getChar () {
         curStr = { };
 
         if (++strPtr < streams.size ()) {
-            streams.get (strPtr, &curStr);
+            curStr = resolve (streams [strPtr]);
             curStr.streamReset ();
         }
     }

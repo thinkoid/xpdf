@@ -398,7 +398,7 @@ private:
 class Links {
 public:
     // Extract links from array of annotations.
-    Links (Object* annots, GString* baseURI);
+    Links (const Object&, GString* baseURI);
 
     // Destructor.
     ~Links ();

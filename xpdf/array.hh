@@ -6,12 +6,8 @@
 
 #include <defs.hh>
 
+#include <vector>
 #include <xpdf/obj_fwd.hh>
-#include <xpdf/xpdf.hh>
-
-#include <list>
-
-class XRef;
 
 namespace xpdf {
 
@@ -21,16 +17,7 @@ struct array_t : std::vector< obj_t > {
     using base_type::base_type;
     using base_type::operator=;
 
-    explicit array_t (XRef* p) : p_ (p) { }
-
-    //
-    // Legacy accessors:
-    //
-    Object* get (int i, Object* obj);
-    Object* getNF (int i, Object* obj);
-
-private:
-    XRef* p_;    // the xref table for this PDF file
+    using base_type::operator[];
 };
 
 } // namespace xpdf

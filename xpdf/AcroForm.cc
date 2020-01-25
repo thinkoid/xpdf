@@ -22,7 +22,11 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>
 
+#include <range/v3/all.hpp>
+using namespace ranges;
+
 #include <fmt/format.h>
+using fmt::format;
 
 //------------------------------------------------------------------------
 
@@ -101,9 +105,8 @@ AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
         return 0;
     }
 
-    for (i = 0; i < obj.arrayGetLength (); ++i) {
-        Object tmp;
-        obj.arrayGetNF (i, &tmp);
+    for (i = 0; i < obj.as_array ().size (); ++i) {
+        Object tmp = obj [i];
         acroForm->scanField (&tmp);
     }
 
@@ -121,13 +124,11 @@ void AcroForm::buildAnnotPageList (Catalog* catalog) {
     int pageNum, i;
 
     for (pageNum = 1; pageNum <= catalog->getNumPages (); ++pageNum) {
-        Object annots;
-        catalog->getPage (pageNum)->getAnnots (&annots);
+        Object annots = catalog->getPage (pageNum)->getAnnots ();
 
         if (annots.is_array ()) {
-            for (i = 0; i < annots.arrayGetLength (); ++i) {
-                Object annot;
-                annots.arrayGetNF (i, &annot);
+            for (i = 0; i < annots.as_array ().size (); ++i) {
+                Object annot = annots [i];
 
                 if (annot.is_ref ()) {
                     annotPages.push_back (
@@ -160,8 +161,7 @@ void AcroForm::scanField (Object* fieldRef) {
     bool isTerminal;
     int i;
 
-    Object fieldObj;
-    fieldRef->fetch (doc->getXRef (), &fieldObj);
+    Object fieldObj = resolve (*fieldRef);
 
     if (!fieldObj.is_dict ()) {
         error (errSyntaxError, -1, "AcroForm field object is wrong type");
@@ -180,9 +180,9 @@ void AcroForm::scanField (Object* fieldRef) {
     if (kidsObj.is_array ()) {
         isTerminal = false;
 
-        for (i = 0; !isTerminal && i < kidsObj.arrayGetLength (); ++i) {
+        for (i = 0; !isTerminal && i < kidsObj.as_array ().size (); ++i) {
             Object kidObj;
-            kidsObj.arrayGet (i, &kidObj);
+            kidObj = resolve (kidsObj [i]);
 
             if (kidObj.is_dict ()) {
                 Object subtypeObj;
@@ -195,9 +195,8 @@ void AcroForm::scanField (Object* fieldRef) {
         }
 
         if (!isTerminal) {
-            for (i = 0; !isTerminal && i < kidsObj.arrayGetLength (); ++i) {
-                Object kidRef;
-                kidsObj.arrayGetNF (i, &kidRef);
+            for (i = 0; !isTerminal && i < kidsObj.as_array ().size (); ++i) {
+                Object kidRef = kidsObj [i];
                 scanField (&kidRef);
             }
         }
@@ -228,8 +227,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     AcroFormFieldType typeA;
     AcroFormField* field;
 
-    Object fieldObjA;
-    fieldRefA->fetch (acroFormA->doc->getXRef (), &fieldObjA);
+    Object fieldObjA = resolve (*fieldRefA);
 
     //----- get field info
 
@@ -436,10 +434,10 @@ void AcroFormField::draw (int pageNum, Gfx* gfx, bool printing) {
     Object kidsObj;
     fieldObj.dictLookup ("Kids", &kidsObj);
     if (kidsObj.is_array ()) {
-        for (int i = 0; i < kidsObj.arrayGetLength (); ++i) {
+        for (int i = 0; i < kidsObj.as_array ().size (); ++i) {
             Object annotRef, annotObj;
-            kidsObj.arrayGetNF (i, &annotRef);
-            annotRef.fetch (acroForm->doc->getXRef (), &annotObj);
+            annotRef = kidsObj [i];
+            annotObj = resolve (annotRef);
             drawAnnot (pageNum, gfx, printing, &annotRef, &annotObj);
         }
     }
@@ -490,15 +488,15 @@ void AcroFormField::drawAnnot (
     //----- get the bounding box
     annotObj->dictLookup ("Rect", &obj);
 
-    if (obj.is_array () && obj.arrayGetLength () == 4) {
+    if (obj.is_array () && obj.as_array ().size () == 4) {
         xMin = yMin = xMax = yMax = 0;
 
         Object number;
 
-        if (obj.arrayGet (0, &number)->is_num ()) { xMin = number.as_num (); }
-        if (obj.arrayGet (1, &number)->is_num ()) { yMin = number.as_num (); }
-        if (obj.arrayGet (2, &number)->is_num ()) { xMax = number.as_num (); }
-        if (obj.arrayGet (3, &number)->is_num ()) { yMax = number.as_num (); }
+        if ((number = resolve (obj [0])).is_num ()) { xMin = number.as_num (); }
+        if ((number = resolve (obj [1])).is_num ()) { yMin = number.as_num (); }
+        if ((number = resolve (obj [2])).is_num ()) { xMax = number.as_num (); }
+        if ((number = resolve (obj [3])).is_num ()) { yMax = number.as_num (); }
 
         if (xMin > xMax) {
             t = xMin;
@@ -596,7 +594,7 @@ void AcroFormField::drawNewAppearance (
 
     // draw the background
     if (mkDict) {
-        if (mkDict->lookup ("BG", &obj1)->is_array () && obj1.arrayGetLength () > 0) {
+        if (mkDict->lookup ("BG", &obj1)->is_array () && obj1.as_array ().size () > 0) {
             setColor (obj1.as_array (), true, 0);
             appearBuf += format (
                 "0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
@@ -631,10 +629,10 @@ void AcroFormField::drawNewAppearance (
             borderWidth = obj2.as_num ();
         }
         if (obj1.dictLookup ("D", &obj2)->is_array ()) {
-            borderDashLength = obj2.arrayGetLength ();
+            borderDashLength = obj2.as_array ().size ();
             borderDash = (double*)calloc (borderDashLength, sizeof (double));
             for (i = 0; i < borderDashLength; ++i) {
-                if (obj2.arrayGet (i, &obj3)->is_num ()) {
+                if ((obj3 = resolve (obj2 [i])).is_num ()) {
                     borderDash[i] = obj3.as_num ();
                 }
                 else {
@@ -645,19 +643,19 @@ void AcroFormField::drawNewAppearance (
     }
     else {
         if (annot->lookup ("Border", &obj1)->is_array ()) {
-            if (obj1.arrayGetLength () >= 3) {
-                if (obj1.arrayGet (2, &obj2)->is_num ()) {
+            if (obj1.as_array ().size () >= 3) {
+                if ((obj2 = resolve (obj1 [2])).is_num ()) {
                     borderWidth = obj2.as_num ();
                 }
 
-                if (obj1.arrayGetLength () >= 4) {
-                    if (obj1.arrayGet (3, &obj2)->is_array ()) {
+                if (obj1.as_array ().size () >= 4) {
+                    if ((obj2 = resolve (obj1 [3])).is_array ()) {
                         borderType = annotBorderDashed;
-                        borderDashLength = obj2.arrayGetLength ();
+                        borderDashLength = obj2.as_array ().size ();
                         borderDash = (double*)calloc (borderDashLength, sizeof (double));
 
                         for (i = 0; i < borderDashLength; ++i) {
-                            if (obj2.arrayGet (i, &obj3)->is_num ()) {
+                            if ((obj3 = resolve (obj2 [i])).is_num ()) {
                                 borderDash[i] = obj3.as_num ();
                             }
                             else {
@@ -678,10 +676,10 @@ void AcroFormField::drawNewAppearance (
     if (mkDict) {
         if (borderWidth > 0) {
             mkDict->lookup ("BC", &obj1);
-            if (!(obj1.is_array () && obj1.arrayGetLength () > 0)) {
+            if (!(obj1.is_array () && obj1.as_array ().size () > 0)) {
                 mkDict->lookup ("BG", &obj1);
             }
-            if (obj1.is_array () && obj1.arrayGetLength () > 0) {
+            if (obj1.is_array () && obj1.as_array ().size () > 0) {
                 dx = xMax - xMin;
                 dy = yMax - yMin;
 
@@ -864,7 +862,7 @@ void AcroFormField::drawNewAppearance (
                 else {
                     if (mkDict) {
                         if (mkDict->lookup ("BC", &obj2)->is_array () &&
-                            obj2.arrayGetLength () > 0) {
+                            obj2.as_array ().size () > 0) {
                             dx = xMax - xMin;
                             dy = yMax - yMin;
                             setColor (obj2.as_array (), true, 0);
@@ -940,17 +938,17 @@ void AcroFormField::drawNewAppearance (
         }
         else {
             if (fieldObj.dictLookup ("Opt", &obj1)->is_array ()) {
-                nOptions = obj1.arrayGetLength ();
+                nOptions = obj1.as_array ().size ();
                 // get the option text
                 text = (GString**)calloc (nOptions, sizeof (GString*));
                 for (i = 0; i < nOptions; ++i) {
                     text[i] = NULL;
-                    obj1.arrayGet (i, &obj2);
+                    obj2 = resolve (obj1 [i]);
                     if (obj2.is_string ()) {
                         text[i] = obj2.as_string ()->copy ();
                     }
-                    else if (obj2.is_array () && obj2.arrayGetLength () == 2) {
-                        if (obj2.arrayGet (1, &obj3)->is_string ()) {
+                    else if (obj2.is_array () && obj2.as_array ().size () == 2) {
+                        if ((obj3 = resolve (obj2 [1])).is_string ()) {
                             text[i] = obj3.as_string ()->copy ();
                         }
                     }
@@ -968,8 +966,8 @@ void AcroFormField::drawNewAppearance (
                         }
                     }
                     else if (obj2.is_array ()) {
-                        for (j = 0; j < obj2.arrayGetLength (); ++j) {
-                            if (obj2.arrayGet (j, &obj3)->is_string () &&
+                        for (j = 0; j < obj2.as_array ().size (); ++j) {
+                            if ((obj3 = resolve (obj2 [j])).is_string () &&
                                 !obj3.as_string ()->cmp (text[i])) {
                                 selection[i] = true;
                             }
@@ -1009,12 +1007,12 @@ void AcroFormField::drawNewAppearance (
     appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf.size ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
 
-    obj1 = xpdf::make_arr_obj (acroForm->doc->getXRef ());
+    obj1 = xpdf::make_arr_obj ();
 
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (xMax - xMin));
-    obj1.arrayAdd (xpdf::make_real_obj (yMax - yMin));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
+    obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
 
     appearDict.dictAdd ("BBox", &obj1);
 
@@ -1049,7 +1047,9 @@ void AcroFormField::setColor (Array& arr, bool fill, int adjust) {
     nComps = arr.size ();
     if (nComps > 4) { nComps = 4; }
     for (i = 0; i < nComps && i < 4; ++i) {
-        if (arr.get (i, &obj1)->is_num ()) { color[i] = obj1.as_num (); }
+        if ((obj1 = resolve (arr [i])).is_num ()) {
+            color[i] = obj1.as_num ();
+        }
         else {
             color[i] = 0;
         }
@@ -1781,15 +1781,15 @@ Object* AcroFormField::getResources (Object* res) {
 
     if (acroForm->needAppearances) { fieldLookup ("DR", res); }
     else {
-        *res = xpdf::make_arr_obj (acroForm->doc->getXRef ());
+        *res = xpdf::make_arr_obj ();
         // find the annotation object(s)
         if (fieldObj.dictLookup ("Kids", &kidsObj)->is_array ()) {
-            for (i = 0; i < kidsObj.arrayGetLength (); ++i) {
-                kidsObj.arrayGet (i, &annotObj);
+            for (i = 0; i < kidsObj.as_array ().size (); ++i) {
+                annotObj = resolve (kidsObj [i]);
                 if (annotObj.is_dict ()) {
                     if (getAnnotResources (annotObj.as_dict (), &obj1)
                             ->is_dict ()) {
-                        res->arrayAdd (&obj1);
+                        res->as_array ().push_back (obj1);
                     }
                     else {
                     }
@@ -1798,7 +1798,7 @@ Object* AcroFormField::getResources (Object* res) {
         }
         else {
             if (getAnnotResources (fieldObj.as_dict (), &obj1)->is_dict ()) {
-                res->arrayAdd (&obj1);
+                res->as_array ().push_back (obj1);
             }
             else {
             }

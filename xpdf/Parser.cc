@@ -110,11 +110,11 @@ Object* Parser::getObj (
         //
         shift ();
 
-        *obj = xpdf::make_arr_obj (xref);
+        *obj = xpdf::make_arr_obj ();
 
         while (!is_keyword (buf1, "]") && !is_eof (buf1)) {
-            obj->arrayAdd (
-                getObj (
+            obj->as_array ().push_back (
+                *getObj (
                     &obj2, false, fileKey, encAlgorithm, keyLength,
                     objNum, objGen,
                     recursion + 1));
@@ -187,7 +187,7 @@ Object* Parser::getObj (
 
         if (is_int (buf1) && is_keyword (buf2, "R")) {
             int gen = std::stoi (buf1.s);
-            *obj = xpdf::make_ref_obj (num, gen);
+            *obj = xpdf::make_ref_obj (num, gen, xref);
 
             shift ();
             shift ();

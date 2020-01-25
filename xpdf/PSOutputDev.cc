@@ -20,6 +20,7 @@
 #include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>
 
+#include <xpdf/array.hh>
 #include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/CharCodeToUnicode.hh>
@@ -1428,9 +1429,9 @@ void PSOutputDev::writeDocSetup (
     for (pg = firstPage; pg <= lastPage; ++pg) {
         page = catalog->getPage (pg);
         if ((resDict = page->getResourceDict ())) { setupResources (resDict); }
-        annots = new Annots (doc, page->getAnnots (&obj1));
+        annots = new Annots (doc, page->getAnnots ());
         for (i = 0; i < annots->getNumAnnots (); ++i) {
-            if (annots->getAnnot (i)->getAppearance (&obj1)->is_stream ()) {
+            if ((obj1 = annots->getAnnot (i)->getAppearance ()).is_stream ()) {
                 obj1.streamGetDict ()->lookup ("Resources", &obj2);
                 if (obj2.is_dict ()) { setupResources (obj2.as_dict ()); }
             }
@@ -1441,8 +1442,8 @@ void PSOutputDev::writeDocSetup (
         for (i = 0; i < form->getNumFields (); ++i) {
             form->getField (i)->getResources (&obj1);
             if (obj1.is_array ()) {
-                for (j = 0; j < obj1.arrayGetLength (); ++j) {
-                    obj1.arrayGet (j, &obj2);
+                for (j = 0; j < obj1.as_array ().size (); ++j) {
+                    obj2 = resolve (obj1 [j]);
                     if (obj2.is_dict ()) { setupResources (obj2.as_dict ()); }
                 }
             }
@@ -1647,7 +1648,7 @@ void PSOutputDev::setupFonts (Dict* resDict) {
     gfxFontDict = NULL;
     resDict->lookupNF ("Font", &obj1);
     if (obj1.is_ref ()) {
-        obj1.fetch (xref, &obj2);
+        obj2 = resolve (obj1);
         if (obj2.is_dict ()) {
             r = obj1.as_ref ();
             gfxFontDict = new GfxFontDict (xref, &r, obj2.as_dict ());
@@ -1891,8 +1892,8 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1Font (GfxFont* font, Ref* id) {
     psName = font->getEmbeddedFontName ()->copy ();
 
     // get the font stream and info
-    refObj = xpdf::make_ref_obj (id->num, id->gen);
-    refObj.fetch (xref, &strObj);
+    refObj = xpdf::make_ref_obj (id->num, id->gen, xref);
+    strObj = resolve (refObj);
     if (!strObj.is_stream ()) {
         error (errSyntaxError, -1, "Embedded font file object is not a stream");
         goto err1;
@@ -3045,7 +3046,7 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
         return;
     }
     for (i = 0; i < 4; ++i) {
-        bboxObj.arrayGet (i, &obj1);
+        obj1 = resolve (bboxObj [i]);
         bbox[i] = obj1.as_num ();
     }
 
@@ -3053,7 +3054,7 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     dict->lookup ("Matrix", &matrixObj);
     if (matrixObj.is_array ()) {
         for (i = 0; i < 6; ++i) {
-            matrixObj.arrayGet (i, &obj1);
+            obj1 = resolve (matrixObj [i]);
             m[i] = obj1.as_num ();
         }
     }
@@ -6111,23 +6112,23 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
     //~ need to use writePSString() and deal with >255-char lines
 
     dict->lookup ("Size", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 2) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 2) {
+        obj2 = resolve (obj1 [0]);
         width = obj2.as_num ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         height = obj2.as_num ();
         writePSFmt ("%%ImageDimensions: {0:.6g} {1:.6g}\n", width, height);
     }
 
     dict->lookup ("CropRect", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 4) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 4) {
+        obj2 = resolve (obj1 [0]);
         left = obj2.as_num ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         top = obj2.as_num ();
-        obj1.arrayGet (2, &obj2);
+        obj2 = resolve (obj1 [2]);
         right = obj2.as_num ();
-        obj1.arrayGet (3, &obj2);
+        obj2 = resolve (obj1 [3]);
         bottom = obj2.as_num ();
         writePSFmt (
             "%%ImageCropRect: {0:.6g} {1:.6g} {2:.6g} {3:.6g}\n", left, top,
@@ -6144,15 +6145,15 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
     if (obj1.is_name ()) {
         writePSFmt ("%%ImageInks: {0:s}\n", obj1.as_name ());
     }
-    else if (obj1.is_array () && obj1.arrayGetLength () >= 1) {
-        obj1.arrayGet (0, &obj2);
+    else if (obj1.is_array () && obj1.as_array ().size () >= 1) {
+        obj2 = resolve (obj1 [0]);
         if (obj2.is_name ()) {
             writePSFmt (
                 "%%ImageInks: {0:s} {1:d}", obj2.as_name (),
-                (obj1.arrayGetLength () - 1) / 2);
-            for (i = 1; i + 1 < obj1.arrayGetLength (); i += 2) {
-                obj1.arrayGet (i, &obj3);
-                obj1.arrayGet (i + 1, &obj4);
+                (obj1.as_array ().size () - 1) / 2);
+            for (i = 1; i + 1 < obj1.as_array ().size (); i += 2) {
+                obj3 = resolve (obj1 [i]);
+                obj4 = resolve (obj1 [i + 1]);
                 if (obj3.is_string () && obj4.is_num ()) {
                     writePS (" ");
                     writePSString (obj3.as_string ());
@@ -6168,10 +6169,10 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
     writePS ("%%BeginIncludedImage\n");
 
     dict->lookup ("IncludedImageDimensions", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 2) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 2) {
+        obj2 = resolve (obj1 [0]);
         w = obj2.as_int ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         h = obj2.as_int ();
         writePSFmt ("%%IncludedImageDimensions: {0:d} {1:d}\n", w, h);
     }
@@ -6203,14 +6204,14 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     }
 
     dict->lookup ("CropRect", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 4) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 4) {
+        obj2 = resolve (obj1 [0]);
         left = obj2.as_int ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         top = obj2.as_int ();
-        obj1.arrayGet (2, &obj2);
+        obj2 = resolve (obj1 [2]);
         right = obj2.as_int ();
-        obj1.arrayGet (3, &obj2);
+        obj2 = resolve (obj1 [3]);
         bottom = obj2.as_int ();
         writePSFmt (
             "%ALDImageCropRect: {0:d} {1:d} {2:d} {3:d}\n", left, top, right,
@@ -6218,16 +6219,16 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     }
 
     dict->lookup ("Color", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 5) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 5) {
+        obj2 = resolve (obj1 [0]);
         c = obj2.as_num ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         m = obj2.as_num ();
-        obj1.arrayGet (2, &obj2);
+        obj2 = resolve (obj1 [2]);
         y = obj2.as_num ();
-        obj1.arrayGet (3, &obj2);
+        obj2 = resolve (obj1 [3]);
         k = obj2.as_num ();
-        obj1.arrayGet (4, &obj2);
+        obj2 = resolve (obj1 [4]);
         if (obj2.is_string ()) {
             writePSFmt (
                 "%ALDImageColor: {0:.4g} {1:.4g} {2:.4g} {3:.4g} ", c, m, y, k);
@@ -6246,13 +6247,13 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
 
     dict->lookup ("CropFixed", &obj1);
     if (obj1.is_array ()) {
-        obj1.arrayGet (0, &obj2);
+        obj2 = resolve (obj1 [0]);
         ulx = obj2.as_num ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         uly = obj2.as_num ();
-        obj1.arrayGet (2, &obj2);
+        obj2 = resolve (obj1 [2]);
         lrx = obj2.as_num ();
-        obj1.arrayGet (3, &obj2);
+        obj2 = resolve (obj1 [3]);
         lry = obj2.as_num ();
         writePSFmt (
             "%ALDImageCropFixed: {0:.4g} {1:.4g} {2:.4g} {3:.4g}\n", ulx, uly,
@@ -6262,10 +6263,10 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     dict->lookup ("GrayMap", &obj1);
     if (obj1.is_array ()) {
         writePS ("%ALDImageGrayMap:");
-        for (i = 0; i < obj1.arrayGetLength (); i += 16) {
+        for (i = 0; i < obj1.as_array ().size (); i += 16) {
             if (i > 0) { writePS ("\n%%+"); }
-            for (j = 0; j < 16 && i + j < obj1.arrayGetLength (); ++j) {
-                obj1.arrayGet (i + j, &obj2);
+            for (j = 0; j < 16 && i + j < obj1.as_array ().size (); ++j) {
+                obj2 = resolve (obj1 [i + j]);
                 writePSFmt (" {0:d}", obj2.as_int ());
             }
         }
@@ -6278,10 +6279,10 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     }
 
     dict->lookup ("ImageType", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 2) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 2) {
+        obj2 = resolve (obj1 [0]);
         samples = obj2.as_int ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         bits = obj2.as_int ();
         writePSFmt ("%ALDImageType: {0:d} {1:d}\n", samples, bits);
     }
@@ -6293,22 +6294,22 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     }
 
     dict->lookup ("Position", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 8) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 8) {
+        obj2 = resolve (obj1 [0]);
         llx = obj2.as_num ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         lly = obj2.as_num ();
-        obj1.arrayGet (2, &obj2);
+        obj2 = resolve (obj1 [2]);
         ulx = obj2.as_num ();
-        obj1.arrayGet (3, &obj2);
+        obj2 = resolve (obj1 [3]);
         uly = obj2.as_num ();
-        obj1.arrayGet (4, &obj2);
+        obj2 = resolve (obj1 [4]);
         urx = obj2.as_num ();
-        obj1.arrayGet (5, &obj2);
+        obj2 = resolve (obj1 [5]);
         ury = obj2.as_num ();
-        obj1.arrayGet (6, &obj2);
+        obj2 = resolve (obj1 [6]);
         lrx = obj2.as_num ();
-        obj1.arrayGet (7, &obj2);
+        obj2 = resolve (obj1 [7]);
         lry = obj2.as_num ();
         opiTransform (state, llx, lly, &tllx, &tlly);
         opiTransform (state, ulx, uly, &tulx, &tuly);
@@ -6321,19 +6322,19 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     }
 
     dict->lookup ("Resolution", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 2) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 2) {
+        obj2 = resolve (obj1 [0]);
         horiz = obj2.as_num ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         vert = obj2.as_num ();
         writePSFmt ("%ALDImageResoution: {0:.4g} {1:.4g}\n", horiz, vert);
     }
 
     dict->lookup ("Size", &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 2) {
-        obj1.arrayGet (0, &obj2);
+    if (obj1.is_array () && obj1.as_array ().size () == 2) {
+        obj2 = resolve (obj1 [0]);
         width = obj2.as_int ();
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         height = obj2.as_int ();
         writePSFmt ("%ALDImageDimensions: {0:d} {1:d}\n", width, height);
     }

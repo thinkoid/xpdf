@@ -162,8 +162,8 @@ int main (int argc, char* argv[]) {
         for (i = 0; i < form->getNumFields (); ++i) {
             form->getField (i)->getResources (&obj1);
             if (obj1.is_array ()) {
-                for (j = 0; j < obj1.arrayGetLength (); ++j) {
-                    obj1.arrayGetNF (j, &obj2);
+                for (j = 0; j < obj1.as_array ().size (); ++j) {
+                    obj2 = obj1 [j];
                     scanFonts (&obj2, doc);
                 }
             }
@@ -207,7 +207,7 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
         }
         seenObjs[seenObjsLen++] = obj->as_ref ();
     }
-    if (obj->fetch (doc->getXRef (), &obj2)->is_dict ()) {
+    if ((obj2 = resolve (*obj)).is_dict ()) {
         scanFonts (obj2.as_dict (), doc);
     }
 }
@@ -224,7 +224,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     gfxFontDict = NULL;
     resDict->lookupNF ("Font", &obj1);
     if (obj1.is_ref ()) {
-        obj1.fetch (doc->getXRef (), &obj2);
+        obj2 = resolve (obj1);
         if (obj2.is_dict ()) {
             r = obj1.as_ref ();
             gfxFontDict =
@@ -322,7 +322,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
     hasToUnicode = false;
 
     Object fontObj;
-    doc->getXRef ()->fetch (fontRef.num, fontRef.gen, &fontObj);
+    doc->getXRef ()->fetch (fontRef, &fontObj);
 
     if (fontObj.is_dict ()) {
         Object toUnicodeObj;

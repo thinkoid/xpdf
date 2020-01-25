@@ -95,12 +95,12 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     //----- parse the rectangle
 
     if (dict->lookup ("Rect", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 4) {
+        obj1.as_array ().size () == 4) {
         xMin = yMin = xMax = yMax = 0;
-        if (obj1.arrayGet (0, &obj2)->is_num ()) { xMin = obj2.as_num (); }
-        if (obj1.arrayGet (1, &obj2)->is_num ()) { yMin = obj2.as_num (); }
-        if (obj1.arrayGet (2, &obj2)->is_num ()) { xMax = obj2.as_num (); }
-        if (obj1.arrayGet (3, &obj2)->is_num ()) { yMax = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [0])).is_num ()) { xMin = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [1])).is_num ()) { yMin = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [2])).is_num ()) { xMax = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [3])).is_num ()) { yMax = obj2.as_num (); }
         if (xMin > xMax) {
             t = xMin;
             xMin = xMax;
@@ -155,10 +155,10 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
             borderWidth = obj2.as_num ();
         }
         if (obj1.dictLookup ("D", &obj2)->is_array ()) {
-            borderDashLength = obj2.arrayGetLength ();
+            borderDashLength = obj2.as_array ().size ();
             borderDash = (double*)calloc (borderDashLength, sizeof (double));
             for (i = 0; i < borderDashLength; ++i) {
-                if (obj2.arrayGet (i, &obj3)->is_num ()) {
+                if ((obj3 = resolve (obj2 [i])).is_num ()) {
                     borderDash[i] = obj3.as_num ();
                 }
                 else {
@@ -169,18 +169,18 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     }
     else {
         if (dict->lookup ("Border", &obj1)->is_array ()) {
-            if (obj1.arrayGetLength () >= 3) {
-                if (obj1.arrayGet (2, &obj2)->is_num ()) {
+            if (obj1.as_array ().size () >= 3) {
+                if ((obj2 = resolve (obj1 [2])).is_num ()) {
                     borderWidth = obj2.as_num ();
                 }
-                if (obj1.arrayGetLength () >= 4) {
-                    if (obj1.arrayGet (3, &obj2)->is_array ()) {
+                if (obj1.as_array ().size () >= 4) {
+                    if ((obj2 = resolve (obj1 [3])).is_array ()) {
                         borderType = annotBorderDashed;
-                        borderDashLength = obj2.arrayGetLength ();
+                        borderDashLength = obj2.as_array ().size ();
                         borderDash = (double*)calloc (
                             borderDashLength, sizeof (double));
                         for (i = 0; i < borderDashLength; ++i) {
-                            if (obj2.arrayGet (i, &obj3)->is_num ()) {
+                            if ((obj3 = resolve (obj2 [i])).is_num ()) {
                                 borderDash[i] = obj3.as_num ();
                             }
                             else {
@@ -202,11 +202,11 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         }
     }
     if (dict->lookup ("C", &obj1)->is_array () &&
-        (obj1.arrayGetLength () == 1 || obj1.arrayGetLength () == 3 ||
-         obj1.arrayGetLength () == 4)) {
-        nBorderColorComps = obj1.arrayGetLength ();
+        (obj1.as_array ().size () == 1 || obj1.as_array ().size () == 3 ||
+         obj1.as_array ().size () == 4)) {
+        nBorderColorComps = obj1.as_array ().size ();
         for (i = 0; i < nBorderColorComps; ++i) {
-            if (obj1.arrayGet (i, &obj2)->is_num ()) {
+            if ((obj2 = resolve (obj1 [i])).is_num ()) {
                 borderColor[i] = obj2.as_num ();
             }
             else {
@@ -276,7 +276,7 @@ Annot::~Annot () {
 void Annot::generateAnnotAppearance () {
     Object obj;
 
-    appearance.fetch (doc->getXRef (), &obj);
+    obj = resolve (appearance);
     if (!obj.is_stream ()) {
         if (type) {
             if (!type->cmp ("Line")) { generateLineAppearance (); }
@@ -327,20 +327,20 @@ void Annot::generateLineAppearance () {
 
     //----- get line properties
     if (annotObj.dictLookup ("L", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 4) {
-        if (obj1.arrayGet (0, &obj2)->is_num ()) { x1 = obj2.as_num (); }
+        obj1.as_array ().size () == 4) {
+        if ((obj2 = resolve (obj1 [0])).is_num ()) { x1 = obj2.as_num (); }
         else {
             return;
         }
-        if (obj1.arrayGet (1, &obj2)->is_num ()) { y1 = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [1])).is_num ()) { y1 = obj2.as_num (); }
         else {
             return;
         }
-        if (obj1.arrayGet (2, &obj2)->is_num ()) { x2 = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [2])).is_num ()) { x2 = obj2.as_num (); }
         else {
             return;
         }
-        if (obj1.arrayGet (3, &obj2)->is_num ()) { y2 = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [3])).is_num ()) { y2 = obj2.as_num (); }
         else {
             return;
         }
@@ -350,9 +350,9 @@ void Annot::generateLineAppearance () {
     }
     lineEnd1 = lineEnd2 = annotLineEndNone;
     if (annotObj.dictLookup ("LE", &obj1)->is_array () &&
-        obj1.arrayGetLength () == 2) {
-        lineEnd1 = parseLineEndType (obj1.arrayGet (0, &obj2));
-        lineEnd2 = parseLineEndType (obj1.arrayGet (1, &obj2));
+        obj1.as_array ().size () == 2) {
+        lineEnd1 = parseLineEndType (obj1 [0]);
+        lineEnd2 = parseLineEndType (obj1 [1]);
     }
     if (annotObj.dictLookup ("LL", &obj1)->is_num ()) {
         leaderLen = obj1.as_num ();
@@ -436,12 +436,12 @@ void Annot::generateLineAppearance () {
     appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
 
-    obj1 = xpdf::make_arr_obj (doc->getXRef ());
+    obj1 = xpdf::make_arr_obj ();
 
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (xMax - xMin));
-    obj1.arrayAdd (xpdf::make_real_obj (yMax - yMin));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
+    obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
 
     appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.is_dict ()) {
@@ -494,12 +494,12 @@ void Annot::generatePolyLineAppearance () {
     if (!annotObj.dictLookup ("Vertices", &obj1)->is_array ()) {
         return;
     }
-    for (i = 0; i + 1 < obj1.arrayGetLength (); i += 2) {
-        if (!obj1.arrayGet (i, &obj2)->is_num ()) {
+    for (i = 0; i + 1 < obj1.as_array ().size (); i += 2) {
+        if (!(obj2 = resolve (obj1 [i])).is_num ()) {
             return;
         }
         x1 = obj2.as_num ();
-        if (!obj1.arrayGet (i + 1, &obj2)->is_num ()) {
+        if (!(obj2 = resolve (obj1 [i + 1])).is_num ()) {
             return;
         }
         y1 = obj2.as_num ();
@@ -516,11 +516,11 @@ void Annot::generatePolyLineAppearance () {
     appearDict = xpdf::make_dict_obj (doc->getXRef ());
     appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
-    obj1 = xpdf::make_arr_obj (doc->getXRef ());
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (xMax - xMin));
-    obj1.arrayAdd (xpdf::make_real_obj (yMax - yMin));
+    obj1 = xpdf::make_arr_obj ();
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
+    obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
     appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.is_dict ()) {
         obj1 = xpdf::make_dict_obj (doc->getXRef ());
@@ -566,12 +566,12 @@ void Annot::generatePolygonAppearance () {
     if (!annotObj.dictLookup ("Vertices", &obj1)->is_array ()) {
         goto err1;
     }
-    for (i = 0; i + 1 < obj1.arrayGetLength (); i += 2) {
-        if (!obj1.arrayGet (i, &obj2)->is_num ()) {
+    for (i = 0; i + 1 < obj1.as_array ().size (); i += 2) {
+        if (!(obj2 = resolve (obj1 [i])).is_num ()) {
             goto err1;
         }
         x1 = obj2.as_num ();
-        if (!obj1.arrayGet (i + 1, &obj2)->is_num ()) {
+        if (!(obj2 = resolve (obj1 [i + 1])).is_num ()) {
             goto err1;
         }
         y1 = obj2.as_num ();
@@ -588,11 +588,11 @@ void Annot::generatePolygonAppearance () {
     appearDict = xpdf::make_dict_obj (doc->getXRef ());
     appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
-    obj1 = xpdf::make_arr_obj (doc->getXRef ());
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (xMax - xMin));
-    obj1.arrayAdd (xpdf::make_real_obj (yMax - yMin));
+    obj1 = xpdf::make_arr_obj ();
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
+    obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
     appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.is_dict ()) {
         obj1 = xpdf::make_dict_obj (doc->getXRef ());
@@ -652,15 +652,15 @@ bool Annot::setFillColor (Object* colorObj) {
     int i;
 
     if (!colorObj->is_array ()) { return false; }
-    for (i = 0; i < colorObj->arrayGetLength (); ++i) {
-        if (colorObj->arrayGet (i, &obj)->is_num ()) {
+    for (i = 0; i < colorObj->as_array ().size (); ++i) {
+        if ((obj = resolve ((*colorObj) [i])).is_num ()) {
             color[i] = obj.as_num ();
         }
         else {
             color[i] = 0;
         }
     }
-    switch (colorObj->arrayGetLength ()) {
+    switch (colorObj->as_array ().size ()) {
     case 1: appearBuf->appendf ("{0:.2f} g\n", color[0]); return true;
     case 3:
         appearBuf->appendf (
@@ -675,33 +675,33 @@ bool Annot::setFillColor (Object* colorObj) {
     return false;
 }
 
-AnnotLineEndType Annot::parseLineEndType (Object* obj) {
-    if (obj->is_name ("None")) { return annotLineEndNone; }
-    else if (obj->is_name ("Square")) {
+AnnotLineEndType Annot::parseLineEndType (const Object& obj) {
+    if (obj.is_name ("None")) { return annotLineEndNone; }
+    else if (obj.is_name ("Square")) {
         return annotLineEndSquare;
     }
-    else if (obj->is_name ("Circle")) {
+    else if (obj.is_name ("Circle")) {
         return annotLineEndCircle;
     }
-    else if (obj->is_name ("Diamond")) {
+    else if (obj.is_name ("Diamond")) {
         return annotLineEndDiamond;
     }
-    else if (obj->is_name ("OpenArrow")) {
+    else if (obj.is_name ("OpenArrow")) {
         return annotLineEndOpenArrow;
     }
-    else if (obj->is_name ("ClosedArrow")) {
+    else if (obj.is_name ("ClosedArrow")) {
         return annotLineEndClosedArrow;
     }
-    else if (obj->is_name ("Butt")) {
+    else if (obj.is_name ("Butt")) {
         return annotLineEndButt;
     }
-    else if (obj->is_name ("ROpenArrow")) {
+    else if (obj.is_name ("ROpenArrow")) {
         return annotLineEndROpenArrow;
     }
-    else if (obj->is_name ("RClosedArrow")) {
+    else if (obj.is_name ("RClosedArrow")) {
         return annotLineEndRClosedArrow;
     }
-    else if (obj->is_name ("Slash")) {
+    else if (obj.is_name ("Slash")) {
         return annotLineEndSlash;
     }
     else {
@@ -932,10 +932,13 @@ void Annot::draw (Gfx* gfx, bool printing) {
 }
 
 Object* Annot::getObject (Object* obj) {
-    if (ref.num >= 0) { xref->fetch (ref.num, ref.gen, obj); }
+    if (ref.num >= 0) {
+        *obj = xref->fetch (ref);
+    }
     else {
         *obj = { };
     }
+
     return obj;
 }
 
@@ -943,7 +946,7 @@ Object* Annot::getObject (Object* obj) {
 // Annots
 //------------------------------------------------------------------------
 
-Annots::Annots (PDFDoc* docA, Object* annotsObj) {
+Annots::Annots (PDFDoc* docA, const Object& annotsObj) {
     Annot* annot;
     Object obj1, obj2;
     Ref ref;
@@ -956,7 +959,7 @@ Annots::Annots (PDFDoc* docA, Object* annotsObj) {
     size = 0;
     nAnnots = 0;
 
-    if (annotsObj->is_array ()) {
+    if (annotsObj.is_array ()) {
         // Kludge: some PDF files define an empty AcroForm, but still
         // include Widget-type annotations -- in that case, we want to
         // draw the widgets (since the form code won't).  This really
@@ -964,14 +967,17 @@ Annots::Annots (PDFDoc* docA, Object* annotsObj) {
         // in any form field.
         drawWidgetAnnots = !doc->getCatalog ()->getForm () ||
                            doc->getCatalog ()->getForm ()->getNumFields () == 0;
-        for (i = 0; i < annotsObj->arrayGetLength (); ++i) {
-            if (annotsObj->arrayGetNF (i, &obj1)->is_ref ()) {
+        for (i = 0; i < annotsObj.as_array ().size (); ++i) {
+            obj1 = annotsObj [i];
+
+            if (obj1.is_ref ()) {
                 ref = obj1.as_ref ();
-                annotsObj->arrayGet (i, &obj1);
+                obj1 = resolve (annotsObj [i]);
             }
             else {
                 ref.num = ref.gen = -1;
             }
+
             if (obj1.is_dict ()) {
                 if (drawWidgetAnnots ||
                     !obj1.dictLookup ("Subtype", &obj2)->is_name ("Widget")) {

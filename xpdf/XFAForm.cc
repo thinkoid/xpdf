@@ -11,6 +11,7 @@
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
 
+#include <xpdf/array.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
@@ -183,8 +184,8 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
     }
     else if (xfaObj->is_array ()) {
         data = new GString ();
-        for (i = 1; i < xfaObj->arrayGetLength (); i += 2) {
-            if (!xfaObj->arrayGet (i, &obj1)->is_stream ()) {
+        for (i = 1; i < xfaObj->as_array ().size (); i += 2) {
+            if (!(obj1 = resolve ((*xfaObj) [i])).is_stream ()) {
                 error (errSyntaxError, -1, "XFA array element is wrong type");
                 delete data;
                 return NULL;
@@ -670,22 +671,22 @@ void XFAFormField::draw (
     appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
 
-    obj1 = xpdf::make_arr_obj (xfaForm->doc->getXRef ());
+    obj1 = xpdf::make_arr_obj ();
 
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (0));
-    obj1.arrayAdd (xpdf::make_real_obj (w));
-    obj1.arrayAdd (xpdf::make_real_obj (h));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (w));
+    obj1.as_array ().push_back (xpdf::make_real_obj (h));
 
     appearDict.dictAdd ("BBox", &obj1);
 
-    obj1 = xpdf::make_arr_obj (xfaForm->doc->getXRef ());
-    obj1.arrayAdd (xpdf::make_real_obj (mat[0]));
-    obj1.arrayAdd (xpdf::make_real_obj (mat[1]));
-    obj1.arrayAdd (xpdf::make_real_obj (mat[2]));
-    obj1.arrayAdd (xpdf::make_real_obj (mat[3]));
-    obj1.arrayAdd (xpdf::make_real_obj (mat[4]));
-    obj1.arrayAdd (xpdf::make_real_obj (mat[5]));
+    obj1 = xpdf::make_arr_obj ();
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[0]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[1]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[2]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[3]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[4]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[5]));
 
     appearDict.dictAdd ("Matrix", &obj1);
 

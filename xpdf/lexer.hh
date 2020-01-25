@@ -37,11 +37,11 @@ struct lexer_t {
 
     // Construct a lexer for a single stream.  Deletes the stream when
     // lexer is deleted.
-    lexer_t (XRef* xref, Stream* str);
+    lexer_t (Stream* str);
 
     // Construct a lexer for a stream or array of streams (assumes obj
     // is either a stream or array of streams).
-    lexer_t (XRef* xref, Object* obj);
+    lexer_t (Object* obj);
 
     // Destructor.
     ~lexer_t ();
@@ -77,9 +77,11 @@ private:
     int getChar ();
     int lookChar ();
 
+private:
     Array streams;          // array of input streams
-    int strPtr;              // index of current stream
-    Object curStr;           // current stream
+    Object curStr;          // current stream
+
+    size_t strPtr;          // index of current stream
 };
 
 } // namespace xpdf

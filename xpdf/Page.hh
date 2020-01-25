@@ -158,13 +158,13 @@ public:
     Dict* getResourceDict () { return attrs->getResourceDict (); }
 
     // Get annotations array.
-    Object* getAnnots (Object* obj) { return annots.fetch (xref, obj); }
+    Object getAnnots () { return resolve (annots); }
 
     // Return a list of links.
     Links* getLinks ();
 
     // Get contents.
-    Object* getContents (Object* obj) { return contents.fetch (xref, obj); }
+    Object getContents () { return resolve (contents); }
 
     // Display a page.
     void display (

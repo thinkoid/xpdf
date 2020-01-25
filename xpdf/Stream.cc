@@ -102,10 +102,10 @@ Stream* Stream::addFilters (Object* dict, int recursion) {
         str = makeFilter (obj.as_name (), str, &params, recursion);
     }
     else if (obj.is_array ()) {
-        for (i = 0; i < obj.arrayGetLength (); ++i) {
-            obj.arrayGet (i, &obj2);
+        for (i = 0; i < obj.as_array ().size (); ++i) {
+            obj2 = resolve (obj [i]);
             if (params.is_array ())
-                params.arrayGet (i, &params2);
+                params2 = resolve (params [i]);
             else
                 params2 = { };
             if (obj2.is_name ()) {

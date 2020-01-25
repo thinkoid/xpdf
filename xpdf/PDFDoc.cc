@@ -305,11 +305,13 @@ bool PDFDoc::isLinearized () {
 
     lin = false;
     obj1 = { };
+
     parser = new Parser (
         xref,
         new xpdf::lexer_t (
-            xref, str->makeSubStream (str->getStart (), false, 0, &obj1)),
+            str->makeSubStream (str->getStart (), false, 0, &obj1)),
         true);
+
     parser->getObj (&obj1);
     parser->getObj (&obj2);
     parser->getObj (&obj3);

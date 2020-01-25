@@ -207,7 +207,7 @@ GfxResources::GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA) {
         fonts = NULL;
         resDict->lookupNF ("Font", &obj1);
         if (obj1.is_ref ()) {
-            obj1.fetch (xref, &obj2);
+            obj2 = resolve (obj1);
             if (obj2.is_dict ()) {
                 r = obj1.as_ref ();
                 fonts = new GfxFontDict (xref, &r, obj2.as_dict ());
@@ -511,7 +511,7 @@ Gfx::~Gfx () {
 }
 
 void Gfx::display (Object* objRef, bool topLevel) {
-    Object obj = xpdf::resolve (*xref, *objRef);
+    Object obj = xpdf::resolve (*objRef);
 
     if (obj.is_array ()) {
         auto& arr = obj.as_array ();
@@ -541,7 +541,7 @@ void Gfx::display (Object* objRef, bool topLevel) {
         throw std::runtime_error ("not a content stream");
     }
 
-    parser = new Parser (xref, new xpdf::lexer_t (xref, &obj), false);
+    parser = new Parser (xref, new xpdf::lexer_t (&obj), false);
     go (topLevel);
 
     delete parser;
@@ -807,7 +807,7 @@ void Gfx::opSetDash (Object args[], int numArgs) {
         dash = (double*)calloc (length, sizeof (double));
 
         for (i = 0; i < length; ++i) {
-            dash[i] = arr.get (i, &obj)->as_num ();
+            dash[i] = resolve (arr [i]).as_num ();
         }
     }
 
@@ -872,9 +872,9 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
     if (obj1.dictLookup ("LJ", &obj2)->is_int ()) { opSetLineJoin (&obj2, 1); }
     if (obj1.dictLookup ("ML", &obj2)->is_num ()) { opSetMiterLimit (&obj2, 1); }
 
-    if (obj1.dictLookup ("D", &obj2)->is_array () && obj2.arrayGetLength () == 2) {
-        obj2.arrayGet (0, &args2[0]);
-        obj2.arrayGet (1, &args2[1]);
+    if (obj1.dictLookup ("D", &obj2)->is_array () && obj2.as_array ().size () == 2) {
+        args2[0] = resolve (obj2 [0]);
+        args2[1] = resolve (obj2 [1]);
 
         if (args2[0].is_array () && args2[1].is_num ()) {
             opSetDash (args2, 2);
@@ -888,9 +888,9 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
 
     // font
     if (obj1.dictLookup ("Font", &obj2)->is_array () &&
-        obj2.arrayGetLength () == 2) {
-        obj2.arrayGetNF (0, &obj3);
-        obj2.arrayGetNF (1, &obj4);
+        obj2.as_array ().size () == 2) {
+        obj3 = obj2 [0];
+        obj4 = obj2 [2];
         if (obj3.is_ref () && obj4.is_num ()) {
             doSetFont (res->lookupFontByRef (obj3.as_ref ()), obj4.as_num ());
         }
@@ -950,9 +950,9 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
         state->setTransfer (funcs);
         out->updateTransfer (state);
     }
-    else if (obj2.is_array () && obj2.arrayGetLength () == 4) {
+    else if (obj2.is_array () && obj2.as_array ().size () == 4) {
         for (i = 0; i < 4; ++i) {
-            obj2.arrayGet (i, &obj3);
+            obj3 = resolve (obj2 [i]);
             funcs[i] = xpdf::make_function (obj3);
             if (!funcs[i]) { break; }
         }
@@ -1008,9 +1008,9 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
                 for (i = 0; i < gfxColorMaxComps; ++i) {
                     backdropColor.c[i] = 0;
                 }
-                for (i = 0; i < obj3.arrayGetLength () && i < gfxColorMaxComps;
+                for (i = 0; i < obj3.as_array ().size () && i < gfxColorMaxComps;
                      ++i) {
-                    obj3.arrayGet (i, &obj4);
+                    obj4 = resolve (obj3 [i]);
                     if (obj4.is_num ()) {
                         backdropColor.c[i] = xpdf::to_color (obj4.as_num ());
                     }
@@ -1095,7 +1095,7 @@ void Gfx::doSoftMask (
         return;
     }
     for (i = 0; i < 4; ++i) {
-        obj1.arrayGet (i, &obj2);
+        obj2 = resolve (obj1 [i]);
         bbox[i] = obj2.as_num ();
     }
 
@@ -1103,7 +1103,7 @@ void Gfx::doSoftMask (
     dict->lookup ("Matrix", &obj1);
     if (obj1.is_array ()) {
         for (i = 0; i < 6; ++i) {
-            obj1.arrayGet (i, &obj2);
+            obj2 = resolve (obj1 [i]);
             m[i] = obj2.as_num ();
         }
     }
@@ -3290,7 +3290,7 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
         wMode = state->getFont ()->getWMode ();
         Array& a = args[0].as_array ();
         for (i = 0; i < a.size (); ++i) {
-            a.get (i, &obj);
+            obj = resolve (a [i]);
             if (obj.is_num ()) {
                 if (wMode) {
                     state->textShift (
@@ -3318,7 +3318,7 @@ void Gfx::opShowSpaceText (Object args[], int numArgs) {
     else {
         Array& a = args[0].as_array ();
         for (i = 0; i < a.size (); ++i) {
-            a.get (i, &obj);
+            obj = resolve (a [i]);
             if (obj.is_string ()) { doIncCharCount (obj.as_string ()); }
         }
     }
@@ -3413,7 +3413,7 @@ void Gfx::doShowText (GString* s) {
                     state, curX + riseX, curY + riseY, ddx, ddy, code, u,
                     uLen)) {
                 ((Gfx8BitFont*)font)->getCharProcNF (code, &charProcRef);
-                charProcRef.fetch (xref, &charProc);
+                charProc = resolve (charProcRef);
                 if ((resDict = ((Gfx8BitFont*)font)->getResources ())) {
                     pushResources (resDict);
                 }
@@ -3692,7 +3692,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
             dict->lookup ("D", &obj1);
         }
         if (obj1.is_array ()) {
-            obj1.arrayGet (0, &obj2);
+            obj2 = resolve (obj1 [0]);
             invert = obj2.is_num () && obj2.as_num () == 1;
         }
         else if (!obj1.is_null ()) {
@@ -3821,10 +3821,10 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         else if (maskObj.is_array ()) {
             // color key mask
             haveColorKeyMask = true;
-            for (i = 0; i + 1 < maskObj.arrayGetLength () &&
+            for (i = 0; i + 1 < maskObj.as_array ().size () &&
                         i + 1 < 2 * gfxColorMaxComps;
                  i += 2) {
-                maskObj.arrayGet (i, &obj1);
+                obj1 = resolve (maskObj [i]);
                 if (!obj1.is_int ()) {
                     haveColorKeyMask = false;
                     break;
@@ -3834,7 +3834,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
                     haveColorKeyMask = false;
                     break;
                 }
-                maskObj.arrayGet (i + 1, &obj1);
+                obj1 = resolve (maskObj [i + 1]);
                 if (!obj1.is_int ()) {
                     haveColorKeyMask = false;
                     break;
@@ -3875,7 +3875,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
                 maskDict->lookup ("D", &obj1);
             }
             if (obj1.is_array ()) {
-                obj1.arrayGet (0, &obj2);
+                obj2 = resolve (obj1 [0]);
                 maskInvert = obj2.is_num () && obj2.as_num () == 1;
             }
             else if (!obj1.is_null ()) {
@@ -3971,7 +3971,7 @@ void Gfx::doForm (Object* strRef, Object* str) {
         return;
     }
     for (i = 0; i < 4; ++i) {
-        bboxObj.arrayGet (i, &obj1);
+        obj1 = resolve (bboxObj [i]);
         bbox[i] = obj1.as_num ();
     }
 
@@ -3979,7 +3979,7 @@ void Gfx::doForm (Object* strRef, Object* str) {
     dict->lookup ("Matrix", &matrixObj);
     if (matrixObj.is_array ()) {
         for (i = 0; i < 6; ++i) {
-            matrixObj.arrayGet (i, &obj1);
+            obj1 = resolve (matrixObj [i]);
             m[i] = obj1.as_num ();
         }
     }
@@ -4330,8 +4330,7 @@ void Gfx::drawAnnot (
     if (xMin == xMax || yMin == yMax) { return; }
 
     // draw the appearance stream (if there is one)
-    strRef->fetch (xref, &str);
-    if (str.is_stream ()) {
+    if ((str = resolve (*strRef)).is_stream ()) {
         // get stream dict
         dict = str.streamGetDict ();
 
@@ -4342,7 +4341,7 @@ void Gfx::drawAnnot (
             return;
         }
         for (i = 0; i < 4; ++i) {
-            bboxObj.arrayGet (i, &obj1);
+            obj1 = resolve (bboxObj [i]);
             bbox[i] = obj1.as_num ();
         }
 
@@ -4350,7 +4349,7 @@ void Gfx::drawAnnot (
         dict->lookup ("Matrix", &matrixObj);
         if (matrixObj.is_array ()) {
             for (i = 0; i < 6; ++i) {
-                matrixObj.arrayGet (i, &obj1);
+                obj1 = resolve (matrixObj [i]);
                 m[i] = obj1.as_num ();
             }
         }

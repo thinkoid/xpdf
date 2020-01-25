@@ -40,36 +40,8 @@ obj_t::obj_t (Stream* p) noexcept
     : var_ (std::shared_ptr< Stream > (p))
 { }
 
-obj_t* obj_t::fetch (XRef* xref, obj_t* obj, int recursion) {
-    return *obj = resolve (*xref, *this, recursion), obj;
-}
-
-//------------------------------------------------------------------------
-// Array accessors.
-//------------------------------------------------------------------------
-
-int obj_t::arrayGetLength () {
-    return as_array ().size ();
-}
-
-void obj_t::arrayAdd (obj_t* pobj) {
-    arrayAdd (*pobj);
-}
-
-void obj_t::arrayAdd (const obj_t& obj) {
-    as_array ().push_back (obj);
-}
-
-void obj_t::arrayAdd (obj_t&& obj) {
-    as_array ().push_back (std::move (obj));
-}
-
-obj_t* obj_t::arrayGet (int i, obj_t* pobj) {
-    return as_array ().get (i, pobj);
-}
-
-obj_t* obj_t::arrayGetNF (int i, obj_t* pobj) {
-    return as_array ().getNF (i, pobj);
+obj_t& obj_t::operator[] (size_t n) {
+    return as_array ()[n];
 }
 
 //------------------------------------------------------------------------
@@ -200,9 +172,9 @@ void obj_t::print (FILE*) {
     case objNull: fprintf (f, "null"); break;
     case objArray:
         fprintf (f, "[");
-        for (i = 0; i < arrayGetLength (); ++i) {
+        for (i = 0; i < as_array ().size () (); ++i) {
             if (i > 0) fprintf (f, " ");
-            arrayGetNF (i, &obj);
+            obj = as_array ()[i];
             obj.print (f);
         }
         fprintf (f, "]");
@@ -226,8 +198,8 @@ void obj_t::print (FILE*) {
 #endif // 0
 }
 
-obj_t make_arr_obj (XRef* p) {
-    return obj_t (new Array (p));
+obj_t make_arr_obj () {
+    return obj_t (new Array ());
 }
 
 obj_t make_dict_obj (XRef* p) {
@@ -245,8 +217,14 @@ obj_t make_stream_obj (Stream* p) {
 //
 // Attempts to resolve references to the actual PDF objects:
 //
-obj_t resolve (XRef& xref, const obj_t& obj, int recursion /* = 0 */) {
-    return obj.is_ref () ? xref.fetch (obj.as_ref (), recursion) : obj;
+obj_t resolve (const obj_t& obj, int recursion /* = 0 */) {
+    if (obj.is_ref ()) {
+        auto& ref = obj.as_ref ();
+        return ref.xref->fetch (ref, recursion);
+    }
+    else {
+        return obj;
+    }
 }
 
 } // namespace xpdf

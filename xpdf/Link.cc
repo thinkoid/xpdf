@@ -14,6 +14,7 @@
 #include <xpdf/array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Link.hh>
+#include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------
 // LinkAction
@@ -168,7 +169,7 @@ LinkDest::LinkDest (Array& arr) {
             errSyntaxWarning, -1, "Annotation destination array is too short");
         return;
     }
-    arr.getNF (0, &obj1);
+    obj1 = arr [0];
     if (obj1.is_int ()) {
         pageNum = obj1.as_int () + 1;
         pageIsRef = false;
@@ -184,14 +185,14 @@ LinkDest::LinkDest (Array& arr) {
     }
 
     // get destination type
-    arr.get (1, &obj1);
+    obj1 = resolve (arr [1]);
 
     // XYZ link
     if (obj1.is_name ("XYZ")) {
         kind = destXYZ;
         if (arr.size () < 3) { changeLeft = false; }
         else {
-            arr.get (2, &obj2);
+            obj2 = resolve (arr [2]);
             if (obj2.is_null ()) { changeLeft = false; }
             else if (obj2.is_num ()) {
                 changeLeft = true;
@@ -206,7 +207,7 @@ LinkDest::LinkDest (Array& arr) {
         }
         if (arr.size () < 4) { changeTop = false; }
         else {
-            arr.get (3, &obj2);
+            obj2 = resolve (arr [3]);
             if (obj2.is_null ()) { changeTop = false; }
             else if (obj2.is_num ()) {
                 changeTop = true;
@@ -221,7 +222,7 @@ LinkDest::LinkDest (Array& arr) {
         }
         if (arr.size () < 5) { changeZoom = false; }
         else {
-            arr.get (4, &obj2);
+            obj2 = resolve (arr [4]);
             if (obj2.is_null ()) { changeZoom = false; }
             else if (obj2.is_num ()) {
                 changeZoom = true;
@@ -256,7 +257,7 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitH;
-        if (arr.get (2, &obj2)->is_num ()) {
+        if ((obj2 = resolve (arr [2])).is_num ()) {
             top = obj2.as_num ();
             changeTop = true;
         }
@@ -278,7 +279,7 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitV;
-        if (arr.get (2, &obj2)->is_num ()) {
+        if ((obj2 = resolve (arr [2])).is_num ()) {
             left = obj2.as_num ();
             changeLeft = true;
         }
@@ -300,22 +301,24 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitR;
-        if (arr.get (2, &obj2)->is_num ()) { left = obj2.as_num (); }
+        if ((obj2 = resolve (arr [2])).is_num ()) {
+            left = obj2.as_num ();
+        }
         else {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
-        if (!arr.get (3, &obj2)->is_num ()) {
+        if (!(obj2 = resolve (arr [3])).is_num ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         bottom = obj2.as_num ();
-        if (!arr.get (4, &obj2)->is_num ()) {
+        if (!(obj2 = resolve (arr [4])).is_num ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
         right = obj2.as_num ();
-        if (!arr.get (5, &obj2)->is_num ()) {
+        if (!(obj2 = resolve (arr [5])).is_num ()) {
             error (errSyntaxWarning, -1, "Bad annotation destination position");
             kind = destFit;
         }
@@ -342,7 +345,7 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitBH;
-        if (arr.get (2, &obj2)->is_num ()) {
+        if ((obj2 = resolve (arr [2])).is_num ()) {
             top = obj2.as_num ();
             changeTop = true;
         }
@@ -364,7 +367,7 @@ LinkDest::LinkDest (Array& arr) {
             return;
         }
         kind = destFitBV;
-        if (arr.get (2, &obj2)->is_num ()) {
+        if ((obj2 = resolve (arr [2])).is_num ()) {
             left = obj2.as_num ();
             changeLeft = true;
         }
@@ -713,22 +716,22 @@ Link::Link (Dict* dict, GString* baseURI) {
         error (errSyntaxError, -1, "Annotation rectangle is wrong type");
         return;
     }
-    if (!obj1.arrayGet (0, &obj2)->is_num ()) {
+    if (!(obj2 = resolve (obj1 [0])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
     x1 = obj2.as_num ();
-    if (!obj1.arrayGet (1, &obj2)->is_num ()) {
+    if (!(obj2 = resolve (obj1 [1])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
     y1 = obj2.as_num ();
-    if (!obj1.arrayGet (2, &obj2)->is_num ()) {
+    if (!(obj2 = resolve (obj1 [2])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
     x2 = obj2.as_num ();
-    if (!obj1.arrayGet (3, &obj2)->is_num ()) {
+    if (!(obj2 = resolve (obj1 [3])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
@@ -768,7 +771,7 @@ Link::~Link () {
 // Links
 //------------------------------------------------------------------------
 
-Links::Links (Object* annots, GString* baseURI) {
+Links::Links (const Object& annots, GString* baseURI) {
     Link* link;
     Object obj1, obj2, obj3;
     int size;
@@ -778,9 +781,9 @@ Links::Links (Object* annots, GString* baseURI) {
     size = 0;
     numLinks = 0;
 
-    if (annots->is_array ()) {
-        for (i = 0; i < annots->arrayGetLength (); ++i) {
-            if (annots->arrayGet (i, &obj1)->is_dict ()) {
+    if (annots.is_array ()) {
+        for (i = 0; i < annots.as_array ().size (); ++i) {
+            if ((obj1 = resolve (annots [i])).is_dict ()) {
                 obj1.dictLookup ("Subtype", &obj2);
                 obj1.dictLookup ("FT", &obj3);
                 if (obj2.is_name ("Link") ||

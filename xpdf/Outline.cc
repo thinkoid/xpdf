@@ -84,12 +84,18 @@ GList* OutlineItem::readItemList (
     int i;
 
     items = new GList ();
-    if (!firstItemRef->is_ref () || !lastItemRef->is_ref ()) { return items; }
+
+    if (!firstItemRef->is_ref () || !lastItemRef->is_ref ()) {
+        return items;
+    }
+
     p = firstItemRef;
+
     do {
-        if (!p->fetch (xrefA, &obj)->is_dict ()) {
+        if (!(obj = resolve (*p)).is_dict ()) {
             break;
         }
+
         item = new OutlineItem (p, obj.as_dict (), parentA, xrefA);
 
         // check for loops with parents

@@ -52,7 +52,8 @@ Object* Dict::lookup (const char* key, Object* pobj, int recursion) {
     auto iter = sequential_find (xs, key);
 
     if (iter != xs.end ()) {
-        return std::get< 1 > (*iter).fetch (xref, pobj, recursion);
+        auto& obj = std::get< 1 > (*iter);
+        return *pobj = resolve (obj, recursion), pobj;
     }
     else {
         *pobj = { };
@@ -87,7 +88,8 @@ Object* Dict::getVal (int i, Object* pobj) {
     auto iter = xs.begin ();
     std::advance (iter, size_t (i));
 
-    return std::get< 1 > (*iter).fetch (xref, pobj);
+    auto& obj = std::get< 1 > (*iter);
+    return *pobj = resolve (obj), pobj;
 }
 
 Object* Dict::getValNF (int i, Object* pobj) {

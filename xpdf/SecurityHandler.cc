@@ -4,11 +4,13 @@
 #include <defs.hh>
 
 #include <goo/GString.hh>
-#include <xpdf/PDFDoc.hh>
+
+#include <xpdf/array.hh>
 #include <xpdf/Decrypt.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/PDFCore.hh>
+#include <xpdf/PDFDoc.hh>
 #include <xpdf/SecurityHandler.hh>
 
 //------------------------------------------------------------------------
@@ -208,7 +210,8 @@ StandardSecurityHandler::StandardSecurityHandler (
             if (encVersion >= 1 && encVersion <= 2 && encRevision >= 2 &&
                 encRevision <= 3) {
                 if (fileIDObj.is_array ()) {
-                    if (fileIDObj.arrayGet (0, &fileIDObj1)->is_string ()) {
+                    fileIDObj1 = fileIDObj [0];
+                    if (fileIDObj1.is_string ()) {
                         fileID = fileIDObj1.as_string ()->copy ();
                     }
                     else {

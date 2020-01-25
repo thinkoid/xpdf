@@ -380,7 +380,7 @@ TextOutputControl::TextOutputControl () {
 //------------------------------------------------------------------------
 
 TextFontInfo::TextFontInfo (GfxState* state)
-    : fontID{ -1, -1 },
+    : fontID{ 0, -1, -1 },
       fontName{ },
       mWidth{ },
       ascent{ 0.75 },

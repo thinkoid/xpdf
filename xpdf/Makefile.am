@@ -51,7 +51,6 @@ libxpdf_a_SOURCES =                             \
    XFAForm.cc                                   \
    XRef.cc                                      \
    Zoox.cc                                      \
-   array.cc                                     \
    bitpack.cc                                   \
    function.cc                                  \
    lexer.cc                                     \

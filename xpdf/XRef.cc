@@ -196,7 +196,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
 
     str = new EmbedStream (objStr.as_stream (), &obj1, true, first);
 
-    Parser parser (xref, new xpdf::lexer_t (xref, str), false);
+    Parser parser (xref, new xpdf::lexer_t (str), false);
 
     for (i = 0; i < nObjects; ++i) {
         parser.getObj (&obj1, true);
@@ -233,7 +233,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
                 objStr.as_stream (), &obj1, true, offsets[i + 1] - offsets[i]);
         }
 
-        Parser parser (xref, new xpdf::lexer_t (xref, str), false);
+        Parser parser (xref, new xpdf::lexer_t (str), false);
         parser.getObj (&objs[i]);
 
         while (str->getChar () != EOF) ;
@@ -395,7 +395,7 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
         Parser parser (
             NULL,
             new xpdf::lexer_t (
-                NULL, str->makeSubStream (start + *pos, false, 0, &obj)),
+                str->makeSubStream (start + *pos, false, 0, &obj)),
             true);
 
         if (!parser.getObj (&obj, true)->is_int ())      { goto err1; }
@@ -517,7 +517,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     Parser parser (
         NULL,
-        new xpdf::lexer_t (NULL, str->makeSubStream (str->getPos (), false, 0, &obj)),
+        new xpdf::lexer_t (str->makeSubStream (str->getPos (), false, 0, &obj)),
         true);
 
     parser.getObj (&obj);
@@ -582,11 +582,11 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
         size = newSize;
     }
 
-    if (!dict->lookupNF ("W", &obj)->is_array () || obj.arrayGetLength () < 3) {
+    if (!dict->lookupNF ("W", &obj)->is_array () || obj.as_array ().size () < 3) {
         goto err1;
     }
     for (i = 0; i < 3; ++i) {
-        if (!obj.arrayGet (i, &obj2)->is_int ()) {
+        if (!(obj2 = resolve (obj [i])).is_int ()) {
             goto err1;
         }
         w[i] = obj2.as_int ();
@@ -599,12 +599,12 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     xrefStr->reset ();
     dict->lookupNF ("Index", &idx);
     if (idx.is_array ()) {
-        for (i = 0; i + 1 < idx.arrayGetLength (); i += 2) {
-            if (!idx.arrayGet (i, &obj)->is_int ()) {
+        for (i = 0; i + 1 < idx.as_array ().size (); i += 2) {
+            if (!(obj = resolve (idx [i])).is_int ()) {
                 goto err1;
             }
             first = obj.as_int ();
-            if (!idx.arrayGet (i + 1, &obj)->is_int ()) {
+            if (!(obj = resolve (idx [i + 1])).is_int ()) {
                 goto err1;
             }
             n = obj.as_int ();
@@ -735,7 +735,7 @@ bool XRef::constructXRef () {
 
             Parser parser (
                 NULL,
-                new xpdf::lexer_t (NULL, str->makeSubStream (pos + 7, false, 0, &obj)),
+                new xpdf::lexer_t (str->makeSubStream (pos + 7, false, 0, &obj)),
                 false);
 
             parser.getObj (&newTrailerDict);
@@ -864,7 +864,7 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
         Parser parser (
             this,
             new xpdf::lexer_t (
-                this, str->makeSubStream (start + e->offset, false, 0, &obj1)),
+                str->makeSubStream (start + e->offset, false, 0, &obj1)),
             true);
 
         parser.getObj (&obj1, true);

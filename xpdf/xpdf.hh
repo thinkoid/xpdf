@@ -10,8 +10,7 @@
 #include <tuple>
 #include <vector>
 
-#include <xpdf/array_fwd.hh>
-#include <xpdf/ArrayIterator.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
@@ -40,20 +39,14 @@ inline T as (Dict& dict, const char* s) {
 
 template< typename T >
 inline T array_get (Object& arr, size_t i) {
-    Object tmp;
-
-    if (0 == arr.arrayGet (i, &tmp)) {
-        throw std::runtime_error (format ("invalid array or index {}", i));
-    }
-
-    return tmp.cast< T > ();
+    return arr [i].cast< T > ();
 }
 
 template< typename T >
 inline auto as_array (Object& src) {
     std::vector< T > xs;
 
-    for (size_t i = 0, n = src.arrayGetLength (); i < n; ++i) {
+    for (size_t i = 0, n = src.as_array ().size (); i < n; ++i) {
         xs.emplace_back (array_get< T > (src, i));
     }
 
@@ -64,7 +57,7 @@ template< >
 inline auto as_array< size_t > (Object& src) {
     std::vector< size_t > xs;
 
-    for (size_t i = 0, n = src.arrayGetLength (); i < n; ++i) {
+    for (size_t i = 0, n = src.as_array ().size (); i < n; ++i) {
         xs.emplace_back (array_get< int > (src, i));
     }
 
@@ -79,10 +72,12 @@ inline auto as_array< std::tuple< double, double > > (Object& src) {
         throw std::runtime_error ("not an array");
     }
 
-    auto rng = xpdf::make_array_subrange< double > (src);
+    auto& rng = src.as_array ();
 
     transform (rng | views::chunk (2), back_inserter (xs), [](auto arg) {
-        return std::make_tuple (arg [0], arg [1]);
+        return std::make_tuple (
+            arg [0].template cast< double > (),
+            arg [1].template cast< double > ());
     });
 
     return xs;

@@ -153,24 +153,24 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     bool ok;
 
     dict->lookup (key, &obj1);
-    if (obj1.is_array () && obj1.arrayGetLength () == 4) {
+    if (obj1.is_array () && obj1.as_array ().size () == 4) {
         ok = true;
-        obj1.arrayGet (0, &obj2);
+        obj2 = resolve (obj1 [0]);
         if (obj2.is_num ()) { tmp.x1 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj1.arrayGet (1, &obj2);
+        obj2 = resolve (obj1 [1]);
         if (obj2.is_num ()) { tmp.y1 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj1.arrayGet (2, &obj2);
+        obj2 = resolve (obj1 [2]);
         if (obj2.is_num ()) { tmp.x2 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj1.arrayGet (3, &obj2);
+        obj2 = resolve (obj1 [3]);
         if (obj2.is_num ()) { tmp.y2 = obj2.as_num (); }
         else {
             ok = false;
@@ -253,11 +253,7 @@ Page::~Page () {
 }
 
 Links* Page::getLinks () {
-    Links* links;
-    Object obj;
-
-    links = new Links (getAnnots (&obj), doc->getCatalog ()->getBaseURI ());
-    return links;
+    return new Links (getAnnots (), doc->getCatalog ()->getBaseURI ());
 }
 
 void Page::display (
@@ -314,7 +310,7 @@ void Page::displaySlice (
         doc, out, num, attrs->getResourceDict (), hDPI, vDPI, &box,
         crop ? cropBox : (PDFRectangle*)NULL, rotate, abortCheckCbk,
         abortCheckCbkData);
-    contents.fetch (xref, &obj);
+    obj = resolve (contents);
     if (!obj.is_null ()) {
         gfx->saveState ();
         gfx->display (&contents);
@@ -328,7 +324,7 @@ void Page::displaySlice (
 
     // draw (non-form) annotations
     if (globalParams->getDrawAnnotations ()) {
-        annotList = new Annots (doc, getAnnots (&obj));
+        annotList = new Annots (doc, getAnnots ());
         annotList->generateAnnotAppearances ();
         if (annotList->getNumAnnots () > 0) {
             if (globalParams->getPrintCommands ()) {

@@ -75,6 +75,7 @@ struct cmd_t : std::string {
 };
 
 struct ref_t {
+    XRef* xref;
     int num, gen;
 };
 
@@ -234,20 +235,13 @@ struct obj_t {
     void print (FILE* = stdout);
 
     //
-    // Fetch referenced objects if obj_t is a reference. Otherwise, copy this
-    // object:
-    //
-    obj_t* fetch (XRef*, obj_t*, int recursion = 0);
-
-    //
     // Array accessors:
     //
-    int arrayGetLength ();
-    void arrayAdd (obj_t* elem);
-    void arrayAdd (const obj_t&);
-    void arrayAdd (obj_t&&);
-    obj_t* arrayGet (int i, obj_t* obj);
-    obj_t* arrayGetNF (int i, obj_t* obj);
+    obj_t& operator[] (size_t);
+
+    const obj_t& operator[] (size_t n) const {
+        return const_cast< obj_t* > (this)->operator[] (n);
+    }
 
     //
     // Dict accessors:
@@ -303,7 +297,7 @@ private:
     > var_;
 };
 
-obj_t resolve (XRef&, const obj_t&, int = 0);
+obj_t resolve (const obj_t&, int = 0);
 
 //
 // Convenience factories:
@@ -344,15 +338,15 @@ inline obj_t make_cmd_obj (const std::string& arg) {
     return obj_t (cmd_t (arg));
 }
 
-inline obj_t make_ref_obj (int a, int b) {
-    return obj_t (ref_t{ a, b });
+inline obj_t make_ref_obj (int a, int b, XRef* p) {
+    return obj_t (ref_t{ p, a, b });
 }
 
 inline obj_t make_ref_obj (ref_t arg) {
     return obj_t (arg);
 }
 
-obj_t make_arr_obj (XRef*);
+obj_t make_arr_obj ();
 obj_t make_dict_obj (Dict*);
 obj_t make_dict_obj (XRef*);
 obj_t make_stream_obj (Stream*);

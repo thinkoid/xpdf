@@ -14,6 +14,7 @@
 #include <splash/SplashBitmap.hh>
 #include <splash/SplashPattern.hh>
 
+#include <xpdf/array.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/PDFDoc.hh>
@@ -586,16 +587,16 @@ void XPDFCore::doAction (LinkAction* action) {
             break;
         }
         if (((LinkMovie*)action)->hasAnnotRef ()) {
-            doc->getXRef ()->fetch (
-                ((LinkMovie*)action)->getAnnotRef ()->num,
-                ((LinkMovie*)action)->getAnnotRef ()->gen, &movieAnnot);
+            movieAnnot = doc->getXRef ()->fetch (
+                *((LinkMovie*)action)->getAnnotRef ());
         }
         else {
             //~ need to use the correct page num here
-            doc->getCatalog ()->getPage (topPage)->getAnnots (&obj1);
+            obj1 = doc->getCatalog ()->getPage (topPage)->getAnnots ();
+
             if (obj1.is_array ()) {
-                for (i = 0; i < obj1.arrayGetLength (); ++i) {
-                    if (obj1.arrayGet (i, &movieAnnot)->is_dict ()) {
+                for (i = 0; i < obj1.as_array ().size (); ++i) {
+                    if ((movieAnnot = resolve (obj1 [i])).is_dict ()) {
                         if (movieAnnot.dictLookup ("Subtype", &obj2)
                                 ->is_name ("Movie")) {
                             break;
