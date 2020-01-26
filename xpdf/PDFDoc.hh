@@ -1,13 +1,8 @@
-//========================================================================
-//
-// PDFDoc.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef PDFDOC_H
-#define PDFDOC_H
+#ifndef XPDF_XPDF_PDFDOC_HH
+#define XPDF_XPDF_PDFDOC_HH
 
 #include <defs.hh>
 
@@ -197,4 +192,4 @@ private:
     int errCode;
 };
 
-#endif
+#endif // XPDF_XPDF_PDFDOC_HH

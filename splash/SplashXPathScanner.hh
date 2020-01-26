@@ -1,19 +1,15 @@
-//========================================================================
-//
-// SplashXPathScanner.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHXPATHSCANNER_H
-#define SPLASHXPATHSCANNER_H
+#ifndef XPDF_SPLASH_SPLASHXPATHSCANNER_HH
+#define XPDF_SPLASH_SPLASHXPATHSCANNER_HH
 
 #include <defs.hh>
 
 #include <splash/SplashTypes.hh>
 
-class GList;
+#include <vector>
+
 class SplashXPath;
 
 //------------------------------------------------------------------------
@@ -24,8 +20,6 @@ class SplashXPathScanner {
 public:
     // Create a new SplashXPathScanner object.  <xPathA> must be sorted.
     SplashXPathScanner (SplashXPath* xPathA, bool eoA, int yMinA, int yMaxA);
-
-    ~SplashXPathScanner ();
 
     // Compute shape values for a scan line.  Fills in line[] with shape
     // values for one scan line: ([x0, x1], y).  The values are in [0,
@@ -38,29 +32,38 @@ public:
 
 private:
     inline void addArea (unsigned char* line, int x, SplashCoord a);
+
     void drawTrapezoid (
-        unsigned char* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
-        SplashCoord xa0, SplashCoord xa1, SplashCoord dydxa, SplashCoord xb0,
-        SplashCoord xb1, SplashCoord dydxb);
+        unsigned char* line,
+        int xMin, int xMax,
+        SplashCoord y0,  SplashCoord y1,
+        SplashCoord xa0, SplashCoord xa1, SplashCoord dydxa,
+        SplashCoord xb0, SplashCoord xb1, SplashCoord dydxb);
+
     SplashCoord areaLeft (
-        int xp, SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
+        int xp,
+        SplashCoord x0, SplashCoord y0,
+        SplashCoord x1, SplashCoord y1,
         SplashCoord dydx);
+
     SplashCoord areaRight (
-        int xp, SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
+        int xp,
+        SplashCoord x0, SplashCoord y0,
+        SplashCoord x1, SplashCoord y1,
         SplashCoord dydx);
+
     void drawRectangle (
-        unsigned char* line, int xMin, int xMax, SplashCoord y0, SplashCoord y1,
+        unsigned char* line,
+        int xMin, int xMax,
+        SplashCoord y0, SplashCoord y1,
         SplashCoord x0, SplashCoord x1);
-    void sortActiveSegs ();
-    void insertActiveSeg (SplashXPathSeg* seg);
 
     SplashXPath* xPath;
     bool eo;
-    int yMin, yMax;
+    int yMin, yMax, yNext;
 
-    GList* activeSegs; // [SplashXPathSeg]
+    std::vector< SplashXPathSeg* > activeSegs;
     int nextSeg;
-    int yNext;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHXPATHSCANNER_HH

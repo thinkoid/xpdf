@@ -1,16 +1,10 @@
-//========================================================================
-//
-// PSTokenizer.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef PSTOKENIZER_H
-#define PSTOKENIZER_H
+#ifndef XPDF_XPDF_PSTOKENIZER_HH
+#define XPDF_XPDF_PSTOKENIZER_HH
 
 #include <defs.hh>
-
 
 //------------------------------------------------------------------------
 
@@ -31,4 +25,4 @@ private:
     int charBuf;
 };
 
-#endif
+#endif // XPDF_XPDF_PSTOKENIZER_HH

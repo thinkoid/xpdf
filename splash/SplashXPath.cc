@@ -1,10 +1,5 @@
-//========================================================================
-//
-// SplashXPath.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -18,6 +13,9 @@
 #include <splash/SplashMath.hh>
 #include <splash/SplashPath.hh>
 #include <splash/SplashXPath.hh>
+
+#include <range/v3/all.hpp>
+using namespace ranges;
 
 //------------------------------------------------------------------------
 
@@ -127,7 +125,7 @@ SplashXPath::SplashXPath (
 
     free (pts);
 
-    std::sort (segs, segs + length, SplashXPathSeg::cmpY);
+    sort (segs, segs + length, std::less< SplashCoord >{ }, &SplashXPathSeg::y0);
 
     if (length == 0) { xMin = yMin = xMax = yMax = 0; }
     else {

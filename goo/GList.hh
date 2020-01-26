@@ -1,16 +1,10 @@
-//========================================================================
-//
-// GList.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef GLIST_H
-#define GLIST_H
+#ifndef XPDF_GOO_GLIST_HH
+#define XPDF_GOO_GLIST_HH
 
 #include <defs.hh>
-
 
 //------------------------------------------------------------------------
 // GList
@@ -96,4 +90,4 @@ private:
         }                                                  \
     } while (0)
 
-#endif
+#endif // XPDF_GOO_GLIST_HH

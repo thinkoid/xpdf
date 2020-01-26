@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashXPath.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHXPATH_H
-#define SPLASHXPATH_H
+#ifndef XPDF_SPLASH_SPLASHXPATH_HH
+#define XPDF_SPLASH_SPLASHXPATH_HH
 
 #include <defs.hh>
 
@@ -26,31 +21,19 @@ struct SplashPathHint;
 //------------------------------------------------------------------------
 
 struct SplashXPathSeg {
-    SplashCoord x0, y0; // first endpoint (y0 <= y1)
-    SplashCoord x1, y1; // second endpoint
-    SplashCoord dxdy;   // slope: delta-x / delta-y
-    SplashCoord dydx;   // slope: delta-y / delta-x
-    int count;          // EO/NZWN counter increment
+    //
+    // x0, y0       : first endpoint (y0 <= y1)
+    // x1, y1       : second endpoint
+    // dxdy         : slope: delta-x / delta-y
+    // dydx         : slope: delta-y / delta-x
+    // xCur0, xCur1 : current x values
+    //
+    SplashCoord x0, y0, x1, y1, dxdy, dydx, xCur0, xCur1;
 
-    //----- used by SplashXPathScanner
-    SplashCoord xCur0, xCur1; // current x values
-
-    static bool cmpY (const SplashXPathSeg& seg0, const SplashXPathSeg& seg1) {
-        return seg0.y0 < seg1.y0;
-    }
-
-    static int cmpX (SplashXPathSeg* seg0, SplashXPathSeg* seg1) {
-        SplashCoord cmp;
-
-        if ((cmp = seg0->xCur0 - seg1->xCur0) == 0) {
-            cmp = seg0->dxdy - seg1->dxdy;
-        }
-        return (cmp > 0) ? 1 : (cmp < 0) ? -1 : 0;
-    }
-
-    static int cmpXi (const void* p0, const void* p1) {
-        return cmpX (*(SplashXPathSeg**)p0, *(SplashXPathSeg**)p1);
-    }
+    //
+    // EO/NZWN counter increment
+    //
+    int count;
 };
 
 //------------------------------------------------------------------------
@@ -102,4 +85,4 @@ private:
     friend class Splash;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHXPATH_HH

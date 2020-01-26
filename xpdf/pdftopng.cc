@@ -1,10 +1,5 @@
-//========================================================================
-//
-// pdftopng.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2009 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 #include <cstdlib>
@@ -13,7 +8,7 @@
 #include <goo/parseargs.hh>
 #include <goo/GString.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <splash/SplashBitmap.hh>
 #include <splash/Splash.hh>

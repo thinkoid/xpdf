@@ -1,19 +1,11 @@
-//========================================================================
-//
-// GlobalParams.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
 #include <cstring>
 #include <cstdio>
 #include <cctype>
-#ifdef ENABLE_PLUGINS
-#include <dlfcn.h>
-#endif
 
 #include <paper.h>
 
@@ -32,15 +24,11 @@
 #include <xpdf/BuiltinFontTables.hh>
 #include <xpdf/FontEncodingTables.hh>
 
-#ifdef ENABLE_PLUGINS
-#include <xpdf/XpdfPluginAPI.hh>
-#endif
-
 #include <xpdf/GlobalParams.hh>
 
-#include <xpdf/NameToUnicodeTable.hh>
-#include <xpdf/UnicodeMapTables.hh>
-#include <xpdf/UTF8.hh>
+#include "NameToUnicodeTable.cc"
+#include "UnicodeMapTables.cc"
+#include "UTF8.cc"
 
 //------------------------------------------------------------------------
 
@@ -314,92 +302,6 @@ KeyBinding::KeyBinding (int codeA, int modsA, int contextA, GList* cmdsA) {
 
 KeyBinding::~KeyBinding () { deleteGList (cmds, GString); }
 
-#ifdef ENABLE_PLUGINS
-//------------------------------------------------------------------------
-// Plugin
-//------------------------------------------------------------------------
-
-class Plugin {
-public:
-    static Plugin* load (char* type, char* name);
-    ~Plugin ();
-
-private:
-    Plugin (void* dlA);
-    void* dl;
-};
-
-Plugin* Plugin::load (char* type, char* name) {
-    GString* path;
-    Plugin* plugin;
-    XpdfPluginVecTable* vt;
-    XpdfBool (*xpdfInitPlugin) (void);
-    void* dlA;
-
-    path = globalParams->getBaseDir ();
-    appendToPath (path, "plugins");
-    appendToPath (path, type);
-    appendToPath (path, name);
-
-    //~ need to deal with other extensions here
-    path->append (".so");
-    if (!(dlA = dlopen (path->c_str (), RTLD_NOW))) {
-        error (
-            errIO, -1, "Failed to load plugin '{0:t}': {1:s}", path,
-            dlerror ());
-        goto err1;
-    }
-    if (!(vt = (XpdfPluginVecTable*)dlsym (dlA, "xpdfPluginVecTable"))) {
-        error (
-            errIO, -1, "Failed to find xpdfPluginVecTable in plugin '{0:t}'",
-            path);
-        goto err2;
-    }
-
-    if (vt->version != xpdfPluginVecTable.version) {
-        error (errIO, -1, "Plugin '{0:t}' is wrong version", path);
-        goto err2;
-    }
-    memcpy (vt, &xpdfPluginVecTable, sizeof (xpdfPluginVecTable));
-
-    if (!(xpdfInitPlugin =
-              (XpdfBool (*) (void))dlsym (dlA, "xpdfInitPlugin"))) {
-        error (
-            errIO, -1, "Failed to find xpdfInitPlugin in plugin '{0:t}'", path);
-        goto err2;
-    }
-
-    if (!(*xpdfInitPlugin) ()) {
-        error (errIO, -1, "Initialization of plugin '{0:t}' failed", path);
-        goto err2;
-    }
-
-    plugin = new Plugin (dlA);
-
-    delete path;
-    return plugin;
-
-err2:
-    dlclose (dlA);
-
-err1:
-    delete path;
-    return NULL;
-}
-
-Plugin::Plugin (void* dlA) { dl = dlA; }
-
-Plugin::~Plugin () {
-    void (*xpdfFreePlugin) (void);
-
-    if ((xpdfFreePlugin = (void (*) (void))dlsym (dl, "xpdfFreePlugin"))) {
-        (*xpdfFreePlugin) ();
-    }
-    dlclose (dl);
-}
-
-#endif // ENABLE_PLUGINS
-
 //------------------------------------------------------------------------
 // parsing
 //------------------------------------------------------------------------
@@ -518,11 +420,6 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
         new CharCodeToUnicodeCache (unicodeToUnicodeCacheSize);
     unicodeMapCache = new UnicodeMapCache ();
     cMapCache = new CMapCache ();
-
-#ifdef ENABLE_PLUGINS
-    plugins = new GList ();
-    securityHandlers = new GList ();
-#endif
 
     // set up the initial nameToUnicode table
     for (i = 0; nameToUnicodeTab[i].name; ++i) {
@@ -1826,11 +1723,6 @@ GlobalParams::~GlobalParams () {
     delete unicodeToUnicodeCache;
     delete unicodeMapCache;
     delete cMapCache;
-
-#ifdef ENABLE_PLUGINS
-    delete securityHandlers;
-    deleteGList (plugins, Plugin);
-#endif
 }
 
 //------------------------------------------------------------------------
@@ -2741,46 +2633,3 @@ void GlobalParams::setPrintCommands (bool printCommandsA) {
 }
 
 void GlobalParams::setErrQuiet (bool errQuietA) { errQuiet = errQuietA; }
-
-void GlobalParams::addSecurityHandler (XpdfSecurityHandler* handler) {
-#ifdef ENABLE_PLUGINS
-    securityHandlers->append (handler);
-#endif
-}
-
-XpdfSecurityHandler* GlobalParams::getSecurityHandler (char* name) {
-#ifdef ENABLE_PLUGINS
-    XpdfSecurityHandler* hdlr;
-    int i;
-
-    for (i = 0; i < securityHandlers->getLength (); ++i) {
-        hdlr = (XpdfSecurityHandler*)securityHandlers->get (i);
-        if (!strcasecmp (hdlr->name, name)) { return hdlr; }
-    }
-
-    if (!loadPlugin ("security", name)) { return NULL; }
-
-    for (i = 0; i < securityHandlers->getLength (); ++i) {
-        hdlr = (XpdfSecurityHandler*)securityHandlers->get (i);
-        if (!strcmp (hdlr->name, name)) { return hdlr; }
-    }
-#endif
-
-    return NULL;
-}
-
-#ifdef ENABLE_PLUGINS
-//------------------------------------------------------------------------
-// plugins
-//------------------------------------------------------------------------
-
-bool GlobalParams::loadPlugin (char* type, char* name) {
-    Plugin* plugin;
-
-    if (!(plugin = Plugin::load (type, name))) { return false; }
-
-    plugins->append (plugin);
-    return true;
-}
-
-#endif // ENABLE_PLUGINS

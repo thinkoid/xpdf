@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashBitmap.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHBITMAP_H
-#define SPLASHBITMAP_H
+#ifndef XPDF_SPLASH_SPLASHBITMAP_HH
+#define XPDF_SPLASH_SPLASHBITMAP_HH
 
 #include <defs.hh>
 
@@ -62,4 +57,4 @@ private:
     friend class Splash;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHBITMAP_HH

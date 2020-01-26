@@ -1,8 +1,4 @@
-//========================================================================
-//
-// Zoox.cc
-//
-//========================================================================
+// -*- mode: c++; -*-
 
 #include <defs.hh>
 
@@ -764,7 +760,7 @@ ZxAttr* ZxElement::findAttr (const char* attrName) {
 }
 
 void ZxElement::addAttr (ZxAttr* attr) {
-    attrs->add (attr->getName (), attr);
+    attrs->add (attr->as_name (), attr);
     if (lastAttr) {
         lastAttr->next = attr;
         lastAttr = attr;

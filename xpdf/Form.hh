@@ -1,29 +1,25 @@
-//========================================================================
-//
-// Form.h
-//
+// -*- mode: c++; -*-
 // Copyright 2012 Glyph & Cog, LLC
-//
-//========================================================================
 
 #ifndef XPDF_XPDF_FORM_HH
 #define XPDF_XPDF_FORM_HH
 
 #include <defs.hh>
 
+#include <xpdf/CharTypes.hh>
+#include <xpdf/obj_fwd.hh>
+
 class Catalog;
 class FormField;
 class Gfx;
-class Object;
 class PDFDoc;
-
-#include <xpdf/CharTypes.hh>
 
 //------------------------------------------------------------------------
 
 class Form {
 public:
-    static Form* load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj);
+    static Form*
+    load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj);
 
     virtual ~Form ();
 
@@ -31,12 +27,11 @@ public:
 
     virtual void draw (int pageNum, Gfx* gfx, bool printing) = 0;
 
-    virtual int getNumFields () = 0;
-    virtual FormField* getField (int idx) = 0;
+    virtual size_t getNumFields () const = 0;
+    virtual FormField* getField (size_t) const = 0;
 
 protected:
     Form (PDFDoc* docA);
-
     PDFDoc* doc;
 };
 
@@ -48,7 +43,7 @@ public:
     virtual ~FormField ();
 
     virtual const char* getType () = 0;
-    virtual Unicode* getName (int* length) = 0;
+    virtual Unicode* as_name (int* length) = 0;
     virtual Unicode* getValue (int* length) = 0;
 
     // Return the resource dictionaries used to draw this field.  The

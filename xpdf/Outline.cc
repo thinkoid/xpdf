@@ -1,10 +1,5 @@
-//========================================================================
-//
-// Outline.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -23,14 +18,12 @@ Outline::Outline (Object* outlineObj, XRef* xref) {
     Object first, last;
 
     items = NULL;
-    if (!outlineObj->isDict ()) { return; }
+    if (!outlineObj->is_dict ()) { return; }
     outlineObj->dictLookupNF ("First", &first);
     outlineObj->dictLookupNF ("Last", &last);
-    if (first.isRef () && last.isRef ()) {
+    if (first.is_ref () && last.is_ref ()) {
         items = OutlineItem::readItemList (&first, &last, NULL, xref);
     }
-    first.free ();
-    last.free ();
 }
 
 Outline::~Outline () {
@@ -49,42 +42,35 @@ OutlineItem::OutlineItem (
     kids = NULL;
     parent = parentA;
 
-    if (dict->lookup ("Title", &obj1)->isString ()) {
-        title = new TextString (obj1.getString ());
+    if (dict->lookup ("Title", &obj1)->is_string ()) {
+        title = new TextString (obj1.as_string ());
     }
-    obj1.free ();
 
-    if (!dict->lookup ("Dest", &obj1)->isNull ()) {
+    if (!dict->lookup ("Dest", &obj1)->is_null ()) {
         action = LinkAction::parseDest (&obj1);
     }
     else {
-        obj1.free ();
-        if (!dict->lookup ("A", &obj1)->isNull ()) {
+        if (!dict->lookup ("A", &obj1)->is_null ()) {
             action = LinkAction::parseAction (&obj1);
         }
     }
-    obj1.free ();
 
-    itemRefA->copy (&itemRef);
+    itemRef = *itemRefA;
+
     dict->lookupNF ("First", &firstRef);
     dict->lookupNF ("Last", &lastRef);
     dict->lookupNF ("Next", &nextRef);
 
     startsOpen = false;
-    if (dict->lookup ("Count", &obj1)->isInt ()) {
-        if (obj1.getInt () > 0) { startsOpen = true; }
+    if (dict->lookup ("Count", &obj1)->is_int ()) {
+        if (obj1.as_int () > 0) { startsOpen = true; }
     }
-    obj1.free ();
 }
 
 OutlineItem::~OutlineItem () {
     close ();
     if (title) { delete title; }
     if (action) { delete action; }
-    itemRef.free ();
-    firstRef.free ();
-    lastRef.free ();
-    nextRef.free ();
 }
 
 GList* OutlineItem::readItemList (
@@ -98,15 +84,19 @@ GList* OutlineItem::readItemList (
     int i;
 
     items = new GList ();
-    if (!firstItemRef->isRef () || !lastItemRef->isRef ()) { return items; }
+
+    if (!firstItemRef->is_ref () || !lastItemRef->is_ref ()) {
+        return items;
+    }
+
     p = firstItemRef;
+
     do {
-        if (!p->fetch (xrefA, &obj)->isDict ()) {
-            obj.free ();
+        if (!(obj = resolve (*p)).is_dict ()) {
             break;
         }
-        item = new OutlineItem (p, obj.getDict (), parentA, xrefA);
-        obj.free ();
+
+        item = new OutlineItem (p, obj.as_dict (), parentA, xrefA);
 
         // check for loops with parents
         for (ancestor = parentA; ancestor; ancestor = ancestor->parent) {
@@ -136,12 +126,12 @@ GList* OutlineItem::readItemList (
         }
 
         items->append (item);
-        if (p->getRefNum () == lastItemRef->getRef ().num &&
-            p->getRefGen () == lastItemRef->getRef ().gen) {
+        if (p->getRefNum () == lastItemRef->as_ref ().num &&
+            p->getRefGen () == lastItemRef->as_ref ().gen) {
             break;
         }
         p = &item->nextRef;
-        if (!p->isRef ()) { break; }
+        if (!p->is_ref ()) { break; }
     } while (p);
     return items;
 }

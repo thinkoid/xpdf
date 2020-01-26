@@ -1,17 +1,12 @@
-//========================================================================
-//
-// Outline.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef OUTLINE_H
-#define OUTLINE_H
+#ifndef XPDF_XPDF_OUTLINE_HH
+#define XPDF_XPDF_OUTLINE_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
 
 class GString;
@@ -54,7 +49,7 @@ public:
     TextString* getTitleTextString () { return title; }
     LinkAction* getAction () { return action; }
     bool isOpen () { return startsOpen; }
-    bool hasKids () { return firstRef.isRef (); }
+    bool hasKids () { return firstRef.is_ref (); }
     GList* getKids () { return kids; }
 
 private:
@@ -70,4 +65,4 @@ private:
     OutlineItem* parent;
 };
 
-#endif
+#endif // XPDF_XPDF_OUTLINE_HH

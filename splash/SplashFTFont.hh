@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashFTFont.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHFTFONT_H
-#define SPLASHFTFONT_H
+#ifndef XPDF_SPLASH_SPLASHFTFONT_HH
+#define XPDF_SPLASH_SPLASHFTFONT_HH
 
 #include <defs.hh>
 
@@ -47,4 +42,4 @@ private:
     SplashCoord textScale;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHFTFONT_HH

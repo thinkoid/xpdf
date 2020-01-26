@@ -1,19 +1,14 @@
-//========================================================================
-//
-// XRef.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef XREF_H
-#define XREF_H
+#ifndef XPDF_XPDF_XREF_HH
+#define XPDF_XPDF_XREF_HH
 
 #include <defs.hh>
 
 #include <goo/gfile.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 class Dict;
@@ -42,8 +37,6 @@ struct XRefCacheEntry {
     int gen;
     Object obj;
 };
-
-#define xrefCacheSize 16
 
 #define objStrCacheSize 4
 
@@ -81,6 +74,19 @@ public:
 
     // Fetch an indirect reference.
     Object* fetch (int num, int gen, Object* obj, int recursion = 0);
+
+    //
+    // Fetch a reference:
+    //
+    Object fetch (int num, int gen = 0, int recursion = 0) {
+        Object obj;
+        fetch (num, gen, &obj, recursion);
+        return obj;
+    }
+
+    Object fetch (const Ref& ref, int recursion = 0) {
+        return fetch (ref.num, ref.gen, recursion);
+    }
 
     // Return the document's Info dictionary (if any).
     Object* getDocInfo (Object* obj);
@@ -129,8 +135,6 @@ private:
     int keyLength;               // length of key, in bytes
     int encVersion;              // encryption version
     CryptAlgorithm encAlgorithm; // encryption algorithm
-    XRefCacheEntry               // cache of recently accessed objects
-        cache[xrefCacheSize];
 
     GFileOffset getStartXref ();
     bool readXRef (GFileOffset* pos, XRefPosSet* posSet);
@@ -142,4 +146,4 @@ private:
     GFileOffset strToFileOffset (char* s);
 };
 
-#endif
+#endif // XPDF_XPDF_XREF_HH

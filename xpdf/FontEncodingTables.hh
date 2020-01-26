@@ -1,13 +1,8 @@
-//========================================================================
-//
-// FontEncodingTables.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef FONTENCODINGTABLES_H
-#define FONTENCODINGTABLES_H
+#ifndef XPDF_XPDF_FONTENCODINGTABLES_HH
+#define XPDF_XPDF_FONTENCODINGTABLES_HH
 
 extern const char* macRomanEncoding[];
 extern const char* macExpertEncoding[];
@@ -17,4 +12,4 @@ extern const char* expertEncoding[];
 extern const char* symbolEncoding[];
 extern const char* zapfDingbatsEncoding[];
 
-#endif
+#endif // XPDF_XPDF_FONTENCODINGTABLES_HH

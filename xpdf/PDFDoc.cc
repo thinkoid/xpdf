@@ -1,10 +1,5 @@
-//========================================================================
-//
-// PDFDoc.cc
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -25,7 +20,7 @@
 #include <xpdf/OutputDev.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/SecurityHandler.hh>
 #include <xpdf/Outline.hh>
@@ -81,7 +76,7 @@ PDFDoc::PDFDoc (
     }
 
     // create stream
-    obj.initNull ();
+    obj = { };
     str = new FileStream (file, 0, false, 0, &obj);
 
     ok = setup (ownerPassword, userPassword);
@@ -226,7 +221,7 @@ bool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
     bool ret;
 
     xref->getTrailerDict ()->dictLookup ("Encrypt", &encrypt);
-    if ((encrypted = encrypt.isDict ())) {
+    if ((encrypted = encrypt.is_dict ())) {
         if ((secHdlr = SecurityHandler::make (this, &encrypt))) {
             if (secHdlr->isUnencrypted ()) {
                 // no encryption
@@ -256,7 +251,6 @@ bool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
         // document is not encrypted
         ret = true;
     }
-    encrypt.free ();
     return ret;
 }
 
@@ -310,26 +304,23 @@ bool PDFDoc::isLinearized () {
     bool lin;
 
     lin = false;
-    obj1.initNull ();
+    obj1 = { };
+
     parser = new Parser (
         xref,
-        new Lexer (
-            xref, str->makeSubStream (str->getStart (), false, 0, &obj1)),
+        new xpdf::lexer_t (
+            str->makeSubStream (str->getStart (), false, 0, &obj1)),
         true);
+
     parser->getObj (&obj1);
     parser->getObj (&obj2);
     parser->getObj (&obj3);
     parser->getObj (&obj4);
-    if (obj1.isInt () && obj2.isInt () && obj3.isCmd ("obj") &&
-        obj4.isDict ()) {
+    if (obj1.is_int () && obj2.is_int () && obj3.is_cmd ("obj") &&
+        obj4.is_dict ()) {
         obj4.dictLookup ("Linearized", &obj5);
-        if (obj5.isNum () && obj5.getNum () > 0) { lin = true; }
-        obj5.free ();
+        if (obj5.is_num () && obj5.as_num () > 0) { lin = true; }
     }
-    obj4.free ();
-    obj3.free ();
-    obj2.free ();
-    obj1.free ();
     delete parser;
     return lin;
 }
@@ -373,7 +364,6 @@ bool PDFDoc::saveEmbeddedFile2 (int idx, FILE* f) {
         fwrite (buf, 1, n, f);
     }
     strObj.streamClose ();
-    strObj.free ();
     return true;
 }
 
@@ -398,7 +388,6 @@ char* PDFDoc::getEmbeddedFileMem (int idx, int* size) {
         bufSize += n;
     } while (n == sizeInc);
     strObj.streamClose ();
-    strObj.free ();
     *size = bufSize;
     return buf;
 }

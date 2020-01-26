@@ -1,15 +1,8 @@
-//========================================================================
-//
-// CharCodeToUnicode.h
-//
-// Mapping from character codes to Unicode.
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef CHARCODETOUNICODE_H
-#define CHARCODETOUNICODE_H
+#ifndef XPDF_XPDF_CHARCODETOUNICODE_HH
+#define XPDF_XPDF_CHARCODETOUNICODE_HH
 
 #include <defs.hh>
 
@@ -104,4 +97,4 @@ private:
     int size;
 };
 
-#endif
+#endif // XPDF_XPDF_CHARCODETOUNICODE_HH

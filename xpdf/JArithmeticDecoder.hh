@@ -1,18 +1,10 @@
-//========================================================================
-//
-// JArithmeticDecoder.h
-//
-// Arithmetic decoder used by the JBIG2 and JPEG2000 decoders.
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2004 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef JARITHMETICDECODER_H
-#define JARITHMETICDECODER_H
+#ifndef XPDF_XPDF_JARITHMETICDECODER_HH
+#define XPDF_XPDF_JARITHMETICDECODER_HH
 
 #include <defs.hh>
-
 
 class Stream;
 
@@ -107,4 +99,4 @@ private:
     int readBuf;
 };
 
-#endif
+#endif // XPDF_XPDF_JARITHMETICDECODER_HH

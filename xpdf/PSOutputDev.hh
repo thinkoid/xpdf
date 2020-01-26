@@ -1,20 +1,16 @@
-//========================================================================
-//
-// PSOutputDev.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef PSOUTPUTDEV_H
-#define PSOUTPUTDEV_H
+#ifndef XPDF_XPDF_PSOUTPUTDEV_HH
+#define XPDF_XPDF_PSOUTPUTDEV_HH
 
 #include <defs.hh>
 
 #include <cstddef>
+#include <vector>
 
 #include <xpdf/function.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/OutputDev.hh>
 
@@ -49,6 +45,9 @@ typedef void (*PSOutputFunc) (void* stream, const char* data, int len);
 
 typedef GString* (*PSOutCustomCodeCbk) (
     PSOutputDev* psOut, PSOutCustomCodeLocation loc, int n, void* data);
+
+class PSFontInfo;
+struct PSOutPaperSize;
 
 class PSOutputDev : public OutputDev {
 public:
@@ -348,7 +347,11 @@ private:
     PDFDoc* doc;
     XRef* xref; // the xref table for this PDF file
 
-    GList* fontInfo;       // info for each font [PSFontInfo]
+    //
+    // Font info for each font (type PSFontInfo):
+    //
+    std::vector< PSFontInfo > fontInfo;
+
     GHash* fontFileInfo;   // info for each font file [PSFontFileInfo]
     Ref* imgIDs;           // list of image IDs for in-memory images
     int imgIDLen;          // number of entries in imgIDs array
@@ -356,14 +359,21 @@ private:
     Ref* formIDs;          // list of IDs for predefined forms
     int formIDLen;         // number of entries in formIDs array
     int formIDSize;        // size of formIDs array
-    GList* xobjStack;      // stack of XObject dicts currently being
-                           //   processed
+
+    //
+    // Stack of XObject dicts currently being processed:
+    //
+    std::vector< xpdf::ref_t > xobjStack;
+
     int numSaves;          // current number of gsaves
     int numTilingPatterns; // current number of nested tiling patterns
     int nextFunc;          // next unique number to use for a function
 
-    GList* paperSizes;       // list of used paper sizes, if paperMatch
-                             //   is true [PSOutPaperSize]
+    //
+    // List of used paper sizes, if paperMatch is true [PSOutPaperSize]
+    //
+    std::vector< PSOutPaperSize > paperSizes;
+
     double tx0, ty0;         // global translation
     double xScale0, yScale0; // global scaling
     int rotate0;             // rotation angle (0, 90, 180, 270)
@@ -401,4 +411,4 @@ private:
     friend class WinPDFPrinter;
 };
 
-#endif
+#endif // XPDF_XPDF_PSOUTPUTDEV_HH

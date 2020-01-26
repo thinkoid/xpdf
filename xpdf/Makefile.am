@@ -8,7 +8,6 @@ noinst_LIBRARIES = libxpdf.a
 libxpdf_a_SOURCES =                             \
    AcroForm.cc                                  \
    Annot.cc                                     \
-   Array.cc                                     \
    BuiltinFont.cc                               \
    BuiltinFontTables.cc                         \
    CMap.cc                                      \
@@ -29,10 +28,8 @@ libxpdf_a_SOURCES =                             \
    JArithmeticDecoder.cc                        \
    JBIG2Stream.cc                               \
    JPXStream.cc                                 \
-   Lexer.cc                                     \
    Link.cc                                      \
    NameToCharCode.cc                            \
-   Object.cc                                    \
    OptionalContent.cc                           \
    Outline.cc                                   \
    OutputDev.cc                                 \
@@ -52,38 +49,41 @@ libxpdf_a_SOURCES =                             \
    UnicodeMap.cc                                \
    UnicodeTypeTable.cc                          \
    XFAForm.cc                                   \
-   XPDFApp.cc                                   \
-   XPDFAppRes.c                                 \
-   XPDFCore.cc                                  \
-   XPDFTree.cc                                  \
-   XPDFViewer.cc                                \
    XRef.cc                                      \
-   XpdfPluginAPI.cc                             \
    Zoox.cc                                      \
    bitpack.cc                                   \
-   function.cc
+   function.cc                                  \
+   lexer.cc                                     \
+   obj.cc                                       \
+   xpdf.cc
 
-bin_PROGRAMS = xpdf                             \
-	pdfdetach                                   \
-	pdffonts                                    \
-	pdfimages                                   \
-	pdfinfo                                     \
-	pdftohtml                                   \
-	pdftopng                                    \
-	pdftoppm                                    \
-	pdftops                                     \
-	pdftotext
+bin_PROGRAMS = xpdfview
+#   pdfdetach
+#   pdffonts
+#   pdfimages
+#   pdfinfo
+#   pdftohtml
+#   pdftopng
+#   pdftoppm
+#   pdftops
+#   pdftotext
 
-xpdf_SOURCES = xpdf.cc
-pdfdetach_SOURCES = pdfdetach.cc
-pdffonts_SOURCES = pdffonts.cc
-pdfimages_SOURCES = pdfimages.cc
-pdfinfo_SOURCES = pdfinfo.cc
-pdftohtml_SOURCES = pdftohtml.cc
-pdftopng_SOURCES = pdftopng.cc
-pdftoppm_SOURCES = pdftoppm.cc
-pdftops_SOURCES = pdftops.cc
-pdftotext_SOURCES = pdftotext.cc
+xpdfview_SOURCES = xpdfview.cc                  \
+   XPDFApp.cc                                   \
+   XPDFAppRes.cc                                \
+   XPDFCore.cc                                  \
+   XPDFTree.cc                                  \
+   XPDFUI.cc
+
+#pdfdetach_SOURCES = pdfdetach.cc
+#pdffonts_SOURCES = pdffonts.cc
+#pdfimages_SOURCES = pdfimages.cc
+#pdfinfo_SOURCES = pdfinfo.cc
+#pdftohtml_SOURCES = pdftohtml.cc
+#pdftopng_SOURCES = pdftopng.cc
+#pdftoppm_SOURCES = pdftoppm.cc
+#pdftops_SOURCES = pdftops.cc
+#pdftotext_SOURCES = pdftotext.cc
 
 AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
 
@@ -93,5 +93,5 @@ LDADD = libxpdf.a                                       \
 	$(top_srcdir)/splash/libsplash.a                    \
 	$(LIBS) $(FREETYPE2_LIBS)                           \
 	$(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS)    \
-	$(LIBPNG_LIBS) $(PAPER_LIBS)
-
+	$(LIBPNG_LIBS) $(PAPER_LIBS)                        \
+	$(FMT_LIBS)

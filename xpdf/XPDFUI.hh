@@ -1,13 +1,8 @@
-//========================================================================
-//
-// XPDFViewer.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef XPDFVIEWER_H
-#define XPDFVIEWER_H
+#ifndef XPDF_XPDF_XPDFVIEWER_HH
+#define XPDF_XPDF_XPDFVIEWER_HH
 
 #include <defs.hh>
 
@@ -27,37 +22,37 @@ class GList;
 class UnicodeMap;
 class LinkDest;
 class XPDFApp;
-class XPDFViewer;
+class XPDFUI;
 
 //------------------------------------------------------------------------
 
-// NB: this must match the defn of zoomMenuBtnInfo in XPDFViewer.cc
+// NB: this must match the defn of zoomMenuBtnInfo in XPDFUI.cc
 #define nZoomMenuItems 10
 
 //------------------------------------------------------------------------
 
-struct XPDFViewerCmd {
+struct XPDFUICmd {
     const char* name;
     int nArgs;
     bool requiresDoc;
     bool requiresEvent;
-    void (XPDFViewer::*func) (GString* args[], int nArgs, XEvent* event);
+    void (XPDFUI::*func) (GString* args[], int nArgs, XEvent* event);
 };
 
 //------------------------------------------------------------------------
-// XPDFViewer
+// XPDFUI
 //------------------------------------------------------------------------
 
-class XPDFViewer {
+class XPDFUI {
 public:
-    XPDFViewer (
+    XPDFUI (
         XPDFApp* appA, GString* fileName, int pageA, GString* destName,
         bool fullScreen, GString* ownerPassword, GString* userPassword);
-    XPDFViewer (
+    XPDFUI (
         XPDFApp* appA, PDFDoc* doc, int pageA, GString* destName,
         bool fullScreen);
     bool isOk () { return ok; }
-    ~XPDFViewer ();
+    ~XPDFUI ();
 
     void open (GString* fileName, int pageA, GString* destName);
     void clear ();
@@ -171,7 +166,7 @@ private:
     //----- GUI code: main window
     void initWindow (bool fullScreen);
     void initToolbar (Widget parent);
-#ifndef DISABLE_OUTLINE
+#if !defined (DISABLE_OUTLINE)
     void initPanedWin (Widget parent);
 #endif
     void initCore (Widget parent, bool fullScreen);
@@ -221,7 +216,7 @@ private:
         const char* linkString);
 
     //----- GUI code: outline
-#ifndef DISABLE_OUTLINE
+#if !defined (DISABLE_OUTLINE)
     void setupOutline ();
     void setupOutlineItems (GList* items, Widget parent, UnicodeMap* uMap);
     static void
@@ -261,7 +256,7 @@ private:
     //----- Motif support
     XmFontList createFontList (char* xlfd);
 
-    static XPDFViewerCmd cmdTab[];
+    static XPDFUICmd cmdTab[];
 
     XPDFApp* app;
     bool ok;
@@ -271,7 +266,7 @@ private:
     Widget win; // top-level window
     Widget form;
     Widget panedWin;
-#ifndef DISABLE_OUTLINE
+#if !defined (DISABLE_OUTLINE)
     Widget outlineScroll;
     Widget outlineTree;
     Widget* outlineLabels;
@@ -326,4 +321,4 @@ private:
     Widget printLastPage;
 };
 
-#endif
+#endif // XPDF_XPDF_XPDFVIEWER_HH

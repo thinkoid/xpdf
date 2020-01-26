@@ -1,18 +1,13 @@
-//========================================================================
-//
-// GfxFont.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef GFXFONT_H
-#define GFXFONT_H
+#ifndef XPDF_XPDF_GFXFONT_HH
+#define XPDF_XPDF_GFXFONT_HH
 
 #include <defs.hh>
 
 #include <goo/GString.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
 
 class Dict;
@@ -141,7 +136,7 @@ public:
 
     // Get the original font name (ignornig any munging that might have
     // been done to map to a canonical Base-14 font name).
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
 
     // Get font type.
     GfxFontType getType () { return type; }
@@ -273,8 +268,7 @@ public:
 private:
     Base14FontMapEntry* base14; // for Base-14 fonts only; NULL otherwise
     char* enc[256];             // char code --> char name
-    char encFree[256];          // boolean for each char name: if set,
-                                //   the string is malloc'ed
+    char encFree[256];          // boolean for each char name: if set, the string is malloc'ed
     CharCodeToUnicode* ctu;     // char code --> Unicode
     bool hasEncoding;
     bool usesMacRomanEnc;
@@ -354,4 +348,4 @@ private:
     int numFonts;    // number of fonts
 };
 
-#endif
+#endif // XPDF_XPDF_GFXFONT_HH

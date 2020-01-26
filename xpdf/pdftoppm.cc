@@ -1,10 +1,5 @@
-//========================================================================
-//
-// pdftoppm.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 #include <cstdio>
@@ -18,7 +13,7 @@
 #include <goo/GString.hh>
 
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <splash/SplashBitmap.hh>
 #include <splash/Splash.hh>

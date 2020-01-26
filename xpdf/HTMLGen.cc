@@ -1,10 +1,5 @@
-//========================================================================
-//
-// HTMLGen.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2010 Glyph & Cog, LLC
-//
-//========================================================================
 
 //~ to do:
 //~ - fonts
@@ -406,7 +401,7 @@ int HTMLGen::convertPage (
                                           : subSuper1 > 0 ? "sub" : "baseline",
                             (int)(r1 * 255), (int)(g1 * 255), (int)(b1 * 255));
                     }
-                    for (i = 0; i < word1->getLength (); ++i) {
+                    for (i = 0; i < word1->size (); ++i) {
                         u = word1->getChar (i);
                         if (u >= privateUnicodeMapStart &&
                             u <= privateUnicodeMapEnd &&

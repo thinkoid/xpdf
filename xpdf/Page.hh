@@ -1,17 +1,12 @@
-//========================================================================
-//
-// Page.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef PAGE_H
-#define PAGE_H
+#ifndef XPDF_XPDF_PAGE_HH
+#define XPDF_XPDF_PAGE_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 
 class Dict;
 class PDFDoc;
@@ -63,28 +58,29 @@ public:
     PDFRectangle* getArtBox () { return &artBox; }
     int getRotate () { return rotate; }
     GString* getLastModified () {
-        return lastModified.isString () ? lastModified.getString ()
-                                        : (GString*)NULL;
+        return lastModified.is_string ()
+            ? lastModified.as_string ()
+            : (GString*)NULL;
     }
     Dict* getBoxColorInfo () {
-        return boxColorInfo.isDict () ? boxColorInfo.getDict () : (Dict*)NULL;
+        return boxColorInfo.is_dict () ? boxColorInfo.as_dict () : (Dict*)NULL;
     }
     Dict* getGroup () {
-        return group.isDict () ? group.getDict () : (Dict*)NULL;
+        return group.is_dict () ? group.as_dict () : (Dict*)NULL;
     }
     Stream* getMetadata () {
-        return metadata.isStream () ? metadata.getStream () : (Stream*)NULL;
+        return metadata.is_stream () ? metadata.as_stream () : (Stream*)NULL;
     }
     Dict* getPieceInfo () {
-        return pieceInfo.isDict () ? pieceInfo.getDict () : (Dict*)NULL;
+        return pieceInfo.is_dict () ? pieceInfo.as_dict () : (Dict*)NULL;
     }
     Dict* getSeparationInfo () {
-        return separationInfo.isDict () ? separationInfo.getDict ()
+        return separationInfo.is_dict () ? separationInfo.as_dict ()
                                         : (Dict*)NULL;
     }
     double getUserUnit () { return userUnit; }
     Dict* getResourceDict () {
-        return resources.isDict () ? resources.getDict () : (Dict*)NULL;
+        return resources.is_dict () ? resources.as_dict () : (Dict*)NULL;
     }
 
     // Clip all other boxes to the MediaBox.
@@ -130,7 +126,7 @@ public:
     bool isOk () { return ok; }
 
     // Get page parameters.
-    int getNum () { return num; }
+    int as_num () { return num; }
     PDFRectangle* getMediaBox () { return attrs->getMediaBox (); }
     PDFRectangle* getCropBox () { return attrs->getCropBox (); }
     bool isCropped () { return attrs->isCropped (); }
@@ -162,13 +158,13 @@ public:
     Dict* getResourceDict () { return attrs->getResourceDict (); }
 
     // Get annotations array.
-    Object* getAnnots (Object* obj) { return annots.fetch (xref, obj); }
+    Object getAnnots () { return resolve (annots); }
 
     // Return a list of links.
     Links* getLinks ();
 
     // Get contents.
-    Object* getContents (Object* obj) { return contents.fetch (xref, obj); }
+    Object getContents () { return resolve (contents); }
 
     // Display a page.
     void display (
@@ -205,4 +201,4 @@ private:
     bool ok;         // true if page is valid
 };
 
-#endif
+#endif // XPDF_XPDF_PAGE_HH

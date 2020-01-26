@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashFontFile.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHFONTFILE_H
-#define SPLASHFONTFILE_H
+#ifndef XPDF_SPLASH_SPLASHFONTFILE_HH
+#define XPDF_SPLASH_SPLASHFONTFILE_HH
 
 #include <defs.hh>
 
@@ -62,4 +57,4 @@ protected:
     friend class SplashFontEngine;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHFONTFILE_HH

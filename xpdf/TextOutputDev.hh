@@ -1,17 +1,16 @@
-//========================================================================
-//
-// TextOutputDev.h
-//
+// -*- mode: c++; -*-
 // Copyright 1997-2012 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef TEXTOUTPUTDEV_H
-#define TEXTOUTPUTDEV_H
+#ifndef XPDF_XPDF_TEXTOUTPUTDEV_HH
+#define XPDF_XPDF_TEXTOUTPUTDEV_HH
 
 #include <defs.hh>
 
 #include <cstdio>
+
+#include <memory>
+#include <vector>
+
 #include <xpdf/GfxFont.hh>
 #include <xpdf/OutputDev.hh>
 
@@ -40,10 +39,8 @@ enum TextOutputMode {
     textOutRawOrder      // keep text in content stream order
 };
 
-class TextOutputControl {
-public:
+struct TextOutputControl {
     TextOutputControl ();
-    ~TextOutputControl () {}
 
     TextOutputMode mode;     // formatting mode
     double fixedPitch;       // if this is non-zero, assume fixed-pitch
@@ -61,15 +58,13 @@ public:
 // TextFontInfo
 //------------------------------------------------------------------------
 
-class TextFontInfo {
-public:
-    TextFontInfo (GfxState* state);
-    ~TextFontInfo ();
+struct TextFontInfo {
+    explicit TextFontInfo (GfxState*);
 
-    bool matches (GfxState* state);
+    bool matches (GfxState*) const;
 
     // Get the font name (which may be NULL).
-    GString* getFontName () { return fontName; }
+    GString* getFontName () const { return fontName; }
 
     // Get font descriptor flags.
     bool isFixedWidth () { return flags & fontFixedWidth; }
@@ -81,77 +76,95 @@ public:
     // Get the width of the 'm' character, if available.
     double getMWidth () { return mWidth; }
 
-private:
     Ref fontID;
     GString* fontName;
-    int flags;
-    double mWidth;
-    double ascent, descent;
+    double mWidth, ascent, descent;
 
-    friend class TextLine;
-    friend class TextPage;
-    friend class TextWord;
+    int flags;
 };
 
 //------------------------------------------------------------------------
 // TextWord
 //------------------------------------------------------------------------
 
-class TextWord {
-public:
+struct TextWord {
     TextWord (GList* chars, int start, int lenA, int rotA, bool spaceAfterA);
-    ~TextWord ();
-    TextWord* copy () { return new TextWord (this); }
 
     // Get the TextFontInfo object associated with this word.
-    TextFontInfo* getFontInfo () { return font; }
+    TextFontInfo* getFontInfo () const { return font; }
 
-    int getLength () { return len; }
+    size_t size () const { return text.size (); }
+
     Unicode getChar (int idx) { return text[idx]; }
-    GString* getText ();
-    GString* getFontName () { return font->fontName; }
-    void getColor (double* r, double* g, double* b) {
+
+    GString* getFontName () const { return font->fontName; }
+
+    void getColor (double* r, double* g, double* b) const {
         *r = colorR;
         *g = colorG;
         *b = colorB;
     }
-    bool isInvisible () { return invisible; }
-    void getBBox (double* xMinA, double* yMinA, double* xMaxA, double* yMaxA) {
+
+    void getBBox (double* xMinA, double* yMinA,
+                  double* xMaxA, double* yMaxA) const {
         *xMinA = xMin;
         *yMinA = yMin;
         *xMaxA = xMax;
         *yMaxA = yMax;
     }
+
     void getCharBBox (
         int charIdx, double* xMinA, double* yMinA, double* xMaxA,
         double* yMaxA);
-    double getFontSize () { return fontSize; }
-    int getRotation () { return rot; }
-    int getCharPos () { return charPos[0]; }
-    int getCharLen () { return charPos[len] - charPos[0]; }
-    bool getSpaceAfter () { return spaceAfter; }
+
+    double getFontSize () const { return fontSize; }
+    int getRotation () const { return rot; }
+
+    int getCharPos () const { return charPos.front (); }
+    int getCharLen () const { return charPos.back () - charPos.front (); }
+
+    bool isInvisible () const { return invisible; }
+    bool isUnderlined () const { return underlined; }
+    bool getSpaceAfter () const { return spaceAfter; }
+
     double getBaseline ();
-    bool isUnderlined () { return underlined; }
+
     GString* getLinkURI ();
 
 private:
-    TextWord (TextWord* word);
-    void appendChar (TextChar* ch);
     static int cmpYX (const void* p1, const void* p2);
     static int cmpCharPos (const void* p1, const void* p2);
 
-    int rot;            // rotation, multiple of 90 degrees
-                        //   (0, 1, 2, or 3)
-    double xMin, xMax;  // bounding box x coordinates
-    double yMin, yMax;  // bounding box y coordinates
-    Unicode* text;      // the text
-    int* charPos;       // character position (within content stream)
-                        //   of each char (plus one extra entry for
-                        //   the last char)
-    double* edge;       // "near" edge x or y coord of each char
-                        //   (plus one extra entry for the last char)
-    int len;            // number of characters
+private:
+    //
+    // Rotation in multiple of 90°: 0, 1, 2, or 3.
+    //
+    int rot;
+
+    //
+    // Bounding box coordinates:
+    //
+    double xMin, xMax, yMin, yMax;
+
+    //
+    // The text:
+    //
+    std::vector< Unicode > text;
+
+    //
+    // Character position (within content stream) of each char (plus one extra
+    // entry for the last char):
+    //
+    std::vector< off_t > charPos;
+
+    //
+    // "near" edge x or y coord of each char (plus one extra entry for the last
+    // char):
+    //
+    std::vector< double > edge;
+
     TextFontInfo* font; // font information
+
     double fontSize;    // font size
     bool spaceAfter;   // set if there is a space between this
                         //   word and the next word on the line
@@ -159,8 +172,8 @@ private:
     bool underlined;
     TextLink* link;
 
-    double colorR, // word color
-        colorG, colorB;
+    // word color
+    double colorR, colorG, colorB;
     bool invisible; // set for invisible text (render mode 3)
 
     friend class TextBlock;
@@ -552,4 +565,4 @@ private:
     bool ok;                  // set up ok?
 };
 
-#endif
+#endif // XPDF_XPDF_TEXTOUTPUTDEV_HH

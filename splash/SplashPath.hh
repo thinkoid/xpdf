@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashPath.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHPATH_H
-#define SPLASHPATH_H
+#ifndef XPDF_SPLASH_SPLASHPATH_HH
+#define XPDF_SPLASH_SPLASHPATH_HH
 
 #include <defs.hh>
 
@@ -119,4 +114,4 @@ private:
     friend class Splash;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHPATH_HH

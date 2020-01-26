@@ -1,10 +1,5 @@
-//========================================================================
-//
-// XFAForm.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2012 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -16,8 +11,9 @@
 #include <goo/GList.hh>
 #include <goo/GHash.hh>
 
+#include <xpdf/array.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
@@ -177,31 +173,27 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
 
     docA->getXRef ()->getCatalog (&catDict);
     catDict.dictLookup ("NeedsRendering", &obj1);
-    fullXFAA = obj1.isBool () && obj1.getBool ();
-    obj1.free ();
-    catDict.free ();
+    fullXFAA = obj1.is_bool () && obj1.as_bool ();
 
-    if (xfaObj->isStream ()) {
+    if (xfaObj->is_stream ()) {
         data = new GString ();
         xfaObj->streamReset ();
-        while ((n = xfaObj->getStream ()->getBlock (buf, sizeof (buf))) > 0) {
+        while ((n = xfaObj->as_stream ()->getBlock (buf, sizeof (buf))) > 0) {
             data->append (buf, n);
         }
     }
-    else if (xfaObj->isArray ()) {
+    else if (xfaObj->is_array ()) {
         data = new GString ();
-        for (i = 1; i < xfaObj->arrayGetLength (); i += 2) {
-            if (!xfaObj->arrayGet (i, &obj1)->isStream ()) {
+        for (i = 1; i < xfaObj->as_array ().size (); i += 2) {
+            if (!(obj1 = resolve ((*xfaObj) [i])).is_stream ()) {
                 error (errSyntaxError, -1, "XFA array element is wrong type");
-                obj1.free ();
                 delete data;
                 return NULL;
             }
             obj1.streamReset ();
-            while ((n = obj1.getStream ()->getBlock (buf, sizeof (buf))) > 0) {
+            while ((n = obj1.as_stream ()->getBlock (buf, sizeof (buf))) > 0) {
                 data->append (buf, n);
             }
-            obj1.free ();
         }
     }
     else {
@@ -216,13 +208,12 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
         return NULL;
     }
 
-    if (acroFormObj->isDict ()) {
+    if (acroFormObj->is_dict ()) {
         acroFormObj->dictLookup ("DR", &resourceDictA);
     }
 
     xfaForm = new XFAForm (docA, xmlA, &resourceDictA, fullXFAA);
 
-    resourceDictA.free ();
 
     if (xfaForm->xml->getRoot ()) {
         if ((tmpl = xfaForm->xml->getRoot ()->findFirstChildElement (
@@ -242,15 +233,12 @@ XFAForm::XFAForm (
     PDFDoc* docA, ZxDoc* xmlA, Object* resourceDictA, bool fullXFAA)
     : Form (docA) {
     xml = xmlA;
-    fields = new GList ();
-    resourceDictA->copy (&resourceDict);
+    resourceDict = *resourceDictA;
     fullXFA = fullXFAA;
 }
 
 XFAForm::~XFAForm () {
     delete xml;
-    deleteGList (fields, XFAFormField);
-    resourceDict.free ();
 }
 
 void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
@@ -269,9 +257,10 @@ void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
     //~   field is selected
 
     if (elem->isElement ("field")) {
-        fields->append (new XFAFormField (
-            this, elem, name->copy (), dataName->copy (), curPageNum,
-            curXOffset, curYOffset));
+        fields.push_back (
+            std::make_unique< XFAFormField > (
+                this, elem, name->copy (), dataName->copy (), curPageNum,
+                curXOffset, curYOffset));
     }
     else if (elem->isElement ("breakBefore")) {
         if ((attr = elem->findAttr ("targetType")) &&
@@ -344,30 +333,22 @@ void XFAForm::scanFields (ZxElement* elem, GString* name, GString* dataName) {
 void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
     GfxFontDict* fontDict;
     Object obj1;
-    int i;
 
     // build the font dictionary
-    if (resourceDict.isDict () &&
-        resourceDict.dictLookup ("Font", &obj1)->isDict ()) {
-        fontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.getDict ());
+    if (resourceDict.is_dict () &&
+        resourceDict.dictLookup ("Font", &obj1)->is_dict ()) {
+        fontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.as_dict ());
     }
     else {
         fontDict = NULL;
     }
-    obj1.free ();
 
-    for (i = 0; i < fields->getLength (); ++i) {
-        ((XFAFormField*)fields->get (i))
-            ->draw (pageNum, gfx, printing, fontDict);
+
+    for (auto& p : fields) {
+        p->draw (pageNum, gfx, printing, fontDict);
     }
 
     delete fontDict;
-}
-
-int XFAForm::getNumFields () { return fields->getLength (); }
-
-FormField* XFAForm::getField (int idx) {
-    return (XFAFormField*)fields->get (idx);
 }
 
 //------------------------------------------------------------------------
@@ -408,7 +389,7 @@ const char* XFAFormField::getType () {
     return NULL;
 }
 
-Unicode* XFAFormField::getName (int* length) {
+Unicode* XFAFormField::as_name (int* length) {
     //~ assumes name is UTF-8
     return utf8ToUnicode (name, length);
 }
@@ -685,33 +666,38 @@ void XFAFormField::draw (
     }
 
     // create the appearance stream
-    appearDict.initDict (xfaForm->doc->getXRef ());
-    appearDict.dictAdd (
-        strdup ("Length"), obj1.initInt (appearBuf->getLength ()));
-    appearDict.dictAdd (strdup ("Subtype"), obj1.initName ("Form"));
-    obj1.initArray (xfaForm->doc->getXRef ());
-    obj1.arrayAdd (obj2.initReal (0));
-    obj1.arrayAdd (obj2.initReal (0));
-    obj1.arrayAdd (obj2.initReal (w));
-    obj1.arrayAdd (obj2.initReal (h));
-    appearDict.dictAdd (strdup ("BBox"), &obj1);
-    obj1.initArray (xfaForm->doc->getXRef ());
-    obj1.arrayAdd (obj2.initReal (mat[0]));
-    obj1.arrayAdd (obj2.initReal (mat[1]));
-    obj1.arrayAdd (obj2.initReal (mat[2]));
-    obj1.arrayAdd (obj2.initReal (mat[3]));
-    obj1.arrayAdd (obj2.initReal (mat[4]));
-    obj1.arrayAdd (obj2.initReal (mat[5]));
-    appearDict.dictAdd (strdup ("Matrix"), &obj1);
-    if (xfaForm->resourceDict.isDict ()) {
-        appearDict.dictAdd (
-            strdup ("Resources"), xfaForm->resourceDict.copy (&obj1));
+    appearDict = xpdf::make_dict_obj (xfaForm->doc->getXRef ());
+
+    appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
+    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+
+    obj1 = xpdf::make_arr_obj ();
+
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (0));
+    obj1.as_array ().push_back (xpdf::make_real_obj (w));
+    obj1.as_array ().push_back (xpdf::make_real_obj (h));
+
+    appearDict.dictAdd ("BBox", &obj1);
+
+    obj1 = xpdf::make_arr_obj ();
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[0]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[1]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[2]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[3]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[4]));
+    obj1.as_array ().push_back (xpdf::make_real_obj (mat[5]));
+
+    appearDict.dictAdd ("Matrix", &obj1);
+
+    if (xfaForm->resourceDict.is_dict ()) {
+        appearDict.dictAdd ("Resources", &xfaForm->resourceDict);
     }
+
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
-    appearance.initStream (appearStream);
+    appearance = xpdf::make_stream_obj (appearStream);
     gfx->drawAnnot (&appearance, NULL, x3, y3, x3 + w3, y3 + h3);
-    appearance.free ();
     delete appearBuf;
 }
 
@@ -983,7 +969,7 @@ void XFAFormField::drawBarCode (
 }
 
 Object* XFAFormField::getResources (Object* res) {
-    return xfaForm->resourceDict.copy (res);
+    return *res = xfaForm->resourceDict, res;
 }
 
 double XFAFormField::getMeasurement (ZxAttr* attr, double defaultVal) {
@@ -1363,10 +1349,10 @@ GfxFont* XFAFormField::findFont (
 
     for (i = 0; i < fontDict->getNumFonts (); ++i) {
         font = fontDict->getFont (i);
-        if (!font || !font->getName ()) { continue; }
+        if (!font || !font->as_name ()) { continue; }
         testName = new GString ();
-        for (j = 0; j < font->getName ()->getLength (); ++j) {
-            c = font->getName ()->getChar (j);
+        for (j = 0; j < font->as_name ()->getLength (); ++j) {
+            c = font->as_name ()->getChar (j);
             if (c != ' ') { testName->append (c); }
         }
         foundName = foundBold = foundItalic = false;

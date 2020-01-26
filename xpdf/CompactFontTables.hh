@@ -1,13 +1,8 @@
-//========================================================================
-//
-// CompactFontTables.h
-//
+// -*- mode: c++; -*-
 // Copyright 1999-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef COMPACTFONTINFO_H
-#define COMPACTFONTINFO_H
+#ifndef XPDF_XPDF_COMPACTFONTTABLES_HH
+#define XPDF_XPDF_COMPACTFONTTABLES_HH
 
 static char* type1CStdStrings[391] = { ".notdef",
                                        "space",
@@ -444,4 +439,4 @@ static unsigned short type1CExpertSubsetCharset[87] = {
     335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346
 };
 
-#endif
+#endif // XPDF_XPDF_COMPACTFONTTABLES_HH

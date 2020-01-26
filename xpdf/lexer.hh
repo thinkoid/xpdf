@@ -1,42 +1,53 @@
-//========================================================================
-//
-// Lexer.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
+// Copyright 2019-2020 Thinkoid, LLC.
 
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef XPDF_XPDF_LEXER_HH
+#define XPDF_XPDF_LEXER_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Stream.hh>
 
 class XRef;
 
-#define tokBufSize 128 // size of token buffer
-
 //------------------------------------------------------------------------
-// Lexer
+// lexer_t
 //------------------------------------------------------------------------
 
-class Lexer {
-public:
+namespace xpdf {
+
+struct lexer_t {
+    struct token_t {
+        enum {
+            ERROR_,
+            EOF_,
+            NULL_,
+            BOOL_,
+            INT_,
+            REAL_,
+            STRING_,
+            NAME_,
+            KEYWORD_
+        } type;
+        std::string s;
+    };
+
     // Construct a lexer for a single stream.  Deletes the stream when
     // lexer is deleted.
-    Lexer (XRef* xref, Stream* str);
+    lexer_t (Stream* str);
 
     // Construct a lexer for a stream or array of streams (assumes obj
     // is either a stream or array of streams).
-    Lexer (XRef* xref, Object* obj);
+    lexer_t (Object* obj);
 
     // Destructor.
-    ~Lexer ();
+    ~lexer_t ();
 
     // Get the next object from the input stream.
-    Object* getObj (Object* obj);
+    token_t next ();
 
     // Skip to the beginning of the next line in the input stream.
     void skipToNextLine ();
@@ -45,18 +56,18 @@ public:
     void skipChar () { getChar (); }
 
     // Get stream.
-    Stream* getStream () {
-        return curStr.isNone () ? (Stream*)NULL : curStr.getStream ();
+    Stream* as_stream () {
+        return curStr.is_none () ? (Stream*)NULL : curStr.as_stream ();
     }
 
     // Get current position in file.
     GFileOffset getPos () {
-        return curStr.isNone () ? -1 : curStr.streamGetPos ();
+        return curStr.is_none () ? -1 : curStr.streamGetPos ();
     }
 
     // Set position in file.
     void setPos (GFileOffset pos, int dir = 0) {
-        if (!curStr.isNone ()) curStr.streamSetPos (pos, dir);
+        if (!curStr.is_none ()) curStr.streamSetPos (pos, dir);
     }
 
     // Returns true if <c> is a whitespace character.
@@ -66,11 +77,13 @@ private:
     int getChar ();
     int lookChar ();
 
-    Array* streams;          // array of input streams
-    int strPtr;              // index of current stream
-    Object curStr;           // current stream
-    bool freeArray;         // should lexer free the streams array?
-    char tokBuf[tokBufSize]; // temporary token buffer
+private:
+    Array streams;          // array of input streams
+    Object curStr;          // current stream
+
+    size_t strPtr;          // index of current stream
 };
 
-#endif
+} // namespace xpdf
+
+#endif // XPDF_XPDF_LEXER_HH

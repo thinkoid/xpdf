@@ -1,13 +1,8 @@
-//========================================================================
-//
-// FoFiType1.h
-//
+// -*- mode: c++; -*-
 // Copyright 1999-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef FOFITYPE1_H
-#define FOFITYPE1_H
+#ifndef XPDF_FOFI_FOFITYPE1_HH
+#define XPDF_FOFI_FOFITYPE1_HH
 
 #include <defs.hh>
 
@@ -55,4 +50,4 @@ private:
     bool parsed;
 };
 
-#endif
+#endif // XPDF_FOFI_FOFITYPE1_HH

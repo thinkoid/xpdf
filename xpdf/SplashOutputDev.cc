@@ -1,42 +1,42 @@
-//========================================================================
-//
-// SplashOutputDev.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
-#include <cstring>
-#include <cmath>
 #include <climits>
+#include <cmath>
+#include <cstring>
+
 #include <goo/gfile.hh>
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
-#include <xpdf/Gfx.hh>
-#include <xpdf/GfxFont.hh>
-#include <xpdf/Link.hh>
-#include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/FontEncodingTables.hh>
-#include <xpdf/BuiltinFont.hh>
-#include <xpdf/BuiltinFontTables.hh>
+
 #include <fofi/FoFiTrueType.hh>
-#include <xpdf/JPXStream.hh>
+
+#include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>
-#include <splash/SplashGlyphBitmap.hh>
-#include <splash/SplashPattern.hh>
-#include <splash/SplashScreen.hh>
-#include <splash/SplashPath.hh>
-#include <splash/SplashState.hh>
 #include <splash/SplashErrorCodes.hh>
-#include <splash/SplashFontEngine.hh>
 #include <splash/SplashFont.hh>
+#include <splash/SplashFontEngine.hh>
 #include <splash/SplashFontFile.hh>
 #include <splash/SplashFontFileID.hh>
-#include <splash/Splash.hh>
+#include <splash/SplashGlyphBitmap.hh>
+#include <splash/SplashPath.hh>
+#include <splash/SplashPattern.hh>
+#include <splash/SplashScreen.hh>
+#include <splash/SplashState.hh>
+
+#include <xpdf/array.hh>
+#include <xpdf/BuiltinFont.hh>
+#include <xpdf/BuiltinFontTables.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/Error.hh>
+#include <xpdf/FontEncodingTables.hh>
+#include <xpdf/Gfx.hh>
+#include <xpdf/GfxFont.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/JPXStream.hh>
+#include <xpdf/Link.hh>
 #include <xpdf/SplashOutputDev.hh>
+#include <xpdf/obj.hh>
 
 //------------------------------------------------------------------------
 
@@ -44,13 +44,6 @@
 #define type3FontCacheAssoc 8
 #define type3FontCacheMaxSets 8
 #define type3FontCacheSize (128 * 1024)
-
-//------------------------------------------------------------------------
-
-// Divide a 16-bit value (in [0, 255*255]) by 255, returning an 8-bit result.
-static inline unsigned char div255 (int x) {
-    return (unsigned char) ((x + (x >> 8) + 0x80) >> 8);
-}
 
 //------------------------------------------------------------------------
 // Blend functions
@@ -1125,7 +1118,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
         if (!(fontLoc = gfxFont->locateFont (xref, false))) {
             error (
                 errSyntaxError, -1, "Couldn't find a font for '{0:s}'",
-                gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                     : "(unnamed)");
             goto err2;
         }
@@ -1135,13 +1128,11 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
             gfxFont->getEmbeddedFontID (&embRef);
 #if LOAD_FONTS_FROM_MEM
             fontBuf = new GString ();
-            refObj.initRef (embRef.num, embRef.gen);
-            refObj.fetch (xref, &strObj);
-            refObj.free ();
-            if (!strObj.isStream ()) {
+            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen, xref);
+            strObj = resolve (refObj);
+            if (!strObj.is_stream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
-                strObj.free ();
                 delete fontLoc;
                 goto err2;
             }
@@ -1150,20 +1141,17 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 fontBuf->append (blk, n);
             }
             strObj.streamClose ();
-            strObj.free ();
 #else
             if (!openTempFile (&tmpFileName, &tmpFile, "wb")) {
                 error (errIO, -1, "Couldn't create temporary font file");
                 delete fontLoc;
                 goto err2;
             }
-            refObj.initRef (embRef.num, embRef.gen);
-            refObj.fetch (xref, &strObj);
-            refObj.free ();
-            if (!strObj.isStream ()) {
+            refObj = xpdf::make_ref_obj (embRef.num, embRef.gen, xref);
+            strObj = resolve (refObj);
+            if (!strObj.is_stream ()) {
                 error (
                     errSyntaxError, -1, "Embedded font object is wrong type");
-                strObj.free ();
                 fclose (tmpFile);
                 delete fontLoc;
                 goto err2;
@@ -1173,7 +1161,6 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                 fwrite (blk, 1, n, tmpFile);
             }
             strObj.streamClose ();
-            strObj.free ();
             fclose (tmpFile);
             fileName = tmpFileName;
 #endif
@@ -1215,7 +1202,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1232,7 +1219,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1249,7 +1236,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       (const char**)((Gfx8BitFont*)gfxFont)->getEncoding ()))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1293,7 +1280,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                           : (char*)NULL))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1312,7 +1299,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1340,7 +1327,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                       codeToGID, n))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -1407,7 +1394,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                     error (
                         errSyntaxError, -1,
                         "Couldn't find a mapping to Unicode for font '{0:s}'",
-                        gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                        gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                             : "(unnamed)");
                 }
             }
@@ -1424,7 +1411,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
                           : (char*)NULL))) {
                 error (
                     errSyntaxError, -1, "Couldn't create a font for '{0:s}'",
-                    gfxFont->getName () ? gfxFont->getName ()->c_str ()
+                    gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                         : "(unnamed)");
                 delete fontLoc;
                 goto err2;
@@ -2643,17 +2630,20 @@ void SplashOutputDev::drawMaskedImage (
     // If the mask is higher resolution than the image, use
     // drawSoftMaskedImage() instead.
     if (maskWidth > width || maskHeight > height) {
-        decodeLow.initInt (maskInvert ? 0 : 1);
-        decodeHigh.initInt (maskInvert ? 1 : 0);
-        maskDecode.initArray (xref);
-        maskDecode.arrayAdd (&decodeLow);
-        maskDecode.arrayAdd (&decodeHigh);
+        decodeLow  = xpdf::make_int_obj (maskInvert ? 0 : 1);
+        decodeHigh = xpdf::make_int_obj (maskInvert ? 1 : 0);
+
+        maskDecode = xpdf::make_arr_obj ();
+        maskDecode.as_array ().push_back (decodeLow);
+        maskDecode.as_array ().push_back (decodeHigh);
+
         maskColorMap = new GfxImageColorMap (
             1, &maskDecode, new GfxDeviceGrayColorSpace ());
-        maskDecode.free ();
+
         drawSoftMaskedImage (
             state, ref, str, width, height, colorMap, maskStr, maskWidth,
             maskHeight, maskColorMap, interpolate);
+
         delete maskColorMap;
     }
     else {
@@ -3331,7 +3321,7 @@ void SplashOutputDev::setFillColor (int r, int g, int b) {
     case splashModeMono8:
         gray.x = (xpdf::color_t) (
             0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.g + 0.5);
-        gray.x = std::clamp (gray.x, 0U, XPDF_FIXED_POINT_ONE);
+        gray.x = std::clamp (gray.x, 0, XPDF_FIXED_POINT_ONE);
         splash->setFillPattern (getColor (gray));
         break;
 

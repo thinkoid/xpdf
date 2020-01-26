@@ -1,16 +1,10 @@
-//========================================================================
-//
-// BuiltinFont.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef BUILTINFONT_H
-#define BUILTINFONT_H
+#ifndef XPDF_XPDF_BUILTINFONT_HH
+#define XPDF_XPDF_BUILTINFONT_HH
 
 #include <defs.hh>
-
 
 struct BuiltinFont;
 class BuiltinFontWidths;
@@ -47,4 +41,4 @@ private:
     int size;
 };
 
-#endif
+#endif // XPDF_XPDF_BUILTINFONT_HH

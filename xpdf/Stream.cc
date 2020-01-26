@@ -1,10 +1,5 @@
-//========================================================================
-//
-// Stream.cc
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -18,8 +13,8 @@
 #include <goo/gfile.hh>
 #include <defs.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
-#include <xpdf/Lexer.hh>
+#include <xpdf/obj.hh>
+#include <xpdf/lexer.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/JBIG2Stream.hh>
@@ -96,47 +91,41 @@ Stream* Stream::addFilters (Object* dict, int recursion) {
 
     str = this;
     dict->dictLookup ("Filter", &obj);
-    if (obj.isNull ()) {
-        obj.free ();
+    if (obj.is_null ()) {
         dict->dictLookup ("F", &obj);
     }
     dict->dictLookup ("DecodeParms", &params);
-    if (params.isNull ()) {
-        params.free ();
+    if (params.is_null ()) {
         dict->dictLookup ("DP", &params);
     }
-    if (obj.isName ()) {
-        str = makeFilter (obj.getName (), str, &params, recursion);
+    if (obj.is_name ()) {
+        str = makeFilter (obj.as_name (), str, &params, recursion);
     }
-    else if (obj.isArray ()) {
-        for (i = 0; i < obj.arrayGetLength (); ++i) {
-            obj.arrayGet (i, &obj2);
-            if (params.isArray ())
-                params.arrayGet (i, &params2);
+    else if (obj.is_array ()) {
+        for (i = 0; i < obj.as_array ().size (); ++i) {
+            obj2 = resolve (obj [i]);
+            if (params.is_array ())
+                params2 = resolve (params [i]);
             else
-                params2.initNull ();
-            if (obj2.isName ()) {
-                str = makeFilter (obj2.getName (), str, &params2, recursion);
+                params2 = { };
+            if (obj2.is_name ()) {
+                str = makeFilter (obj2.as_name (), str, &params2, recursion);
             }
             else {
                 error (errSyntaxError, getPos (), "Bad filter name");
                 str = new EOFStream (str);
             }
-            obj2.free ();
-            params2.free ();
         }
     }
-    else if (!obj.isNull ()) {
+    else if (!obj.is_null ()) {
         error (errSyntaxError, getPos (), "Bad 'Filter' attribute in stream");
     }
-    obj.free ();
-    params.free ();
 
     return str;
 }
 
 Stream*
-Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
+Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion) {
     int pred; // parameters
     int colors;
     int bits;
@@ -159,22 +148,17 @@ Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
         colors = 1;
         bits = 8;
         early = 1;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("Predictor", &obj, recursion);
-            if (obj.isInt ()) pred = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) pred = obj.as_int ();
             params->dictLookup ("Columns", &obj, recursion);
-            if (obj.isInt ()) columns = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) columns = obj.as_int ();
             params->dictLookup ("Colors", &obj, recursion);
-            if (obj.isInt ()) colors = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) colors = obj.as_int ();
             params->dictLookup ("BitsPerComponent", &obj, recursion);
-            if (obj.isInt ()) bits = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) bits = obj.as_int ();
             params->dictLookup ("EarlyChange", &obj, recursion);
-            if (obj.isInt ()) early = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) early = obj.as_int ();
         }
         str = new LZWStream (str, pred, columns, colors, bits, early);
     }
@@ -189,28 +173,21 @@ Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
         rows = 0;
         endOfBlock = true;
         black = false;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("K", &obj, recursion);
-            if (obj.isInt ()) { encoding = obj.getInt (); }
-            obj.free ();
+            if (obj.is_int ()) { encoding = obj.as_int (); }
             params->dictLookup ("EndOfLine", &obj, recursion);
-            if (obj.isBool ()) { endOfLine = obj.getBool (); }
-            obj.free ();
+            if (obj.is_bool ()) { endOfLine = obj.as_bool (); }
             params->dictLookup ("EncodedByteAlign", &obj, recursion);
-            if (obj.isBool ()) { byteAlign = obj.getBool (); }
-            obj.free ();
+            if (obj.is_bool ()) { byteAlign = obj.as_bool (); }
             params->dictLookup ("Columns", &obj, recursion);
-            if (obj.isInt ()) { columns = obj.getInt (); }
-            obj.free ();
+            if (obj.is_int ()) { columns = obj.as_int (); }
             params->dictLookup ("Rows", &obj, recursion);
-            if (obj.isInt ()) { rows = obj.getInt (); }
-            obj.free ();
+            if (obj.is_int ()) { rows = obj.as_int (); }
             params->dictLookup ("EndOfBlock", &obj, recursion);
-            if (obj.isBool ()) { endOfBlock = obj.getBool (); }
-            obj.free ();
+            if (obj.is_bool ()) { endOfBlock = obj.as_bool (); }
             params->dictLookup ("BlackIs1", &obj, recursion);
-            if (obj.isBool ()) { black = obj.getBool (); }
-            obj.free ();
+            if (obj.is_bool ()) { black = obj.as_bool (); }
         }
         str = new CCITTFaxStream (
             str, encoding, endOfLine, byteAlign, columns, rows, endOfBlock,
@@ -218,12 +195,11 @@ Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
     }
     else if (!strcmp (name, "DCTDecode") || !strcmp (name, "DCT")) {
         colorXform = -1;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             if (params->dictLookup ("ColorTransform", &obj, recursion)
-                    ->isInt ()) {
-                colorXform = obj.getInt ();
+                    ->is_int ()) {
+                colorXform = obj.as_int ();
             }
-            obj.free ();
         }
         str = new DCTStream (str, colorXform);
     }
@@ -232,28 +208,23 @@ Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
         columns = 1;
         colors = 1;
         bits = 8;
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("Predictor", &obj, recursion);
-            if (obj.isInt ()) pred = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) pred = obj.as_int ();
             params->dictLookup ("Columns", &obj, recursion);
-            if (obj.isInt ()) columns = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) columns = obj.as_int ();
             params->dictLookup ("Colors", &obj, recursion);
-            if (obj.isInt ()) colors = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) colors = obj.as_int ();
             params->dictLookup ("BitsPerComponent", &obj, recursion);
-            if (obj.isInt ()) bits = obj.getInt ();
-            obj.free ();
+            if (obj.is_int ()) bits = obj.as_int ();
         }
         str = new FlateStream (str, pred, columns, colors, bits);
     }
     else if (!strcmp (name, "JBIG2Decode")) {
-        if (params->isDict ()) {
+        if (params->is_dict ()) {
             params->dictLookup ("JBIG2Globals", &globals, recursion);
         }
         str = new JBIG2Stream (str, &globals);
-        globals.free ();
     }
     else if (!strcmp (name, "JPXDecode")) {
         str = new JPXStream (str);
@@ -271,7 +242,7 @@ Stream::makeFilter (char* name, Stream* str, Object* params, int recursion) {
 
 BaseStream::BaseStream (Object* dictA) { dict = *dictA; }
 
-BaseStream::~BaseStream () { dict.free (); }
+BaseStream::~BaseStream () { }
 
 //------------------------------------------------------------------------
 // FilterStream
@@ -906,7 +877,7 @@ int ASCII85Stream::lookChar () {
     if (index >= n) {
         if (eof) return EOF;
         index = 0;
-        do { c[0] = str->getChar (); } while (Lexer::isSpace (c[0]));
+        do { c[0] = str->getChar (); } while (xpdf::lexer_t::isSpace (c[0]));
         if (c[0] == '~' || c[0] == EOF) {
             eof = true;
             n = 0;
@@ -918,7 +889,7 @@ int ASCII85Stream::lookChar () {
         }
         else {
             for (k = 1; k < 5; ++k) {
-                do { c[k] = str->getChar (); } while (Lexer::isSpace (c[k]));
+                do { c[k] = str->getChar (); } while (xpdf::lexer_t::isSpace (c[k]));
                 if (c[k] == '~' || c[k] == EOF) break;
             }
             n = k - 1;

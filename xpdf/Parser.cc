@@ -1,16 +1,11 @@
-//========================================================================
-//
-// Parser.cc
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
 #include <cstddef>
-#include <xpdf/Object.hh>
-#include <xpdf/Array.hh>
+#include <xpdf/obj.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Decrypt.hh>
 #include <xpdf/Parser.hh>
@@ -21,130 +16,212 @@
 // in the object structure.
 #define recursionLimit 500
 
-Parser::Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA) {
+static inline bool is_keyword (const xpdf::lexer_t::token_t& tok) {
+    return tok.type == xpdf::lexer_t::token_t::KEYWORD_;
+}
+
+static inline bool is_keyword (const xpdf::lexer_t::token_t& tok, const char* s) {
+    return tok.type == xpdf::lexer_t::token_t::KEYWORD_ && tok.s == s;
+}
+
+static inline bool is_eof (const xpdf::lexer_t::token_t& tok) {
+    return tok.type == xpdf::lexer_t::token_t::EOF_;
+}
+
+static inline bool is_error (const xpdf::lexer_t::token_t& tok) {
+    return tok.type == xpdf::lexer_t::token_t::ERROR_;
+}
+
+static inline bool is_int (const xpdf::lexer_t::token_t& tok) {
+    return tok.type == xpdf::lexer_t::token_t::INT_;
+}
+
+static inline bool is_string (const xpdf::lexer_t::token_t& tok) {
+    return tok.type == xpdf::lexer_t::token_t::STRING_;
+}
+
+static inline bool is_name (const xpdf::lexer_t::token_t& tok) {
+    return tok.type == xpdf::lexer_t::token_t::NAME_;
+}
+
+static inline Object make_generic_object (const xpdf::lexer_t::token_t& tok) {
+    Object obj;
+
+#define XPDF_CASE_DEF(tok, name, ...)                                   \
+    case xpdf::lexer_t::token_t::tok:                                   \
+        obj = XPDF_CAT (XPDF_CAT(xpdf::make_, name), _obj) (__VA_ARGS__); \
+        break
+
+    switch (tok.type) {
+        XPDF_CASE_DEF (NULL_,    null);
+        XPDF_CASE_DEF (EOF_,     eof);
+        XPDF_CASE_DEF (BOOL_,    bool,    tok.s [0] == 't');
+        XPDF_CASE_DEF (INT_,     int,     std::stoi (tok.s));
+        XPDF_CASE_DEF (REAL_,    real,    std::stod (tok.s));
+        XPDF_CASE_DEF (STRING_,  string,  tok.s);
+        XPDF_CASE_DEF (NAME_,    name,    tok.s);
+        XPDF_CASE_DEF (KEYWORD_, cmd,     tok.s);
+        XPDF_CASE_DEF (ERROR_,   err);
+#undef XPDF_CASE_DEF
+
+    default:
+        obj = xpdf::make_err_obj ();
+        break;
+    }
+
+    return obj;
+}
+
+Parser::Parser (XRef* xrefA, xpdf::lexer_t* lexerA, bool allowStreamsA) {
     xref = xrefA;
     lexer = lexerA;
+
     inlineImg = 0;
     allowStreams = allowStreamsA;
-    lexer->getObj (&buf1);
-    lexer->getObj (&buf2);
+
+    buf1 = lexer->next ();
+    buf2 = lexer->next ();
 }
 
 Parser::~Parser () {
-    buf1.free ();
-    buf2.free ();
     delete lexer;
 }
 
 Object* Parser::getObj (
     Object* obj, bool simpleOnly, unsigned char* fileKey, CryptAlgorithm encAlgorithm,
     int keyLength, int objNum, int objGen, int recursion) {
-    char* key;
     Stream* str;
     Object obj2;
     int num;
     DecryptStream* decrypt;
-    GString *s, *s2;
     int c;
 
     // refill buffer after inline image data
     if (inlineImg == 2) {
-        buf1.free ();
-        buf2.free ();
-        lexer->getObj (&buf1);
-        lexer->getObj (&buf2);
+        buf1 = lexer->next ();
+        buf2 = lexer->next ();
+
         inlineImg = 0;
     }
 
-    // array
-    if (!simpleOnly && recursion < recursionLimit && buf1.isCmd ("[")) {
-        shift ();
-        obj->initArray (xref);
-        while (!buf1.isCmd ("]") && !buf1.isEOF ())
-            obj->arrayAdd (getObj (
-                &obj2, false, fileKey, encAlgorithm, keyLength, objNum, objGen,
-                recursion + 1));
-        if (buf1.isEOF ())
-            error (errSyntaxError, getPos (), "End of file inside array");
+    if (!simpleOnly && recursion < recursionLimit && is_keyword (buf1, "[")) {
+        //
+        // Array:
+        //
         shift ();
 
-        // dictionary or stream
-    }
-    else if (!simpleOnly && recursion < recursionLimit && buf1.isCmd ("<<")) {
+        *obj = xpdf::make_arr_obj ();
+
+        while (!is_keyword (buf1, "]") && !is_eof (buf1)) {
+            obj->as_array ().push_back (
+                *getObj (
+                    &obj2, false, fileKey, encAlgorithm, keyLength,
+                    objNum, objGen,
+                    recursion + 1));
+        }
+
+        if (is_eof (buf1)) {
+            error (errSyntaxError, getPos (), "End of file inside array");
+        }
+
         shift ();
-        obj->initDict (xref);
-        while (!buf1.isCmd (">>") && !buf1.isEOF ()) {
-            if (!buf1.isName ()) {
+    }
+    else if (!simpleOnly && recursion < recursionLimit && is_keyword (buf1, "<<")) {
+        //
+        // Dictionary or stream:
+        //
+        shift ();
+
+        *obj = xpdf::make_dict_obj (xref);
+
+        while (!is_keyword (buf1, ">>") && !is_eof (buf1)) {
+            if (!is_name (buf1)) {
                 error (
                     errSyntaxError, getPos (),
                     "Dictionary key must be a name object");
+
                 shift ();
             }
             else {
-                key = strdup (buf1.getName ());
+                std::string s = buf1.s;
                 shift ();
-                if (buf1.isEOF () || buf1.isError ()) {
-                    free (key);
+
+                if (is_eof (buf1) || is_error (buf1)) {
                     break;
                 }
+
                 obj->dictAdd (
-                    key, getObj (
-                             &obj2, false, fileKey, encAlgorithm, keyLength,
-                             objNum, objGen, recursion + 1));
+                    s.c_str (), getObj (
+                        &obj2, false, fileKey, encAlgorithm, keyLength,
+                        objNum, objGen, recursion + 1));
             }
         }
-        if (buf1.isEOF ())
+
+        if (is_eof (buf1)) {
             error (errSyntaxError, getPos (), "End of file inside dictionary");
+        }
+
         // stream objects are not allowed inside content streams or
         // object streams
-        if (allowStreams && buf2.isCmd ("stream")) {
+        if (allowStreams && is_keyword (buf2, "stream")) {
             if ((str = makeStream (
                      obj, fileKey, encAlgorithm, keyLength, objNum, objGen,
                      recursion + 1))) {
-                obj->initStream (str);
+                *obj = xpdf::make_stream_obj (str);
             }
             else {
-                obj->free ();
-                obj->initError ();
+                *obj = xpdf::make_err_obj ();
             }
         }
         else {
             shift ();
         }
-
-        // indirect reference or integer
     }
-    else if (buf1.isInt ()) {
-        num = buf1.getInt ();
+    else if (is_int (buf1)) {
+        //
+        // Indirect reference or integer:
+        //
+        num = std::stoi (buf1.s);
+
         shift ();
-        if (buf1.isInt () && buf2.isCmd ("R")) {
-            obj->initRef (num, buf1.getInt ());
+
+        if (is_int (buf1) && is_keyword (buf2, "R")) {
+            int gen = std::stoi (buf1.s);
+            *obj = xpdf::make_ref_obj (num, gen, xref);
+
             shift ();
             shift ();
         }
         else {
-            obj->initInt (num);
+            *obj = xpdf::make_int_obj (num);
+        }
+    }
+    else if (is_string (buf1) && fileKey) {
+        //
+        // String:
+        //
+        std::string s;
+
+        obj2 = { };
+
+        decrypt = new DecryptStream (
+            new MemStream (buf1.s.c_str (), 0, buf1.s.size (), &obj2),
+            fileKey, encAlgorithm, keyLength, objNum, objGen);
+
+        decrypt->reset ();
+
+        while ((c = decrypt->getChar ()) != EOF) {
+            s.append (1UL, char (c));
         }
 
-        // string
-    }
-    else if (buf1.isString () && fileKey) {
-        s = buf1.getString ();
-        s2 = new GString ();
-        obj2.initNull ();
-        decrypt = new DecryptStream (
-            new MemStream (s->c_str (), 0, s->getLength (), &obj2),
-            fileKey, encAlgorithm, keyLength, objNum, objGen);
-        decrypt->reset ();
-        while ((c = decrypt->getChar ()) != EOF) { s2->append ((char)c); }
         delete decrypt;
-        obj->initString (s2);
-        shift ();
+        *obj = xpdf::make_string_obj (s);
 
-        // simple object
+        shift ();
     }
     else {
-        buf1.copy (obj);
+        // simple object
+        *obj = make_generic_object (buf1);
         shift ();
     }
 
@@ -161,7 +238,7 @@ Stream* Parser::makeStream (
 
     // get stream start position
     lexer->skipToNextLine ();
-    if (!(str = lexer->getStream ())) { return NULL; }
+    if (!(str = lexer->as_stream ())) { return NULL; }
     pos = str->getPos ();
 
     // check for length in damaged file
@@ -172,22 +249,20 @@ Stream* Parser::makeStream (
     }
     else {
         dict->dictLookup ("Length", &obj, recursion);
-        if (obj.isInt ()) {
-            length = (GFileOffset) (unsigned)obj.getInt ();
-            obj.free ();
+        if (obj.is_int ()) {
+            length = (GFileOffset) (unsigned)obj.as_int ();
         }
         else {
             error (
                 errSyntaxError, getPos (), "Bad 'Length' attribute in stream");
-            obj.free ();
             return NULL;
         }
     }
 
     // in badly damaged PDF files, we can run off the end of the input
     // stream immediately after the "stream" token
-    if (!lexer->getStream ()) { return NULL; }
-    baseStr = lexer->getStream ()->getBaseStream ();
+    if (!lexer->as_stream ()) { return NULL; }
+    baseStr = lexer->as_stream ()->getBaseStream ();
 
     // skip over stream data
     lexer->setPos (pos + length);
@@ -195,7 +270,7 @@ Stream* Parser::makeStream (
     // refill token buffers and check for 'endstream'
     shift (); // kill '>>'
     shift (); // kill 'stream'
-    if (buf1.isCmd ("endstream")) { shift (); }
+    if (is_keyword (buf1, "endstream")) { shift (); }
     else {
         error (errSyntaxError, getPos (), "Missing 'endstream'");
         // kludge for broken PDF files: just add 5k to the length, and
@@ -220,21 +295,30 @@ Stream* Parser::makeStream (
 
 void Parser::shift () {
     if (inlineImg > 0) {
-        if (inlineImg < 2) { ++inlineImg; }
+        if (inlineImg < 2) {
+            ++inlineImg;
+        }
         else {
-            // in a damaged content stream, if 'ID' shows up in the middle
-            // of a dictionary, we need to reset
+            //
+            // In a damaged content stream, if 'ID' shows up in the middle
+            // of a dictionary, we need to reset:
+            //
             inlineImg = 0;
         }
     }
-    else if (buf2.isCmd ("ID")) {
-        lexer->skipChar (); // skip char after 'ID' command
+    else if (is_keyword (buf2, "ID")) {
+        // skip char after 'ID' command
+        lexer->skipChar ();
         inlineImg = 1;
     }
-    buf1.free ();
+
     buf1 = buf2;
-    if (inlineImg > 0) // don't buffer inline image data
-        buf2.initNull ();
-    else
-        lexer->getObj (&buf2);
+
+    if (inlineImg > 0){
+        // don't buffer inline image data
+        buf2 = { xpdf::lexer_t::token_t::NULL_, { } };
+    }
+    else {
+        buf2 = lexer->next ();
+    }
 }

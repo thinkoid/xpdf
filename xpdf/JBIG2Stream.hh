@@ -1,17 +1,12 @@
-//========================================================================
-//
-// JBIG2Stream.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef JBIG2STREAM_H
-#define JBIG2STREAM_H
+#ifndef XPDF_XPDF_JBIG2STREAM_HH
+#define XPDF_XPDF_JBIG2STREAM_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 class GList;
@@ -123,4 +118,4 @@ private:
     JBIG2MMRDecoder* mmrDecoder;
 };
 
-#endif
+#endif // XPDF_XPDF_JBIG2STREAM_HH

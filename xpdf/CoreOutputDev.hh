@@ -1,13 +1,8 @@
-//========================================================================
-//
-// CoreOutputDev.h
-//
+// -*- mode: c++; -*-
 // Copyright 2004 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef COREOUTPUTDEV_H
-#define COREOUTPUTDEV_H
+#ifndef XPDF_XPDF_COREOUTPUTDEV_HH
+#define XPDF_XPDF_COREOUTPUTDEV_HH
 
 #include <splash/SplashTypes.hh>
 #include <xpdf/SplashOutputDev.hh>
@@ -51,4 +46,4 @@ private:
     void* redrawCbkData;
 };
 
-#endif
+#endif // XPDF_XPDF_COREOUTPUTDEV_HH

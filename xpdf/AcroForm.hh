@@ -1,54 +1,23 @@
-//========================================================================
-//
-// AcroForm.h
-//
+// -*- mode: c++; -*-
 // Copyright 2012 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef ACROFORM_H
-#define ACROFORM_H
+#ifndef XPDF_XPDF_ACROFORM_HH
+#define XPDF_XPDF_ACROFORM_HH
 
 #include <defs.hh>
 
-#include <xpdf/Form.hh>
-#include <xpdf/Object.hh>
+#include <memory>
+#include <vector>
 
+#include <xpdf/Form.hh>
+#include <xpdf/obj.hh>
+
+class AcroForm;
 class TextString;
 class GfxFont;
 class GfxFontDict;
 
-//------------------------------------------------------------------------
-
-class AcroForm : public Form {
-public:
-    static AcroForm*
-    load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA);
-
-    virtual ~AcroForm ();
-
-    virtual const char* getType () { return "AcroForm"; }
-
-    virtual void draw (int pageNum, Gfx* gfx, bool printing);
-
-    virtual int getNumFields ();
-    virtual FormField* getField (int idx);
-
-private:
-    AcroForm (PDFDoc* docA, Object* acroFormObjA);
-    void buildAnnotPageList (Catalog* catalog);
-    int lookupAnnotPage (Object* annotRef);
-    void scanField (Object* fieldRef);
-
-    Object acroFormObj;
-    bool needAppearances;
-    GList* annotPages; // [AcroFormAnnotPage]
-    GList* fields;     // [AcroFormField]
-
-    friend class AcroFormField;
-};
-
-//------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////
 
 enum AcroFormFieldType {
     acroFormFieldPushbutton,
@@ -69,7 +38,8 @@ public:
     virtual ~AcroFormField ();
 
     virtual const char* getType ();
-    virtual Unicode* getName (int* length);
+
+    virtual Unicode* as_name (int* length);
     virtual Unicode* getValue (int* length);
 
     virtual Object* getResources (Object* res);
@@ -88,7 +58,7 @@ private:
     void drawNewAppearance (
         Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax,
         double yMax);
-    void setColor (Array* a, bool fill, int adjust);
+    void setColor (Array& arr, bool fill, int adjust);
     void drawText (
         GString* text, GString* da, GfxFontDict* fontDict, bool multiline,
         int comb, int quadding, bool txField, bool forceZapfDingbats, int rot,
@@ -113,9 +83,50 @@ private:
     AcroFormFieldType type;
     TextString* name;
     unsigned flags;
-    GString* appearBuf;
+    std::string appearBuf;
 
     friend class AcroForm;
 };
 
-#endif
+//------------------------------------------------------------------------
+
+struct AcroFormAnnotPage;
+
+class AcroForm : public Form {
+public:
+    virtual ~AcroForm ();
+
+    const char* getType () { return "AcroForm"; }
+
+    void draw (int pageNum, Gfx* gfx, bool printing);
+
+    size_t getNumFields () const { return fields.size (); }
+
+    FormField* getField (size_t i) const {
+        ASSERT (i < fields.size ());
+        return fields [i].get ();
+    }
+
+public:
+    static AcroForm* load (PDFDoc*, Catalog*, Object*);
+
+private:
+    friend class AcroFormField;
+
+    AcroForm (PDFDoc*, Object*);
+
+    void buildAnnotPageList (Catalog* catalog);
+    int lookupAnnotPage (Object* annotRef);
+    void scanField (Object* fieldRef);
+
+private:
+    Object acroFormObj;
+    bool needAppearances;
+
+    std::vector< std::unique_ptr< AcroFormAnnotPage > > annotPages;
+    std::vector< std::unique_ptr< AcroFormField > > fields;
+};
+
+//------------------------------------------------------------------------
+
+#endif // XPDF_XPDF_ACROFORM_HH

@@ -1,17 +1,12 @@
-//========================================================================
-//
-// OptionalContent.h
-//
+// -*- mode: c++; -*-
 // Copyright 2008-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef OPTIONALCONTENT_H
-#define OPTIONALCONTENT_H
+#ifndef XPDF_XPDF_OPTIONALCONTENT_HH
+#define XPDF_XPDF_OPTIONALCONTENT_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
 
 class GString;
@@ -67,7 +62,7 @@ public:
 
     bool matches (Ref* refA);
 
-    Unicode* getName ();
+    Unicode* as_name ();
     int getNameLength ();
     OCUsageState getViewState () { return viewState; }
     OCUsageState getPrintState () { return printState; }
@@ -97,7 +92,7 @@ public:
     OCDisplayNode ();
     ~OCDisplayNode ();
 
-    Unicode* getName ();
+    Unicode* as_name ();
     int getNameLength ();
     OptionalContentGroup* getOCG () { return ocg; }
     int getNumChildren ();
@@ -116,4 +111,4 @@ private:
         //   [OCDisplayNode]
 };
 
-#endif
+#endif // XPDF_XPDF_OPTIONALCONTENT_HH

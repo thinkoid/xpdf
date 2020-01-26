@@ -1,25 +1,19 @@
-//========================================================================
-//
-// Catalog.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2007 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef CATALOG_H
-#define CATALOG_H
+#ifndef XPDF_XPDF_CATALOG_HH
+#define XPDF_XPDF_CATALOG_HH
 
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
+#include <xpdf/obj_fwd.hh>
 
 class GList;
 class PDFDoc;
 class XRef;
-class Object;
 class Page;
 class PageAttrs;
-struct Ref;
 class LinkDest;
 class PageTreeNode;
 class Form;
@@ -119,4 +113,4 @@ private:
     void readEmbeddedFile (Object* fileSpec, Object* name1);
 };
 
-#endif
+#endif // XPDF_XPDF_CATALOG_HH

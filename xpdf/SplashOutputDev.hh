@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashOutputDev.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHOUTPUTDEV_H
-#define SPLASHOUTPUTDEV_H
+#ifndef XPDF_XPDF_SPLASHOUTPUTDEV_HH
+#define XPDF_XPDF_SPLASHOUTPUTDEV_HH
 
 #include <defs.hh>
 
@@ -282,4 +277,4 @@ private:
     int nestCount;
 };
 
-#endif
+#endif // XPDF_XPDF_SPLASHOUTPUTDEV_HH

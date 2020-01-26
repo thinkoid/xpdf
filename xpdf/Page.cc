@@ -1,17 +1,12 @@
-//========================================================================
-//
-// Page.cc
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2007 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
 #include <cstddef>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/Object.hh>
-#include <xpdf/Array.hh>
+#include <xpdf/obj.hh>
+#include <xpdf/array.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/XRef.hh>
@@ -63,7 +58,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
         cropBox = attrs->cropBox;
         haveCropBox = attrs->haveCropBox;
         rotate = attrs->rotate;
-        attrs->resources.copy (&resources);
+        resources = attrs->resources;
     }
     else {
         // set default MediaBox to 8.5" x 11" -- this shouldn't be necessary
@@ -75,7 +70,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
         cropBox.x1 = cropBox.y1 = cropBox.x2 = cropBox.y2 = 0;
         haveCropBox = false;
         rotate = 0;
-        resources.initNull ();
+        resources = { };
     }
 
     // media box
@@ -95,8 +90,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
 
     // rotate
     dict->lookup ("Rotate", &obj1);
-    if (obj1.isInt ()) { rotate = obj1.getInt (); }
-    obj1.free ();
+    if (obj1.is_int ()) { rotate = obj1.as_int (); }
     while (rotate < 0) { rotate += 360; }
     while (rotate >= 360) { rotate -= 360; }
 
@@ -107,22 +101,21 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     dict->lookup ("Metadata", &metadata);
     dict->lookup ("PieceInfo", &pieceInfo);
     dict->lookup ("SeparationInfo", &separationInfo);
-    if (dict->lookup ("UserUnit", &obj1)->isNum ()) {
-        userUnit = obj1.getNum ();
+
+    if (dict->lookup ("UserUnit", &obj1)->is_num ()) {
+        userUnit = obj1.as_num ();
         if (userUnit < 1) { userUnit = 1; }
     }
     else {
         userUnit = 1;
     }
-    obj1.free ();
 
     // resource dictionary
     dict->lookup ("Resources", &obj1);
-    if (obj1.isDict ()) {
-        resources.free ();
-        obj1.copy (&resources);
+
+    if (obj1.is_dict ()) {
+        resources = obj1;
     }
-    obj1.free ();
 }
 
 PageAttrs::PageAttrs () {
@@ -134,23 +127,16 @@ PageAttrs::PageAttrs () {
     trimBox = cropBox;
     artBox = cropBox;
     rotate = 0;
-    lastModified.initNull ();
-    boxColorInfo.initNull ();
-    group.initNull ();
-    metadata.initNull ();
-    pieceInfo.initNull ();
-    separationInfo.initNull ();
-    resources.initNull ();
+    lastModified = { };
+    boxColorInfo = { };
+    group = { };
+    metadata = { };
+    pieceInfo = { };
+    separationInfo = { };
+    resources = { };
 }
 
 PageAttrs::~PageAttrs () {
-    lastModified.free ();
-    boxColorInfo.free ();
-    group.free ();
-    metadata.free ();
-    pieceInfo.free ();
-    separationInfo.free ();
-    resources.free ();
 }
 
 void PageAttrs::clipBoxes () {
@@ -167,32 +153,28 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     bool ok;
 
     dict->lookup (key, &obj1);
-    if (obj1.isArray () && obj1.arrayGetLength () == 4) {
+    if (obj1.is_array () && obj1.as_array ().size () == 4) {
         ok = true;
-        obj1.arrayGet (0, &obj2);
-        if (obj2.isNum ()) { tmp.x1 = obj2.getNum (); }
+        obj2 = resolve (obj1 [0]);
+        if (obj2.is_num ()) { tmp.x1 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj2.free ();
-        obj1.arrayGet (1, &obj2);
-        if (obj2.isNum ()) { tmp.y1 = obj2.getNum (); }
+        obj2 = resolve (obj1 [1]);
+        if (obj2.is_num ()) { tmp.y1 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj2.free ();
-        obj1.arrayGet (2, &obj2);
-        if (obj2.isNum ()) { tmp.x2 = obj2.getNum (); }
+        obj2 = resolve (obj1 [2]);
+        if (obj2.is_num ()) { tmp.x2 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj2.free ();
-        obj1.arrayGet (3, &obj2);
-        if (obj2.isNum ()) { tmp.y2 = obj2.getNum (); }
+        obj2 = resolve (obj1 [3]);
+        if (obj2.is_num ()) { tmp.y2 = obj2.as_num (); }
         else {
             ok = false;
         }
-        obj2.free ();
         if (ok) {
             if (tmp.x1 > tmp.x2) {
                 t = tmp.x1;
@@ -210,7 +192,6 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     else {
         ok = false;
     }
-    obj1.free ();
     return ok;
 }
 
@@ -230,32 +211,30 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
 
     // annotations
     pageDict->lookupNF ("Annots", &annots);
-    if (!(annots.isRef () || annots.isArray () || annots.isNull ())) {
+    if (!(annots.is_ref () || annots.is_array () || annots.is_null ())) {
         error (
             errSyntaxError, -1,
             "Page annotations object (page {0:d}) is wrong type ({1:s})", num,
             annots.getTypeName ());
-        annots.free ();
         goto err2;
     }
 
     // contents
     pageDict->lookupNF ("Contents", &contents);
-    if (!(contents.isRef () || contents.isArray () || contents.isNull ())) {
+    if (!(contents.is_ref () || contents.is_array () || contents.is_null ())) {
         error (
             errSyntaxError, -1,
             "Page contents object (page {0:d}) is wrong type ({1:s})", num,
             contents.getTypeName ());
-        contents.free ();
         goto err1;
     }
 
     return;
 
 err2:
-    annots.initNull ();
+    annots = { };
 err1:
-    contents.initNull ();
+    contents = { };
     ok = false;
 }
 
@@ -264,24 +243,17 @@ Page::Page (PDFDoc* docA, int numA) {
     xref = doc->getXRef ();
     num = numA;
     attrs = new PageAttrs ();
-    annots.initNull ();
-    contents.initNull ();
+    annots = { };
+    contents = { };
     ok = true;
 }
 
 Page::~Page () {
     delete attrs;
-    annots.free ();
-    contents.free ();
 }
 
 Links* Page::getLinks () {
-    Links* links;
-    Object obj;
-
-    links = new Links (getAnnots (&obj), doc->getCatalog ()->getBaseURI ());
-    obj.free ();
-    return links;
+    return new Links (getAnnots (), doc->getCatalog ()->getBaseURI ());
 }
 
 void Page::display (
@@ -338,8 +310,8 @@ void Page::displaySlice (
         doc, out, num, attrs->getResourceDict (), hDPI, vDPI, &box,
         crop ? cropBox : (PDFRectangle*)NULL, rotate, abortCheckCbk,
         abortCheckCbkData);
-    contents.fetch (xref, &obj);
-    if (!obj.isNull ()) {
+    obj = resolve (contents);
+    if (!obj.is_null ()) {
         gfx->saveState ();
         gfx->display (&contents);
         while (gfx->getState ()->hasSaves ()) { gfx->restoreState (); }
@@ -349,12 +321,10 @@ void Page::displaySlice (
         // OutputDev
         out->dump ();
     }
-    obj.free ();
 
     // draw (non-form) annotations
     if (globalParams->getDrawAnnotations ()) {
-        annotList = new Annots (doc, getAnnots (&obj));
-        obj.free ();
+        annotList = new Annots (doc, getAnnots ());
         annotList->generateAnnotAppearances ();
         if (annotList->getNumAnnots () > 0) {
             if (globalParams->getPrintCommands ()) {

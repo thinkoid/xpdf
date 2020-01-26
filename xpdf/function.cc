@@ -1,10 +1,6 @@
-//========================================================================
-//
-// function.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #include <defs.hh>
 
@@ -29,14 +25,13 @@
 #include <xpdf/bitpack.hh>
 #include <xpdf/xpdf.hh>
 
-#include <xpdf/Array.hh>
-#include <xpdf/ArrayIterator.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/array.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/function.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 
 #include <boost/noncopyable.hpp>
 
@@ -72,7 +67,7 @@ inline auto range_from (Dict& dict) {
 }
 
 inline auto optional_range_from (Dict& dict) {
-    return optional_array< std::tuple< double, double > > (dict, "Range");
+    return maybe_array< std::tuple< double, double > > (dict, "Range");
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -213,8 +208,7 @@ inline size_t bps_from (Dict& dict) {
 
 std::vector< char >
 block_from (Object& obj, size_t n) {
-    auto str = obj.getStream ();
-    STREAM_GUARD (str);
+    auto str = obj.as_stream ();
 
     std::vector< char > xs (n);
 
@@ -231,7 +225,7 @@ samples_from (const std::vector< char >& xs, size_t n, size_t bps) {
 
 std::vector< std::tuple< double, double > >
 encode_array_from (Dict& dict, const std::vector< size_t >& default_) {
-    auto xs = optional_array< std::tuple< double, double > > (dict, "Encode");
+    auto xs = maybe_array< std::tuple< double, double > > (dict, "Encode");
 
     if (xs.empty ()) {
         transform (default_, back_inserter (xs), [](auto x) {
@@ -245,7 +239,7 @@ encode_array_from (Dict& dict, const std::vector< size_t >& default_) {
 std::vector< std::tuple< double, double > >
 decode_array_from (
     Dict& dict, const std::vector< std::tuple< double, double > >& default_) {
-    auto xs = optional_array< std::tuple< double, double > > (dict, "Decode");
+    auto xs = maybe_array< std::tuple< double, double > > (dict, "Decode");
     return xs.empty () ? default_ : xs;
 }
 
@@ -411,7 +405,7 @@ struct exponential_function_t : function_t::impl_t {
 
 inline std::vector< double >
 exponential_array_from (Dict& dict, const char* s, int default_) {
-    auto xs = optional_array< double > (dict, s);
+    auto xs = maybe_array< double > (dict, s);
 
     if (xs.empty ()) {
         xs.push_back (default_);
@@ -501,17 +495,13 @@ struct stitching_function_t : function_t::impl_t {
 std::vector< std::shared_ptr< function_t::impl_t > >
 stitched_functions_from (Dict& dict, int recursion) {
     Object arr;
-
     dict.lookup ("Functions", &arr);
-    OBJECT_GUARD (&arr);
 
     std::vector< std::shared_ptr< function_t::impl_t > > fs;
 
-    for (size_t i = 0, k = arr.arrayGetLength (); i < k; ++i) {
+    for (size_t i = 0, k = arr.as_array ().size (); i < k; ++i) {
         Object fun;
-
-        arr.arrayGet (i, &fun);
-        OBJECT_GUARD (&fun);
+        fun = resolve (arr [i]);
 
         if (auto p = make_function (fun, recursion + 1)) {
             fs.push_back (p);
@@ -801,7 +791,7 @@ parse (Iterator& iter, Iterator last) {
             }
             else {
                 throw std::runtime_error (
-                    (fmt ("unexpected PostScript: %1%") % tok).str ());
+                    format ("unexpected PostScript: {}", tok));
             }
         }
         else if (tok == "}") {
@@ -810,7 +800,7 @@ parse (Iterator& iter, Iterator last) {
         }
         else if (tok == "if" || tok == "ifelse") {
             throw std::runtime_error (
-                (fmt ("unexpected PostScript: %1%") % tok).str ());
+                format ("unexpected PostScript: {}", tok));
         }
         else {
             // Note: 'if' and 'ifelse' are parsed separately.
@@ -828,10 +818,10 @@ parse (Iterator& iter, Iterator last) {
 
             if (iter2 == ns.end ()) {
                 throw std::runtime_error (
-                    (fmt ("invalid PostScript: %1%") % tok).str ());
+                    format ("invalid PostScript: {}", tok));
             }
 
-            xs.push_back ({ int (std::distance (iter2, ns.end ())), 0 });
+            xs.push_back ({ int (std::distance (iter2, ns.end ())), { 0 } });
 
             ++iter;
         }
@@ -847,10 +837,9 @@ postscript_function_t::postscript_function_t (Object& obj, Dict& dict)
     ASSERT (range.size () <= function_t::max_arity);
     ASSERT (!range.empty ());
 
-    auto str = obj.getStream ();
-    STREAM_GUARD (str);
-
+    auto str = obj.as_stream ();
     str->reset ();
+
     const auto ts = tokenize (*str);
 
     auto iter = ts.begin ();
@@ -1160,7 +1149,7 @@ postscript_function_t::exec (std::vector< double > stack) const {
 
         default:
             throw std::runtime_error (
-                (fmt ("invalid PostScript code: %1%") % 1).str ());
+                format ("invalid PostScript code: {}", iter->op));
         }
     }
 
@@ -1189,9 +1178,9 @@ std::string postscript_function_t::to_ps () const {
 
 static inline Dict*
 dictionary_from (Object& obj) {
-    return obj.isStream ()
+    return obj.is_stream ()
         ? obj.streamGetDict ()
-        : obj.isDict () ? obj.getDict () : 0;
+        : obj.is_dict () ? obj.as_dict () : 0;
 }
 
 std::shared_ptr< function_t::impl_t >
@@ -1200,7 +1189,7 @@ make_function (Object& obj, size_t recursion /* = 0 */) {
         throw std::runtime_error ("function definition recursion limit");
     }
 
-    if (obj.isName ("Identity")) {
+    if (obj.is_name ("Identity")) {
         return std::make_shared< identity_function_t > ();
     }
     else {
@@ -1214,7 +1203,7 @@ make_function (Object& obj, size_t recursion /* = 0 */) {
         case 4: return std::make_shared<  postscript_function_t > (obj, *p);
         default:
             throw std::runtime_error (
-                (fmt ("invalid function type: %1%") % type).str ());
+                format ("invalid function type: {}", type));
         }
     }
 }

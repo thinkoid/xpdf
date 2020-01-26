@@ -1,17 +1,8 @@
-//========================================================================
-//
-// TextString.h
-//
+// -*- mode: c++; -*-
 // Copyright 2011-2013 Glyph & Cog, LLC
-//
-// Represents a PDF "text string", which can either be a UTF-16BE
-// string (with a leading byte order marker), or an 8-bit string in
-// PDFDocEncoding.
-//
-//========================================================================
 
-#ifndef TEXTSTRING_H
-#define TEXTSTRING_H
+#ifndef XPDF_XPDF_TEXTSTRING_HH
+#define XPDF_XPDF_TEXTSTRING_HH
 
 #include <defs.hh>
 
@@ -57,4 +48,4 @@ private:
     int size;
 };
 
-#endif
+#endif // XPDF_XPDF_TEXTSTRING_HH

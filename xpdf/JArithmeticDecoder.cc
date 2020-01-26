@@ -1,14 +1,9 @@
-//========================================================================
-//
-// JArithmeticDecoder.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2004 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/JArithmeticDecoder.hh>
 

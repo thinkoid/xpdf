@@ -1,20 +1,15 @@
-//========================================================================
-//
-// Stream.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef STREAM_H
-#define STREAM_H
+#ifndef XPDF_XPDF_STREAM_HH
+#define XPDF_XPDF_STREAM_HH
 
 #include <defs.hh>
 
 #include <cstdio>
 #include <goo/gfile.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 
 class BaseStream;
 
@@ -116,7 +111,7 @@ public:
     virtual Stream* getUndecodedStream () = 0;
 
     // Get the dictionary associated with this stream.
-    virtual Dict* getDict () = 0;
+    virtual Dict* as_dict () = 0;
 
     // Is this an encoding filter?
     virtual bool isEncoder () { return false; }
@@ -133,7 +128,7 @@ public:
     Stream* addFilters (Object* dict, int recursion = 0);
 
 private:
-    Stream* makeFilter (char* name, Stream* str, Object* params, int recursion);
+    Stream* makeFilter (const char* name, Stream* str, Object* params, int recursion);
 
     int ref; // reference count
 };
@@ -154,7 +149,7 @@ public:
     virtual bool isBinary (bool last = true) { return last; }
     virtual BaseStream* getBaseStream () { return this; }
     virtual Stream* getUndecodedStream () { return this; }
-    virtual Dict* getDict () { return dict.getDict (); }
+    virtual Dict* as_dict () { return dict.as_dict (); }
     virtual GString* getFileName () { return NULL; }
 
     // Get/set position of first byte of stream within the file.
@@ -180,7 +175,7 @@ public:
     virtual void setPos (GFileOffset pos, int dir = 0);
     virtual BaseStream* getBaseStream () { return str->getBaseStream (); }
     virtual Stream* getUndecodedStream () { return str->getUndecodedStream (); }
-    virtual Dict* getDict () { return str->getDict (); }
+    virtual Dict* as_dict () { return str->as_dict (); }
     virtual Stream* getNextStream () { return str; }
 
 protected:
@@ -341,7 +336,6 @@ private:
     unsigned length;
     const char* bufEnd;
     const char* bufPtr;
-    bool needFree;
 };
 
 //------------------------------------------------------------------------
@@ -935,4 +929,4 @@ private:
     void fillBuf ();
 };
 
-#endif
+#endif // XPDF_XPDF_STREAM_HH

@@ -1,16 +1,10 @@
-//========================================================================
-//
-// GHash.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef GHASH_H
-#define GHASH_H
+#ifndef XPDF_GOO_GHASH_HH
+#define XPDF_GOO_GHASH_HH
 
 #include <defs.hh>
-
 
 class GString;
 struct GHashBucket;
@@ -66,4 +60,4 @@ private:
         }                                                                  \
     } while (0)
 
-#endif
+#endif // XPDF_GOO_GHASH_HH

@@ -1,25 +1,20 @@
-//========================================================================
-//
-// Annot.h
-//
+// -*- mode: c++; -*-
 // Copyright 2000-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef ANNOT_H
-#define ANNOT_H
+#ifndef XPDF_XPDF_ANNOT_HH
+#define XPDF_XPDF_ANNOT_HH
 
 #include <defs.hh>
+
+#include <xpdf/obj_fwd.hh>
+#include <xpdf/XRef.hh>
 
 class Catalog;
 class Dict;
 class Gfx;
 class GfxFontDict;
-class Object;
 class PDFDoc;
 class GString;
-
-#include <xpdf/XRef.hh>
 
 //------------------------------------------------------------------------
 // AnnotBorderStyle
@@ -93,7 +88,7 @@ public:
     Object* getObject (Object* obj);
 
     // Get appearance object.
-    Object* getAppearance (Object* obj) { return appearance.fetch (xref, obj); }
+    Object getAppearance () { return resolve (appearance); }
 
     AnnotBorderStyle* getBorderStyle () { return borderStyle; }
 
@@ -110,7 +105,7 @@ private:
     void setLineStyle (AnnotBorderStyle* bs, double* lineWidth);
     void setStrokeColor (double* color, int nComps);
     bool setFillColor (Object* colorObj);
-    AnnotLineEndType parseLineEndType (Object* obj);
+    AnnotLineEndType parseLineEndType (const Object& obj);
     void adjustLineEndpoint (
         AnnotLineEndType lineEnd, double x, double y, double dx, double dy,
         double w, double* tx, double* ty);
@@ -144,7 +139,7 @@ private:
 class Annots {
 public:
     // Build a list of Annot objects.
-    Annots (PDFDoc* docA, Object* annotsObj);
+    Annots (PDFDoc*, const Object&);
 
     ~Annots ();
 
@@ -166,4 +161,4 @@ private:
     int nAnnots;
 };
 
-#endif
+#endif // XPDF_XPDF_ANNOT_HH

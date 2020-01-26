@@ -1,16 +1,11 @@
-//========================================================================
-//
-// Form.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2012 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/AcroForm.hh>
 #include <xpdf/XFAForm.hh>
@@ -24,7 +19,7 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     Form* form;
     Object xfaObj, catDict, needsRenderingObj;
 
-    if (!acroFormObj->isDict ()) {
+    if (!acroFormObj->is_dict ()) {
         error (errSyntaxError, -1, "AcroForm object is wrong type");
         return NULL;
     }
@@ -32,16 +27,13 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     acroFormObj->dictLookup ("XFA", &xfaObj);
     docA->getXRef ()->getCatalog (&catDict);
     catDict.dictLookup ("NeedsRendering", &needsRenderingObj);
-    catDict.free ();
-    if (globalParams->getEnableXFA () && !xfaObj.isNull () &&
-        !(needsRenderingObj.isBool () && needsRenderingObj.getBool ())) {
+    if (globalParams->getEnableXFA () && !xfaObj.is_null () &&
+        !(needsRenderingObj.is_bool () && needsRenderingObj.as_bool ())) {
         form = XFAForm::load (docA, acroFormObj, &xfaObj);
     }
     else {
         form = AcroForm::load (docA, catalog, acroFormObj);
     }
-    xfaObj.free ();
-    needsRenderingObj.free ();
     return form;
 }
 

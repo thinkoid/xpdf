@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashScreen.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHSCREEN_H
-#define SPLASHSCREEN_H
+#ifndef XPDF_SPLASH_SPLASHSCREEN_HH
+#define XPDF_SPLASH_SPLASHSCREEN_HH
 
 #include <defs.hh>
 
@@ -55,4 +50,4 @@ private:
         //   solid white
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHSCREEN_HH

@@ -1,18 +1,13 @@
-//========================================================================
-//
-// Decrypt.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef DECRYPT_H
-#define DECRYPT_H
+#ifndef XPDF_XPDF_DECRYPT_HH
+#define XPDF_XPDF_DECRYPT_HH
 
 #include <defs.hh>
 
 #include <goo/GString.hh>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------
@@ -114,4 +109,4 @@ extern void aesKeyExpansion (
 extern void aesEncryptBlock (DecryptAESState* s, unsigned char* in);
 extern void aesDecryptBlock (DecryptAESState* s, unsigned char* in, bool last);
 
-#endif
+#endif // XPDF_XPDF_DECRYPT_HH

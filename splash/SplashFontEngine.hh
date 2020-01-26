@@ -1,13 +1,8 @@
-//========================================================================
-//
-// SplashFontEngine.h
-//
+// -*- mode: c++; -*-
 // Copyright 2003-2013 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef SPLASHFONTENGINE_H
-#define SPLASHFONTENGINE_H
+#ifndef XPDF_SPLASH_SPLASHFONTENGINE_HH
+#define XPDF_SPLASH_SPLASHFONTENGINE_HH
 
 #include <defs.hh>
 
@@ -106,4 +101,4 @@ private:
     SplashFTFontEngine* ftEngine;
 };
 
-#endif
+#endif // XPDF_SPLASH_SPLASHFONTENGINE_HH

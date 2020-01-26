@@ -1,15 +1,10 @@
-//========================================================================
-//
-// OutputDev.cc
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
 #include <cstddef>
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/OutputDev.hh>

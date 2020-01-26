@@ -1,20 +1,15 @@
-//========================================================================
-//
-// CMap.h
-//
+// -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef CMAP_H
-#define CMAP_H
+#ifndef XPDF_XPDF_CMAP_HH
+#define XPDF_XPDF_CMAP_HH
 
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
+#include <xpdf/obj_fwd.hh>
 
 class GString;
-class Object;
 class Stream;
 struct CMapVectorEntry;
 class CMapCache;
@@ -95,4 +90,4 @@ private:
     CMap* cache[cMapCacheSize];
 };
 
-#endif
+#endif // XPDF_XPDF_CMAP_HH

@@ -1,4 +1,5 @@
 // -*- mode: c++; -*-
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #include <defs.hh>
 #include <xpdf/bitpack.hh>

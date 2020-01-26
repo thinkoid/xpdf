@@ -1,13 +1,8 @@
-//========================================================================
-//
-// ImageOutputDev.h
-//
+// -*- mode: c++; -*-
 // Copyright 1998-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef IMAGEOUTPUTDEV_H
-#define IMAGEOUTPUTDEV_H
+#ifndef XPDF_XPDF_IMAGEOUTPUTDEV_HH
+#define XPDF_XPDF_IMAGEOUTPUTDEV_HH
 
 #include <defs.hh>
 
@@ -86,4 +81,4 @@ private:
     bool ok;       // set up ok?
 };
 
-#endif
+#endif // XPDF_XPDF_IMAGEOUTPUTDEV_HH

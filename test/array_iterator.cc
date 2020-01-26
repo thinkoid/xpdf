@@ -1,4 +1,5 @@
 // -*- mode: c++ -*-
+// Copyright 2019-2020 Thinkoid, LLC.
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE array
@@ -7,9 +8,6 @@
 
 #include <iostream>
 #include <exception>
-
-#include <boost/format.hpp>
-using fmt = boost::format;
 
 #include <boost/type_index.hpp>
 #include <boost/test/unit_test.hpp>

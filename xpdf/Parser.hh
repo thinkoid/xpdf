@@ -1,17 +1,12 @@
-//========================================================================
-//
-// Parser.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef XPDF_XPDF_PARSER_HH
+#define XPDF_XPDF_PARSER_HH
 
 #include <defs.hh>
 
-#include <xpdf/Lexer.hh>
+#include <xpdf/lexer.hh>
 
 //------------------------------------------------------------------------
 // Parser
@@ -20,7 +15,7 @@
 class Parser {
 public:
     // Constructor.
-    Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA);
+    Parser (XRef* xrefA, xpdf::lexer_t* lexerA, bool allowStreamsA);
 
     // Destructor.
     ~Parser ();
@@ -34,16 +29,18 @@ public:
         int objNum = 0, int objGen = 0, int recursion = 0);
 
     // Get stream.
-    Stream* getStream () { return lexer->getStream (); }
+    Stream* as_stream () { return lexer->as_stream (); }
 
     // Get current position in file.
     GFileOffset getPos () { return lexer->getPos (); }
 
 private:
     XRef* xref;         // the xref table for this PDF file
-    Lexer* lexer;       // input stream
+
+    xpdf::lexer_t* lexer;
+    xpdf::lexer_t::token_t buf1, buf2;  // next two tokens
+
     bool allowStreams; // parse stream objects?
-    Object buf1, buf2;  // next two tokens
     int inlineImg;      // set when inline image data is encountered
 
     Stream* makeStream (
@@ -52,4 +49,4 @@ private:
     void shift ();
 };
 
-#endif
+#endif // XPDF_XPDF_PARSER_HH

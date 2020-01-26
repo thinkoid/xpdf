@@ -1,20 +1,15 @@
-//========================================================================
-//
-// Link.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef LINK_H
-#define LINK_H
+#ifndef XPDF_XPDF_LINK_HH
+#define XPDF_XPDF_LINK_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/array_fwd.hh>
+#include <xpdf/obj.hh>
 
 class GString;
-class Array;
 class Dict;
 
 //------------------------------------------------------------------------
@@ -74,7 +69,7 @@ enum LinkDestKind {
 class LinkDest {
 public:
     // Build a LinkDest from the array.
-    LinkDest (Array* a);
+    LinkDest (Array&);
 
     // Copy a LinkDest.
     LinkDest* copy () { return new LinkDest (this); }
@@ -236,7 +231,7 @@ public:
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionNamed; }
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
 
 private:
     GString* name;
@@ -323,7 +318,7 @@ public:
     virtual ~LinkHide ();
 
     // Was the LinkHide created successfully?
-    virtual bool isOk () { return !fields.isNull (); }
+    virtual bool isOk () { return !fields.is_null (); }
 
     // Accessors.
     virtual LinkActionKind getKind () { return actionHide; }
@@ -342,7 +337,7 @@ private:
 class LinkUnknown : public LinkAction {
 public:
     // Build a LinkUnknown with the specified action type.
-    LinkUnknown (char* actionA);
+    LinkUnknown (const char* actionA);
 
     // Destructor.
     virtual ~LinkUnknown ();
@@ -403,7 +398,7 @@ private:
 class Links {
 public:
     // Extract links from array of annotations.
-    Links (Object* annots, GString* baseURI);
+    Links (const Object&, GString* baseURI);
 
     // Destructor.
     ~Links ();
@@ -424,4 +419,4 @@ private:
     int numLinks;
 };
 
-#endif
+#endif // XPDF_XPDF_LINK_HH

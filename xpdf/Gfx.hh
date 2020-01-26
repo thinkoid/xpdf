@@ -1,20 +1,20 @@
-//========================================================================
-//
-// Gfx.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef GFX_H
-#define GFX_H
+#ifndef XPDF_XPDF_GFX_HH
+#define XPDF_XPDF_GFX_HH
 
 #include <defs.hh>
 
+#include <vector>
+
 #include <goo/gfile.hh>
 
+#include <xpdf/array_fwd.hh>
+#include <xpdf/function.hh>
+#include <xpdf/obj.hh>
+
 class AnnotBorderStyle;
-class Array;
 class Dict;
 class GList;
 class GString;
@@ -32,20 +32,15 @@ class GfxShading;
 class GfxShadingPattern;
 class GfxState;
 class GfxTilingPattern;
-class Object;
 class OutputDev;
 class PDFDoc;
 class PDFRectangle;
 class Parser;
 class Stream;
 class XRef;
-class Ref;
 
 struct GfxColor;
 struct GfxPatch;
-
-#include <xpdf/function.hh>
-#include <xpdf/Object.hh>
 
 //------------------------------------------------------------------------
 
@@ -60,7 +55,7 @@ public:
     GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA);
     ~GfxResources ();
 
-    GfxFont* lookupFont (char* name);
+    GfxFont* lookupFont (const char* name);
     GfxFont* lookupFontByRef (Ref ref);
     bool lookupXObject (const char* name, Object* obj);
     bool lookupXObjectNF (const char* name, Object* obj);
@@ -173,7 +168,6 @@ private:
     double baseMatrix[6]; // default matrix for most recent
                           //   page/form/pattern
     int formDepth;
-    double textClipBBox[4];    // text clipping bounding box
     bool textClipBBoxEmpty;   // true if textClipBBox has not been
                                //   initialized yet
     bool ocState;             // true if drawing is enabled, false if
@@ -181,8 +175,10 @@ private:
     GList* markedContentStack; // BMC/BDC/EMC stack [GfxMarkedContent]
 
     Parser* parser;            // parser for page content stream(s)
-    GList* contentStreamStack; // stack of open content streams, used
-                               //   for loop-checking
+
+    std::vector< Object > contentStreamStack;
+    // GList* contentStreamStack; // stack of open content streams, used
+    //                            //   for loop-checking
 
     enum typeCheckType {
         typeCheckBool,   // boolean
@@ -212,7 +208,7 @@ private:
     bool checkForContentStreamLoop (Object* ref);
     void go (bool topLevel);
     bool execOp (Object* cmd, Object args[], int numArgs);
-    Operator* findOp (char* name);
+    Operator* findOp (const char* name);
     bool checkArg (Object* arg, typeCheckType type);
     GFileOffset getPos ();
 
@@ -354,4 +350,4 @@ private:
     void popResources ();
 };
 
-#endif
+#endif // XPDF_XPDF_GFX_HH

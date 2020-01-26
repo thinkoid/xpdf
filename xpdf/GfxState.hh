@@ -1,31 +1,26 @@
-//========================================================================
-//
-// GfxState.h
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef GFXSTATE_H
-#define GFXSTATE_H
+#ifndef XPDF_XPDF_GFXSTATE_HH
+#define XPDF_XPDF_GFXSTATE_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/array_fwd.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/function.hh>
 
 #include <cnl/all.h>
 
-class Array;
 class GfxFont;
 class PDFRectangle;
 class GfxShading;
 
 namespace xpdf {
 
-#define XPDF_FIXED_POINT_ONE 0x00010000U
+#define XPDF_FIXED_POINT_ONE 0x00010000
 
-using       color_t = uint32_t;
+using       color_t = int32_t;
 using small_color_t = uint8_t;
 
 //
@@ -40,7 +35,7 @@ inline color_t to_color (double x) {
 //
 inline double to_double (color_t x) {
     return
-        double (std::clamp (x, 0U, XPDF_FIXED_POINT_ONE))
+        double (std::clamp (x, 0, XPDF_FIXED_POINT_ONE))
         / XPDF_FIXED_POINT_ONE;
 }
 
@@ -55,7 +50,7 @@ inline color_t to_color (small_color_t x) {
 // Map int [0÷65535] (16-bit fixed-point) -> unsigned char [0÷255]
 //
 inline small_color_t to_small_color (color_t x) {
-    return std::clamp (x >> 8, 0U, 255U);
+    return std::clamp (x >> 8, 0, 255);
 }
 
 } // namespace xpdf
@@ -215,7 +210,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csCalGray; }
 
     // Construct a CalGray color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -272,7 +267,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csCalRGB; }
 
     // Construct a CalRGB color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -333,7 +328,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csLab; }
 
     // Construct a Lab color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -377,7 +372,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csICCBased; }
 
     // Construct an ICCBased color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -412,7 +407,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csIndexed; }
 
     // Construct an Indexed color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -449,7 +444,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csSeparation; }
 
     // Construct a Separation color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -461,7 +456,7 @@ public:
     virtual bool isNonMarking () { return nonMarking; }
 
     // Separation-specific access.
-    GString* getName () { return name; }
+    GString* as_name () { return name; }
     GfxColorSpace* getAlt () { return alt; }
     const Function& getFunc () const { return func; }
 
@@ -489,7 +484,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csDeviceN; }
 
     // Construct a DeviceN color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -530,7 +525,7 @@ public:
     virtual GfxColorSpaceMode getMode () { return csPattern; }
 
     // Construct a Pattern color space.  Returns NULL if unsuccessful.
-    static GfxColorSpace* parse (Array* arr, int recursion);
+    static GfxColorSpace* parse (Array& arr, int recursion);
 
     virtual void getGray (GfxColor* color, GfxGray* gray);
     virtual void getRGB (GfxColor* color, GfxRGB* rgb);
@@ -583,7 +578,7 @@ public:
     double getXStep () { return xStep; }
     double getYStep () { return yStep; }
     Dict* getResDict () {
-        return resDict.isDict () ? resDict.getDict () : (Dict*)NULL;
+        return resDict.is_dict () ? resDict.as_dict () : (Dict*)NULL;
     }
     double* getMatrix () { return matrix; }
     Object* getContentStreamRef () { return &contentStreamRef; }
@@ -1280,4 +1275,4 @@ private:
     GfxState (GfxState* state, bool copyPath);
 };
 
-#endif
+#endif // XPDF_XPDF_GFXSTATE_HH

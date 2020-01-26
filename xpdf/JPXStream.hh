@@ -1,17 +1,12 @@
-//========================================================================
-//
-// JPXStream.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef JPXSTREAM_H
-#define JPXSTREAM_H
+#ifndef XPDF_XPDF_JPXSTREAM_HH
+#define XPDF_XPDF_JPXSTREAM_HH
 
 #include <defs.hh>
 
-#include <xpdf/Object.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
 class JArithmeticDecoder;
@@ -345,4 +340,4 @@ private:
     unsigned readBufLen;          // number of valid bits in readBuf
 };
 
-#endif
+#endif // XPDF_XPDF_JPXSTREAM_HH

@@ -1,13 +1,8 @@
-//========================================================================
-//
-// ErrorCodes.h
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef ERRORCODES_H
-#define ERRORCODES_H
+#ifndef XPDF_XPDF_ERRORCODES_HH
+#define XPDF_XPDF_ERRORCODES_HH
 
 #define errNone 0 // no error
 
@@ -33,4 +28,4 @@
 
 #define errFileIO 10 // file I/O error
 
-#endif
+#endif // XPDF_XPDF_ERRORCODES_HH

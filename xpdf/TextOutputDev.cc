@@ -1,10 +1,5 @@
-//========================================================================
-//
-// TextOutputDev.cc
-//
+// -*- mode: c++; -*-
 // Copyright 1997-2014 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -384,14 +379,21 @@ TextOutputControl::TextOutputControl () {
 // TextFontInfo
 //------------------------------------------------------------------------
 
-TextFontInfo::TextFontInfo (GfxState* state) {
-    GfxFont* gfxFont;
+TextFontInfo::TextFontInfo (GfxState* state)
+    : fontID{ 0, -1, -1 },
+      fontName{ },
+      mWidth{ },
+      ascent{ 0.75 },
+      descent{ -0.25 },
+      flags{ } {
+    GfxFont* gfxFont = state->getFont ();
 
-    gfxFont = state->getFont ();
     if (gfxFont) {
         fontID = *gfxFont->getID ();
-        ascent = gfxFont->getAscent ();
+
+        ascent  = gfxFont->getAscent ();
         descent = gfxFont->getDescent ();
+
         // "odd" ascent/descent values cause trouble more often than not
         // (in theory these could be legitimate values for oddly designed
         // fonts -- but they are more often due to buggy PDF generators)
@@ -399,58 +401,57 @@ TextFontInfo::TextFontInfo (GfxState* state) {
         // to be more commonly legitimate)
         if (ascent > 1) { ascent = 0.75; }
         if (descent < -0.5) { descent = -0.25; }
+
+        flags = gfxFont->getFlags ();
+
+        if (gfxFont->as_name ()) {
+            fontName = gfxFont->as_name ();
+        }
     }
     else {
-        fontID.num = -1;
-        fontID.gen = -1;
         ascent = 0.75;
         descent = -0.25;
     }
-    fontName = (gfxFont && gfxFont->getName ()) ? gfxFont->getName ()->copy ()
-                                                : (GString*)NULL;
-    flags = gfxFont ? gfxFont->getFlags () : 0;
-    mWidth = 0;
+
     if (gfxFont && !gfxFont->isCIDFont ()) {
-        char* name;
-        int code;
-        for (code = 0; code < 256; ++code) {
-            if ((name = ((Gfx8BitFont*)gfxFont)->getCharName (code)) &&
-                name[0] == 'm' && name[1] == '\0') {
-                mWidth = ((Gfx8BitFont*)gfxFont)->getWidth (code);
+        Gfx8BitFont* pfont = (Gfx8BitFont*)gfxFont;
+
+        for (int code = 0; code < 256; ++code) {
+            const char* name = pfont->getCharName (code);
+
+            if (name && name [0] == 'm' && name [1] == '\0') {
+                mWidth = pfont->getWidth (code);
                 break;
             }
         }
     }
 }
 
-TextFontInfo::~TextFontInfo () {
-    if (fontName) { delete fontName; }
-}
-
-bool TextFontInfo::matches (GfxState* state) {
-    Ref* id;
-
-    if (!state->getFont ()) { return false; }
-    id = state->getFont ()->getID ();
-    return id->num == fontID.num && id->gen == fontID.gen;
+bool TextFontInfo::matches (GfxState* state) const {
+    return state->getFont () && *state->getFont ()->getID () == fontID;
 }
 
 //------------------------------------------------------------------------
 // TextWord
 //------------------------------------------------------------------------
 
+//
 // Build a TextWord object, using chars[start .. start+len-1].
 // (If rot >= 2, the chars list is in reverse order.)
+//
 TextWord::TextWord (
     GList* chars, int start, int lenA, int rotA, bool spaceAfterA) {
     TextChar* ch;
     int i;
 
     rot = rotA;
-    len = lenA;
-    text = (Unicode*)calloc (len, sizeof (Unicode));
-    edge = (double*)calloc (len + 1, sizeof (double));
-    charPos = (int*)calloc (len + 1, sizeof (int));
+
+    const auto len = lenA;
+
+    text.resize (len);
+    edge.resize (len + 1);
+    charPos.resize (len + 1);
+
     switch (rot) {
     case 0:
     default:
@@ -486,6 +487,7 @@ TextWord::TextWord (
         yMin = ch->yMin;
         break;
     }
+
     for (i = 0; i < len; ++i) {
         ch = (TextChar*)chars->get (rot >= 2 ? start + len - 1 - i : start + i);
         text[i] = ch->c;
@@ -523,56 +525,6 @@ TextWord::TextWord (
     invisible = ch->invisible;
 }
 
-TextWord::TextWord (TextWord* word) {
-    *this = *word;
-    text = (Unicode*)calloc (len, sizeof (Unicode));
-    memcpy (text, word->text, len * sizeof (Unicode));
-    edge = (double*)calloc (len + 1, sizeof (double));
-    memcpy (edge, word->edge, (len + 1) * sizeof (double));
-    charPos = (int*)calloc (len + 1, sizeof (int));
-    memcpy (charPos, word->charPos, (len + 1) * sizeof (int));
-}
-
-TextWord::~TextWord () {
-    free (text);
-    free (edge);
-    free (charPos);
-}
-
-// This is used to append a clipped character to a word.
-void TextWord::appendChar (TextChar* ch) {
-    if (ch->xMin < xMin) { xMin = ch->xMin; }
-    if (ch->xMax > xMax) { xMax = ch->xMax; }
-    if (ch->yMin < yMin) { yMin = ch->yMin; }
-    if (ch->yMax > yMax) { yMax = ch->yMax; }
-    text = (Unicode*)reallocarray (text, len + 1, sizeof (Unicode));
-    edge = (double*)reallocarray (edge, len + 2, sizeof (double));
-    charPos = (int*)reallocarray (charPos, len + 2, sizeof (int));
-    text[len] = ch->c;
-    charPos[len] = ch->charPos;
-    charPos[len + 1] = ch->charPos + ch->charLen;
-    switch (rot) {
-    case 0:
-    default:
-        edge[len] = ch->xMin;
-        edge[len + 1] = ch->xMax;
-        break;
-    case 1:
-        edge[len] = ch->yMin;
-        edge[len + 1] = ch->yMax;
-        break;
-    case 2:
-        edge[len] = ch->xMax;
-        edge[len + 1] = ch->xMin;
-        break;
-    case 3:
-        edge[len] = ch->yMax;
-        edge[len + 1] = ch->yMin;
-        break;
-    }
-    ++len;
-}
-
 int TextWord::cmpYX (const void* p1, const void* p2) {
     const TextWord* word1 = *(const TextWord**)p1;
     const TextWord* word2 = *(const TextWord**)p2;
@@ -591,25 +543,9 @@ int TextWord::cmpCharPos (const void* p1, const void* p2) {
     return word1->charPos[0] - word2->charPos[0];
 }
 
-GString* TextWord::getText () {
-    GString* s;
-    UnicodeMap* uMap;
-    char buf[8];
-    int n, i;
-
-    s = new GString ();
-    if (!(uMap = globalParams->getTextEncoding ())) { return s; }
-    for (i = 0; i < len; ++i) {
-        n = uMap->mapUnicode (text[i], buf, sizeof (buf));
-        s->append (buf, n);
-    }
-    uMap->decRefCnt ();
-    return s;
-}
-
 void TextWord::getCharBBox (
     int charIdx, double* xMinA, double* yMinA, double* xMaxA, double* yMaxA) {
-    if (charIdx < 0 || charIdx >= len) { return; }
+    if (charIdx < 0 || charIdx >= text.size ()) { return; }
     switch (rot) {
     case 0:
         *xMinA = edge[charIdx];
@@ -674,7 +610,7 @@ TextLine::TextLine (
     len = 0;
     for (i = 0; i < words->getLength (); ++i) {
         word = (TextWord*)words->get (i);
-        len += word->len;
+        len += word->size ();
         if (word->spaceAfter) { ++len; }
     }
     text = (Unicode*)calloc (len, sizeof (Unicode));
@@ -683,12 +619,12 @@ TextLine::TextLine (
     for (i = 0; i < words->getLength (); ++i) {
         word = (TextWord*)words->get (i);
         if (i == 0) { rot = word->rot; }
-        for (k = 0; k < word->len; ++k) {
+        for (k = 0; k < word->size (); ++k) {
             text[j] = word->text[k];
             edge[j] = word->edge[k];
             ++j;
         }
-        edge[j] = word->edge[word->len];
+        edge[j] = word->edge[word->size ()];
         if (word->spaceAfter) {
             text[j] = (Unicode)0x0020;
             ++j;
@@ -903,11 +839,17 @@ void TextPage::updateFont (GfxState* state) {
 
     // get the font info object
     curFont = NULL;
+
     for (i = 0; i < fonts->getLength (); ++i) {
         curFont = (TextFontInfo*)fonts->get (i);
-        if (curFont->matches (state)) { break; }
+
+        if (curFont->matches (state)) {
+            break;
+        }
+
         curFont = NULL;
     }
+
     if (!curFont) {
         curFont = new TextFontInfo (state);
         fonts->append (curFont);
@@ -2012,7 +1954,7 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                         word->yMin = yMin;
                         word->yMax = yMax;
                         word->rot = (word->rot + 2) & 3;
-                        for (i = 0; i <= word->len; ++i) {
+                        for (i = 0; i <= word->size (); ++i) {
                             word->edge[i] = pageWidth - word->edge[i];
                         }
                     }
@@ -2071,7 +2013,7 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                         word->yMin = yMin;
                         word->yMax = yMax;
                         word->rot = (word->rot + 3) & 3;
-                        for (i = 0; i <= word->len; ++i) {
+                        for (i = 0; i <= word->size (); ++i) {
                             word->edge[i] = pageHeight - word->edge[i];
                         }
                     }
@@ -2118,7 +2060,7 @@ void TextPage::unrotateWords (GList* words, int rot) {
             word->yMin = yMin;
             word->yMax = yMax;
             word->rot = (word->rot + 2) & 3;
-            for (j = 0; j <= word->len; ++j) {
+            for (j = 0; j <= word->size (); ++j) {
                 word->edge[j] = pageWidth - word->edge[j];
             }
         }
@@ -2135,7 +2077,7 @@ void TextPage::unrotateWords (GList* words, int rot) {
             word->yMin = yMin;
             word->yMax = yMax;
             word->rot = (word->rot + 3) & 3;
-            for (j = 0; j <= word->len; ++j) {
+            for (j = 0; j <= word->size (); ++j) {
                 word->edge[j] = pageHeight - word->edge[j];
             }
         }
@@ -3176,7 +3118,6 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     TextWord* word;
     double wordSp, lineFontSize, sp;
     bool spaceAfter, spaceAfter2;
-    int i, j;
 
     charsA = new GList ();
     getLineChars (blk, charsA);
@@ -3184,35 +3125,46 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     wordSp = computeWordSpacingThreshold (charsA, blk->rot);
 
     words = new GList ();
+
     lineFontSize = 0;
     spaceAfter = false;
-    i = 0;
-    while (i < charsA->getLength ()) {
+
+    for (size_t i = 0, j; i < charsA->getLength ();) {
         sp = wordSp - 1;
+
         for (j = i + 1; j < charsA->getLength (); ++j) {
             ch = (TextChar*)charsA->get (j - 1);
             ch2 = (TextChar*)charsA->get (j);
+
             sp = (blk->rot & 1) ? (ch2->yMin - ch->yMax)
                                 : (ch2->xMin - ch->xMax);
+
             if (sp > wordSp || ch->font != ch2->font ||
                 fabs (ch->fontSize - ch2->fontSize) > 0.01 ||
                 (control.mode == textOutRawOrder &&
                  ch2->charPos != ch->charPos + ch->charLen)) {
                 break;
             }
+
             sp = wordSp - 1;
         }
+
         spaceAfter2 = spaceAfter;
         spaceAfter = sp > wordSp;
+
         word = new TextWord (
-            charsA, i, j - i, blk->rot,
-            (blk->rot >= 2) ? spaceAfter2 : spaceAfter);
+            charsA, i, j - i, blk->rot, (blk->rot >= 2) ? spaceAfter2 : spaceAfter);
+
         i = j;
-        if (blk->rot >= 2) { words->insert (0, word); }
+
+        if (blk->rot >= 2) {
+            words->insert (0, word);
+        }
         else {
             words->append (word);
         }
-        if (i == 0 || word->fontSize > lineFontSize) {
+
+        if (0 == i || word->fontSize > lineFontSize) {
             lineFontSize = word->fontSize;
         }
     }
@@ -3224,11 +3176,11 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
 }
 
 void TextPage::getLineChars (TextBlock* blk, GList* charsA) {
-    int i;
-
-    if (blk->type == blkLeaf) { charsA->append (blk->children); }
+    if (blk->type == blkLeaf) {
+        charsA->append (blk->children);
+    }
     else {
-        for (i = 0; i < blk->children->getLength (); ++i) {
+        for (size_t i = 0; i < blk->children->getLength (); ++i) {
             getLineChars ((TextBlock*)blk->children->get (i), charsA);
         }
     }
@@ -3903,7 +3855,7 @@ TextWordList* TextPage::makeWordList () {
                 for (wordIdx = 0; wordIdx < line->words->getLength ();
                      ++wordIdx) {
                     word = (TextWord*)line->words->get (wordIdx);
-                    words->append (word->copy ());
+                    words->append (new TextWord (*word));
                 }
             }
         }

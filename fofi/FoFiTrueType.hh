@@ -1,13 +1,8 @@
-//========================================================================
-//
-// FoFiTrueType.h
-//
+// -*- mode: c++; -*-
 // Copyright 1999-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef FOFITRUETYPE_H
-#define FOFITRUETYPE_H
+#ifndef XPDF_FOFI_FOFITRUETYPE_HH
+#define XPDF_FOFI_FOFITRUETYPE_HH
 
 #include <defs.hh>
 
@@ -216,4 +211,4 @@ private:
     bool parsedOk;
 };
 
-#endif
+#endif // XPDF_FOFI_FOFITRUETYPE_HH

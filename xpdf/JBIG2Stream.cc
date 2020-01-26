@@ -1,10 +1,5 @@
-//========================================================================
-//
-// JBIG2Stream.cc
-//
+// -*- mode: c++; -*-
 // Copyright 2002-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
 #include <defs.hh>
 
@@ -1038,7 +1033,7 @@ JBIG2Stream::JBIG2Stream (Stream* strA, Object* globalsStreamA)
     huffDecoder = new JBIG2HuffmanDecoder ();
     mmrDecoder = new JBIG2MMRDecoder ();
 
-    globalsStreamA->copy (&globalsStream);
+    globalsStream = *globalsStreamA;
     segments = globalSegments = NULL;
     curStr = NULL;
     dataPtr = dataEnd = NULL;
@@ -1046,7 +1041,6 @@ JBIG2Stream::JBIG2Stream (Stream* strA, Object* globalsStreamA)
 
 JBIG2Stream::~JBIG2Stream () {
     close ();
-    globalsStream.free ();
     delete arithDecoder;
     delete genericRegionStats;
     delete refinementRegionStats;
@@ -1072,9 +1066,9 @@ JBIG2Stream::~JBIG2Stream () {
 void JBIG2Stream::reset () {
     // read the globals stream
     globalSegments = new GList ();
-    if (globalsStream.isStream ()) {
+    if (globalsStream.is_stream ()) {
         segments = globalSegments;
-        curStr = globalsStream.getStream ();
+        curStr = globalsStream.as_stream ();
         curStr->reset ();
         arithDecoder->setStream (curStr);
         huffDecoder->setStream (curStr);

@@ -1,15 +1,8 @@
-//========================================================================
-//
-// Stream-CCITT.h
-//
-// Tables for CCITT Fax decoding.
-//
+// -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
-//
-//========================================================================
 
-#ifndef STREAM_CCITT_H
-#define STREAM_CCITT_H
+#ifndef XPDF_XPDF_STREAM_CCITT_HH
+#define XPDF_XPDF_STREAM_CCITT_HH
 
 struct CCITTCode {
     short bits;
@@ -450,4 +443,4 @@ static CCITTCode blackTab3[64] = {
     { 2, 2 },   { 2, 2 },   { 2, 2 },   { 2, 2 },   { 2, 2 }, { 2, 2 }
 };
 
-#endif
+#endif // XPDF_XPDF_STREAM_CCITT_HH
