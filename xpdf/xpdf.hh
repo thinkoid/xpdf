@@ -28,13 +28,7 @@ inline bool contains (T&& t, U&& ... u) { return ((t == u) || ...); }
 
 template< typename T >
 inline T as (Dict& dict, const char* s) {
-    Object obj;
-
-    if (0 == dict.lookup (s, &obj)) {
-        throw std::runtime_error (format ("missing key {}", s));
-    }
-
-    return obj.cast< T > ();
+    return dict.at (s).cast< T > ();
 }
 
 template< typename T >
