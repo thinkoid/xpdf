@@ -60,12 +60,12 @@ void obj_t::emplace (const std::string& key, obj_t obj) {
     as_dict ().emplace (key, std::move (obj));
 }
 
-bool obj_t::dictIs (const char* dictType) const {
-    return as_dict_ptr ()->is (dictType);
+bool obj_t::has (const std::string& s) const {
+    return as_dict ().has (s);
 }
 
-bool obj_t::is_dict (const char* dictType) const {
-    return is_dict () && dictIs (dictType);
+bool obj_t::is_dict (const char* s) const {
+    return is_dict () && has (s);
 }
 
 char* obj_t::dictGetKey (int i) {

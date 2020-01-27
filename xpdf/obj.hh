@@ -134,8 +134,13 @@ struct obj_t {
     bool is_string () const { return is< std::shared_ptr< GString > > (); }
 
     bool is_name () const { return is< name_t > (); }
+
     bool is_name (const char* s) const {
         return is_name () && 0 == strcmp (as_name (), s);
+    }
+
+    bool is_name (const std::string& s) const {
+        return is_name (s.c_str ());
     }
 
     bool is_cmd () const { return is< cmd_t > (); }
@@ -149,6 +154,10 @@ struct obj_t {
 
     bool is_dict () const { return is< std::shared_ptr< Dict > > (); }
     bool is_dict (const char*) const;
+
+    bool is_dict (const std::string& s) const {
+        return is_dict (s.c_str ());
+    }
 
     bool is_stream () const { return is< std::shared_ptr< Stream > > (); }
     bool is_stream (const char*) const;
@@ -253,6 +262,8 @@ struct obj_t {
     //
     obj_t& operator[] (const char*);
 
+    bool has (const std::string&) const;
+
     obj_t& at (const char*);
     const obj_t& at (const char* s) const {
         return const_cast< obj_t* > (this)->at (s);
@@ -260,7 +271,6 @@ struct obj_t {
 
     void emplace (const std::string&, obj_t);
 
-    bool dictIs (const char* dictType) const;
     char* dictGetKey (int i);
     obj_t* dictGetVal (int i, obj_t* obj);
     obj_t* dictGetValNF (int i, obj_t* obj);

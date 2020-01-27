@@ -26,6 +26,8 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
     //
     xpdf::obj_t& operator[] (const char*);
 
+    bool has (const std::string&) const;
+
     //
     // Same semantics with std::map::at
     //

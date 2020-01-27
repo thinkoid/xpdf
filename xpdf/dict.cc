@@ -34,6 +34,11 @@ void dict_t::emplace (const std::string& key, obj_t obj) {
     }
 }
 
+bool dict_t::has (const std::string& s) const {
+    auto iter = sequential_find (*this, s);
+    return iter != end () && std::get< 1 > (*iter).is_name (s);
+}
+
 bool dict_t::is (const char* type) {
     auto iter = sequential_find (*this, type);
     return iter != end () && std::get< 1 > (*iter).is_name (type);
