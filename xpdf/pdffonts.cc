@@ -283,8 +283,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
                     Object smaskGroup;
 
                     if ((smaskGroup = resolve (smask.as_dict ()["G"])).is_stream ()) {
-                        smaskGroup.streamGetDict ()->lookupNF (
-                            "Resources", &resObj);
+                        resObj = (*smaskGroup.streamGetDict ()) ["Resources"];
                         scanFonts (&resObj, doc);
                     }
                 }

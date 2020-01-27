@@ -51,12 +51,6 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
     bool is (const char* type);
 
     //
-    // Look up an entry and return the value.  Returns a null object
-    // if <key> is not in the dictionary:
-    //
-    Object* lookupNF (const char*, Object*);
-
-    //
     // Iterative accessors.
     //
     Object* getVal (int i, Object* obj);

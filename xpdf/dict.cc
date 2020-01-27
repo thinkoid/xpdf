@@ -69,18 +69,6 @@ const std::string& dict_t::key_at (size_t n) const {
     return std::get< 0 > (this->operator[] (n));
 }
 
-obj_t* dict_t::lookupNF (const char* key, obj_t* pobj) {
-    auto iter = sequential_find (*this, key);
-
-    if (iter != end ()) {
-        return *pobj = std::get< 1 > (*iter), pobj;
-    }
-    else {
-        *pobj = { };
-        return pobj;
-    }
-}
-
 obj_t* dict_t::getVal (int i, obj_t* pobj) {
     ASSERT (size_t (i) < size ());
 
