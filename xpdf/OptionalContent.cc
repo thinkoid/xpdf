@@ -226,7 +226,7 @@ bool OptionalContent::evalOCVisibilityExpr (Object* expr, int recursion) {
             "Invalid optional content visibility expression");
         return true;
     }
-    op = resolve (expr2 [0]);
+    op = resolve (expr2 [0UL]);
     if (op.is_name ("Not")) {
         if (expr2.as_array ().size () == 2) {
             obj = expr2 [1];
@@ -343,7 +343,7 @@ OCDisplayNode* OCDisplayNode::parse (
     }
     i = 0;
     if (obj2.as_array ().size () >= 1) {
-        if ((obj3 = resolve (obj2 [0])).is_string ()) {
+        if ((obj3 = resolve (obj2 [0UL])).is_string ()) {
             node = new OCDisplayNode (obj3.as_string ());
             i = 1;
         }

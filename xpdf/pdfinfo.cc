@@ -154,21 +154,21 @@ int main (int argc, char* argv[]) {
     doc->getDocInfo (&info);
 
     if (info.is_dict ()) {
-        printInfoString (info.as_dict (), "Title", "Title:          ", uMap);
-        printInfoString (info.as_dict (), "Subject", "Subject:        ", uMap);
-        printInfoString (info.as_dict (), "Keywords", "Keywords:       ", uMap);
-        printInfoString (info.as_dict (), "Author", "Author:         ", uMap);
-        printInfoString (info.as_dict (), "Creator", "Creator:        ", uMap);
-        printInfoString (info.as_dict (), "Producer", "Producer:       ", uMap);
+        printInfoString (info.as_dict_ptr (), "Title", "Title:          ", uMap);
+        printInfoString (info.as_dict_ptr (), "Subject", "Subject:        ", uMap);
+        printInfoString (info.as_dict_ptr (), "Keywords", "Keywords:       ", uMap);
+        printInfoString (info.as_dict_ptr (), "Author", "Author:         ", uMap);
+        printInfoString (info.as_dict_ptr (), "Creator", "Creator:        ", uMap);
+        printInfoString (info.as_dict_ptr (), "Producer", "Producer:       ", uMap);
         if (rawDates) {
             printInfoString (
-                info.as_dict (), "CreationDate", "CreationDate:   ", uMap);
+                info.as_dict_ptr (), "CreationDate", "CreationDate:   ", uMap);
             printInfoString (
-                info.as_dict (), "ModDate", "ModDate:        ", uMap);
+                info.as_dict_ptr (), "ModDate", "ModDate:        ", uMap);
         }
         else {
-            printInfoDate (info.as_dict (), "CreationDate", "CreationDate:   ");
-            printInfoDate (info.as_dict (), "ModDate", "ModDate:        ");
+            printInfoDate (info.as_dict_ptr (), "CreationDate", "CreationDate:   ");
+            printInfoDate (info.as_dict_ptr (), "ModDate", "ModDate:        ");
         }
     }
 

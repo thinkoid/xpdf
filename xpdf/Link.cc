@@ -704,7 +704,10 @@ LinkUnknown::~LinkUnknown () { delete action; }
 // Link
 //------------------------------------------------------------------------
 
-Link::Link (Dict* dict, GString* baseURI) {
+Link::Link (const xpdf::obj_t& dictObj, GString* baseURI) {
+    ASSERT (dictObj.is_dict ());
+    auto& dict = dictObj.as_dict ();
+
     Object obj1, obj2;
     double t;
 
@@ -712,11 +715,11 @@ Link::Link (Dict* dict, GString* baseURI) {
     ok = false;
 
     // get rectangle
-    if (!dict->lookup ("Rect", &obj1)->is_array ()) {
+    if (!dict.lookup ("Rect", &obj1)->is_array ()) {
         error (errSyntaxError, -1, "Annotation rectangle is wrong type");
         return;
     }
-    if (!(obj2 = resolve (obj1 [0])).is_num ()) {
+    if (!(obj2 = resolve (obj1 [0UL])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
@@ -748,13 +751,13 @@ Link::Link (Dict* dict, GString* baseURI) {
     }
 
     // look for destination
-    if (!dict->lookup ("Dest", &obj1)->is_null ()) {
+    if (!dict.lookup ("Dest", &obj1)->is_null ()) {
         action = LinkAction::parseDest (&obj1);
 
         // look for action
     }
     else {
-        if (dict->lookup ("A", &obj1)->is_dict ()) {
+        if (dict.lookup ("A", &obj1)->is_dict ()) {
             action = LinkAction::parseAction (&obj1, baseURI);
         }
     }
@@ -789,7 +792,7 @@ Links::Links (const Object& annots, GString* baseURI) {
                 if (obj2.is_name ("Link") ||
                     (obj2.is_name ("Widget") &&
                      (obj3.is_name ("Btn") || obj3.is_null ()))) {
-                    link = new Link (obj1.as_dict (), baseURI);
+                    link = new Link (obj1, baseURI);
                     if (link->isOk ()) {
                         if (numLinks >= size) {
                             size += 16;

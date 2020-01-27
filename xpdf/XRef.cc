@@ -326,7 +326,7 @@ XRef::XRef (BaseStream* strA, bool repair) {
 
     // now set the trailer dictionary's xref pointer so we can fetch
     // indirect objects from it
-    trailerDict.as_dict ()->setXRef (this);
+    trailerDict.as_dict_ptr ()->setXRef (this);
 }
 
 XRef::~XRef () {
@@ -528,7 +528,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     // get the 'Prev' pointer
     //~ this can be a 64-bit int (?)
-    obj.as_dict ()->lookupNF ("Prev", &obj2);
+    obj.as_dict_ptr ()->lookupNF ("Prev", &obj2);
     if (obj2.is_int ()) {
         *pos = (GFileOffset) (unsigned)obj2.as_int ();
         more = true;
@@ -550,7 +550,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     // check for an 'XRefStm' key
     //~ this can be a 64-bit int (?)
-    if (obj.as_dict ()->lookup ("XRefStm", &obj2)->is_int ()) {
+    if (obj.as_dict_ptr ()->lookup ("XRefStm", &obj2)->is_int ()) {
         pos2 = (GFileOffset) (unsigned)obj2.as_int ();
         readXRef (&pos2, posSet);
         if (!ok) {
@@ -568,7 +568,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     Object obj, obj2, idx;
     int newSize, first, n, i;
 
-    dict = xrefStr->as_dict ();
+    dict = xrefStr->as_dict_ptr ();
 
     if (!dict->lookupNF ("Size", &obj)->is_int ()) { goto err1; }
     newSize = obj.as_int ();

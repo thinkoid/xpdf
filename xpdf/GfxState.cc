@@ -108,7 +108,7 @@ GfxColorSpace* GfxColorSpace::parse (Object* csObj, int recursion) {
         }
     }
     else if (csObj->is_array () && csObj->as_array ().size () > 0) {
-        obj1 = resolve ((*csObj) [0]);
+        obj1 = resolve ((*csObj) [0UL]);
         if (obj1.is_name ("DeviceGray") || obj1.is_name ("G")) {
             cs = GfxColorSpace::create (csDeviceGray);
         }
@@ -256,7 +256,7 @@ GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array& arr, int recursion) {
     cs = new GfxCalibratedGrayColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->whiteX = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->whiteY = obj3.as_num ();
@@ -265,7 +265,7 @@ GfxColorSpace* GfxCalibratedGrayColorSpace::parse (Array& arr, int recursion) {
     }
     if (obj1.dictLookup ("BlackPoint", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->blackX = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->blackY = obj3.as_num ();
@@ -398,7 +398,7 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array& arr, int recursion) {
     cs = new GfxCalibratedRGBColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->whiteX = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->whiteY = obj3.as_num ();
@@ -407,7 +407,7 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array& arr, int recursion) {
     }
     if (obj1.dictLookup ("BlackPoint", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->blackX = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->blackY = obj3.as_num ();
@@ -416,7 +416,7 @@ GfxColorSpace* GfxCalibratedRGBColorSpace::parse (Array& arr, int recursion) {
     }
     if (obj1.dictLookup ("Gamma", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->gammaR = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->gammaG = obj3.as_num ();
@@ -617,7 +617,7 @@ GfxColorSpace* GfxLabColorSpace::parse (Array& arr, int recursion) {
     cs = new GfxLabColorSpace ();
     if (obj1.dictLookup ("WhitePoint", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->whiteX = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->whiteY = obj3.as_num ();
@@ -626,7 +626,7 @@ GfxColorSpace* GfxLabColorSpace::parse (Array& arr, int recursion) {
     }
     if (obj1.dictLookup ("BlackPoint", &obj2)->is_array () &&
         obj2.as_array ().size () == 3) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->blackX = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->blackY = obj3.as_num ();
@@ -635,7 +635,7 @@ GfxColorSpace* GfxLabColorSpace::parse (Array& arr, int recursion) {
     }
     if (obj1.dictLookup ("Range", &obj2)->is_array () &&
         obj2.as_array ().size () == 4) {
-        obj3 = resolve (obj2 [0]);
+        obj3 = resolve (obj2 [0UL]);
         cs->aMin = obj3.as_num ();
         obj3 = resolve (obj2 [1]);
         cs->aMax = obj3.as_num ();
@@ -1502,7 +1502,7 @@ GfxShadingPattern* GfxShadingPattern::parse (Object* patObj) {
     int i;
 
     if (!patObj->is_dict ()) { return NULL; }
-    dict = patObj->as_dict ();
+    dict = patObj->as_dict_ptr ();
 
     dict->lookup ("Shading", &obj1);
     shadingA = GfxShading::parse (&obj1);
@@ -1575,7 +1575,7 @@ GfxShading* GfxShading::parse (Object* obj) {
     int typeA;
     Object obj1;
 
-    if (obj->is_dict ()) { dict = obj->as_dict (); }
+    if (obj->is_dict ()) { dict = obj->as_dict_ptr (); }
     else if (obj->is_stream ()) {
         dict = obj->streamGetDict ();
     }
@@ -1674,7 +1674,7 @@ bool GfxShading::init (Dict* dict) {
 
         if (4 == n) {
             hasBBox = true;
-            xMin = resolve (obj1 [0]).as_num ();
+            xMin = resolve (obj1 [0UL]).as_num ();
             yMin = resolve (obj1 [1]).as_num ();
             xMax = resolve (obj1 [2]).as_num ();
             yMax = resolve (obj1 [3]).as_num ();
@@ -1740,7 +1740,7 @@ GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
     x1A = y1A = 1;
     if (dict->lookup ("Domain", &obj1)->is_array () &&
         obj1.as_array ().size () == 4) {
-        x0A = resolve (obj1 [0]).as_num ();
+        x0A = resolve (obj1 [0UL]).as_num ();
         x1A = resolve (obj1 [1]).as_num ();
         y0A = resolve (obj1 [2]).as_num ();
         y1A = resolve (obj1 [3]).as_num ();
@@ -1755,7 +1755,7 @@ GfxFunctionShading* GfxFunctionShading::parse (Dict* dict) {
 
     if (dict->lookup ("Matrix", &obj1)->is_array () &&
         obj1.as_array ().size () == 6) {
-        matrixA[0] = resolve (obj1 [0]).as_num ();
+        matrixA[0] = resolve (obj1 [0UL]).as_num ();
         matrixA[1] = resolve (obj1 [1]).as_num ();
         matrixA[2] = resolve (obj1 [2]).as_num ();
         matrixA[3] = resolve (obj1 [3]).as_num ();
@@ -1867,7 +1867,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     x0A = y0A = x1A = y1A = 0;
     if (dict->lookup ("Coords", &obj1)->is_array () &&
         obj1.as_array ().size () == 4) {
-        x0A = resolve (obj1 [0]).as_num ();
+        x0A = resolve (obj1 [0UL]).as_num ();
         y0A = resolve (obj1 [1]).as_num ();
         x1A = resolve (obj1 [2]).as_num ();
         y1A = resolve (obj1 [3]).as_num ();
@@ -1883,7 +1883,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     t1A = 1;
     if (dict->lookup ("Domain", &obj1)->is_array () &&
         obj1.as_array ().size () == 2) {
-        t0A = resolve (obj1 [0]).as_num ();
+        t0A = resolve (obj1 [0UL]).as_num ();
         t1A = resolve (obj1 [1]).as_num ();
     }
 
@@ -1913,7 +1913,7 @@ GfxAxialShading* GfxAxialShading::parse (Dict* dict) {
     extend0A = extend1A = false;
     if (dict->lookup ("Extend", &obj1)->is_array () &&
         obj1.as_array ().size () == 2) {
-        extend0A = resolve (obj1 [0]).as_bool ();
+        extend0A = resolve (obj1 [0UL]).as_bool ();
         extend1A = resolve (obj1 [1]).as_bool ();
     }
 
@@ -2004,7 +2004,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     x0A = y0A = r0A = x1A = y1A = r1A = 0;
     if (dict->lookup ("Coords", &obj1)->is_array () &&
         obj1.as_array ().size () == 6) {
-        x0A = resolve (obj1 [0]).as_num ();
+        x0A = resolve (obj1 [0UL]).as_num ();
         y0A = resolve (obj1 [1]).as_num ();
         r0A = resolve (obj1 [2]).as_num ();
         x1A = resolve (obj1 [3]).as_num ();
@@ -2022,7 +2022,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     t1A = 1;
     if (dict->lookup ("Domain", &obj1)->is_array () &&
         obj1.as_array ().size () == 2) {
-        t0A = resolve (obj1 [0]).as_num ();
+        t0A = resolve (obj1 [0UL]).as_num ();
         t1A = resolve (obj1 [1]).as_num ();
     }
 
@@ -2052,7 +2052,7 @@ GfxRadialShading* GfxRadialShading::parse (Dict* dict) {
     extend0A = extend1A = false;
     if (dict->lookup ("Extend", &obj1)->is_array () &&
         obj1.as_array ().size () == 2) {
-        extend0A = resolve (obj1 [0]).as_bool ();
+        extend0A = resolve (obj1 [0UL]).as_bool ();
         extend1A = resolve (obj1 [1]).as_bool ();
     }
 
@@ -2256,7 +2256,7 @@ GfxGouraudTriangleShading::parse (int typeA, Dict* dict, Stream* str) {
     }
     if (dict->lookup ("Decode", &obj1)->is_array () &&
         obj1.as_array ().size () >= 6) {
-        xMin = resolve (obj1 [0]).as_num ();
+        xMin = resolve (obj1 [0UL]).as_num ();
         xMax = resolve (obj1 [1]).as_num ();
         xMul = (xMax - xMin) / (pow (2.0, coordBits) - 1);
         yMin = resolve (obj1 [2]).as_num ();
@@ -2526,7 +2526,7 @@ GfxPatchMeshShading::parse (int typeA, Dict* dict, Stream* str) {
     }
     if (dict->lookup ("Decode", &obj1)->is_array () &&
         obj1.as_array ().size () >= 6) {
-        xMin = resolve (obj1 [0]).as_num ();
+        xMin = resolve (obj1 [0UL]).as_num ();
         xMax = resolve (obj1 [1]).as_num ();
         xMul = (xMax - xMin) / (pow (2.0, coordBits) - 1);
         yMin = resolve (obj1 [2]).as_num ();

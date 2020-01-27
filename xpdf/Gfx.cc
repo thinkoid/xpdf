@@ -210,11 +210,11 @@ GfxResources::GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA) {
             obj2 = resolve (obj1);
             if (obj2.is_dict ()) {
                 r = obj1.as_ref ();
-                fonts = new GfxFontDict (xref, &r, obj2.as_dict ());
+                fonts = new GfxFontDict (xref, &r, obj2.as_dict_ptr ());
             }
         }
         else if (obj1.is_dict ()) {
-            fonts = new GfxFontDict (xref, NULL, obj1.as_dict ());
+            fonts = new GfxFontDict (xref, NULL, obj1.as_dict_ptr ());
         }
 
         // get XObject dictionary
@@ -873,7 +873,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
     if (obj1.dictLookup ("ML", &obj2)->is_num ()) { opSetMiterLimit (&obj2, 1); }
 
     if (obj1.dictLookup ("D", &obj2)->is_array () && obj2.as_array ().size () == 2) {
-        args2[0] = resolve (obj2 [0]);
+        args2[0] = resolve (obj2 [0UL]);
         args2[1] = resolve (obj2 [1]);
 
         if (args2[0].is_array () && args2[1].is_num ()) {
@@ -889,7 +889,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
     // font
     if (obj1.dictLookup ("Font", &obj2)->is_array () &&
         obj2.as_array ().size () == 2) {
-        obj3 = obj2 [0];
+        obj3 = obj2 [0UL];
         obj4 = obj2 [2];
         if (obj3.is_ref () && obj4.is_num ()) {
             doSetFont (res->lookupFontByRef (obj3.as_ref ()), obj4.as_num ());
@@ -1118,7 +1118,7 @@ void Gfx::doSoftMask (
 
     // get resources
     dict->lookup ("Resources", &obj1);
-    resDict = obj1.is_dict () ? obj1.as_dict () : (Dict*)NULL;
+    resDict = obj1.is_dict () ? obj1.as_dict_ptr () : (Dict*)NULL;
 
     // draw it
     ++formDepth;
@@ -3564,7 +3564,7 @@ void Gfx::opXObject (Object args[], int numArgs) {
     }
 #if OPI_SUPPORT
     obj1.streamGetDict ()->lookup ("OPI", &opiDict);
-    if (opiDict.is_dict ()) { out->opiBegin (state, opiDict.as_dict ()); }
+    if (opiDict.is_dict ()) { out->opiBegin (state, opiDict.as_dict_ptr ()); }
 #endif
     obj1.streamGetDict ()->lookup ("Subtype", &obj2);
     if (obj2.is_name ("Image")) {
@@ -3599,7 +3599,7 @@ void Gfx::opXObject (Object args[], int numArgs) {
             "XObject subtype is missing or wrong type");
     }
 #if OPI_SUPPORT
-    if (opiDict.is_dict ()) { out->opiEnd (state, opiDict.as_dict ()); }
+    if (opiDict.is_dict ()) { out->opiEnd (state, opiDict.as_dict_ptr ()); }
 #endif
 }
 
@@ -3628,7 +3628,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
     str->getImageParams (&bits, &csMode);
 
     // get stream dict
-    dict = str->as_dict ();
+    dict = str->as_dict_ptr ();
 
     // get size
     dict->lookup ("Width", &obj1);
@@ -3692,7 +3692,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
             dict->lookup ("D", &obj1);
         }
         if (obj1.is_array ()) {
-            obj2 = resolve (obj1 [0]);
+            obj2 = resolve (obj1 [0UL]);
             invert = obj2.is_num () && obj2.as_num () == 1;
         }
         else if (!obj1.is_null ()) {
@@ -3875,7 +3875,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
                 maskDict->lookup ("D", &obj1);
             }
             if (obj1.is_array ()) {
-                obj2 = resolve (obj1 [0]);
+                obj2 = resolve (obj1 [0UL]);
                 maskInvert = obj2.is_num () && obj2.as_num () == 1;
             }
             else if (!obj1.is_null ()) {
@@ -3994,7 +3994,7 @@ void Gfx::doForm (Object* strRef, Object* str) {
 
     // get resources
     dict->lookup ("Resources", &resObj);
-    resDict = resObj.is_dict () ? resObj.as_dict () : (Dict*)NULL;
+    resDict = resObj.is_dict () ? resObj.as_dict_ptr () : (Dict*)NULL;
 
     // check for a transparency group
     transpGroup = isolated = knockout = false;
@@ -4430,7 +4430,7 @@ void Gfx::drawAnnot (
 
         // get the resources
         dict->lookup ("Resources", &resObj);
-        resDict = resObj.is_dict () ? resObj.as_dict () : (Dict*)NULL;
+        resDict = resObj.is_dict () ? resObj.as_dict_ptr () : (Dict*)NULL;
 
         // draw it
         drawForm (strRef, resDict, m, bbox);

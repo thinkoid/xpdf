@@ -155,7 +155,7 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     dict->lookup (key, &obj1);
     if (obj1.is_array () && obj1.as_array ().size () == 4) {
         ok = true;
-        obj2 = resolve (obj1 [0]);
+        obj2 = resolve (obj1 [0UL]);
         if (obj2.is_num ()) { tmp.x1 = obj2.as_num (); }
         else {
             ok = false;

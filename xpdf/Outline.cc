@@ -96,7 +96,7 @@ GList* OutlineItem::readItemList (
             break;
         }
 
-        item = new OutlineItem (p, obj.as_dict (), parentA, xrefA);
+        item = new OutlineItem (p, obj.as_dict_ptr (), parentA, xrefA);
 
         // check for loops with parents
         for (ancestor = parentA; ancestor; ancestor = ancestor->parent) {

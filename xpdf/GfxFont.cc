@@ -243,13 +243,13 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
             error (errSyntaxWarning, -1, "Empty DescendantFonts array in font");
             obj2 = { };
         }
-        else if ((obj2 = resolve (obj1 [0])).is_dict ()) {
+        else if ((obj2 = resolve (obj1 [0UL])).is_dict ()) {
             if (!isType0) {
                 error (
                     errSyntaxWarning, -1,
                     "Non-CID font with DescendantFonts array");
             }
-            fontDict2 = obj2.as_dict ();
+            fontDict2 = obj2.as_dict_ptr ();
             fontDict2->lookup ("Subtype", &subtype);
             if (subtype.is_name ("CIDFontType0")) {
                 if (isType0) { expectedType = fontCIDType0; }
@@ -1395,7 +1395,7 @@ int* Gfx8BitFont::getCodeToGIDMap (FoFiTrueType* ff) {
 }
 
 Dict* Gfx8BitFont::getCharProcs () {
-    return charProcs.is_dict () ? charProcs.as_dict () : (Dict*)NULL;
+    return charProcs.is_dict () ? charProcs.as_dict_ptr () : (Dict*)NULL;
 }
 
 Object* Gfx8BitFont::getCharProc (int code, Object* proc) {
@@ -1419,7 +1419,7 @@ Object* Gfx8BitFont::getCharProcNF (int code, Object* proc) {
 }
 
 Dict* Gfx8BitFont::getResources () {
-    return resources.is_dict () ? resources.as_dict () : (Dict*)NULL;
+    return resources.is_dict () ? resources.as_dict_ptr () : (Dict*)NULL;
 }
 
 //------------------------------------------------------------------------
@@ -1478,11 +1478,11 @@ GfxCIDFont::GfxCIDFont (
             "Missing or empty DescendantFonts entry in Type 0 font");
         goto err1;
     }
-    if (!(desFontDictObj = resolve (obj1 [0])).is_dict ()) {
+    if (!(desFontDictObj = resolve (obj1 [0UL])).is_dict ()) {
         error (errSyntaxError, -1, "Bad descendant font in Type 0 font");
         goto err2;
     }
-    desFontDict = desFontDictObj.as_dict ();
+    desFontDict = desFontDictObj.as_dict_ptr ();
 
     // get info from font descriptor
     readFontDescriptor (xref, desFontDict);
@@ -1649,7 +1649,7 @@ GfxCIDFont::GfxCIDFont (
     // default metrics for vertical font
     if (desFontDict->lookup ("DW2", &obj1)->is_array () &&
         obj1.as_array ().size () == 2) {
-        if ((obj2 = resolve (obj1 [0])).is_num ()) {
+        if ((obj2 = resolve (obj1 [0UL])).is_num ()) {
             widths.defVY = obj2.as_num () * 0.001;
         }
         if ((obj2 = resolve (obj1 [1])).is_num ()) {
@@ -1869,7 +1869,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
                 }
             }
             fonts[i] = GfxFont::makeFont (
-                xref, fontDict->getKey (i), r, obj2.as_dict ());
+                xref, fontDict->getKey (i), r, obj2.as_dict_ptr ());
             if (fonts[i] && !fonts[i]->isOk ()) {
                 delete fonts[i];
                 fonts[i] = NULL;

@@ -63,24 +63,24 @@ public:
             : (GString*)NULL;
     }
     Dict* getBoxColorInfo () {
-        return boxColorInfo.is_dict () ? boxColorInfo.as_dict () : (Dict*)NULL;
+        return boxColorInfo.is_dict () ? boxColorInfo.as_dict_ptr () : (Dict*)NULL;
     }
     Dict* getGroup () {
-        return group.is_dict () ? group.as_dict () : (Dict*)NULL;
+        return group.is_dict () ? group.as_dict_ptr () : (Dict*)NULL;
     }
     Stream* getMetadata () {
         return metadata.is_stream () ? metadata.as_stream () : (Stream*)NULL;
     }
     Dict* getPieceInfo () {
-        return pieceInfo.is_dict () ? pieceInfo.as_dict () : (Dict*)NULL;
+        return pieceInfo.is_dict () ? pieceInfo.as_dict_ptr () : (Dict*)NULL;
     }
     Dict* getSeparationInfo () {
-        return separationInfo.is_dict () ? separationInfo.as_dict ()
+        return separationInfo.is_dict () ? separationInfo.as_dict_ptr ()
                                         : (Dict*)NULL;
     }
     double getUserUnit () { return userUnit; }
     Dict* getResourceDict () {
-        return resources.is_dict () ? resources.as_dict () : (Dict*)NULL;
+        return resources.is_dict () ? resources.as_dict_ptr () : (Dict*)NULL;
     }
 
     // Clip all other boxes to the MediaBox.

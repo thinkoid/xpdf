@@ -42,6 +42,14 @@ public:
     //
     bool is (const char* type);
 
+    xpdf::obj_t& operator[] (const char*);
+
+    xpdf::obj_t& at (const char*);
+
+    const xpdf::obj_t& at (const char* s) const {
+        return const_cast< Dict* > (this)->at (s);
+    }
+
     //
     // Look up an entry and return the value.  Returns a null object
     // if <key> is not in the dictionary:

@@ -48,24 +48,32 @@ obj_t& obj_t::operator[] (size_t n) {
 // Dict accessors.
 //------------------------------------------------------------------------
 
+obj_t& obj_t::operator[] (const char* s) {
+    return as_dict ()[s];
+}
+
+obj_t& obj_t::at (const char* s) {
+    return as_dict ().at (s);
+}
+
 int obj_t::dictGetLength () {
-    return as_dict ()->getLength ();
+    return as_dict_ptr ()->getLength ();
 }
 
 void obj_t::dictAdd (const char* key, const obj_t& val) {
-    as_dict ()->add (key, val);
+    as_dict_ptr ()->add (key, val);
 }
 
 void obj_t::dictAdd (const char* key, obj_t&& val) {
-    as_dict ()->add (key, std::move (val));
+    as_dict_ptr ()->add (key, std::move (val));
 }
 
 void obj_t::dictAdd (const char* key, obj_t* val) {
-    as_dict ()->add (key, val);
+    as_dict_ptr ()->add (key, val);
 }
 
 bool obj_t::dictIs (const char* dictType) const {
-    return as_dict ()->is (dictType);
+    return as_dict_ptr ()->is (dictType);
 }
 
 bool obj_t::is_dict (const char* dictType) const {
@@ -74,23 +82,23 @@ bool obj_t::is_dict (const char* dictType) const {
 
 obj_t*
 obj_t::dictLookup (const char* key, obj_t* obj, int recursion) {
-    return as_dict ()->lookup (key, obj, recursion);
+    return as_dict_ptr ()->lookup (key, obj, recursion);
 }
 
 obj_t* obj_t::dictLookupNF (const char* key, obj_t* obj) {
-    return as_dict ()->lookupNF (key, obj);
+    return as_dict_ptr ()->lookupNF (key, obj);
 }
 
 char* obj_t::dictGetKey (int i) {
-    return as_dict ()->getKey (i);
+    return as_dict_ptr ()->getKey (i);
 }
 
 obj_t* obj_t::dictGetVal (int i, obj_t* obj) {
-    return as_dict ()->getVal (i, obj);
+    return as_dict_ptr ()->getVal (i, obj);
 }
 
 obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
-    return as_dict ()->getValNF (i, obj);
+    return as_dict_ptr ()->getValNF (i, obj);
 }
 
 //------------------------------------------------------------------------
@@ -98,7 +106,7 @@ obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
 //------------------------------------------------------------------------
 
 bool obj_t::streamIs (const char* dictType) const {
-    return as_stream ()->as_dict ()->is (dictType);
+    return as_stream ()->as_dict_ptr ()->is (dictType);
 }
 
 bool obj_t::is_stream (const char* dictType) const {
@@ -138,7 +146,7 @@ void obj_t::streamSetPos (GFileOffset pos, int dir) {
 }
 
 Dict* obj_t::streamGetDict () {
-    return as_stream ()->as_dict ();
+    return as_stream ()->as_dict_ptr ();
 }
 
 //

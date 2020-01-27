@@ -154,7 +154,7 @@ Catalog::Catalog (PDFDoc* docA) {
     catDict.dictLookup ("OCProperties", &ocProperties);
 
     // get the list of embedded files
-    readEmbeddedFileList (catDict.as_dict ());
+    readEmbeddedFileList (catDict.as_dict_ptr ());
 
     return;
 
@@ -300,7 +300,7 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
         for (i = 0; !done && i < kids.as_array ().size (); ++i) {
             if ((kid = resolve (kids [i])).is_dict ()) {
                 if (kid.dictLookup ("Limits", &limits)->is_array ()) {
-                    if ((low = resolve (limits [0])).is_string () &&
+                    if ((low = resolve (limits [0UL])).is_string () &&
                         name->cmp (low.as_string ()) >= 0) {
                         if ((high = resolve (limits [1])).is_string () &&
                             name->cmp (high.as_string ()) <= 0) {
@@ -426,7 +426,7 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
         // merge the PageAttrs
         attrs = new PageAttrs (
             node->parent ? node->parent->attrs : (PageAttrs*)NULL,
-            pageObj.as_dict ());
+            pageObj.as_dict_ptr ());
 
         // if "Kids" exists, it's an internal node
         if (pageObj.dictLookup ("Kids", &kidsObj)->is_array ()) {
@@ -467,7 +467,7 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
         else {
             // create the Page object
             pageRefs[pg - 1] = node->ref;
-            pages[pg - 1] = new Page (doc, pg, pageObj.as_dict (), attrs);
+            pages[pg - 1] = new Page (doc, pg, pageObj.as_dict_ptr (), attrs);
             if (!pages[pg - 1]->isOk ()) {
                 delete pages[pg - 1];
                 pages[pg - 1] = new Page (doc, pg);

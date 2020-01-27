@@ -48,6 +48,27 @@ bool Dict::is (const char* type) {
     return iter != xs.end () && std::get< 1 > (*iter).is_name (type);
 }
 
+xpdf::obj_t& Dict::operator[] (const char* s) {
+    auto iter = sequential_find (xs, s);
+
+    if (iter == xs.end ()) {
+        xs.emplace_back (std::string (s), xpdf::obj_t{ });
+        iter = --xs.end ();
+    }
+
+    return std::get< 1 > (*iter);
+}
+
+xpdf::obj_t& Dict::at (const char* s) {
+    auto iter = sequential_find (xs, s);
+
+    if (iter == xs.end ()) {
+        throw std::out_of_range ("Dict::at");
+    }
+
+    return std::get< 1 > (*iter);
+}
+
 Object* Dict::lookup (const char* key, Object* pobj, int recursion) {
     auto iter = sequential_find (xs, key);
 

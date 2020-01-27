@@ -210,7 +210,7 @@ StandardSecurityHandler::StandardSecurityHandler (
             if (encVersion >= 1 && encVersion <= 2 && encRevision >= 2 &&
                 encRevision <= 3) {
                 if (fileIDObj.is_array ()) {
-                    fileIDObj1 = fileIDObj [0];
+                    fileIDObj1 = fileIDObj [0UL];
                     if (fileIDObj1.is_string ()) {
                         fileID = fileIDObj1.as_string ()->copy ();
                     }

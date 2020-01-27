@@ -216,7 +216,12 @@ struct obj_t {
         return *as< pointer > ();
     }
 
-    Dict* as_dict () const {
+    Dict& as_dict () const {
+        using pointer = std::shared_ptr< Dict >;
+        return *as< pointer > ().get ();
+    }
+
+    Dict* as_dict_ptr () const {
         using pointer = std::shared_ptr< Dict >;
         return as< pointer > ().get ();
     }
@@ -246,6 +251,13 @@ struct obj_t {
     //
     // Dict accessors:
     //
+    obj_t& operator[] (const char*);
+
+    obj_t& at (const char*);
+    const obj_t& at (const char* s) const {
+        return const_cast< obj_t* > (this)->at (s);
+    }
+
     int dictGetLength ();
 
     void dictAdd (const char*, const obj_t&);

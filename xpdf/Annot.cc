@@ -97,7 +97,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     if (dict->lookup ("Rect", &obj1)->is_array () &&
         obj1.as_array ().size () == 4) {
         xMin = yMin = xMax = yMax = 0;
-        if ((obj2 = resolve (obj1 [0])).is_num ()) { xMin = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [0UL])).is_num ()) { xMin = obj2.as_num (); }
         if ((obj2 = resolve (obj1 [1])).is_num ()) { yMin = obj2.as_num (); }
         if ((obj2 = resolve (obj1 [2])).is_num ()) { xMax = obj2.as_num (); }
         if ((obj2 = resolve (obj1 [3])).is_num ()) { yMax = obj2.as_num (); }
@@ -328,7 +328,7 @@ void Annot::generateLineAppearance () {
     //----- get line properties
     if (annotObj.dictLookup ("L", &obj1)->is_array () &&
         obj1.as_array ().size () == 4) {
-        if ((obj2 = resolve (obj1 [0])).is_num ()) { x1 = obj2.as_num (); }
+        if ((obj2 = resolve (obj1 [0UL])).is_num ()) { x1 = obj2.as_num (); }
         else {
             return;
         }
@@ -351,7 +351,7 @@ void Annot::generateLineAppearance () {
     lineEnd1 = lineEnd2 = annotLineEndNone;
     if (annotObj.dictLookup ("LE", &obj1)->is_array () &&
         obj1.as_array ().size () == 2) {
-        lineEnd1 = parseLineEndType (obj1 [0]);
+        lineEnd1 = parseLineEndType (obj1 [0UL]);
         lineEnd2 = parseLineEndType (obj1 [1]);
     }
     if (annotObj.dictLookup ("LL", &obj1)->is_num ()) {
@@ -981,7 +981,7 @@ Annots::Annots (PDFDoc* docA, const Object& annotsObj) {
             if (obj1.is_dict ()) {
                 if (drawWidgetAnnots ||
                     !obj1.dictLookup ("Subtype", &obj2)->is_name ("Widget")) {
-                    annot = new Annot (doc, obj1.as_dict (), &ref);
+                    annot = new Annot (doc, obj1.as_dict_ptr (), &ref);
                     if (annot->isOk ()) {
                         if (nAnnots >= size) {
                             size += 16;

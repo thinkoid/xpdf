@@ -1180,7 +1180,7 @@ static inline Dict*
 dictionary_from (Object& obj) {
     return obj.is_stream ()
         ? obj.streamGetDict ()
-        : obj.is_dict () ? obj.as_dict () : 0;
+        : obj.is_dict () ? obj.as_dict_ptr () : 0;
 }
 
 std::shared_ptr< function_t::impl_t >

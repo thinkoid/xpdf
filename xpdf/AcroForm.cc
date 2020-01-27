@@ -493,7 +493,7 @@ void AcroFormField::drawAnnot (
 
         Object number;
 
-        if ((number = resolve (obj [0])).is_num ()) { xMin = number.as_num (); }
+        if ((number = resolve (obj [0UL])).is_num ()) { xMin = number.as_num (); }
         if ((number = resolve (obj [1])).is_num ()) { yMin = number.as_num (); }
         if ((number = resolve (obj [2])).is_num ()) { xMax = number.as_num (); }
         if ((number = resolve (obj [3])).is_num ()) { yMax = number.as_num (); }
@@ -518,11 +518,11 @@ void AcroFormField::drawAnnot (
     //----- draw it
 
     if (acroForm->needAppearances) {
-        drawNewAppearance (gfx, annotObj->as_dict (), xMin, yMin, xMax, yMax);
+        drawNewAppearance (gfx, annotObj->as_dict_ptr (), xMin, yMin, xMax, yMax);
     }
     else {
         drawExistingAppearance (
-            gfx, annotObj->as_dict (), xMin, yMin, xMax, yMax);
+            gfx, annotObj->as_dict_ptr (), xMin, yMin, xMax, yMax);
     }
 }
 
@@ -587,7 +587,7 @@ void AcroFormField::drawNewAppearance (
     int borderDashLength, rot, quadding, comb, nOptions, topIdx, i, j;
 
     // get the appearance characteristics (MK) dictionary
-    if (annot->lookup ("MK", &mkObj)->is_dict ()) { mkDict = mkObj.as_dict (); }
+    if (annot->lookup ("MK", &mkObj)->is_dict ()) { mkDict = mkObj.as_dict_ptr (); }
     else {
         mkDict = NULL;
     }
@@ -795,7 +795,7 @@ void AcroFormField::drawNewAppearance (
     // build the font dictionary
     if (drObj.is_dict () && drObj.dictLookup ("Font", &obj1)->is_dict ()) {
         fontDict = new GfxFontDict (
-            acroForm->doc->getXRef (), 0, obj1.as_dict ());
+            acroForm->doc->getXRef (), 0, obj1.as_dict_ptr ());
     }
     else {
         fontDict = NULL;
@@ -1787,7 +1787,7 @@ Object* AcroFormField::getResources (Object* res) {
             for (i = 0; i < kidsObj.as_array ().size (); ++i) {
                 annotObj = resolve (kidsObj [i]);
                 if (annotObj.is_dict ()) {
-                    if (getAnnotResources (annotObj.as_dict (), &obj1)
+                    if (getAnnotResources (annotObj.as_dict_ptr (), &obj1)
                             ->is_dict ()) {
                         res->as_array ().push_back (obj1);
                     }
@@ -1797,7 +1797,7 @@ Object* AcroFormField::getResources (Object* res) {
             }
         }
         else {
-            if (getAnnotResources (fieldObj.as_dict (), &obj1)->is_dict ()) {
+            if (getAnnotResources (fieldObj.as_dict_ptr (), &obj1)->is_dict ()) {
                 res->as_array ().push_back (obj1);
             }
             else {
@@ -1848,7 +1848,7 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
 
 // Look up an inheritable field dictionary entry.
 Object* AcroFormField::fieldLookup (const char* key, Object* obj) {
-    return fieldLookup (fieldObj.as_dict (), key, obj);
+    return fieldLookup (fieldObj.as_dict_ptr (), key, obj);
 }
 
 Object* AcroFormField::fieldLookup (Dict* dict, const char* key, Object* obj) {
@@ -1862,7 +1862,7 @@ Object* AcroFormField::fieldLookup (Dict* dict, const char* key, Object* obj) {
     dict->lookup ("Parent", &parent);
 
     if (parent.is_dict ()) {
-        fieldLookup (parent.as_dict (), key, obj);
+        fieldLookup (parent.as_dict_ptr (), key, obj);
     }
     else {
         // some fields don't specify a parent, so we check the AcroForm
