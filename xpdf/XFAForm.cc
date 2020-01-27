@@ -12,13 +12,14 @@
 #include <goo/GHash.hh>
 
 #include <xpdf/array.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/obj.hh>
-#include <xpdf/PDFDoc.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
-#include <xpdf/Zoox.hh>
+#include <xpdf/obj.hh>
+#include <xpdf/PDFDoc.hh>
 #include <xpdf/XFAForm.hh>
+#include <xpdf/Zoox.hh>
 
 //------------------------------------------------------------------------
 
@@ -172,7 +173,7 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
     int n, i;
 
     docA->getXRef ()->getCatalog (&catDict);
-    catDict.dictLookup ("NeedsRendering", &obj1);
+    *&obj1 = resolve (catDict.as_dict ()["NeedsRendering"]);
     fullXFAA = obj1.is_bool () && obj1.as_bool ();
 
     if (xfaObj->is_stream ()) {
@@ -209,7 +210,7 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
     }
 
     if (acroFormObj->is_dict ()) {
-        acroFormObj->dictLookup ("DR", &resourceDictA);
+        resourceDictA = resolve (acroFormObj->as_dict ()["DR"]);
     }
 
     xfaForm = new XFAForm (docA, xmlA, &resourceDictA, fullXFAA);
@@ -336,7 +337,7 @@ void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
 
     // build the font dictionary
     if (resourceDict.is_dict () &&
-        resourceDict.dictLookup ("Font", &obj1)->is_dict ()) {
+        (obj1 = resolve (resourceDict.as_dict ()["Font"])).is_dict ()) {
         fontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.as_dict_ptr ());
     }
     else {

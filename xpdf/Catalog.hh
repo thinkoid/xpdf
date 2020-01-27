@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
-#include <xpdf/obj_fwd.hh>
+#include <xpdf/obj.hh>
 
 class GList;
 class PDFDoc;
@@ -109,8 +109,8 @@ private:
     void loadPage2 (int pg, int relPg, PageTreeNode* node);
     void readEmbeddedFileList (Dict* catDict);
     void readEmbeddedFileTree (Object* node);
-    void readFileAttachmentAnnots (Object* pageNodeRef, char* touchedObjs);
-    void readEmbeddedFile (Object* fileSpec, Object* name1);
+    void readFileAttachmentAnnots (const Object& pageNodeRef, char* touchedObjs);
+    void readEmbeddedFile (const Object& fileSpec, const Object& name1);
 };
 
 #endif // XPDF_XPDF_CATALOG_HH

@@ -152,7 +152,7 @@ GfxFont* GfxFont::makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict) {
 
     // get base font name
     nameA = NULL;
-    fontDict->lookup ("BaseFont", &obj1);
+    obj1 = resolve ((*fontDict) ["BaseFont"]);
     if (obj1.is_name ()) { nameA = new GString (obj1.as_name ()); }
     else if (obj1.is_string ()) {
         nameA = obj1.as_string ()->copy ();
@@ -213,7 +213,7 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
     embID->num = embID->gen = -1;
     err = false;
 
-    fontDict->lookup ("Subtype", &subtype);
+    subtype = resolve ((*fontDict) ["Subtype"]);
     expectedType = fontUnknownType;
     isType0 = false;
     if (subtype.is_name ("Type1") || subtype.is_name ("MMType1")) {
@@ -238,7 +238,7 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
     }
 
     fontDict2 = fontDict;
-    if (fontDict->lookup ("DescendantFonts", &obj1)->is_array ()) {
+    if ((obj1 = resolve ((*fontDict) ["DescendantFonts"])).is_array ()) {
         if (obj1.as_array ().size () == 0) {
             error (errSyntaxWarning, -1, "Empty DescendantFonts array in font");
             obj2 = { };
@@ -250,7 +250,7 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
                     "Non-CID font with DescendantFonts array");
             }
             fontDict2 = obj2.as_dict_ptr ();
-            fontDict2->lookup ("Subtype", &subtype);
+            subtype = resolve ((*fontDict2) ["Subtype"]);
             if (subtype.is_name ("CIDFontType0")) {
                 if (isType0) { expectedType = fontCIDType0; }
             }
@@ -263,13 +263,13 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
         obj2 = { };
     }
 
-    if (fontDict2->lookup ("FontDescriptor", &fontDesc)->is_dict ()) {
-        if (fontDesc.dictLookupNF ("FontFile", &obj3)->is_ref ()) {
+    if ((fontDesc = resolve ((*fontDict2) ["FontDescriptor"])).is_dict ()) {
+        if ((obj3 = fontDesc.as_dict ()["FontFile"]).is_ref ()) {
             *embID = obj3.as_ref ();
             if (expectedType != fontType1) { err = true; }
         }
         if (embID->num == -1 &&
-            fontDesc.dictLookupNF ("FontFile2", &obj3)->is_ref ()) {
+            (obj3 = fontDesc.as_dict ()["FontFile2"]).is_ref ()) {
             *embID = obj3.as_ref ();
             if (isType0) { expectedType = fontCIDType2; }
             else if (expectedType != fontTrueType) {
@@ -277,10 +277,10 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
             }
         }
         if (embID->num == -1 &&
-            fontDesc.dictLookupNF ("FontFile3", &obj3)->is_ref ()) {
+            (obj3 = fontDesc.as_dict ()["FontFile3"]).is_ref ()) {
             *embID = obj3.as_ref ();
             if ((obj4 = resolve (obj3)).is_stream ()) {
-                obj4.streamGetDict ()->lookup ("Subtype", &subtype);
+                subtype = resolve ((*obj4.streamGetDict ()) ["Subtype"]);
                 if (subtype.is_name ("Type1")) {
                     if (expectedType != fontType1) {
                         err = true;
@@ -390,22 +390,22 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
 
     missingWidth = 0;
 
-    if (fontDict->lookup ("FontDescriptor", &obj1)->is_dict ()) {
+    if ((obj1 = resolve ((*fontDict) ["FontDescriptor"])).is_dict ()) {
         // get flags
-        if (obj1.dictLookup ("Flags", &obj2)->is_int ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["Flags"])).is_int ()) {
             flags = obj2.as_int ();
         }
 
         // get name
-        obj1.dictLookup ("FontName", &obj2);
+        *&obj2 = resolve (obj1.as_dict ()["FontName"]);
         if (obj2.is_name ()) { embFontName = new GString (obj2.as_name ()); }
 
         // look for MissingWidth
-        obj1.dictLookup ("MissingWidth", &obj2);
+        *&obj2 = resolve (obj1.as_dict ()["MissingWidth"]);
         if (obj2.is_num ()) { missingWidth = obj2.as_num (); }
 
         // get Ascent and Descent
-        obj1.dictLookup ("Ascent", &obj2);
+        *&obj2 = resolve (obj1.as_dict ()["Ascent"]);
         if (obj2.is_num ()) {
             t = 0.001 * obj2.as_num ();
             // some broken font descriptors specify a negative ascent
@@ -414,7 +414,7 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
             // others set it to ridiculous values (e.g., 32768)
             if (t != 0 && t < 1.9) { ascent = t; }
         }
-        obj1.dictLookup ("Descent", &obj2);
+        *&obj2 = resolve (obj1.as_dict ()["Descent"]);
         if (obj2.is_num ()) {
             t = 0.001 * obj2.as_num ();
             // some broken font descriptors specify a positive descent
@@ -424,7 +424,7 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
         }
 
         // font FontBBox
-        if (obj1.dictLookup ("FontBBox", &obj2)->is_array ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["FontBBox"])).is_array ()) {
             for (i = 0; i < 4 && i < obj2.as_array ().size (); ++i) {
                 if ((obj3 = resolve (obj2 [i])).is_num ()) {
                     fontBBox[i] = 0.001 * obj3.as_num ();
@@ -441,7 +441,7 @@ GfxFont::readToUnicodeCMap (Dict* fontDict, int nBits, CharCodeToUnicode* ctu) {
     char buf2[4096];
     int n;
 
-    if (!fontDict->lookup ("ToUnicode", &obj1)->is_stream ()) {
+    if (!(obj1 = resolve ((*fontDict) ["ToUnicode"])).is_stream ()) {
         return NULL;
     }
     buf = new GString ();
@@ -861,7 +861,7 @@ Gfx8BitFont::Gfx8BitFont (
     // get font matrix
     fontMat[0] = fontMat[3] = 1;
     fontMat[1] = fontMat[2] = fontMat[4] = fontMat[5] = 0;
-    if (fontDict->lookup ("FontMatrix", &obj1)->is_array ()) {
+    if ((obj1 = resolve ((*fontDict) ["FontMatrix"])).is_array ()) {
         for (i = 0; i < 6 && i < obj1.as_array ().size (); ++i) {
             if ((obj2 = resolve (obj1 [i])).is_num ()) {
                 fontMat[i] = obj2.as_num ();
@@ -871,19 +871,19 @@ Gfx8BitFont::Gfx8BitFont (
 
     // get Type 3 bounding box, font definition, and resources
     if (type == fontType3) {
-        if (fontDict->lookup ("FontBBox", &obj1)->is_array ()) {
+        if ((obj1 = resolve ((*fontDict) ["FontBBox"])).is_array ()) {
             for (i = 0; i < 4 && i < obj1.as_array ().size (); ++i) {
                 if ((obj2 = resolve (obj1 [i])).is_num ()) {
                     fontBBox[i] = obj2.as_num ();
                 }
             }
         }
-        if (!fontDict->lookup ("CharProcs", &charProcs)->is_dict ()) {
+        if (!(charProcs = resolve ((*fontDict) ["CharProcs"])).is_dict ()) {
             error (
                 errSyntaxError, -1,
                 "Missing or invalid CharProcs dictionary in Type 3 font");
         }
-        if (!fontDict->lookup ("Resources", &resources)->is_dict ()) {
+        if (!(resources = resolve ((*fontDict) ["Resources"])).is_dict ()) {
         }
     }
 
@@ -906,9 +906,9 @@ Gfx8BitFont::Gfx8BitFont (
     usesMacRomanEnc = false;
     baseEnc = NULL;
     baseEncFromFontFile = false;
-    fontDict->lookup ("Encoding", &obj1);
+    obj1 = resolve ((*fontDict) ["Encoding"]);
     if (obj1.is_dict ()) {
-        obj1.dictLookup ("BaseEncoding", &obj2);
+        *&obj2 = resolve (obj1.as_dict ()["BaseEncoding"]);
         if (obj2.is_name ("MacRomanEncoding")) {
             hasEncoding = true;
             usesMacRomanEnc = true;
@@ -1011,7 +1011,7 @@ Gfx8BitFont::Gfx8BitFont (
 
     // merge differences into encoding
     if (obj1.is_dict ()) {
-        obj1.dictLookup ("Differences", &obj2);
+        *&obj2 = resolve (obj1.as_dict ()["Differences"]);
         if (obj2.is_array ()) {
             hasEncoding = true;
             code = 0;
@@ -1167,14 +1167,14 @@ Gfx8BitFont::Gfx8BitFont (
     for (code = 0; code < 256; ++code) { widths[code] = missingWidth * 0.001; }
 
     // use widths from font dict, if present
-    fontDict->lookup ("FirstChar", &obj1);
+    obj1 = resolve ((*fontDict) ["FirstChar"]);
     firstChar = obj1.is_int () ? obj1.as_int () : 0;
     if (firstChar < 0 || firstChar > 255) { firstChar = 0; }
-    fontDict->lookup ("LastChar", &obj1);
+    obj1 = resolve ((*fontDict) ["LastChar"]);
     lastChar = obj1.is_int () ? obj1.as_int () : 255;
     if (lastChar < 0 || lastChar > 255) { lastChar = 255; }
     mul = (type == fontType3) ? fontMat[0] : 0.001;
-    fontDict->lookup ("Widths", &obj1);
+    obj1 = resolve ((*fontDict) ["Widths"]);
     if (obj1.is_array ()) {
         flags |= fontFixedWidth;
         if (obj1.as_array ().size () < lastChar - firstChar + 1) {
@@ -1400,7 +1400,7 @@ Dict* Gfx8BitFont::getCharProcs () {
 
 Object* Gfx8BitFont::getCharProc (int code, Object* proc) {
     if (enc[code] && charProcs.is_dict ()) {
-        charProcs.dictLookup (enc[code], proc);
+        *proc = resolve (charProcs.as_dict ()[enc[code]]);
     }
     else {
         *proc = { };
@@ -1410,7 +1410,7 @@ Object* Gfx8BitFont::getCharProc (int code, Object* proc) {
 
 Object* Gfx8BitFont::getCharProcNF (int code, Object* proc) {
     if (enc[code] && charProcs.is_dict ()) {
-        charProcs.dictLookupNF (enc[code], proc);
+        *proc = charProcs.as_dict ()[enc[code]];
     }
     else {
         *proc = { };
@@ -1471,7 +1471,7 @@ GfxCIDFont::GfxCIDFont (
     cidToGIDLen = 0;
 
     // get the descendant font
-    if (!fontDict->lookup ("DescendantFonts", &obj1)->is_array () ||
+    if (!(obj1 = resolve ((*fontDict) ["DescendantFonts"])).is_array () ||
         obj1.as_array ().size () == 0) {
         error (
             errSyntaxError, -1,
@@ -1490,14 +1490,14 @@ GfxCIDFont::GfxCIDFont (
     //----- encoding info -----
 
     // char collection
-    if (!desFontDict->lookup ("CIDSystemInfo", &obj1)->is_dict ()) {
+    if (!(obj1 = resolve ((*desFontDict) ["CIDSystemInfo"])).is_dict ()) {
         error (
             errSyntaxError, -1,
             "Missing CIDSystemInfo dictionary in Type 0 descendant font");
         goto err2;
     }
-    obj1.dictLookup ("Registry", &obj2);
-    obj1.dictLookup ("Ordering", &obj3);
+    *&obj2 = resolve (obj1.as_dict ()["Registry"]);
+    *&obj3 = resolve (obj1.as_dict ()["Ordering"]);
     if (!obj2.is_string () || !obj3.is_string ()) {
         error (
             errSyntaxError, -1,
@@ -1544,7 +1544,7 @@ GfxCIDFont::GfxCIDFont (
     }
 
     // encoding (i.e., CMap)
-    if (fontDict->lookup ("Encoding", &obj1)->is_null ()) {
+    if ((obj1 = resolve ((*fontDict) ["Encoding"])).is_null ()) {
         error (errSyntaxError, -1, "Missing Encoding entry in Type 0 font");
         goto err2;
     }
@@ -1554,7 +1554,7 @@ GfxCIDFont::GfxCIDFont (
     // (the PDF spec only allows these for TrueType fonts, but Acrobat
     // apparently also allows them for OpenType CFF fonts)
     if (type == fontCIDType2 || type == fontCIDType0COT) {
-        desFontDict->lookup ("CIDToGIDMap", &obj1);
+        obj1 = resolve ((*desFontDict) ["CIDToGIDMap"]);
         if (obj1.is_stream ()) {
             cidToGIDLen = 0;
             i = 64;
@@ -1578,12 +1578,12 @@ GfxCIDFont::GfxCIDFont (
     //----- character metrics -----
 
     // default char width
-    if (desFontDict->lookup ("DW", &obj1)->is_int ()) {
+    if ((obj1 = resolve ((*desFontDict) ["DW"])).is_int ()) {
         widths.defWidth = obj1.as_int () * 0.001;
     }
 
     // char width exceptions
-    if (desFontDict->lookup ("W", &obj1)->is_array ()) {
+    if ((obj1 = resolve ((*desFontDict) ["W"])).is_array ()) {
         excepsSize = 0;
         i = 0;
         while (i + 1 < obj1.as_array ().size ()) {
@@ -1647,7 +1647,7 @@ GfxCIDFont::GfxCIDFont (
     }
 
     // default metrics for vertical font
-    if (desFontDict->lookup ("DW2", &obj1)->is_array () &&
+    if ((obj1 = resolve ((*desFontDict) ["DW2"])).is_array () &&
         obj1.as_array ().size () == 2) {
         if ((obj2 = resolve (obj1 [0UL])).is_num ()) {
             widths.defVY = obj2.as_num () * 0.001;
@@ -1658,7 +1658,7 @@ GfxCIDFont::GfxCIDFont (
     }
 
     // char metric exceptions for vertical font
-    if (desFontDict->lookup ("W2", &obj1)->is_array ()) {
+    if ((obj1 = resolve ((*desFontDict) ["W2"])).is_array ()) {
         excepsSize = 0;
         i = 0;
         while (i + 1 < obj1.as_array ().size ()) {

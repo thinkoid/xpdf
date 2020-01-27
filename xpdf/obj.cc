@@ -80,15 +80,6 @@ bool obj_t::is_dict (const char* dictType) const {
     return is_dict () && dictIs (dictType);
 }
 
-obj_t*
-obj_t::dictLookup (const char* key, obj_t* obj, int recursion) {
-    return as_dict_ptr ()->lookup (key, obj, recursion);
-}
-
-obj_t* obj_t::dictLookupNF (const char* key, obj_t* obj) {
-    return as_dict_ptr ()->lookupNF (key, obj);
-}
-
 char* obj_t::dictGetKey (int i) {
     return as_dict_ptr ()->getKey (i);
 }

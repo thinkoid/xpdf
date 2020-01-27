@@ -40,18 +40,18 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         return NULL;
     }
 
-    obj->dictLookup ("S", &obj2);
+    obj2 = resolve (obj->as_dict ()["S"]);
 
     // GoTo action
     if (obj2.is_name ("GoTo")) {
-        obj->dictLookup ("D", &obj3);
+        obj3 = resolve (obj->as_dict ()["D"]);
         action = new LinkGoTo (&obj3);
 
         // GoToR action
     }
     else if (obj2.is_name ("GoToR")) {
-        obj->dictLookup ("F", &obj3);
-        obj->dictLookup ("D", &obj4);
+        obj3 = resolve (obj->as_dict ()["F"]);
+        obj4 = resolve (obj->as_dict ()["D"]);
         action = new LinkGoToR (&obj3, &obj4);
 
         // Launch action
@@ -62,41 +62,41 @@ LinkAction* LinkAction::parseAction (Object* obj, GString* baseURI) {
         // URI action
     }
     else if (obj2.is_name ("URI")) {
-        obj->dictLookup ("URI", &obj3);
+        obj3 = resolve (obj->as_dict ()["URI"]);
         action = new LinkURI (&obj3, baseURI);
 
         // Named action
     }
     else if (obj2.is_name ("Named")) {
-        obj->dictLookup ("N", &obj3);
+        obj3 = resolve (obj->as_dict ()["N"]);
         action = new LinkNamed (&obj3);
 
         // Movie action
     }
     else if (obj2.is_name ("Movie")) {
-        obj->dictLookupNF ("Annot", &obj3);
-        obj->dictLookup ("T", &obj4);
+        obj3 = (*obj).as_dict ()["Annot"];
+        obj4 = resolve (obj->as_dict ()["T"]);
         action = new LinkMovie (&obj3, &obj4);
 
         // JavaScript action
     }
     else if (obj2.is_name ("JavaScript")) {
-        obj->dictLookup ("JS", &obj3);
+        obj3 = resolve (obj->as_dict ()["JS"]);
         action = new LinkJavaScript (&obj3);
 
         // SubmitForm action
     }
     else if (obj2.is_name ("SubmitForm")) {
-        obj->dictLookup ("F", &obj3);
-        obj->dictLookup ("Fields", &obj4);
-        obj->dictLookup ("Flags", &obj5);
+        obj3 = resolve (obj->as_dict ()["F"]);
+        obj4 = resolve (obj->as_dict ()["Fields"]);
+        obj5 = resolve (obj->as_dict ()["Flags"]);
         action = new LinkSubmitForm (&obj3, &obj4, &obj5);
 
         // Hide action
     }
     else if (obj2.is_name ("Hide")) {
-        obj->dictLookupNF ("T", &obj3);
-        obj->dictLookup ("H", &obj4);
+        obj3 = (*obj).as_dict ()["T"];
+        obj4 = resolve (obj->as_dict ()["H"]);
         action = new LinkHide (&obj3, &obj4);
 
         // unknown action
@@ -128,14 +128,16 @@ GString* LinkAction::getFileSpecName (Object* fileSpecObj) {
     // string
     if (fileSpecObj->is_string ()) {
         name = fileSpecObj->as_string ()->copy ();
-
         // dictionary
     }
     else if (fileSpecObj->is_dict ()) {
-        if (!fileSpecObj->dictLookup ("Unix", &obj1)->is_string ()) {
-            fileSpecObj->dictLookup ("F", &obj1);
+        if (!(obj1 = resolve (fileSpecObj->as_dict ()["Unix"])).is_string ()) {
+            obj1 = resolve (fileSpecObj->as_dict ()["F"]);
         }
-        if (obj1.is_string ()) { name = obj1.as_string ()->copy (); }
+
+        if (obj1.is_string ()) {
+            name = obj1.as_string ()->copy ();
+        }
         else {
             error (errSyntaxWarning, -1, "Illegal file spec in link");
         }
@@ -490,16 +492,16 @@ LinkLaunch::LinkLaunch (Object* actionObj) {
     params = NULL;
 
     if (actionObj->is_dict ()) {
-        if (!actionObj->dictLookup ("F", &obj1)->is_null ()) {
+        if (!(obj1 = resolve (actionObj->as_dict ()["F"])).is_null ()) {
             fileName = getFileSpecName (&obj1);
         }
         else {
             //~ This hasn't been defined by Adobe yet, so assume it looks
             //~ just like the Win dictionary until they say otherwise.
-            if (actionObj->dictLookup ("Unix", &obj1)->is_dict ()) {
-                obj1.dictLookup ("F", &obj2);
+            if ((obj1 = resolve (actionObj->as_dict ()["Unix"])).is_dict ()) {
+                *&obj2 = resolve (obj1.as_dict ()["F"]);
                 fileName = getFileSpecName (&obj2);
-                if (obj1.dictLookup ("P", &obj2)->is_string ()) {
+                if ((obj2 = resolve (obj1.as_dict ()["P"])).is_string ()) {
                     params = obj2.as_string ()->copy ();
                 }
             }
@@ -708,42 +710,54 @@ Link::Link (const xpdf::obj_t& dictObj, GString* baseURI) {
     ASSERT (dictObj.is_dict ());
     auto& dict = dictObj.as_dict ();
 
-    Object obj1, obj2;
+    Object obj2;
     double t;
 
     action = NULL;
     ok = false;
 
+    auto rect = resolve (dict ["Rect"]);
+
     // get rectangle
-    if (!dict.lookup ("Rect", &obj1)->is_array ()) {
+    if (!rect.is_array ()) {
         error (errSyntaxError, -1, "Annotation rectangle is wrong type");
         return;
     }
-    if (!(obj2 = resolve (obj1 [0UL])).is_num ()) {
+
+    if (!(obj2 = resolve (rect [0UL])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
+
     x1 = obj2.as_num ();
-    if (!(obj2 = resolve (obj1 [1])).is_num ()) {
+
+    if (!(obj2 = resolve (rect [1])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
+
     y1 = obj2.as_num ();
-    if (!(obj2 = resolve (obj1 [2])).is_num ()) {
+
+    if (!(obj2 = resolve (rect [2])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
+
     x2 = obj2.as_num ();
-    if (!(obj2 = resolve (obj1 [3])).is_num ()) {
+
+    if (!(obj2 = resolve (rect [3])).is_num ()) {
         error (errSyntaxError, -1, "Bad annotation rectangle");
         return;
     }
+
     y2 = obj2.as_num ();
+
     if (x1 > x2) {
         t = x1;
         x1 = x2;
         x2 = t;
     }
+
     if (y1 > y2) {
         t = y1;
         y1 = y2;
@@ -751,14 +765,16 @@ Link::Link (const xpdf::obj_t& dictObj, GString* baseURI) {
     }
 
     // look for destination
-    if (!dict.lookup ("Dest", &obj1)->is_null ()) {
-        action = LinkAction::parseDest (&obj1);
+    auto dest = resolve (dict ["Dest"]);
 
-        // look for action
+    if (!dest.is_null ()) {
+        action = LinkAction::parseDest (&dest);
     }
     else {
-        if (dict.lookup ("A", &obj1)->is_dict ()) {
-            action = LinkAction::parseAction (&obj1, baseURI);
+        auto A = resolve (dict ["A"]);
+
+        if (A.is_dict ()) {
+            action = LinkAction::parseAction (&A, baseURI);
         }
     }
 
@@ -787,8 +803,8 @@ Links::Links (const Object& annots, GString* baseURI) {
     if (annots.is_array ()) {
         for (i = 0; i < annots.as_array ().size (); ++i) {
             if ((obj1 = resolve (annots [i])).is_dict ()) {
-                obj1.dictLookup ("Subtype", &obj2);
-                obj1.dictLookup ("FT", &obj3);
+                *&obj2 = resolve (obj1.as_dict ()["Subtype"]);
+                *&obj3 = resolve (obj1.as_dict ()["FT"]);
                 if (obj2.is_name ("Link") ||
                     (obj2.is_name ("Widget") &&
                      (obj3.is_name ("Btn") || obj3.is_null ()))) {

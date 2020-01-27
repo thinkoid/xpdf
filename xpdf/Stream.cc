@@ -3,23 +3,25 @@
 
 #include <defs.hh>
 
+#include <cctype>
+#include <climits>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <cstddef>
-#include <climits>
-#include <unistd.h>
 #include <cstring>
-#include <cctype>
+#include <unistd.h>
+
 #include <goo/gfile.hh>
-#include <defs.hh>
+
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/obj.hh>
-#include <xpdf/lexer.hh>
 #include <xpdf/GfxState.hh>
-#include <xpdf/Stream.hh>
 #include <xpdf/JBIG2Stream.hh>
 #include <xpdf/JPXStream.hh>
+#include <xpdf/lexer.hh>
+#include <xpdf/obj.hh>
 #include <xpdf/Stream-CCITT.hh>
+#include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------
 // Stream (base class)
@@ -90,13 +92,13 @@ Stream* Stream::addFilters (Object* dict, int recursion) {
     int i;
 
     str = this;
-    dict->dictLookup ("Filter", &obj);
+    obj = resolve (dict->as_dict ()["Filter"]);
     if (obj.is_null ()) {
-        dict->dictLookup ("F", &obj);
+        obj = resolve (dict->as_dict ()["F"]);
     }
-    dict->dictLookup ("DecodeParms", &params);
+    params = resolve (dict->as_dict ()["DecodeParms"]);
     if (params.is_null ()) {
-        dict->dictLookup ("DP", &params);
+        params = resolve (dict->as_dict ()["DP"]);
     }
     if (obj.is_name ()) {
         str = makeFilter (obj.as_name (), str, &params, recursion);
@@ -149,15 +151,15 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
         bits = 8;
         early = 1;
         if (params->is_dict ()) {
-            params->dictLookup ("Predictor", &obj, recursion);
+            obj = resolve (params->as_dict ()["Predictor"], recursion);
             if (obj.is_int ()) pred = obj.as_int ();
-            params->dictLookup ("Columns", &obj, recursion);
+            obj = resolve (params->as_dict ()["Columns"], recursion);
             if (obj.is_int ()) columns = obj.as_int ();
-            params->dictLookup ("Colors", &obj, recursion);
+            obj = resolve (params->as_dict ()["Colors"], recursion);
             if (obj.is_int ()) colors = obj.as_int ();
-            params->dictLookup ("BitsPerComponent", &obj, recursion);
+            obj = resolve (params->as_dict ()["BitsPerComponent"], recursion);
             if (obj.is_int ()) bits = obj.as_int ();
-            params->dictLookup ("EarlyChange", &obj, recursion);
+            obj = resolve (params->as_dict ()["EarlyChange"], recursion);
             if (obj.is_int ()) early = obj.as_int ();
         }
         str = new LZWStream (str, pred, columns, colors, bits, early);
@@ -174,19 +176,19 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
         endOfBlock = true;
         black = false;
         if (params->is_dict ()) {
-            params->dictLookup ("K", &obj, recursion);
+            obj = resolve (params->as_dict ()["K"], recursion);
             if (obj.is_int ()) { encoding = obj.as_int (); }
-            params->dictLookup ("EndOfLine", &obj, recursion);
+            obj = resolve (params->as_dict ()["EndOfLine"], recursion);
             if (obj.is_bool ()) { endOfLine = obj.as_bool (); }
-            params->dictLookup ("EncodedByteAlign", &obj, recursion);
+            obj = resolve (params->as_dict ()["EncodedByteAlign"], recursion);
             if (obj.is_bool ()) { byteAlign = obj.as_bool (); }
-            params->dictLookup ("Columns", &obj, recursion);
+            obj = resolve (params->as_dict ()["Columns"], recursion);
             if (obj.is_int ()) { columns = obj.as_int (); }
-            params->dictLookup ("Rows", &obj, recursion);
+            obj = resolve (params->as_dict ()["Rows"], recursion);
             if (obj.is_int ()) { rows = obj.as_int (); }
-            params->dictLookup ("EndOfBlock", &obj, recursion);
+            obj = resolve (params->as_dict ()["EndOfBlock"], recursion);
             if (obj.is_bool ()) { endOfBlock = obj.as_bool (); }
-            params->dictLookup ("BlackIs1", &obj, recursion);
+            obj = resolve (params->as_dict ()["BlackIs1"], recursion);
             if (obj.is_bool ()) { black = obj.as_bool (); }
         }
         str = new CCITTFaxStream (
@@ -196,8 +198,7 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
     else if (!strcmp (name, "DCTDecode") || !strcmp (name, "DCT")) {
         colorXform = -1;
         if (params->is_dict ()) {
-            if (params->dictLookup ("ColorTransform", &obj, recursion)
-                    ->is_int ()) {
+            if ((obj = resolve (params->as_dict ()["ColorTransform"], recursion)).is_int ()) {
                 colorXform = obj.as_int ();
             }
         }
@@ -209,20 +210,20 @@ Stream::makeFilter (const char* name, Stream* str, Object* params, int recursion
         colors = 1;
         bits = 8;
         if (params->is_dict ()) {
-            params->dictLookup ("Predictor", &obj, recursion);
+            obj = resolve (params->as_dict ()["Predictor"], recursion);
             if (obj.is_int ()) pred = obj.as_int ();
-            params->dictLookup ("Columns", &obj, recursion);
+            obj = resolve (params->as_dict ()["Columns"], recursion);
             if (obj.is_int ()) columns = obj.as_int ();
-            params->dictLookup ("Colors", &obj, recursion);
+            obj = resolve (params->as_dict ()["Colors"], recursion);
             if (obj.is_int ()) colors = obj.as_int ();
-            params->dictLookup ("BitsPerComponent", &obj, recursion);
+            obj = resolve (params->as_dict ()["BitsPerComponent"], recursion);
             if (obj.is_int ()) bits = obj.as_int ();
         }
         str = new FlateStream (str, pred, columns, colors, bits);
     }
     else if (!strcmp (name, "JBIG2Decode")) {
         if (params->is_dict ()) {
-            params->dictLookup ("JBIG2Globals", &globals, recursion);
+            globals = resolve (params->as_dict ()["JBIG2Globals"], recursion);
         }
         str = new JBIG2Stream (str, &globals);
     }

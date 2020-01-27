@@ -69,19 +69,6 @@ xpdf::obj_t& Dict::at (const char* s) {
     return std::get< 1 > (*iter);
 }
 
-Object* Dict::lookup (const char* key, Object* pobj, int recursion) {
-    auto iter = sequential_find (xs, key);
-
-    if (iter != xs.end ()) {
-        auto& obj = std::get< 1 > (*iter);
-        return *pobj = resolve (obj, recursion), pobj;
-    }
-    else {
-        *pobj = { };
-        return pobj;
-    }
-}
-
 Object* Dict::lookupNF (const char* key, Object* pobj) {
     auto iter = sequential_find (xs, key);
 

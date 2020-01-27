@@ -179,8 +179,7 @@ int main (int argc, char* argv[]) {
 
     // print form info
     if ((acroForm = doc->getCatalog ()->getAcroForm ())->is_dict ()) {
-        Object xfa;
-        acroForm->dictLookup ("XFA", &xfa);
+        Object xfa = resolve (acroForm->as_dict ()["XFA"]);
 
         if (xfa.is_stream () || xfa.is_array ()) {
             printf ("Form:           XFA\n");
@@ -308,7 +307,7 @@ static void printInfoString (
 
     Object obj;
 
-    if (infoDict->lookup (key, &obj)->is_string ()) {
+    if ((obj = resolve ((*infoDict) [key])).is_string ()) {
         fputs (text, stdout);
         s = new TextString (obj.as_string ());
         u = s->getUnicode ();
@@ -329,7 +328,7 @@ static void printInfoDate (Dict* infoDict, const char* key, const char* text) {
 
     Object obj;
 
-    if (infoDict->lookup (key, &obj)->is_string ()) {
+    if ((obj = resolve ((*infoDict) [key])).is_string ()) {
         fputs (text, stdout);
         s = obj.as_string ()->c_str ();
         if (s[0] == 'D' && s[1] == ':') { s += 2; }

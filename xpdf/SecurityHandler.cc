@@ -7,6 +7,7 @@
 
 #include <xpdf/array.hh>
 #include <xpdf/Decrypt.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/PDFCore.hh>
@@ -21,7 +22,7 @@ SecurityHandler* SecurityHandler::make (PDFDoc* docA, Object* encryptDictA) {
     Object filterObj;
     SecurityHandler* secHdlr;
 
-    encryptDictA->dictLookup ("Filter", &filterObj);
+    filterObj = resolve (encryptDictA->as_dict ()["Filter"]);
     if (filterObj.is_name ("Standard")) {
         secHdlr = new StandardSecurityHandler (docA, encryptDictA);
     }
@@ -106,15 +107,17 @@ StandardSecurityHandler::StandardSecurityHandler (
     userEnc = NULL;
     fileKeyLength = 0;
 
-    encryptDictA->dictLookup ("V", &versionObj);
-    encryptDictA->dictLookup ("R", &revisionObj);
-    encryptDictA->dictLookup ("Length", &lengthObj);
-    encryptDictA->dictLookup ("O", &ownerKeyObj);
-    encryptDictA->dictLookup ("U", &userKeyObj);
-    encryptDictA->dictLookup ("OE", &ownerEncObj);
-    encryptDictA->dictLookup ("UE", &userEncObj);
-    encryptDictA->dictLookup ("P", &permObj);
-    doc->getXRef ()->getTrailerDict ()->dictLookup ("ID", &fileIDObj);
+    versionObj = resolve (encryptDictA->as_dict ()["V"]);
+    revisionObj = resolve (encryptDictA->as_dict ()["R"]);
+    lengthObj = resolve (encryptDictA->as_dict ()["Length"]);
+    ownerKeyObj = resolve (encryptDictA->as_dict ()["O"]);
+    userKeyObj = resolve (encryptDictA->as_dict ()["U"]);
+    ownerEncObj = resolve (encryptDictA->as_dict ()["OE"]);
+    userEncObj = resolve (encryptDictA->as_dict ()["UE"]);
+    permObj = resolve (encryptDictA->as_dict ()["P"]);
+
+    fileIDObj = resolve (doc->getXRef ()->getTrailerDict ()->as_dict ()["ID"]);
+
     if (versionObj.is_int () && revisionObj.is_int () && permObj.is_int () &&
         ownerKeyObj.is_string () && userKeyObj.is_string ()) {
         encVersion = versionObj.as_int ();
@@ -143,9 +146,9 @@ StandardSecurityHandler::StandardSecurityHandler (
             //~ same)
             if ((encVersion == 4 || encVersion == 5) &&
                 (encRevision == 4 || encRevision == 5 || encRevision == 6)) {
-                encryptDictA->dictLookup ("CF", &cryptFiltersObj);
-                encryptDictA->dictLookup ("StmF", &streamFilterObj);
-                encryptDictA->dictLookup ("StrF", &stringFilterObj);
+                cryptFiltersObj = resolve (encryptDictA->as_dict ()["CF"]);
+                streamFilterObj = resolve (encryptDictA->as_dict ()["StmF"]);
+                stringFilterObj = resolve (encryptDictA->as_dict ()["StrF"]);
                 if (cryptFiltersObj.is_dict () && streamFilterObj.is_name () &&
                     stringFilterObj.is_name () &&
                     !strcmp (
@@ -156,17 +159,16 @@ StandardSecurityHandler::StandardSecurityHandler (
                         encVersion = encRevision = -1;
                     }
                     else {
-                        if (cryptFiltersObj
-                                .dictLookup (
-                                    streamFilterObj.as_name (), &cryptFilterObj)
-                                ->is_dict ()) {
-                            cryptFilterObj.dictLookup ("CFM", &cfmObj);
+                        cryptFilterObj = cryptFiltersObj.as_dict ()[streamFilterObj.as_name ()];
+
+                        if (cryptFilterObj.is_dict ()) {
+                            cfmObj = cryptFilterObj.as_dict ()["CFM"];
                             if (cfmObj.is_name ("V2")) {
                                 encVersion = 2;
                                 encRevision = 3;
-                                if (cryptFilterObj
-                                        .dictLookup ("Length", &cfLengthObj)
-                                        ->is_int ()) {
+
+                                cfLengthObj = cryptFilterObj.as_dict ()["Length"];
+                                if (cfLengthObj.is_int ()) {
                                     //~ according to the spec, this should be cfLengthObj / 8
                                     fileKeyLength = cfLengthObj.as_int ();
                                 }
@@ -175,9 +177,7 @@ StandardSecurityHandler::StandardSecurityHandler (
                                 encVersion = 2;
                                 encRevision = 3;
                                 encAlgorithm = cryptAES;
-                                if (cryptFilterObj
-                                        .dictLookup ("Length", &cfLengthObj)
-                                        ->is_int ()) {
+                                if ((cfLengthObj = resolve (cryptFilterObj.as_dict ()["Length"])).is_int ()) {
                                     //~ according to the spec, this should be cfLengthObj / 8
                                     fileKeyLength = cfLengthObj.as_int ();
                                 }
@@ -188,9 +188,7 @@ StandardSecurityHandler::StandardSecurityHandler (
                                     encRevision = 6;
                                 }
                                 encAlgorithm = cryptAES256;
-                                if (cryptFilterObj
-                                        .dictLookup ("Length", &cfLengthObj)
-                                        ->is_int ()) {
+                                if ((cfLengthObj = resolve (cryptFilterObj.as_dict ()["Length"])).is_int ()) {
                                     //~ according to the spec, this should be cfLengthObj / 8
                                     fileKeyLength = cfLengthObj.as_int ();
                                 }
@@ -198,9 +196,7 @@ StandardSecurityHandler::StandardSecurityHandler (
                         }
                     }
                 }
-                if (encryptDictA
-                        ->dictLookup ("EncryptMetadata", &encryptMetadataObj)
-                        ->is_bool ()) {
+                if ((encryptMetadataObj = resolve (encryptDictA->as_dict ()["EncryptMetadata"])).is_bool ()) {
                     encryptMetadata = encryptMetadataObj.as_bool ();
                 }
             }

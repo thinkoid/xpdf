@@ -7,6 +7,7 @@
 #include <goo/GList.hh>
 
 #include <xpdf/array.hh>
+#include <xpdf/Dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
@@ -44,7 +45,7 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
     display = NULL;
 
     if ((ocProps = doc->getCatalog ()->getOCProperties ())->is_dict ()) {
-        if (ocProps->dictLookup ("OCGs", &ocgList)->is_array ()) {
+        if ((ocgList = resolve (ocProps->as_dict ()["OCGs"])).is_array ()) {
             //----- read the OCG list
             for (i = 0; i < ocgList.as_array ().size (); ++i) {
                 obj1 = ocgList [i];
@@ -59,9 +60,9 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
             }
 
             //----- read the default viewing OCCD
-            if (ocProps->dictLookup ("D", &defView)->is_dict ()) {
+            if ((defView = resolve (ocProps->as_dict ()["D"])).is_dict ()) {
                 //----- initial state
-                if (defView.dictLookup ("OFF", &obj1)->is_array ()) {
+                if ((obj1 = resolve (defView.as_dict ()["OFF"])).is_array ()) {
                     for (i = 0; i < obj1.as_array ().size (); ++i) {
                         obj2 = obj1 [i];
                         if (obj2.is_ref ()) {
@@ -80,7 +81,7 @@ OptionalContent::OptionalContent (PDFDoc* doc) {
                 }
 
                 //----- display order
-                if (defView.dictLookup ("Order", &obj1)->is_array ()) {
+                if ((obj1 = resolve (defView.as_dict ()["Order"])).is_array ()) {
                     display = OCDisplayNode::parse (&obj1, this, xref);
                 }
             }
@@ -139,12 +140,12 @@ bool OptionalContent::evalOCObject (Object* obj, bool* visible) {
         return false;
     }
 
-    if (obj2.dictLookup ("VE", &obj3)->is_array ()) {
+    if ((obj3 = resolve (obj2.as_dict ()["VE"])).is_array ()) {
         *visible = evalOCVisibilityExpr (&obj3, 0);
     }
     else {
         policy = ocPolicyAnyOn;
-        if (obj2.dictLookup ("P", &obj3)->is_name ()) {
+        if ((obj3 = resolve (obj2.as_dict ()["P"])).is_name ()) {
             if (obj3.is_name ("AllOn")) { policy = ocPolicyAllOn; }
             else if (obj3.is_name ("AnyOn")) {
                 policy = ocPolicyAnyOn;
@@ -156,7 +157,7 @@ bool OptionalContent::evalOCObject (Object* obj, bool* visible) {
                 policy = ocPolicyAllOff;
             }
         }
-        obj2.dictLookupNF ("OCGs", &obj3);
+        obj3 = obj2.as_dict ()["OCGs"];
         ocg = NULL;
         if (obj3.is_ref ()) {
             ref = obj3.as_ref ();
@@ -270,24 +271,24 @@ OptionalContentGroup* OptionalContentGroup::parse (Ref* refA, Object* obj) {
     OCUsageState viewStateA, printStateA;
 
     if (!obj->is_dict ()) { return NULL; }
-    if (!obj->dictLookup ("Name", &obj1)->is_string ()) {
+    if (!(obj1 = resolve (obj->as_dict ()["Name"])).is_string ()) {
         error (errSyntaxError, -1, "Missing or invalid Name in OCG");
         return NULL;
     }
     nameA = new TextString (obj1.as_string ());
 
     viewStateA = printStateA = ocUsageUnset;
-    if (obj->dictLookup ("Usage", &obj1)->is_dict ()) {
-        if (obj1.dictLookup ("View", &obj2)->is_dict ()) {
-            if (obj2.dictLookup ("ViewState", &obj3)->is_name ()) {
+    if ((obj1 = resolve (obj->as_dict ()["Usage"])).is_dict ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["View"])).is_dict ()) {
+            if ((obj3 = resolve (obj2.as_dict ()["ViewState"])).is_name ()) {
                 if (obj3.is_name ("ON")) { viewStateA = ocUsageOn; }
                 else {
                     viewStateA = ocUsageOff;
                 }
             }
         }
-        if (obj1.dictLookup ("Print", &obj2)->is_dict ()) {
-            if (obj2.dictLookup ("PrintState", &obj3)->is_name ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["Print"])).is_dict ()) {
+            if ((obj3 = resolve (obj2.as_dict ()["PrintState"])).is_name ()) {
                 if (obj3.is_name ("ON")) { printStateA = ocUsageOn; }
                 else {
                     printStateA = ocUsageOff;

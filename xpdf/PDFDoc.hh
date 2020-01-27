@@ -146,7 +146,6 @@ public:
 
     // Return the document's Info dictionary (if any).
     Object* getDocInfo (Object* obj) { return xref->getDocInfo (obj); }
-    Object* getDocInfoNF (Object* obj) { return xref->getDocInfoNF (obj); }
 
     // Return the PDF version specified by the file.
     double getPDFVersion () { return pdfVersion; }

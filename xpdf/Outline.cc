@@ -19,8 +19,8 @@ Outline::Outline (Object* outlineObj, XRef* xref) {
 
     items = NULL;
     if (!outlineObj->is_dict ()) { return; }
-    outlineObj->dictLookupNF ("First", &first);
-    outlineObj->dictLookupNF ("Last", &last);
+    first = (*outlineObj).as_dict ()["First"];
+    last = (*outlineObj).as_dict ()["Last"];
     if (first.is_ref () && last.is_ref ()) {
         items = OutlineItem::readItemList (&first, &last, NULL, xref);
     }
@@ -42,27 +42,27 @@ OutlineItem::OutlineItem (
     kids = NULL;
     parent = parentA;
 
-    if (dict->lookup ("Title", &obj1)->is_string ()) {
+    if ((obj1 = resolve ((*dict) ["Title"])).is_string ()) {
         title = new TextString (obj1.as_string ());
     }
 
-    if (!dict->lookup ("Dest", &obj1)->is_null ()) {
+    if (!(obj1 = resolve ((*dict) ["Dest"])).is_null ()) {
         action = LinkAction::parseDest (&obj1);
     }
     else {
-        if (!dict->lookup ("A", &obj1)->is_null ()) {
+        if (!(obj1 = resolve ((*dict) ["A"])).is_null ()) {
             action = LinkAction::parseAction (&obj1);
         }
     }
 
     itemRef = *itemRefA;
 
-    dict->lookupNF ("First", &firstRef);
-    dict->lookupNF ("Last", &lastRef);
-    dict->lookupNF ("Next", &nextRef);
+    firstRef = (*dict) ["First"];
+    lastRef = (*dict) ["Last"];
+    nextRef = (*dict) ["Next"];
 
     startsOpen = false;
-    if (dict->lookup ("Count", &obj1)->is_int ()) {
+    if ((obj1 = resolve ((*dict) ["Count"])).is_int ()) {
         if (obj1.as_int () > 0) { startsOpen = true; }
     }
 }

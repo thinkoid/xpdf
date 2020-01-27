@@ -494,8 +494,8 @@ struct stitching_function_t : function_t::impl_t {
 
 std::vector< std::shared_ptr< function_t::impl_t > >
 stitched_functions_from (Dict& dict, int recursion) {
-    Object arr;
-    dict.lookup ("Functions", &arr);
+    auto arr = resolve (dict ["Functions"]);
+    ASSERT (arr.is_array ());
 
     std::vector< std::shared_ptr< function_t::impl_t > > fs;
 

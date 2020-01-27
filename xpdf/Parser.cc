@@ -248,7 +248,7 @@ Stream* Parser::makeStream (
         // get length from the stream object
     }
     else {
-        dict->dictLookup ("Length", &obj, recursion);
+        obj = resolve (dict->as_dict ()["Length"], recursion);
         if (obj.is_int ()) {
             length = (GFileOffset) (unsigned)obj.as_int ();
         }

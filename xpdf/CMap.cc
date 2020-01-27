@@ -99,7 +99,7 @@ CMap* CMap::parse (CMapCache* cache, GString* collectionA, Stream* str) {
 
     cMap = new CMap (collectionA->copy (), NULL);
 
-    if (!str->as_dict_ptr ()->lookup ("UseCMap", &obj1)->is_null ()) {
+    if (!(obj1 = resolve ((*str->as_dict_ptr ()) ["UseCMap"])).is_null ()) {
         cMap->useCMap (cache, &obj1);
     }
 

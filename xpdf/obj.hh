@@ -265,8 +265,6 @@ struct obj_t {
     void dictAdd (const char* key, obj_t* val);
 
     bool dictIs (const char* dictType) const;
-    obj_t* dictLookup (const char* key, obj_t* obj, int recursion = 0);
-    obj_t* dictLookupNF (const char* key, obj_t* obj);
     char* dictGetKey (int i);
     obj_t* dictGetVal (int i, obj_t* obj);
     obj_t* dictGetValNF (int i, obj_t* obj);

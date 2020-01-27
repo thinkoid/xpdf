@@ -53,7 +53,6 @@ public:
     // Look up an entry and return the value.  Returns a null object
     // if <key> is not in the dictionary:
     //
-    Object* lookup (const char*, Object*, int recursion = 0);
     Object* lookupNF (const char*, Object*);
 
     //
