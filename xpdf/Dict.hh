@@ -6,9 +6,9 @@
 
 #include <defs.hh>
 
-#include <list>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include <xpdf/obj_fwd.hh>
 
@@ -45,7 +45,6 @@ public:
     xpdf::obj_t& operator[] (const char*);
 
     xpdf::obj_t& at (const char*);
-
     const xpdf::obj_t& at (const char* s) const {
         return const_cast< Dict* > (this)->at (s);
     }
@@ -74,7 +73,7 @@ public:
 
 private:
     XRef* xref;          // the xref table for this PDF file
-    std::list< std::tuple< std::string, Object > > xs;
+    std::vector< std::tuple< std::string, Object > > xs;
 };
 
 #endif // XPDF_XPDF_DICT_HH
