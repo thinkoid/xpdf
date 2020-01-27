@@ -546,7 +546,7 @@ void AcroFormField::drawExistingAppearance (
                 appearance = obj1.as_dict ()[asObj.as_name ()];
             }
             else if (obj1.as_dict ().size () == 1) {
-                obj1.dictGetValNF (0, &appearance);
+                appearance = obj1.val_at (0);
             }
             else {
                 appearance = obj1.as_dict ()["Off"];
@@ -1821,7 +1821,7 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
                 *&appearance = resolve (obj1.as_dict ()[asObj.as_name ()]);
             }
             else if (obj1.as_dict ().size () == 1) {
-                obj1.dictGetVal (0, &appearance);
+                appearance = obj1.val_at (0);
             }
             else {
                 *&appearance = resolve (obj1.as_dict ()["Off"]);

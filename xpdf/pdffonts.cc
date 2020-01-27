@@ -213,8 +213,8 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
 }
 
 static void scanFonts (Dict* resDict, PDFDoc* doc) {
-    Object obj1, obj2, xObjDict, xObj;
-    Object patternDict, pattern, resObj;
+    Object obj1, obj2, xObjDict;
+    Object patternDict, resObj;
     Ref r;
     GfxFontDict* gfxFontDict;
     GfxFont* font;
@@ -246,7 +246,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
         for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
-            xObjDict.dictGetVal (i, &xObj);
+            auto& xObj = xObjDict.val_at (i);
             if (xObj.is_stream ()) {
                 resObj = (*xObj.streamGetDict ()) ["Resources"];
                 scanFonts (&resObj, doc);
@@ -259,7 +259,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     patternDict = resolve ((*resDict) ["Pattern"]);
     if (patternDict.is_dict ()) {
         for (i = 0; i < patternDict.as_dict ().size (); ++i) {
-            patternDict.dictGetVal (i, &pattern);
+            auto& pattern = patternDict.val_at (i);
             if (pattern.is_stream ()) {
                 resObj = (*pattern.streamGetDict ()) ["Resources"];
                 scanFonts (&resObj, doc);
@@ -274,9 +274,9 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
 
     if (gsDict.is_dict ()) {
         for (i = 0; i < gsDict.as_dict ().size (); ++i) {
-            Object gs;
+            auto& gs = gsDict.val_at (i);
 
-            if (gsDict.dictGetVal (i, &gs)->is_dict ()) {
+            if (gs.is_dict ()) {
                 Object smask;
 
                 if ((smask = resolve (gs.as_dict ()["SMask"])).is_dict ()) {

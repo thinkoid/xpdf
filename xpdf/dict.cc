@@ -34,14 +34,12 @@ void dict_t::emplace (const std::string& key, obj_t obj) {
     }
 }
 
-bool dict_t::has (const std::string& s) const {
-    auto iter = sequential_find (*this, s);
-    return iter != end () && std::get< 1 > (*iter).is_name (s);
+bool dict_t::has_key (const std::string& s) const {
+    return sequential_find (*this, s) != end ();
 }
 
-bool dict_t::is (const char* type) {
-    auto iter = sequential_find (*this, type);
-    return iter != end () && std::get< 1 > (*iter).is_name (type);
+bool dict_t::has_type (const std::string& s) const {
+    return has_key ("Type") && at ("Type").is_name (s);
 }
 
 xpdf::obj_t& dict_t::operator[] (const char* s) {
@@ -66,26 +64,13 @@ xpdf::obj_t& dict_t::at (const char* s) {
 }
 
 const std::string& dict_t::key_at (size_t n) const {
+    ASSERT (n < size ());
     return std::get< 0 > (this->operator[] (n));
 }
 
-obj_t* dict_t::getVal (int i, obj_t* pobj) {
-    ASSERT (size_t (i) < size ());
-
-    auto iter = begin ();
-    std::advance (iter, size_t (i));
-
-    auto& obj = std::get< 1 > (*iter);
-    return *pobj = resolve (obj), pobj;
-}
-
-obj_t* dict_t::getValNF (int i, obj_t* pobj) {
-    ASSERT (size_t (i) < size ());
-
-    auto iter = begin ();
-    std::advance (iter, size_t (i));
-
-    return *pobj = std::get< 1 > (*iter), pobj;
+obj_t& dict_t::val_at (size_t n) {
+    ASSERT (n < size ());
+    return std::get< 1 > (this->operator[] (n));
 }
 
 } // namespace xpdf

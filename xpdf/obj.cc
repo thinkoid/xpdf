@@ -60,24 +60,20 @@ void obj_t::emplace (const std::string& key, obj_t obj) {
     as_dict ().emplace (key, std::move (obj));
 }
 
-bool obj_t::has (const std::string& s) const {
-    return as_dict ().has (s);
+bool obj_t::has_key (const std::string& s) const {
+    return as_dict ().has_key (s);
 }
 
-bool obj_t::is_dict (const char* s) const {
-    return is_dict () && has (s);
+bool obj_t::has_type (const std::string& s) const {
+    return is_dict () && as_dict ().has_type (s);
 }
 
 const std::string& obj_t::key_at (size_t n) const {
     return as_dict ().key_at (n);
 }
 
-obj_t* obj_t::dictGetVal (int i, obj_t* obj) {
-    return as_dict_ptr ()->getVal (i, obj);
-}
-
-obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
-    return as_dict_ptr ()->getValNF (i, obj);
+obj_t& obj_t::val_at (size_t n) {
+    return as_dict ().val_at (n);
 }
 
 //------------------------------------------------------------------------
@@ -85,7 +81,7 @@ obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
 //------------------------------------------------------------------------
 
 bool obj_t::streamIs (const char* dictType) const {
-    return as_stream ()->as_dict_ptr ()->is (dictType);
+    return as_stream ()->as_dict_ptr ()->has_type (dictType);
 }
 
 bool obj_t::is_stream (const char* dictType) const {

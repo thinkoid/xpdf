@@ -1848,13 +1848,13 @@ GString* GfxCIDFont::getCollection () {
 
 GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
     int i;
-    Object obj1, obj2;
+    Object obj2;
     Ref r;
 
     numFonts = fontDict->size ();
     fonts = (GfxFont**)calloc (numFonts, sizeof (GfxFont*));
     for (i = 0; i < numFonts; ++i) {
-        fontDict->getValNF (i, &obj1);
+        auto& obj1 = fontDict->val_at (i);
         obj2 = resolve (obj1);
         if (obj2.is_dict ()) {
             if (obj1.is_ref ()) { r = obj1.as_ref (); }

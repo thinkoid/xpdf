@@ -1521,7 +1521,7 @@ void PSOutputDev::writeTrailer () {
 }
 
 void PSOutputDev::setupResources (Dict* resDict) {
-    Object xObjDict, xObjRef, xObj, patDict, patRef, pat;
+    Object xObjDict, xObjRef, patDict, patRef;
     Object gsDict, gsRef, gs, smask, smaskGroup, resObj;
     Ref ref0;
     bool skip;
@@ -1536,8 +1536,12 @@ void PSOutputDev::setupResources (Dict* resDict) {
         for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on XObjects
             skip = false;
-            if ((xObjDict.dictGetValNF (i, &xObjRef)->is_ref ())) {
+
+            auto& xObjRef = xObjDict.val_at (i);
+
+            if (xObjRef.is_ref ()) {
                 ref0 = xObjRef.as_ref ();
+
                 for (j = 0; j < xobjStack.size (); ++j) {
                     auto& ref1 = xobjStack [j];
                     if (ref1 == ref0) {
@@ -1547,9 +1551,11 @@ void PSOutputDev::setupResources (Dict* resDict) {
                 }
                 if (!skip) { xobjStack.push_back (ref0); }
             }
+
             if (!skip) {
                 // process the XObject's resource dictionary
-                xObjDict.dictGetVal (i, &xObj);
+                auto& xObj = xObjDict.val_at (i);
+
                 if (xObj.is_stream ()) {
                     resObj = resolve ((*xObj.streamGetDict ()) ["Resources"]);
                     if (resObj.is_dict ()) {
@@ -1571,8 +1577,12 @@ void PSOutputDev::setupResources (Dict* resDict) {
         for (i = 0; i < patDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on Patterns
             skip = false;
-            if ((patDict.dictGetValNF (i, &patRef)->is_ref ())) {
+
+            auto& patRef = patDict.val_at (i);
+
+            if (patRef.is_ref ()) {
                 ref0 = patRef.as_ref ();
+
                 for (j = 0; j < xobjStack.size (); ++j) {
                     auto& ref1 = xobjStack [j];
                     if (ref1 == ref0) {
@@ -1584,7 +1594,8 @@ void PSOutputDev::setupResources (Dict* resDict) {
             }
             if (!skip) {
                 // process the Pattern's resource dictionary
-                patDict.dictGetVal (i, &pat);
+                auto& pat = patDict.val_at (i);
+
                 if (pat.is_stream ()) {
                     resObj = resolve ((*pat.streamGetDict ()) ["Resources"]);
                     if (resObj.is_dict ()) {
@@ -1606,7 +1617,10 @@ void PSOutputDev::setupResources (Dict* resDict) {
         for (i = 0; i < gsDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on ExtGStates
             skip = false;
-            if ((gsDict.dictGetValNF (i, &gsRef)->is_ref ())) {
+
+            auto& gsRef = gsDict.val_at (i);
+
+            if (gsRef.is_ref ()) {
                 ref0 = gsRef.as_ref ();
                 for (j = 0; j < xobjStack.size (); ++j) {
                     auto& ref1 = xobjStack [j];
@@ -1617,9 +1631,12 @@ void PSOutputDev::setupResources (Dict* resDict) {
                 }
                 if (!skip) { xobjStack.push_back (ref0); }
             }
+
             if (!skip) {
                 // process the ExtGState's SMask's transparency group's resource dict
-                if (gsDict.dictGetVal (i, &gs)->is_dict ()) {
+                auto& gs = gsDict.val_at (i);
+
+                if (gs.is_dict ()) {
                     if ((smask = resolve (gs.as_dict ()["SMask"])).is_dict ()) {
                         if ((smaskGroup = resolve (smask.as_dict ()["G"])).is_stream ()) {
                             resObj = resolve ((*smaskGroup.streamGetDict ()) ["Resources"]);
@@ -2678,7 +2695,6 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
     GString* psName;
     Dict* resDict;
     Dict* charProcs;
-    Object charProc;
     PDFRectangle box;
     double* m;
     GString* buf;
@@ -2743,7 +2759,9 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
             writePS ("/");
             writePSName (charProcs->key_at (i));
             writePS (" {\n");
-            gfx->display (charProcs->getValNF (i, &charProc));
+
+            // TODO: anitize interface
+            gfx->display (&charProcs->val_at (i));
             if (t3String) {
                 if (t3Cacheable) {
                     buf = GString::format (
@@ -2811,7 +2829,7 @@ GString* PSOutputDev::makePSFontName (GfxFont* font, Ref* id) {
 }
 
 void PSOutputDev::setupImages (Dict* resDict) {
-    Object xObjDict, xObj, xObjRef, subtypeObj, maskObj, maskRef;
+    Object xObjDict, subtypeObj, maskObj, maskRef;
     Ref imgID;
     int i, j;
 
@@ -2820,8 +2838,8 @@ void PSOutputDev::setupImages (Dict* resDict) {
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
         for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
-            xObjDict.dictGetValNF (i, &xObjRef);
-            xObjDict.dictGetVal (i, &xObj);
+            auto& xObjRef = xObjDict.val_at (i);
+            auto& xObj = xObjDict.val_at (i);
             if (xObj.is_stream ()) {
                 subtypeObj = resolve ((*xObj.streamGetDict ()) ["Subtype"]);
                 if (subtypeObj.is_name ("Image")) {
@@ -2988,7 +3006,7 @@ void PSOutputDev::setupImage (Ref id, Stream* str, bool mask) {
 }
 
 void PSOutputDev::setupForms (Dict* resDict) {
-    Object xObjDict, xObj, xObjRef, subtypeObj;
+    Object xObjDict, subtypeObj;
     int i;
 
     if (!preload) { return; }
@@ -2996,8 +3014,8 @@ void PSOutputDev::setupForms (Dict* resDict) {
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
         for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
-            xObjDict.dictGetValNF (i, &xObjRef);
-            xObjDict.dictGetVal (i, &xObj);
+            auto& xObjRef = xObjDict.val_at (i);
+            auto& xObj = xObjDict.val_at (i);
             if (xObj.is_stream ()) {
                 subtypeObj = resolve ((*xObj.streamGetDict ()) ["Subtype"]);
                 if (subtypeObj.is_name ("Form")) {

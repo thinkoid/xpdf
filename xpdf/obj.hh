@@ -151,13 +151,7 @@ struct obj_t {
     bool is_ref () const { return is< ref_t > (); }
 
     bool is_array () const { return is< std::shared_ptr< Array > > (); }
-
-    bool is_dict () const { return is< std::shared_ptr< Dict > > (); }
-    bool is_dict (const char*) const;
-
-    bool is_dict (const std::string& s) const {
-        return is_dict (s.c_str ());
-    }
+    bool is_dict  () const { return is< std::shared_ptr< Dict > > (); }
 
     bool is_stream () const { return is< std::shared_ptr< Stream > > (); }
     bool is_stream (const char*) const;
@@ -262,7 +256,8 @@ struct obj_t {
     //
     obj_t& operator[] (const char*);
 
-    bool has (const std::string&) const;
+    bool has_key  (const std::string&) const;
+    bool has_type (const std::string&) const;
 
     obj_t& at (const char*);
     const obj_t& at (const char* s) const {
@@ -273,8 +268,10 @@ struct obj_t {
 
     const std::string& key_at (size_t) const;
 
-    obj_t* dictGetVal (int i, obj_t* obj);
-    obj_t* dictGetValNF (int i, obj_t* obj);
+    obj_t& val_at (size_t);
+    const obj_t& val_at (size_t n) const {
+        return const_cast< obj_t* > (this)->val_at (n);
+    }
 
     //
     // Stream accessors:

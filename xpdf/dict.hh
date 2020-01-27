@@ -28,33 +28,25 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
     //
     xpdf::obj_t& operator[] (const char*);
 
-    bool has (const std::string&) const;
+    bool has_key  (const std::string&) const;
+    bool has_type (const std::string&) const;
 
     //
     // Same semantics with std::map::at
     //
     xpdf::obj_t& at (const char*);
-
     const xpdf::obj_t& at (const char* s) const {
         return const_cast< dict_t* > (this)->at (s);
     }
 
     const std::string& key_at (size_t) const;
 
+    obj_t& val_at (size_t);
+    const obj_t& val_at (size_t n) const {
+        return const_cast< dict_t* > (this)->val_at (n);
+    }
+
     void emplace (const std::string&, obj_t);
-
-    //
-    // Legacy interface:
-    //
-    // Check if dictionary is of specified type:
-    //
-    bool is (const char* type);
-
-    //
-    // Iterative accessors.
-    //
-    Object* getVal (int i, Object* obj);
-    Object* getValNF (int i, Object* obj);
 };
 
 } // namespace xpdf

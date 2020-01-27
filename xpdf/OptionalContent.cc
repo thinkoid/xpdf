@@ -136,7 +136,7 @@ bool OptionalContent::evalOCObject (Object* obj, bool* visible) {
 
     obj2 = resolve (*obj);
 
-    if (!obj2.is_dict ("OCMD")) {
+    if (!obj2.has_type ("OCMD")) {
         return false;
     }
 

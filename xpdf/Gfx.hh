@@ -119,6 +119,7 @@ public:
 
     // Interpret a stream or array of streams.  <objRef> should be a
     // reference wherever possible (for loop-checking).
+    // TODO: sanitize interface
     void display (Object* objRef, bool topLevel = true);
 
     // Display an annotation, given its appearance (a Form XObject),
