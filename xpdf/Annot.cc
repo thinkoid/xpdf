@@ -482,14 +482,6 @@ void Annot::generatePolyLineAppearance () {
     setLineStyle (borderStyle, &w);
     setStrokeColor (borderStyle->getColor (), borderStyle->getNumColorComps ());
 
-    // fill = false;
-    // if (annotObj.dictLookup("IC", &obj1)->is_array()) {
-    //   if (setFillColor(&obj1)) {
-    //     fill = true;
-    //   }
-    // }
-    // obj1.free();
-
     //----- draw line
     if (!(obj1 = resolve (annotObj.as_dict ()["Vertices"])).is_array ()) {
         return;
