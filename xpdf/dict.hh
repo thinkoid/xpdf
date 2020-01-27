@@ -35,23 +35,10 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
         return const_cast< dict_t* > (this)->at (s);
     }
 
+    void emplace (const std::string&, obj_t);
+
     //
     // Legacy interface:
-    //
-
-    // Get number of entries.
-    size_t getLength () const { return size (); }
-
-    //
-    // Add an entry (taking ownership of key pointer):
-    //
-    void add (const char*, const Object&);
-    void add (const char*, Object&&);
-
-    void add (const char* key, Object* pobj) {
-        add (key, *pobj);
-    }
-
     //
     // Check if dictionary is of specified type:
     //

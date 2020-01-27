@@ -21,34 +21,25 @@ const auto sequential_find = [](auto& xs, auto& key) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void Dict::add (const char* key, Object&& obj) {
+namespace xpdf {
+
+void dict_t::emplace (const std::string& key, obj_t obj) {
     auto iter = sequential_find (*this, key);
 
     if (iter == end ()) {
-        emplace_back (std::string (key), std::move (obj));
+        emplace_back (std::move (key), std::move (obj));
     }
     else {
         std::get< 1 > (*iter) = std::move (obj);
     }
 }
 
-void Dict::add (const char* key, const Object& obj) {
-    auto iter = sequential_find (*this, key);
-
-    if (iter == end ()) {
-        emplace_back (std::string (key), obj);
-    }
-    else {
-        std::get< 1 > (*iter) = obj;
-    }
-}
-
-bool Dict::is (const char* type) {
+bool dict_t::is (const char* type) {
     auto iter = sequential_find (*this, type);
     return iter != end () && std::get< 1 > (*iter).is_name (type);
 }
 
-xpdf::obj_t& Dict::operator[] (const char* s) {
+xpdf::obj_t& dict_t::operator[] (const char* s) {
     auto iter = sequential_find (*this, s);
 
     if (iter == end ()) {
@@ -59,17 +50,17 @@ xpdf::obj_t& Dict::operator[] (const char* s) {
     return std::get< 1 > (*iter);
 }
 
-xpdf::obj_t& Dict::at (const char* s) {
+xpdf::obj_t& dict_t::at (const char* s) {
     auto iter = sequential_find (*this, s);
 
     if (iter == end ()) {
-        throw std::out_of_range ("Dict::at");
+        throw std::out_of_range ("dict_t::at");
     }
 
     return std::get< 1 > (*iter);
 }
 
-Object* Dict::lookupNF (const char* key, Object* pobj) {
+obj_t* dict_t::lookupNF (const char* key, obj_t* pobj) {
     auto iter = sequential_find (*this, key);
 
     if (iter != end ()) {
@@ -81,7 +72,7 @@ Object* Dict::lookupNF (const char* key, Object* pobj) {
     }
 }
 
-char* Dict::getKey (int i) const {
+char* dict_t::getKey (int i) const {
     ASSERT (size_t (i) < size ());
 
     auto iter = begin ();
@@ -90,7 +81,7 @@ char* Dict::getKey (int i) const {
     return (char*)std::get< 0 > (*iter).c_str ();
 }
 
-Object* Dict::getVal (int i, Object* pobj) {
+obj_t* dict_t::getVal (int i, obj_t* pobj) {
     ASSERT (size_t (i) < size ());
 
     auto iter = begin ();
@@ -100,7 +91,7 @@ Object* Dict::getVal (int i, Object* pobj) {
     return *pobj = resolve (obj), pobj;
 }
 
-Object* Dict::getValNF (int i, Object* pobj) {
+obj_t* dict_t::getValNF (int i, obj_t* pobj) {
     ASSERT (size_t (i) < size ());
 
     auto iter = begin ();
@@ -108,3 +99,5 @@ Object* Dict::getValNF (int i, Object* pobj) {
 
     return *pobj = std::get< 1 > (*iter), pobj;
 }
+
+} // namespace xpdf

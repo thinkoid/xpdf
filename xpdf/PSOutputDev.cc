@@ -1533,7 +1533,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
     //----- recursively scan XObjects
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on XObjects
             skip = false;
             if ((xObjDict.dictGetValNF (i, &xObjRef)->is_ref ())) {
@@ -1568,7 +1568,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
     patDict = resolve ((*resDict) ["Pattern"]);
     if (patDict.is_dict ()) {
         inType3Char = true;
-        for (i = 0; i < patDict.dictGetLength (); ++i) {
+        for (i = 0; i < patDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on Patterns
             skip = false;
             if ((patDict.dictGetValNF (i, &patRef)->is_ref ())) {
@@ -1603,7 +1603,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
     //----- recursively scan SMask transparency groups in ExtGState dicts
     gsDict = resolve ((*resDict) ["ExtGState"]);
     if (gsDict.is_dict ()) {
-        for (i = 0; i < gsDict.dictGetLength (); ++i) {
+        for (i = 0; i < gsDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on ExtGStates
             skip = false;
             if ((gsDict.dictGetValNF (i, &gsRef)->is_ref ())) {
@@ -2727,7 +2727,7 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
     writePS ("  1 index /BuildGlyph get exec\n");
     writePS ("} bind def\n");
     if ((charProcs = ((Gfx8BitFont*)font)->getCharProcs ())) {
-        writePSFmt ("/CharProcs {0:d} dict def\n", charProcs->getLength ());
+        writePSFmt ("/CharProcs {0:d} dict def\n", charProcs->size ());
         writePS ("CharProcs begin\n");
         box.x1 = m[0];
         box.y1 = m[1];
@@ -2736,7 +2736,7 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
 
         auto gfx = std::make_unique< Gfx > (doc, this, resDict, &box, nullptr);
         inType3Char = true;
-        for (i = 0; i < charProcs->getLength (); ++i) {
+        for (i = 0; i < charProcs->size (); ++i) {
             t3FillColorOnly = false;
             t3Cacheable = false;
             t3NeedsRestore = false;
@@ -2819,7 +2819,7 @@ void PSOutputDev::setupImages (Dict* resDict) {
 
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
             xObjDict.dictGetValNF (i, &xObjRef);
             xObjDict.dictGetVal (i, &xObj);
             if (xObj.is_stream ()) {
@@ -2995,7 +2995,7 @@ void PSOutputDev::setupForms (Dict* resDict) {
 
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
             xObjDict.dictGetValNF (i, &xObjRef);
             xObjDict.dictGetVal (i, &xObj);
             if (xObj.is_stream ()) {

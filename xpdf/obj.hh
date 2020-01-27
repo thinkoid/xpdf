@@ -258,11 +258,7 @@ struct obj_t {
         return const_cast< obj_t* > (this)->at (s);
     }
 
-    int dictGetLength ();
-
-    void dictAdd (const char*, const obj_t&);
-    void dictAdd (const char*, obj_t&&);
-    void dictAdd (const char* key, obj_t* val);
+    void emplace (const std::string&, obj_t);
 
     bool dictIs (const char* dictType) const;
     char* dictGetKey (int i);

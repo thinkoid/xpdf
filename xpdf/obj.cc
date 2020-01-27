@@ -56,20 +56,8 @@ obj_t& obj_t::at (const char* s) {
     return as_dict ().at (s);
 }
 
-int obj_t::dictGetLength () {
-    return as_dict_ptr ()->getLength ();
-}
-
-void obj_t::dictAdd (const char* key, const obj_t& val) {
-    as_dict_ptr ()->add (key, val);
-}
-
-void obj_t::dictAdd (const char* key, obj_t&& val) {
-    as_dict_ptr ()->add (key, std::move (val));
-}
-
-void obj_t::dictAdd (const char* key, obj_t* val) {
-    as_dict_ptr ()->add (key, val);
+void obj_t::emplace (const std::string& key, obj_t obj) {
+    as_dict ().emplace (key, std::move (obj));
 }
 
 bool obj_t::dictIs (const char* dictType) const {
@@ -153,49 +141,7 @@ const char* obj_t::getTypeName () const {
     return arr [var_.index ()];
 };
 
-void obj_t::print (FILE*) {
-#if 0
-    Object obj;
-    int i;
-
-    switch (type) {
-    case objBool: fprintf (f, "%s", booln ? "true" : "false"); break;
-    case objInt: fprintf (f, "%d", intg); break;
-    case objReal: fprintf (f, "%g", real); break;
-    case objString:
-        fprintf (f, "(");
-        fwrite (string->c_str (), 1, string->getLength (), f);
-        fprintf (f, ")");
-        break;
-    case objName: fprintf (f, "/%s", name); break;
-    case objNull: fprintf (f, "null"); break;
-    case objArray:
-        fprintf (f, "[");
-        for (i = 0; i < as_array ().size () (); ++i) {
-            if (i > 0) fprintf (f, " ");
-            obj = as_array ()[i];
-            obj.print (f);
-        }
-        fprintf (f, "]");
-        break;
-    case objDict:
-        fprintf (f, "<<");
-        for (i = 0; i < dictGetLength (); ++i) {
-            fprintf (f, " /%s ", dictGetKey (i));
-            dictGetValNF (i, &obj);
-            obj.print (f);
-        }
-        fprintf (f, " >>");
-        break;
-    case objStream: fprintf (f, "<stream>"); break;
-    case objRef: fprintf (f, "%d %d R", ref.num, ref.gen); break;
-    case objCmd: fprintf (f, "%s", cmd); break;
-    case objError: fprintf (f, "<error>"); break;
-    case objEOF: fprintf (f, "<EOF>"); break;
-    case objNone: fprintf (f, "<none>"); break;
-    }
-#endif // 0
-}
+void obj_t::print (FILE*) { }
 
 obj_t make_arr_obj () {
     return obj_t (new Array ());

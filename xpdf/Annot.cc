@@ -232,7 +232,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
 
         *&obj1 = resolve (apObj.as_dict ()["N"]);
 
-        if (obj1.is_dict () && obj1.dictGetLength () == 1) {
+        if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
             appearanceState = new GString (obj1.dictGetKey (0));
         }
     }
@@ -312,7 +312,7 @@ void Annot::generateLineAppearance () {
     //----- check for transparency
     if ((obj1 = resolve (annotObj.as_dict ()["CA"])).is_num ()) {
         gfxStateDict = xpdf::make_dict_obj ();
-        gfxStateDict.dictAdd ("ca", &obj1);
+        gfxStateDict.emplace ("ca", std::move (obj1));
         appearBuf->append ("/GS1 gs\n");
     }
 
@@ -433,8 +433,8 @@ void Annot::generateLineAppearance () {
     //----- build the appearance stream dictionary
     appearDict = xpdf::make_dict_obj ();
 
-    appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
-    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+    appearDict.emplace ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
+    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
 
     obj1 = xpdf::make_arr_obj ();
 
@@ -443,13 +443,13 @@ void Annot::generateLineAppearance () {
     obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
 
-    appearDict.dictAdd ("BBox", &obj1);
+    appearDict.emplace ("BBox", std::move (obj1));
     if (gfxStateDict.is_dict ()) {
         obj1 = xpdf::make_dict_obj ();
         obj2 = xpdf::make_dict_obj ();
-        obj2.dictAdd ("GS1", &gfxStateDict);
-        obj1.dictAdd ("ExtGState", &obj2);
-        appearDict.dictAdd ("Resources", &obj1);
+        obj2.emplace ("GS1", std::move (gfxStateDict));
+        obj1.emplace ("ExtGState", std::move (obj2));
+        appearDict.emplace ("Resources", std::move (obj1));
     }
 
     //----- build the appearance stream
@@ -474,7 +474,7 @@ void Annot::generatePolyLineAppearance () {
     //----- check for transparency
     if ((obj1 = resolve (annotObj.as_dict ()["CA"])).is_num ()) {
         gfxStateDict = xpdf::make_dict_obj ();
-        gfxStateDict.dictAdd ("ca", &obj1);
+        gfxStateDict.emplace ("ca", std::move (obj1));
         appearBuf->append ("/GS1 gs\n");
     }
 
@@ -506,20 +506,20 @@ void Annot::generatePolyLineAppearance () {
 
     //----- build the appearance stream dictionary
     appearDict = xpdf::make_dict_obj ();
-    appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
-    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+    appearDict.emplace ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
+    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
     obj1 = xpdf::make_arr_obj ();
     obj1.as_array ().push_back (xpdf::make_real_obj (0));
     obj1.as_array ().push_back (xpdf::make_real_obj (0));
     obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
-    appearDict.dictAdd ("BBox", &obj1);
+    appearDict.emplace ("BBox", std::move (obj1));
     if (gfxStateDict.is_dict ()) {
         obj1 = xpdf::make_dict_obj ();
         obj2 = xpdf::make_dict_obj ();
-        obj2.dictAdd ("GS1", &gfxStateDict);
-        obj1.dictAdd ("ExtGState", &obj2);
-        appearDict.dictAdd ("Resources", &obj1);
+        obj2.emplace ("GS1", std::move (gfxStateDict));
+        obj1.emplace ("ExtGState", std::move (obj2));
+        appearDict.emplace ("Resources", std::move (obj1));
     }
 
     //----- build the appearance stream
@@ -544,7 +544,7 @@ void Annot::generatePolygonAppearance () {
     //----- check for transparency
     if ((obj1 = resolve (annotObj.as_dict ()["CA"])).is_num ()) {
         gfxStateDict = xpdf::make_dict_obj ();
-        gfxStateDict.dictAdd ("ca", &obj1);
+        gfxStateDict.emplace ("ca", std::move (obj1));
         appearBuf->append ("/GS1 gs\n");
     }
 
@@ -578,20 +578,22 @@ void Annot::generatePolygonAppearance () {
 
     //----- build the appearance stream dictionary
     appearDict = xpdf::make_dict_obj ();
-    appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
-    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+
+    appearDict.emplace ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
+    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
+
     obj1 = xpdf::make_arr_obj ();
     obj1.as_array ().push_back (xpdf::make_real_obj (0));
     obj1.as_array ().push_back (xpdf::make_real_obj (0));
     obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
-    appearDict.dictAdd ("BBox", &obj1);
+    appearDict.emplace ("BBox", std::move (obj1));
     if (gfxStateDict.is_dict ()) {
         obj1 = xpdf::make_dict_obj ();
         obj2 = xpdf::make_dict_obj ();
-        obj2.dictAdd ("GS1", &gfxStateDict);
-        obj1.dictAdd ("ExtGState", &obj2);
-        appearDict.dictAdd ("Resources", &obj1);
+        obj2.emplace ("GS1", std::move (gfxStateDict));
+        obj1.emplace ("ExtGState", std::move (obj2));
+        appearDict.emplace ("Resources", std::move (obj1));
     }
 
     //----- build the appearance stream

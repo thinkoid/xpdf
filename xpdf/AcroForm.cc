@@ -545,7 +545,7 @@ void AcroFormField::drawExistingAppearance (
             if (asObj.is_name ()) {
                 appearance = obj1.as_dict ()[asObj.as_name ()];
             }
-            else if (obj1.dictGetLength () == 1) {
+            else if (obj1.as_dict ().size () == 1) {
                 obj1.dictGetValNF (0, &appearance);
             }
             else {
@@ -827,7 +827,7 @@ void AcroFormField::drawNewAppearance (
     else if (apObj.is_dict ()) {
         *&obj1 = resolve (apObj.as_dict ()["N"]);
 
-        if (obj1.is_dict () && obj1.dictGetLength () == 1) {
+        if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
             appearanceState = new GString (obj1.dictGetKey (0));
         }
     }
@@ -1001,8 +1001,8 @@ void AcroFormField::drawNewAppearance (
     // build the appearance stream dictionary
     appearDict = xpdf::make_dict_obj ();
 
-    appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf.size ()));
-    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+    appearDict.emplace ("Length",  xpdf::make_int_obj (appearBuf.size ()));
+    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
 
     obj1 = xpdf::make_arr_obj ();
 
@@ -1011,11 +1011,11 @@ void AcroFormField::drawNewAppearance (
     obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
 
-    appearDict.dictAdd ("BBox", &obj1);
+    appearDict.emplace ("BBox", std::move (obj1));
 
     // set the resource dictionary
     if (drObj.is_dict ()) {
-        appearDict.dictAdd ("Resources", &drObj);
+        appearDict.emplace ("Resources", std::move (drObj));
     }
 
     // build the appearance stream
@@ -1820,7 +1820,7 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
             if ((asObj = resolve ((*annot) ["AS"])).is_name ()) {
                 *&appearance = resolve (obj1.as_dict ()[asObj.as_name ()]);
             }
-            else if (obj1.dictGetLength () == 1) {
+            else if (obj1.as_dict ().size () == 1) {
                 obj1.dictGetVal (0, &appearance);
             }
             else {

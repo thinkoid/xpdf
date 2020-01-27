@@ -4177,7 +4177,7 @@ Stream* Gfx::buildImageStream () {
                 break;
             }
 
-            dict.dictAdd (key.c_str (), &obj);
+            dict.emplace (key, std::move (obj));
         }
 
         parser->getObj (&obj);

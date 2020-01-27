@@ -1851,7 +1851,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
     Object obj1, obj2;
     Ref r;
 
-    numFonts = fontDict->getLength ();
+    numFonts = fontDict->size ();
     fonts = (GfxFont**)calloc (numFonts, sizeof (GfxFont*));
     for (i = 0; i < numFonts; ++i) {
         fontDict->getValNF (i, &obj1);

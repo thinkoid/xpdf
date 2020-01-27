@@ -150,8 +150,8 @@ Object* Parser::getObj (
                     break;
                 }
 
-                obj->dictAdd (
-                    s.c_str (), getObj (
+                obj->emplace (
+                    s, *getObj (
                         &obj2, false, fileKey, encAlgorithm, keyLength,
                         objNum, objGen, recursion + 1));
             }

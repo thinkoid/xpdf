@@ -245,7 +245,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     // resource dictionary
     xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
             xObjDict.dictGetVal (i, &xObj);
             if (xObj.is_stream ()) {
                 resObj = (*xObj.streamGetDict ()) ["Resources"];
@@ -258,7 +258,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     // resource dictionary
     patternDict = resolve ((*resDict) ["Pattern"]);
     if (patternDict.is_dict ()) {
-        for (i = 0; i < patternDict.dictGetLength (); ++i) {
+        for (i = 0; i < patternDict.as_dict ().size (); ++i) {
             patternDict.dictGetVal (i, &pattern);
             if (pattern.is_stream ()) {
                 resObj = (*pattern.streamGetDict ()) ["Resources"];
@@ -273,7 +273,7 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     gsDict = resolve ((*resDict) ["ExtGState"]);
 
     if (gsDict.is_dict ()) {
-        for (i = 0; i < gsDict.dictGetLength (); ++i) {
+        for (i = 0; i < gsDict.as_dict ().size (); ++i) {
             Object gs;
 
             if (gsDict.dictGetVal (i, &gs)->is_dict ()) {

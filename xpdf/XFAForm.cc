@@ -669,8 +669,8 @@ void XFAFormField::draw (
     // create the appearance stream
     appearDict = xpdf::make_dict_obj ();
 
-    appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
-    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+    appearDict.emplace ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
+    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
 
     obj1 = xpdf::make_arr_obj ();
 
@@ -679,7 +679,7 @@ void XFAFormField::draw (
     obj1.as_array ().push_back (xpdf::make_real_obj (w));
     obj1.as_array ().push_back (xpdf::make_real_obj (h));
 
-    appearDict.dictAdd ("BBox", &obj1);
+    appearDict.emplace ("BBox", std::move (obj1));
 
     obj1 = xpdf::make_arr_obj ();
     obj1.as_array ().push_back (xpdf::make_real_obj (mat[0]));
@@ -689,16 +689,18 @@ void XFAFormField::draw (
     obj1.as_array ().push_back (xpdf::make_real_obj (mat[4]));
     obj1.as_array ().push_back (xpdf::make_real_obj (mat[5]));
 
-    appearDict.dictAdd ("Matrix", &obj1);
+    appearDict.emplace ("Matrix", std::move (obj1));
 
     if (xfaForm->resourceDict.is_dict ()) {
-        appearDict.dictAdd ("Resources", &xfaForm->resourceDict);
+        appearDict.emplace ("Resources", xfaForm->resourceDict);
     }
 
     appearStream = new MemStream (
         appearBuf->c_str (), 0, appearBuf->getLength (), &appearDict);
+
     appearance = xpdf::make_stream_obj (appearStream);
     gfx->drawAnnot (&appearance, NULL, x3, y3, x3 + w3, y3 + h3);
+
     delete appearBuf;
 }
 
