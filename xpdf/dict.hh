@@ -10,22 +10,37 @@
 #include <tuple>
 #include <vector>
 
-#include <xpdf/obj_fwd.hh>
+#include <xpdf/obj.hh>
 
-class XRef;
-struct DictEntry;
+namespace xpdf {
 
-//------------------------------------------------------------------------
-// Dict
-//------------------------------------------------------------------------
+struct dict_t : std::vector< std::tuple< std::string, Object > > {
+    using base_type = std::vector<
+        std::tuple< std::string, Object > >;
 
-class Dict {
-public:
-    // Constructor.
-    Dict (XRef* p) : xref (p) { }
+    using base_type::base_type;
+    using base_type::operator=;
+
+    //
+    // Same semantics with std::map::operator[]
+    //
+    xpdf::obj_t& operator[] (const char*);
+
+    //
+    // Same semantics with std::map::at
+    //
+    xpdf::obj_t& at (const char*);
+
+    const xpdf::obj_t& at (const char* s) const {
+        return const_cast< dict_t* > (this)->at (s);
+    }
+
+    //
+    // Legacy interface:
+    //
 
     // Get number of entries.
-    int getLength () const { return xs.size (); }
+    size_t getLength () const { return size (); }
 
     //
     // Add an entry (taking ownership of key pointer):
@@ -42,13 +57,6 @@ public:
     //
     bool is (const char* type);
 
-    xpdf::obj_t& operator[] (const char*);
-
-    xpdf::obj_t& at (const char*);
-    const xpdf::obj_t& at (const char* s) const {
-        return const_cast< Dict* > (this)->at (s);
-    }
-
     //
     // Look up an entry and return the value.  Returns a null object
     // if <key> is not in the dictionary:
@@ -62,17 +70,10 @@ public:
 
     Object* getVal (int i, Object* obj);
     Object* getValNF (int i, Object* obj);
-
-    //
-    // Set the xref pointer.  This is only used in one special case: the
-    // trailer dictionary, which is read before the xref table is
-    // parsed.
-    //
-    void setXRef (XRef* xrefA) { xref = xrefA; }
-
-private:
-    XRef* xref;          // the xref table for this PDF file
-    std::vector< std::tuple< std::string, Object > > xs;
 };
+
+} // namespace xpdf
+
+using Dict = xpdf::dict_t;
 
 #endif // XPDF_XPDF_DICT_HH

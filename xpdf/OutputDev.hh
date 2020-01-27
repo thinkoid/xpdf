@@ -10,7 +10,6 @@
 #include <xpdf/function.hh>
 #include <xpdf/obj.hh>
 
-class Dict;
 class Catalog;
 class GString;
 class Gfx;

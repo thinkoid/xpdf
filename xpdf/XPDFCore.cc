@@ -16,7 +16,7 @@
 
 #include <xpdf/array.hh>
 #include <xpdf/CoreOutputDev.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/GfxState.hh>

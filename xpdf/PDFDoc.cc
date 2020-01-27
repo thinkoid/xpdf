@@ -11,7 +11,7 @@
 #include <goo/GString.hh>
 
 #include <xpdf/Catalog.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/GlobalParams.hh>

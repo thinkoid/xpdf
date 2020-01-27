@@ -17,9 +17,9 @@
 #include <goo/GString.hh>
 
 #include <xpdf/array_fwd.hh>
+#include <xpdf/dict_fwd.hh>
 #include <xpdf/obj_fwd.hh>
 
-class Dict;
 class Stream;
 class XRef;
 
@@ -357,8 +357,8 @@ inline obj_t make_ref_obj (ref_t arg) {
 }
 
 obj_t make_arr_obj ();
+obj_t make_dict_obj ();
 obj_t make_dict_obj (Dict*);
-obj_t make_dict_obj (XRef*);
 obj_t make_stream_obj (Stream*);
 
 } // namespace xpdf

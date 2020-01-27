@@ -10,7 +10,6 @@
 #include <xpdf/XRef.hh>
 
 class Catalog;
-class Dict;
 class Gfx;
 class GfxFontDict;
 class PDFDoc;

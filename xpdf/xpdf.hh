@@ -11,7 +11,7 @@
 #include <vector>
 
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 

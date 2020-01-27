@@ -11,7 +11,7 @@
 
 #include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Form.hh>
 #include <xpdf/Gfx.hh>
@@ -311,7 +311,7 @@ void Annot::generateLineAppearance () {
 
     //----- check for transparency
     if ((obj1 = resolve (annotObj.as_dict ()["CA"])).is_num ()) {
-        gfxStateDict = xpdf::make_dict_obj (doc->getXRef ());
+        gfxStateDict = xpdf::make_dict_obj ();
         gfxStateDict.dictAdd ("ca", &obj1);
         appearBuf->append ("/GS1 gs\n");
     }
@@ -431,7 +431,7 @@ void Annot::generateLineAppearance () {
     drawLineArrow (lineEnd2, lx2, ly2, -dx, -dy, w, fill);
 
     //----- build the appearance stream dictionary
-    appearDict = xpdf::make_dict_obj (doc->getXRef ());
+    appearDict = xpdf::make_dict_obj ();
 
     appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
@@ -445,8 +445,8 @@ void Annot::generateLineAppearance () {
 
     appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.is_dict ()) {
-        obj1 = xpdf::make_dict_obj (doc->getXRef ());
-        obj2 = xpdf::make_dict_obj (doc->getXRef ());
+        obj1 = xpdf::make_dict_obj ();
+        obj2 = xpdf::make_dict_obj ();
         obj2.dictAdd ("GS1", &gfxStateDict);
         obj1.dictAdd ("ExtGState", &obj2);
         appearDict.dictAdd ("Resources", &obj1);
@@ -473,7 +473,7 @@ void Annot::generatePolyLineAppearance () {
 
     //----- check for transparency
     if ((obj1 = resolve (annotObj.as_dict ()["CA"])).is_num ()) {
-        gfxStateDict = xpdf::make_dict_obj (doc->getXRef ());
+        gfxStateDict = xpdf::make_dict_obj ();
         gfxStateDict.dictAdd ("ca", &obj1);
         appearBuf->append ("/GS1 gs\n");
     }
@@ -505,7 +505,7 @@ void Annot::generatePolyLineAppearance () {
     appearBuf->append ("S\n");
 
     //----- build the appearance stream dictionary
-    appearDict = xpdf::make_dict_obj (doc->getXRef ());
+    appearDict = xpdf::make_dict_obj ();
     appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
     obj1 = xpdf::make_arr_obj ();
@@ -515,8 +515,8 @@ void Annot::generatePolyLineAppearance () {
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
     appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.is_dict ()) {
-        obj1 = xpdf::make_dict_obj (doc->getXRef ());
-        obj2 = xpdf::make_dict_obj (doc->getXRef ());
+        obj1 = xpdf::make_dict_obj ();
+        obj2 = xpdf::make_dict_obj ();
         obj2.dictAdd ("GS1", &gfxStateDict);
         obj1.dictAdd ("ExtGState", &obj2);
         appearDict.dictAdd ("Resources", &obj1);
@@ -543,7 +543,7 @@ void Annot::generatePolygonAppearance () {
 
     //----- check for transparency
     if ((obj1 = resolve (annotObj.as_dict ()["CA"])).is_num ()) {
-        gfxStateDict = xpdf::make_dict_obj (doc->getXRef ());
+        gfxStateDict = xpdf::make_dict_obj ();
         gfxStateDict.dictAdd ("ca", &obj1);
         appearBuf->append ("/GS1 gs\n");
     }
@@ -577,7 +577,7 @@ void Annot::generatePolygonAppearance () {
     appearBuf->append ("f\n");
 
     //----- build the appearance stream dictionary
-    appearDict = xpdf::make_dict_obj (doc->getXRef ());
+    appearDict = xpdf::make_dict_obj ();
     appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
     obj1 = xpdf::make_arr_obj ();
@@ -587,8 +587,8 @@ void Annot::generatePolygonAppearance () {
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
     appearDict.dictAdd ("BBox", &obj1);
     if (gfxStateDict.is_dict ()) {
-        obj1 = xpdf::make_dict_obj (doc->getXRef ());
-        obj2 = xpdf::make_dict_obj (doc->getXRef ());
+        obj1 = xpdf::make_dict_obj ();
+        obj2 = xpdf::make_dict_obj ();
         obj2.dictAdd ("GS1", &gfxStateDict);
         obj1.dictAdd ("ExtGState", &obj2);
         appearDict.dictAdd ("Resources", &obj1);

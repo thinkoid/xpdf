@@ -23,7 +23,7 @@
 #include <xpdf/BuiltinFontTables.hh>
 #include <xpdf/CMap.hh>
 #include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/FontEncodingTables.hh>
 #include <xpdf/GfxFont.hh>

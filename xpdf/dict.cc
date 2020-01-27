@@ -10,7 +10,7 @@
 
 #include <xpdf/obj.hh>
 #include <xpdf/XRef.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 
 #include <range/v3/algorithm/find_if.hpp>
 using namespace ranges;
@@ -22,10 +22,10 @@ const auto sequential_find = [](auto& xs, auto& key) {
 ////////////////////////////////////////////////////////////////////////
 
 void Dict::add (const char* key, Object&& obj) {
-    auto iter = sequential_find (xs, key);
+    auto iter = sequential_find (*this, key);
 
-    if (iter == xs.end ()) {
-        xs.emplace_back (std::string (key), std::move (obj));
+    if (iter == end ()) {
+        emplace_back (std::string (key), std::move (obj));
     }
     else {
         std::get< 1 > (*iter) = std::move (obj);
@@ -33,10 +33,10 @@ void Dict::add (const char* key, Object&& obj) {
 }
 
 void Dict::add (const char* key, const Object& obj) {
-    auto iter = sequential_find (xs, key);
+    auto iter = sequential_find (*this, key);
 
-    if (iter == xs.end ()) {
-        xs.emplace_back (std::string (key), obj);
+    if (iter == end ()) {
+        emplace_back (std::string (key), obj);
     }
     else {
         std::get< 1 > (*iter) = obj;
@@ -44,25 +44,25 @@ void Dict::add (const char* key, const Object& obj) {
 }
 
 bool Dict::is (const char* type) {
-    auto iter = sequential_find (xs, type);
-    return iter != xs.end () && std::get< 1 > (*iter).is_name (type);
+    auto iter = sequential_find (*this, type);
+    return iter != end () && std::get< 1 > (*iter).is_name (type);
 }
 
 xpdf::obj_t& Dict::operator[] (const char* s) {
-    auto iter = sequential_find (xs, s);
+    auto iter = sequential_find (*this, s);
 
-    if (iter == xs.end ()) {
-        xs.emplace_back (std::string (s), xpdf::obj_t{ });
-        iter = --xs.end ();
+    if (iter == end ()) {
+        emplace_back (std::string (s), xpdf::obj_t{ });
+        iter = --end ();
     }
 
     return std::get< 1 > (*iter);
 }
 
 xpdf::obj_t& Dict::at (const char* s) {
-    auto iter = sequential_find (xs, s);
+    auto iter = sequential_find (*this, s);
 
-    if (iter == xs.end ()) {
+    if (iter == end ()) {
         throw std::out_of_range ("Dict::at");
     }
 
@@ -70,9 +70,9 @@ xpdf::obj_t& Dict::at (const char* s) {
 }
 
 Object* Dict::lookupNF (const char* key, Object* pobj) {
-    auto iter = sequential_find (xs, key);
+    auto iter = sequential_find (*this, key);
 
-    if (iter != xs.end ()) {
+    if (iter != end ()) {
         return *pobj = std::get< 1 > (*iter), pobj;
     }
     else {
@@ -82,18 +82,18 @@ Object* Dict::lookupNF (const char* key, Object* pobj) {
 }
 
 char* Dict::getKey (int i) const {
-    ASSERT (size_t (i) < xs.size ());
+    ASSERT (size_t (i) < size ());
 
-    auto iter = xs.begin ();
+    auto iter = begin ();
     std::advance (iter, size_t (i));
 
     return (char*)std::get< 0 > (*iter).c_str ();
 }
 
 Object* Dict::getVal (int i, Object* pobj) {
-    ASSERT (size_t (i) < xs.size ());
+    ASSERT (size_t (i) < size ());
 
-    auto iter = xs.begin ();
+    auto iter = begin ();
     std::advance (iter, size_t (i));
 
     auto& obj = std::get< 1 > (*iter);
@@ -101,9 +101,9 @@ Object* Dict::getVal (int i, Object* pobj) {
 }
 
 Object* Dict::getValNF (int i, Object* pobj) {
-    ASSERT (size_t (i) < xs.size ());
+    ASSERT (size_t (i) < size ());
 
-    auto iter = xs.begin ();
+    auto iter = begin ();
     std::advance (iter, size_t (i));
 
     return *pobj = std::get< 1 > (*iter), pobj;

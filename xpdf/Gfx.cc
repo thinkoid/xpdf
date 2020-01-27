@@ -15,7 +15,7 @@
 #include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
@@ -4160,7 +4160,7 @@ Stream* Gfx::buildImageStream () {
     Stream* str;
 
     // build dictionary
-    dict = xpdf::make_dict_obj (xref);
+    dict = xpdf::make_dict_obj ();
     parser->getObj (&obj);
     while (!obj.is_cmd ("ID") && !obj.is_eof ()) {
         if (!obj.is_name ()) {

@@ -12,7 +12,7 @@
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/Page.hh>

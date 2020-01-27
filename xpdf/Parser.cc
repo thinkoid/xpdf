@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <xpdf/obj.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Decrypt.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/XRef.hh>
@@ -132,7 +132,7 @@ Object* Parser::getObj (
         //
         shift ();
 
-        *obj = xpdf::make_dict_obj (xref);
+        *obj = xpdf::make_dict_obj ();
 
         while (!is_keyword (buf1, ">>") && !is_eof (buf1)) {
             if (!is_name (buf1)) {

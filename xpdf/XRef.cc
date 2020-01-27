@@ -18,7 +18,7 @@
 #include <xpdf/Stream.hh>
 #include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/XRef.hh>
@@ -323,10 +323,6 @@ XRef::XRef (BaseStream* strA, bool repair) {
             return;
         }
     }
-
-    // now set the trailer dictionary's xref pointer so we can fetch
-    // indirect objects from it
-    trailerDict.as_dict_ptr ()->setXRef (this);
 }
 
 XRef::~XRef () {
@@ -633,7 +629,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     }
 
     if (trailerDict.is_none ()) {
-        trailerDict = xpdf::make_dict_obj (new Dict (dict));
+        trailerDict = xpdf::make_dict_obj ();
     }
 
     return more;

@@ -7,7 +7,7 @@
 #include <goo/GList.hh>
 
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>

@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
@@ -201,8 +201,8 @@ obj_t make_arr_obj () {
     return obj_t (new Array ());
 }
 
-obj_t make_dict_obj (XRef* p) {
-    return obj_t (new Dict (p));
+obj_t make_dict_obj () {
+    return obj_t (new Dict);
 }
 
 obj_t make_dict_obj (Dict* p) {

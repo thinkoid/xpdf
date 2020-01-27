@@ -15,7 +15,6 @@
 #include <xpdf/obj.hh>
 
 class AnnotBorderStyle;
-class Dict;
 class GList;
 class GString;
 class Gfx;

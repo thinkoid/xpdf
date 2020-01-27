@@ -16,7 +16,7 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Link.hh>

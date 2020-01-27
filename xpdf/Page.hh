@@ -8,7 +8,6 @@
 
 #include <xpdf/obj.hh>
 
-class Dict;
 class PDFDoc;
 class XRef;
 class OutputDev;

@@ -4,7 +4,7 @@
 #include <defs.hh>
 
 #include <xpdf/AcroForm.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Form.hh>
 #include <xpdf/GlobalParams.hh>

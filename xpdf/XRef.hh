@@ -11,7 +11,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
-class Dict;
 class Parser;
 class ObjectStream;
 class XRefPosSet;

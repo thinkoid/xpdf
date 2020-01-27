@@ -10,7 +10,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
 
-class Dict;
 class CMap;
 class CharCodeToUnicode;
 class FoFiTrueType;

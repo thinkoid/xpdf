@@ -12,7 +12,7 @@
 #include <goo/GHash.hh>
 
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
@@ -667,7 +667,7 @@ void XFAFormField::draw (
     }
 
     // create the appearance stream
-    appearDict = xpdf::make_dict_obj (xfaForm->doc->getXRef ());
+    appearDict = xpdf::make_dict_obj ();
 
     appearDict.dictAdd ("Length", xpdf::make_int_obj (appearBuf->getLength ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));

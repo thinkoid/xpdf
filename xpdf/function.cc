@@ -27,7 +27,7 @@
 
 #include <xpdf/array.hh>
 #include <xpdf/obj.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/function.hh>

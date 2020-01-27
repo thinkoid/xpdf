@@ -13,7 +13,7 @@
 
 #include <goo/gfile.hh>
 
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/JBIG2Stream.hh>

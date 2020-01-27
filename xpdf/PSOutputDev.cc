@@ -24,7 +24,7 @@
 #include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Form.hh>
 #include <xpdf/function.hh>

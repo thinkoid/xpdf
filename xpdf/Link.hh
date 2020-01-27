@@ -10,7 +10,6 @@
 #include <xpdf/obj.hh>
 
 class GString;
-class Dict;
 
 //------------------------------------------------------------------------
 // LinkAction

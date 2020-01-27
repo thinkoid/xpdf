@@ -12,7 +12,7 @@
 #include <xpdf/AcroForm.hh>
 #include <xpdf/Annot.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
@@ -999,7 +999,7 @@ void AcroFormField::drawNewAppearance (
     if (da) { delete da; }
 
     // build the appearance stream dictionary
-    appearDict = xpdf::make_dict_obj (acroForm->doc->getXRef ());
+    appearDict = xpdf::make_dict_obj ();
 
     appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf.size ()));
     appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
