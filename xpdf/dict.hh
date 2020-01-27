@@ -19,7 +19,9 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
         std::tuple< std::string, Object > >;
 
     using base_type::base_type;
+
     using base_type::operator=;
+    using base_type::operator[];
 
     //
     // Same semantics with std::map::operator[]
@@ -36,6 +38,8 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
     const xpdf::obj_t& at (const char* s) const {
         return const_cast< dict_t* > (this)->at (s);
     }
+
+    const std::string& key_at (size_t) const;
 
     void emplace (const std::string&, obj_t);
 
@@ -55,8 +59,6 @@ struct dict_t : std::vector< std::tuple< std::string, Object > > {
     //
     // Iterative accessors.
     //
-    char* getKey (int i) const;
-
     Object* getVal (int i, Object* obj);
     Object* getValNF (int i, Object* obj);
 };

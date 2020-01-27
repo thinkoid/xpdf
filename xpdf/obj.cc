@@ -68,8 +68,8 @@ bool obj_t::is_dict (const char* s) const {
     return is_dict () && has (s);
 }
 
-char* obj_t::dictGetKey (int i) {
-    return as_dict_ptr ()->getKey (i);
+const std::string& obj_t::key_at (size_t n) const {
+    return as_dict ().key_at (n);
 }
 
 obj_t* obj_t::dictGetVal (int i, obj_t* obj) {

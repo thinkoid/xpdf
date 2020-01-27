@@ -233,7 +233,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
         *&obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
-            appearanceState = new GString (obj1.dictGetKey (0));
+            appearanceState = new GString (obj1.key_at (0));
         }
     }
 

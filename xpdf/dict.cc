@@ -65,6 +65,10 @@ xpdf::obj_t& dict_t::at (const char* s) {
     return std::get< 1 > (*iter);
 }
 
+const std::string& dict_t::key_at (size_t n) const {
+    return std::get< 0 > (this->operator[] (n));
+}
+
 obj_t* dict_t::lookupNF (const char* key, obj_t* pobj) {
     auto iter = sequential_find (*this, key);
 
@@ -75,15 +79,6 @@ obj_t* dict_t::lookupNF (const char* key, obj_t* pobj) {
         *pobj = { };
         return pobj;
     }
-}
-
-char* dict_t::getKey (int i) const {
-    ASSERT (size_t (i) < size ());
-
-    auto iter = begin ();
-    std::advance (iter, size_t (i));
-
-    return (char*)std::get< 0 > (*iter).c_str ();
 }
 
 obj_t* dict_t::getVal (int i, obj_t* pobj) {

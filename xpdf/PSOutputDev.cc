@@ -2741,7 +2741,7 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
             t3Cacheable = false;
             t3NeedsRestore = false;
             writePS ("/");
-            writePSName (charProcs->getKey (i));
+            writePSName (charProcs->key_at (i));
             writePS (" {\n");
             gfx->display (charProcs->getValNF (i, &charProc));
             if (t3String) {

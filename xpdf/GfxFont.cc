@@ -143,7 +143,7 @@ GfxFontLoc::~GfxFontLoc () {
 // GfxFont
 //------------------------------------------------------------------------
 
-GfxFont* GfxFont::makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict) {
+GfxFont* GfxFont::makeFont (XRef* xref, const char* tagA, Ref idA, Dict* fontDict) {
     GString* nameA;
     Ref embFontIDA;
     GfxFontType typeA;
@@ -176,7 +176,7 @@ GfxFont* GfxFont::makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict) {
 }
 
 GfxFont::GfxFont (
-    char* tagA, Ref idA, GString* nameA, GfxFontType typeA, Ref embFontIDA) {
+    const char* tagA, Ref idA, GString* nameA, GfxFontType typeA, Ref embFontIDA) {
     ok = false;
     tag = new GString (tagA);
     id = idA;
@@ -765,7 +765,7 @@ char* GfxFont::readEmbFontFile (XRef* xref, int* len) {
 //------------------------------------------------------------------------
 
 Gfx8BitFont::Gfx8BitFont (
-    XRef* xref, char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
+    XRef* xref, const char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
     Ref embFontIDA, Dict* fontDict)
     : GfxFont (tagA, idA, nameA, typeA, embFontIDA) {
     GString* name2;
@@ -1441,7 +1441,7 @@ struct cmpWidthExcepVFunctor {
 };
 
 GfxCIDFont::GfxCIDFont (
-    XRef* xref, char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
+    XRef* xref, const char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
     Ref embFontIDA, Dict* fontDict)
     : GfxFont (tagA, idA, nameA, typeA, embFontIDA) {
     Dict* desFontDict;
@@ -1869,7 +1869,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
                 }
             }
             fonts[i] = GfxFont::makeFont (
-                xref, fontDict->getKey (i), r, obj2.as_dict_ptr ());
+                xref, fontDict->key_at (i).c_str (), r, obj2.as_dict_ptr ());
             if (fonts[i] && !fonts[i]->isOk ()) {
                 delete fonts[i];
                 fonts[i] = NULL;

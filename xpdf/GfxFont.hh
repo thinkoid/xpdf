@@ -115,10 +115,9 @@ public:
 class GfxFont {
 public:
     // Build a GfxFont object.
-    static GfxFont* makeFont (XRef* xref, char* tagA, Ref idA, Dict* fontDict);
+    static GfxFont* makeFont (XRef*, const char*, Ref, Dict*);
 
-    GfxFont (
-        char* tagA, Ref idA, GString* nameA, GfxFontType typeA, Ref embFontIDA);
+    GfxFont (const char*, Ref, GString*, GfxFontType, Ref);
 
     virtual ~GfxFont ();
 
@@ -223,7 +222,7 @@ protected:
 class Gfx8BitFont : public GfxFont {
 public:
     Gfx8BitFont (
-        XRef* xref, char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
+        XRef* xref, const char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
         Ref embFontIDA, Dict* fontDict);
 
     virtual ~Gfx8BitFont ();
@@ -285,7 +284,7 @@ private:
 class GfxCIDFont : public GfxFont {
 public:
     GfxCIDFont (
-        XRef* xref, char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
+        XRef* xref, const char* tagA, Ref idA, GString* nameA, GfxFontType typeA,
         Ref embFontIDA, Dict* fontDict);
 
     virtual ~GfxCIDFont ();

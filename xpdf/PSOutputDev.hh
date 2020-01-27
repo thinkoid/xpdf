@@ -261,6 +261,7 @@ public:
     void writePSFmt (const char* fmt, ...);
     void writePSString (GString* s);
     void writePSName (const char* s);
+    void writePSName (const std::string& s) { writePSName (s.c_str ()); }
 
 private:
     void init (

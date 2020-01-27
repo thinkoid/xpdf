@@ -271,7 +271,8 @@ struct obj_t {
 
     void emplace (const std::string&, obj_t);
 
-    char* dictGetKey (int i);
+    const std::string& key_at (size_t) const;
+
     obj_t* dictGetVal (int i, obj_t* obj);
     obj_t* dictGetValNF (int i, obj_t* obj);
 
