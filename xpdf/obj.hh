@@ -234,6 +234,7 @@ struct obj_t {
         return as< pointer > ().get ();
     }
 
+    ref_t& as_ref () { return as< ref_t > (); }
     const ref_t& as_ref () const { return as< ref_t > (); }
 
     //
