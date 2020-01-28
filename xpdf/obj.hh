@@ -252,19 +252,40 @@ struct obj_t {
     //
     obj_t& operator[] (const char*);
 
+    //
+    // Tests underlying dictionary for a key matching the argument:
+    //
     bool has_key  (const std::string&) const;
+
+    //
+    // Tests underlying dictionary for a value matching the argument under the
+    // key `Type':
+    //
     bool has_type (const std::string&) const;
 
+    //
+    // Matching std::map::at semantics:
+    //
     obj_t& at (const char*);
     const obj_t& at (const char* s) const {
         return const_cast< obj_t* > (this)->at (s);
     }
 
+    //
+    // Matching std::map::emplace semantics:
+    //
     void emplace (const std::string&, obj_t);
 
+    //
+    // Returns the key at index:
+    //
     const std::string& key_at (size_t) const;
 
+    //
+    // Returns the value at index:
+    //
     obj_t& val_at (size_t);
+
     const obj_t& val_at (size_t n) const {
         return const_cast< obj_t* > (this)->val_at (n);
     }
