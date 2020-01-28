@@ -629,7 +629,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     }
 
     if (trailerDict.is_none ()) {
-        trailerDict = xpdf::make_dict_obj ();
+        trailerDict = xpdf::make_dict_obj (new Dict (dict));
     }
 
     return more;
