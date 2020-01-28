@@ -154,7 +154,7 @@ Catalog::Catalog (PDFDoc* docA) {
     *&ocProperties = resolve (catDict.as_dict ()["OCProperties"]);
 
     // get the list of embedded files
-    readEmbeddedFileList (catDict.as_dict_ptr ());
+    readEmbeddedFileList (&catDict.as_dict ());
 
     return;
 
@@ -426,7 +426,7 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
         // merge the PageAttrs
         attrs = new PageAttrs (
             node->parent ? node->parent->attrs : (PageAttrs*)NULL,
-            pageObj.as_dict_ptr ());
+            &pageObj.as_dict ());
 
         // if "Kids" exists, it's an internal node
         if ((kidsObj = resolve (pageObj.as_dict ()["Kids"])).is_array ()) {
@@ -467,7 +467,7 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
         else {
             // create the Page object
             pageRefs[pg - 1] = node->ref;
-            pages[pg - 1] = new Page (doc, pg, pageObj.as_dict_ptr (), attrs);
+            pages[pg - 1] = new Page (doc, pg, &pageObj.as_dict (), attrs);
             if (!pages[pg - 1]->isOk ()) {
                 delete pages[pg - 1];
                 pages[pg - 1] = new Page (doc, pg);

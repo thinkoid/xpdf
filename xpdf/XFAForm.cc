@@ -338,7 +338,7 @@ void XFAForm::draw (int pageNum, Gfx* gfx, bool printing) {
     // build the font dictionary
     if (resourceDict.is_dict () &&
         (obj1 = resolve (resourceDict.as_dict ()["Font"])).is_dict ()) {
-        fontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.as_dict_ptr ());
+        fontDict = new GfxFontDict (doc->getXRef (), NULL, &obj1.as_dict ());
     }
     else {
         fontDict = NULL;

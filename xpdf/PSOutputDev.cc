@@ -1436,7 +1436,7 @@ void PSOutputDev::writeDocSetup (
         for (i = 0; i < annots->getNumAnnots (); ++i) {
             if ((obj1 = annots->getAnnot (i)->getAppearance ()).is_stream ()) {
                 obj2 = resolve ((*obj1.streamGetDict ()) ["Resources"]);
-                if (obj2.is_dict ()) { setupResources (obj2.as_dict_ptr ()); }
+                if (obj2.is_dict ()) { setupResources (&obj2.as_dict ()); }
             }
         }
         delete annots;
@@ -1447,11 +1447,11 @@ void PSOutputDev::writeDocSetup (
             if (obj1.is_array ()) {
                 for (j = 0; j < obj1.as_array ().size (); ++j) {
                     obj2 = resolve (obj1 [j]);
-                    if (obj2.is_dict ()) { setupResources (obj2.as_dict_ptr ()); }
+                    if (obj2.is_dict ()) { setupResources (&obj2.as_dict ()); }
                 }
             }
             else if (obj1.is_dict ()) {
-                setupResources (obj1.as_dict_ptr ());
+                setupResources (&obj1.as_dict ());
             }
         }
     }
@@ -1559,7 +1559,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
                 if (xObj.is_stream ()) {
                     resObj = resolve ((*xObj.streamGetDict ()) ["Resources"]);
                     if (resObj.is_dict ()) {
-                        setupResources (resObj.as_dict_ptr ());
+                        setupResources (&resObj.as_dict ());
                     }
                 }
             }
@@ -1599,7 +1599,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
                 if (pat.is_stream ()) {
                     resObj = resolve ((*pat.streamGetDict ()) ["Resources"]);
                     if (resObj.is_dict ()) {
-                        setupResources (resObj.as_dict_ptr ());
+                        setupResources (&resObj.as_dict ());
                     }
                 }
             }
@@ -1641,7 +1641,7 @@ void PSOutputDev::setupResources (Dict* resDict) {
                         if ((smaskGroup = resolve (smask.as_dict ()["G"])).is_stream ()) {
                             resObj = resolve ((*smaskGroup.streamGetDict ()) ["Resources"]);
                             if (resObj.is_dict ()) {
-                                setupResources (resObj.as_dict_ptr ());
+                                setupResources (&resObj.as_dict ());
                             }
                         }
                     }
@@ -1670,11 +1670,11 @@ void PSOutputDev::setupFonts (Dict* resDict) {
         obj2 = resolve (obj1);
         if (obj2.is_dict ()) {
             r = obj1.as_ref ();
-            gfxFontDict = new GfxFontDict (xref, &r, obj2.as_dict_ptr ());
+            gfxFontDict = new GfxFontDict (xref, &r, &obj2.as_dict ());
         }
     }
     else if (obj1.is_dict ()) {
-        gfxFontDict = new GfxFontDict (xref, NULL, obj1.as_dict_ptr ());
+        gfxFontDict = new GfxFontDict (xref, NULL, &obj1.as_dict ());
     }
     if (gfxFontDict) {
         for (i = 0; i < gfxFontDict->getNumFonts (); ++i) {
@@ -3089,7 +3089,7 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
 
     // get resources
     resObj = resolve ((*dict) ["Resources"]);
-    resDict = resObj.is_dict () ? resObj.as_dict_ptr () : (Dict*)NULL;
+    resDict = resObj.is_dict () ? &resObj.as_dict () : (Dict*)NULL;
 
     writePSFmt (
         "/f_{0:d}_{1:d} {{\n", strRef->getRefNum (), strRef->getRefGen ());
@@ -6100,11 +6100,11 @@ void PSOutputDev::opiBegin (GfxState* state, Dict* opiDict) {
     if (globalParams->getPSOPI ()) {
         dict = resolve ((*opiDict) ["2.0"]);
         if (dict.is_dict ()) {
-            opiBegin20 (state, dict.as_dict_ptr ());
+            opiBegin20 (state, &dict.as_dict ());
         }
         else {
             dict = resolve ((*opiDict) ["1.3"]);
-            if (dict.is_dict ()) { opiBegin13 (state, dict.as_dict_ptr ()); }
+            if (dict.is_dict ()) { opiBegin13 (state, &dict.as_dict ()); }
         }
     }
 }

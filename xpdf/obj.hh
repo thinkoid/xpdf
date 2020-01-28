@@ -224,11 +224,6 @@ struct obj_t {
         return *as< pointer > ().get ();
     }
 
-    Dict* as_dict_ptr () const {
-        using pointer = std::shared_ptr< Dict >;
-        return as< pointer > ().get ();
-    }
-
     Stream* as_stream () const {
         using pointer = std::shared_ptr< Stream >;
         return as< pointer > ().get ();

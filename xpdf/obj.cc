@@ -81,7 +81,7 @@ obj_t& obj_t::val_at (size_t n) {
 //------------------------------------------------------------------------
 
 bool obj_t::streamIs (const char* dictType) const {
-    return as_stream ()->as_dict_ptr ()->has_type (dictType);
+    return as_stream ()->as_dict ().has_type (dictType);
 }
 
 bool obj_t::is_stream (const char* dictType) const {
@@ -121,7 +121,7 @@ void obj_t::streamSetPos (GFileOffset pos, int dir) {
 }
 
 Dict* obj_t::streamGetDict () {
-    return as_stream ()->as_dict_ptr ();
+    return &as_stream ()->as_dict ();
 }
 
 //

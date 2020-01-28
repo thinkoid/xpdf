@@ -975,7 +975,7 @@ Annots::Annots (PDFDoc* docA, const Object& annotsObj) {
             if (obj1.is_dict ()) {
                 if (drawWidgetAnnots ||
                     !(obj2 = resolve (obj1.as_dict ()["Subtype"])).is_name ("Widget")) {
-                    annot = new Annot (doc, obj1.as_dict_ptr (), &ref);
+                    annot = new Annot (doc, &obj1.as_dict (), &ref);
                     if (annot->isOk ()) {
                         if (nAnnots >= size) {
                             size += 16;

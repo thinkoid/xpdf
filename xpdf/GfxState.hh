@@ -578,7 +578,7 @@ public:
     double getXStep () { return xStep; }
     double getYStep () { return yStep; }
     Dict* getResDict () {
-        return resDict.is_dict () ? resDict.as_dict_ptr () : (Dict*)NULL;
+        return resDict.is_dict () ? &resDict.as_dict () : (Dict*)NULL;
     }
     double* getMatrix () { return matrix; }
     Object* getContentStreamRef () { return &contentStreamRef; }

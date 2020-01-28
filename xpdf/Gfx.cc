@@ -210,11 +210,11 @@ GfxResources::GfxResources (XRef* xref, Dict* resDict, GfxResources* nextA) {
             obj2 = resolve (obj1);
             if (obj2.is_dict ()) {
                 r = obj1.as_ref ();
-                fonts = new GfxFontDict (xref, &r, obj2.as_dict_ptr ());
+                fonts = new GfxFontDict (xref, &r, &obj2.as_dict ());
             }
         }
         else if (obj1.is_dict ()) {
-            fonts = new GfxFontDict (xref, NULL, obj1.as_dict_ptr ());
+            fonts = new GfxFontDict (xref, NULL, &obj1.as_dict ());
         }
 
         // get XObject dictionary
@@ -1118,7 +1118,7 @@ void Gfx::doSoftMask (
 
     // get resources
     obj1 = resolve ((*dict) ["Resources"]);
-    resDict = obj1.is_dict () ? obj1.as_dict_ptr () : (Dict*)NULL;
+    resDict = obj1.is_dict () ? &obj1.as_dict () : (Dict*)NULL;
 
     // draw it
     ++formDepth;
@@ -3564,7 +3564,7 @@ void Gfx::opXObject (Object args[], int numArgs) {
     }
 #if OPI_SUPPORT
     opiDict = resolve ((*obj1.streamGetDict ()) ["OPI"]));
-    if (opiDict.is_dict ()) { out->opiBegin (state, opiDict.as_dict_ptr ()); }
+    if (opiDict.is_dict ()) { out->opiBegin (state, &opiDict.as_dict ()); }
 #endif
     obj2 = resolve ((*obj1.streamGetDict ()) ["Subtype"]);
     if (obj2.is_name ("Image")) {
@@ -3599,7 +3599,7 @@ void Gfx::opXObject (Object args[], int numArgs) {
             "XObject subtype is missing or wrong type");
     }
 #if OPI_SUPPORT
-    if (opiDict.is_dict ()) { out->opiEnd (state, opiDict.as_dict_ptr ()); }
+    if (opiDict.is_dict ()) { out->opiEnd (state, &opiDict.as_dict ()); }
 #endif
 }
 
@@ -3628,7 +3628,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
     str->getImageParams (&bits, &csMode);
 
     // get stream dict
-    dict = str->as_dict_ptr ();
+    dict = &str->as_dict ();
 
     // get size
     obj1 = resolve ((*dict) ["Width"]);
@@ -3994,7 +3994,7 @@ void Gfx::doForm (Object* strRef, Object* str) {
 
     // get resources
     resObj = resolve ((*dict) ["Resources"]);
-    resDict = resObj.is_dict () ? resObj.as_dict_ptr () : (Dict*)NULL;
+    resDict = resObj.is_dict () ? &resObj.as_dict () : (Dict*)NULL;
 
     // check for a transparency group
     transpGroup = isolated = knockout = false;
@@ -4430,7 +4430,7 @@ void Gfx::drawAnnot (
 
         // get the resources
         resObj = resolve ((*dict) ["Resources"]);
-        resDict = resObj.is_dict () ? resObj.as_dict_ptr () : (Dict*)NULL;
+        resDict = resObj.is_dict () ? &resObj.as_dict () : (Dict*)NULL;
 
         // draw it
         drawForm (strRef, resDict, m, bbox);

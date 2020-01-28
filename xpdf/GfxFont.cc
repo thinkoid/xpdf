@@ -249,7 +249,7 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
                     errSyntaxWarning, -1,
                     "Non-CID font with DescendantFonts array");
             }
-            fontDict2 = obj2.as_dict_ptr ();
+            fontDict2 = &obj2.as_dict ();
             subtype = resolve ((*fontDict2) ["Subtype"]);
             if (subtype.is_name ("CIDFontType0")) {
                 if (isType0) { expectedType = fontCIDType0; }
@@ -1395,7 +1395,7 @@ int* Gfx8BitFont::getCodeToGIDMap (FoFiTrueType* ff) {
 }
 
 Dict* Gfx8BitFont::getCharProcs () {
-    return charProcs.is_dict () ? charProcs.as_dict_ptr () : (Dict*)NULL;
+    return charProcs.is_dict () ? &charProcs.as_dict () : (Dict*)NULL;
 }
 
 Object* Gfx8BitFont::getCharProc (int code, Object* proc) {
@@ -1419,7 +1419,7 @@ Object* Gfx8BitFont::getCharProcNF (int code, Object* proc) {
 }
 
 Dict* Gfx8BitFont::getResources () {
-    return resources.is_dict () ? resources.as_dict_ptr () : (Dict*)NULL;
+    return resources.is_dict () ? &resources.as_dict () : (Dict*)NULL;
 }
 
 //------------------------------------------------------------------------
@@ -1482,7 +1482,7 @@ GfxCIDFont::GfxCIDFont (
         error (errSyntaxError, -1, "Bad descendant font in Type 0 font");
         goto err2;
     }
-    desFontDict = desFontDictObj.as_dict_ptr ();
+    desFontDict = &desFontDictObj.as_dict ();
 
     // get info from font descriptor
     readFontDescriptor (xref, desFontDict);
@@ -1869,7 +1869,7 @@ GfxFontDict::GfxFontDict (XRef* xref, Ref* fontDictRef, Dict* fontDict) {
                 }
             }
             fonts[i] = GfxFont::makeFont (
-                xref, fontDict->key_at (i).c_str (), r, obj2.as_dict_ptr ());
+                xref, fontDict->key_at (i).c_str (), r, &obj2.as_dict ());
             if (fonts[i] && !fonts[i]->isOk ()) {
                 delete fonts[i];
                 fonts[i] = NULL;

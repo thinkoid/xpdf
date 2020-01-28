@@ -168,7 +168,7 @@ int main (int argc, char* argv[]) {
                 }
             }
             else if (obj1.is_dict ()) {
-                scanFonts (obj1.as_dict_ptr (), doc);
+                scanFonts (&obj1.as_dict (), doc);
             }
         }
     }
@@ -208,7 +208,7 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
         seenObjs[seenObjsLen++] = obj->as_ref ();
     }
     if ((obj2 = resolve (*obj)).is_dict ()) {
-        scanFonts (obj2.as_dict_ptr (), doc);
+        scanFonts (&obj2.as_dict (), doc);
     }
 }
 
@@ -228,11 +228,11 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
         if (obj2.is_dict ()) {
             r = obj1.as_ref ();
             gfxFontDict =
-                new GfxFontDict (doc->getXRef (), &r, obj2.as_dict_ptr ());
+                new GfxFontDict (doc->getXRef (), &r, &obj2.as_dict ());
         }
     }
     else if (obj1.is_dict ()) {
-        gfxFontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.as_dict_ptr ());
+        gfxFontDict = new GfxFontDict (doc->getXRef (), NULL, &obj1.as_dict ());
     }
     if (gfxFontDict) {
         for (i = 0; i < gfxFontDict->getNumFonts (); ++i) {

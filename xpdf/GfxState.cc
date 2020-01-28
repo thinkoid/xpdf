@@ -1504,7 +1504,7 @@ GfxShadingPattern* GfxShadingPattern::parse (Object* patObj) {
     int i;
 
     if (!patObj->is_dict ()) { return NULL; }
-    dict = patObj->as_dict_ptr ();
+    dict = &patObj->as_dict ();
 
     obj1 = resolve ((*dict) ["Shading"]);
     shadingA = GfxShading::parse (&obj1);
@@ -1577,7 +1577,7 @@ GfxShading* GfxShading::parse (Object* obj) {
     int typeA;
     Object obj1;
 
-    if (obj->is_dict ()) { dict = obj->as_dict_ptr (); }
+    if (obj->is_dict ()) { dict = &obj->as_dict (); }
     else if (obj->is_stream ()) {
         dict = obj->streamGetDict ();
     }

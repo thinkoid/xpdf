@@ -563,7 +563,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     Object obj, obj2, idx;
     int newSize, first, n, i;
 
-    auto& dict = *xrefStr->as_dict_ptr ();
+    auto& dict = xrefStr->as_dict ();
 
     if (!(obj = dict ["Size"]).is_int ()) {
         goto err1;
