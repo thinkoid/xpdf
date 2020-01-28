@@ -16,7 +16,7 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Link.hh>
@@ -106,17 +106,17 @@ Catalog::Catalog (PDFDoc* docA) {
     if (!readPageTree (&catDict)) { goto err1; }
 
     // read named destination dictionary
-    catDict.dictLookup ("Dests", &dests);
+    *&dests = resolve (catDict.as_dict ()["Dests"]);
 
     // read root of named destination tree
-    if (catDict.dictLookup ("Names", &obj)->is_dict ())
-        obj.dictLookup ("Dests", &nameTree);
+    if ((obj = resolve (catDict.as_dict ()["Names"])).is_dict ())
+        *&nameTree = resolve (obj.as_dict ()["Dests"]);
     else
         nameTree = { };
 
     // read base URI
-    if (catDict.dictLookup ("URI", &obj)->is_dict ()) {
-        if (obj.dictLookup ("Base", &obj2)->is_string ()) {
+    if ((obj = resolve (catDict.as_dict ()["URI"])).is_dict ()) {
+        if ((obj2 = resolve (obj.as_dict ()["Base"])).is_string ()) {
             baseURI = obj2.as_string ()->copy ();
         }
     }
@@ -137,24 +137,24 @@ Catalog::Catalog (PDFDoc* docA) {
     }
 
     // get the metadata stream
-    catDict.dictLookup ("Metadata", &metadata);
+    *&metadata = resolve (catDict.as_dict ()["Metadata"]);
 
     // get the structure tree root
-    catDict.dictLookup ("StructTreeRoot", &structTreeRoot);
+    *&structTreeRoot = resolve (catDict.as_dict ()["StructTreeRoot"]);
 
     // get the outline dictionary
-    catDict.dictLookup ("Outlines", &outline);
+    *&outline = resolve (catDict.as_dict ()["Outlines"]);
 
     // get the AcroForm dictionary
-    catDict.dictLookup ("AcroForm", &acroForm);
+    *&acroForm = resolve (catDict.as_dict ()["AcroForm"]);
 
     if (!acroForm.is_null ()) { form = Form::load (doc, this, &acroForm); }
 
     // get the OCProperties dictionary
-    catDict.dictLookup ("OCProperties", &ocProperties);
+    *&ocProperties = resolve (catDict.as_dict ()["OCProperties"]);
 
     // get the list of embedded files
-    readEmbeddedFileList (catDict.as_dict ());
+    readEmbeddedFileList (&catDict.as_dict ());
 
     return;
 
@@ -206,7 +206,7 @@ GString* Catalog::readMetadata () {
 
     if (!metadata.is_stream ()) { return NULL; }
     dict = metadata.streamGetDict ();
-    if (!dict->lookup ("Subtype", &obj)->is_name ("XML")) {
+    if (!(obj = resolve ((*dict) ["Subtype"])).is_name ("XML")) {
         error (
             errSyntaxWarning, -1, "Unknown Metadata type: '{0:s}'",
             obj.is_name () ? obj.as_name () : "???");
@@ -238,7 +238,7 @@ LinkDest* Catalog::findDest (GString* name) {
     // try named destination dictionary then name tree
     found = false;
     if (dests.is_dict ()) {
-        if (!dests.dictLookup (name->c_str (), &obj1)->is_null ())
+        if (!(obj1 = resolve (dests.as_dict ()[name->c_str ()])).is_null ())
             found = true;
     }
     if (!found && nameTree.is_dict ()) {
@@ -252,7 +252,7 @@ LinkDest* Catalog::findDest (GString* name) {
     dest = NULL;
     if (obj1.is_array ()) { dest = new LinkDest (obj1.as_array ()); }
     else if (obj1.is_dict ()) {
-        if (obj1.dictLookup ("D", &obj2)->is_array ())
+        if ((obj2 = resolve (obj1.as_dict ()["D"])).is_array ())
             dest = new LinkDest (obj2.as_array ());
         else
             error (errSyntaxWarning, -1, "Bad named destination value");
@@ -275,7 +275,7 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
     int cmp, i;
 
     // leaf node
-    if (tree->dictLookup ("Names", &names)->is_array ()) {
+    if ((names = resolve (tree->as_dict ()["Names"])).is_array ()) {
         done = found = false;
         for (i = 0; !done && i < names.as_array ().size (); i += 2) {
             if ((name1 = resolve (names [i])).is_string ()) {
@@ -296,11 +296,11 @@ Object* Catalog::findDestInTree (Object* tree, GString* name, Object* obj) {
 
     // root or intermediate node
     done = false;
-    if (tree->dictLookup ("Kids", &kids)->is_array ()) {
+    if ((kids = resolve (tree->as_dict ()["Kids"])).is_array ()) {
         for (i = 0; !done && i < kids.as_array ().size (); ++i) {
             if ((kid = resolve (kids [i])).is_dict ()) {
-                if (kid.dictLookup ("Limits", &limits)->is_array ()) {
-                    if ((low = resolve (limits [0])).is_string () &&
+                if ((limits = resolve (kid.as_dict ()["Limits"])).is_array ()) {
+                    if ((low = resolve (limits [0UL])).is_string () &&
                         name->cmp (low.as_string ()) >= 0) {
                         if ((high = resolve (limits [1])).is_string () &&
                             name->cmp (high.as_string ()) <= 0) {
@@ -323,7 +323,7 @@ bool Catalog::readPageTree (Object* catDict) {
     Object topPagesRef, topPagesObj, countObj;
     int i;
 
-    if (!catDict->dictLookupNF ("Pages", &topPagesRef)->is_ref ()) {
+    if (!(topPagesRef = (*catDict).as_dict ()["Pages"]).is_ref ()) {
         error (
             errSyntaxError, -1,
             "Top-level pages reference is wrong type ({0:s})",
@@ -336,7 +336,7 @@ bool Catalog::readPageTree (Object* catDict) {
             topPagesObj.getTypeName ());
         return false;
     }
-    if (topPagesObj.dictLookup ("Count", &countObj)->is_int ()) {
+    if ((countObj = resolve (topPagesObj.as_dict ()["Count"])).is_int ()) {
         numPages = countObj.as_int ();
         if (numPages == 0) {
             // Acrobat apparently scans the page tree if it sees a zero count
@@ -368,7 +368,7 @@ int Catalog::countPageTree (Object* pagesObj) {
     int n, n2, i;
 
     if (!pagesObj->is_dict ()) { return 0; }
-    if (pagesObj->dictLookup ("Kids", &kids)->is_array ()) {
+    if ((kids = resolve (pagesObj->as_dict ()["Kids"])).is_array ()) {
         n = 0;
         for (i = 0; i < kids.as_array ().size (); ++i) {
             kid = resolve (kids [i]);
@@ -426,10 +426,10 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
         // merge the PageAttrs
         attrs = new PageAttrs (
             node->parent ? node->parent->attrs : (PageAttrs*)NULL,
-            pageObj.as_dict ());
+            &pageObj.as_dict ());
 
         // if "Kids" exists, it's an internal node
-        if (pageObj.dictLookup ("Kids", &kidsObj)->is_array ()) {
+        if ((kidsObj = resolve (pageObj.as_dict ()["Kids"])).is_array ()) {
             // save the PageAttrs
             node->attrs = attrs;
 
@@ -440,7 +440,7 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
 
                 if (kidRefObj.is_ref ()) {
                     if ((kidObj = resolve (kidRefObj)).is_dict ()) {
-                        if (kidObj.dictLookup ("Count", &countObj)->is_int ()) {
+                        if ((countObj = resolve (kidObj.as_dict ()["Count"])).is_int ()) {
                             count = countObj.as_int ();
                         }
                         else {
@@ -467,7 +467,7 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
         else {
             // create the Page object
             pageRefs[pg - 1] = node->ref;
-            pages[pg - 1] = new Page (doc, pg, pageObj.as_dict (), attrs);
+            pages[pg - 1] = new Page (doc, pg, &pageObj.as_dict (), attrs);
             if (!pages[pg - 1]->isOk ()) {
                 delete pages[pg - 1];
                 pages[pg - 1] = new Page (doc, pg);
@@ -498,20 +498,17 @@ void Catalog::loadPage2 (int pg, int relPg, PageTreeNode* node) {
 
 void Catalog::readEmbeddedFileList (Dict* catDict) {
     Object obj1, obj2;
-    char* touchedObjs;
 
     // read the embedded file name tree
-    if (catDict->lookup ("Names", &obj1)->is_dict ()) {
-        if (obj1.dictLookup ("EmbeddedFiles", &obj2)->is_dict ()) {
+    if ((obj1 = resolve ((*catDict) ["Names"])).is_dict ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["EmbeddedFiles"])).is_dict ()) {
             readEmbeddedFileTree (&obj2);
         }
     }
 
     // look for file attachment annotations
-    touchedObjs = (char*)malloc (xref->getNumObjects ());
-    memset (touchedObjs, 0, xref->getNumObjects ());
-    readFileAttachmentAnnots (catDict->lookupNF ("Pages", &obj1), touchedObjs);
-    free (touchedObjs);
+    auto touchedObjs = std::vector< char > (size_t (xref->getNumObjects ()), 0);
+    readFileAttachmentAnnots ((*catDict) ["Pages"], touchedObjs.data ());
 }
 
 void Catalog::readEmbeddedFileTree (Object* node) {
@@ -519,7 +516,7 @@ void Catalog::readEmbeddedFileTree (Object* node) {
     Object namesObj, nameObj, fileSpecObj;
     int i;
 
-    if (node->dictLookup ("Kids", &kidsObj)->is_array ()) {
+    if ((kidsObj = resolve (node->as_dict ()["Kids"])).is_array ()) {
         for (i = 0; i < kidsObj.as_array ().size (); ++i) {
             if ((kidObj = resolve (kidsObj [i])).is_dict ()) {
                 readEmbeddedFileTree (&kidObj);
@@ -527,54 +524,54 @@ void Catalog::readEmbeddedFileTree (Object* node) {
         }
     }
     else {
-        if (node->dictLookup ("Names", &namesObj)->is_array ()) {
+        if ((namesObj = resolve (node->as_dict ()["Names"])).is_array ()) {
             for (i = 0; i + 1 < namesObj.as_array ().size (); ++i) {
                 nameObj = resolve (namesObj [i]);
                 fileSpecObj = resolve (namesObj [i + 1]);
-                readEmbeddedFile (&fileSpecObj, &nameObj);
+                readEmbeddedFile (fileSpecObj, nameObj);
             }
         }
     }
 }
 
 void Catalog::readFileAttachmentAnnots (
-    Object* pageNodeRef, char* touchedObjs) {
+    const Object& pageNodeRef, char* touchedObjs) {
     Object pageNode, kids, kid, annots, annot, subtype, fileSpec, contents;
     int i;
 
     // check for an invalid object reference (e.g., in a damaged PDF file)
-    if (pageNodeRef->getRefNum () < 0 ||
-        pageNodeRef->getRefNum () >= xref->getNumObjects ()) {
+    if (pageNodeRef.getRefNum () < 0 ||
+        pageNodeRef.getRefNum () >= xref->getNumObjects ()) {
         return;
     }
 
     // check for a page tree loop
-    if (pageNodeRef->is_ref ()) {
-        if (touchedObjs[pageNodeRef->getRefNum ()]) { return; }
-        touchedObjs[pageNodeRef->getRefNum ()] = 1;
-        pageNode = xref->fetch (pageNodeRef->as_ref ());
+    if (pageNodeRef.is_ref ()) {
+        if (touchedObjs[pageNodeRef.getRefNum ()]) { return; }
+        touchedObjs[pageNodeRef.getRefNum ()] = 1;
+        pageNode = xref->fetch (pageNodeRef.as_ref ());
     }
     else {
-        pageNode = *pageNodeRef;
+        pageNode = pageNodeRef;
     }
 
     if (pageNode.is_dict ()) {
-        if (pageNode.dictLookup ("Kids", &kids)->is_array ()) {
-            for (i = 0; i < kids.as_array ().size (); ++i) {
-                kid = kids [i];
-                readFileAttachmentAnnots (&kid, touchedObjs);
+        if ((kids = resolve (pageNode.as_dict ()["Kids"])).is_array ()) {
+            for (auto& kid : kids.as_array ()) {
+                readFileAttachmentAnnots (kid, touchedObjs);
             }
         }
         else {
-            if (pageNode.dictLookup ("Annots", &annots)->is_array ()) {
+            if ((annots = resolve (pageNode.as_dict ()["Annots"])).is_array ()) {
                 for (i = 0; i < annots.as_array ().size (); ++i) {
                     if ((annot = resolve (annots [i])).is_dict ()) {
-                        if (annot.dictLookup ("Subtype", &subtype)
-                                ->is_name ("FileAttachment")) {
-                            if (annot.dictLookup ("FS", &fileSpec)) {
+                        auto subtype = resolve (annot.as_dict ()["Subtype"]);
+                        if (subtype.is_name ("FileAttachment")) {
+                            auto fileSpec = resolve (annot.as_dict () ["FS"]);
+
+                            if (!fileSpec.is_null ()) {
                                 readEmbeddedFile (
-                                    &fileSpec,
-                                    annot.dictLookup ("Contents", &contents));
+                                    fileSpec, resolve (annot.as_dict ()["Contents"]));
                             }
                         }
                     }
@@ -585,21 +582,21 @@ void Catalog::readFileAttachmentAnnots (
 
 }
 
-void Catalog::readEmbeddedFile (Object* fileSpec, Object* name1) {
+void Catalog::readEmbeddedFile (const Object& fileSpec, const Object& name1) {
     Object name2, efObj, streamObj;
     GString* s;
     TextString* name;
 
-    if (fileSpec->is_dict ()) {
-        if (fileSpec->dictLookup ("UF", &name2)->is_string ()) {
+    if (fileSpec.is_dict ()) {
+        if ((name2 = resolve (fileSpec.as_dict ()["UF"])).is_string ()) {
             name = new TextString (name2.as_string ());
         }
         else {
-            if (fileSpec->dictLookup ("F", &name2)->is_string ()) {
+            if ((name2 = resolve (fileSpec.as_dict ()["F"])).is_string ()) {
                 name = new TextString (name2.as_string ());
             }
-            else if (name1 && name1->is_string ()) {
-                name = new TextString (name1->as_string ());
+            else if (name1.is_string ()) {
+                name = new TextString (name1.as_string ());
             }
             else {
                 s = new GString ("?");
@@ -607,8 +604,8 @@ void Catalog::readEmbeddedFile (Object* fileSpec, Object* name1) {
                 delete s;
             }
         }
-        if (fileSpec->dictLookup ("EF", &efObj)->is_dict ()) {
-            if (efObj.dictLookupNF ("F", &streamObj)->is_ref ()) {
+        if ((efObj = resolve (fileSpec.as_dict ()["EF"])).is_dict ()) {
+            if ((streamObj = efObj.as_dict ()["F"]).is_ref ()) {
                 if (!embeddedFiles) { embeddedFiles = new GList (); }
                 embeddedFiles->append (new EmbeddedFile (name, &streamObj));
             }

@@ -17,7 +17,7 @@
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/Annot.hh>
 #include <xpdf/Form.hh>
@@ -152,7 +152,7 @@ int main (int argc, char* argv[]) {
         annots = new Annots (doc, page->getAnnots (&obj1));
         for (i = 0; i < annots->getNumAnnots (); ++i) {
             if (annots->getAnnot (i)->getAppearance (&obj1)->is_stream ()) {
-                obj1.streamGetDict ()->lookupNF ("Resources", &obj2);
+                obj2 = (*obj1.streamGetDict ()) ["Resources"];
                 scanFonts (&obj2, doc);
             }
         }
@@ -168,7 +168,7 @@ int main (int argc, char* argv[]) {
                 }
             }
             else if (obj1.is_dict ()) {
-                scanFonts (obj1.as_dict (), doc);
+                scanFonts (&obj1.as_dict (), doc);
             }
         }
     }
@@ -208,13 +208,13 @@ static void scanFonts (Object* obj, PDFDoc* doc) {
         seenObjs[seenObjsLen++] = obj->as_ref ();
     }
     if ((obj2 = resolve (*obj)).is_dict ()) {
-        scanFonts (obj2.as_dict (), doc);
+        scanFonts (&obj2.as_dict (), doc);
     }
 }
 
 static void scanFonts (Dict* resDict, PDFDoc* doc) {
-    Object obj1, obj2, xObjDict, xObj;
-    Object patternDict, pattern, resObj;
+    Object obj1, obj2, xObjDict;
+    Object patternDict, resObj;
     Ref r;
     GfxFontDict* gfxFontDict;
     GfxFont* font;
@@ -222,17 +222,17 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
 
     // scan the fonts in this resource dictionary
     gfxFontDict = NULL;
-    resDict->lookupNF ("Font", &obj1);
+    obj1 = (*resDict) ["Font"];
     if (obj1.is_ref ()) {
         obj2 = resolve (obj1);
         if (obj2.is_dict ()) {
             r = obj1.as_ref ();
             gfxFontDict =
-                new GfxFontDict (doc->getXRef (), &r, obj2.as_dict ());
+                new GfxFontDict (doc->getXRef (), &r, &obj2.as_dict ());
         }
     }
     else if (obj1.is_dict ()) {
-        gfxFontDict = new GfxFontDict (doc->getXRef (), NULL, obj1.as_dict ());
+        gfxFontDict = new GfxFontDict (doc->getXRef (), NULL, &obj1.as_dict ());
     }
     if (gfxFontDict) {
         for (i = 0; i < gfxFontDict->getNumFonts (); ++i) {
@@ -243,12 +243,12 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
 
     // recursively scan any resource dictionaries in XObjects in this
     // resource dictionary
-    resDict->lookup ("XObject", &xObjDict);
+    xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
-            xObjDict.dictGetVal (i, &xObj);
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
+            auto& xObj = xObjDict.val_at (i);
             if (xObj.is_stream ()) {
-                xObj.streamGetDict ()->lookupNF ("Resources", &resObj);
+                resObj = (*xObj.streamGetDict ()) ["Resources"];
                 scanFonts (&resObj, doc);
             }
         }
@@ -256,12 +256,12 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
 
     // recursively scan any resource dictionaries in Patterns in this
     // resource dictionary
-    resDict->lookup ("Pattern", &patternDict);
+    patternDict = resolve ((*resDict) ["Pattern"]);
     if (patternDict.is_dict ()) {
-        for (i = 0; i < patternDict.dictGetLength (); ++i) {
-            patternDict.dictGetVal (i, &pattern);
+        for (i = 0; i < patternDict.as_dict ().size (); ++i) {
+            auto& pattern = patternDict.val_at (i);
             if (pattern.is_stream ()) {
-                pattern.streamGetDict ()->lookupNF ("Resources", &resObj);
+                resObj = (*pattern.streamGetDict ()) ["Resources"];
                 scanFonts (&resObj, doc);
             }
         }
@@ -270,21 +270,20 @@ static void scanFonts (Dict* resDict, PDFDoc* doc) {
     // recursively scan any resource dictionaries in ExtGStates in this
     // resource dictionary
     Object gsDict;
-    resDict->lookup ("ExtGState", &gsDict);
+    gsDict = resolve ((*resDict) ["ExtGState"]);
 
     if (gsDict.is_dict ()) {
-        for (i = 0; i < gsDict.dictGetLength (); ++i) {
-            Object gs;
+        for (i = 0; i < gsDict.as_dict ().size (); ++i) {
+            auto& gs = gsDict.val_at (i);
 
-            if (gsDict.dictGetVal (i, &gs)->is_dict ()) {
+            if (gs.is_dict ()) {
                 Object smask;
 
-                if (gs.dictLookup ("SMask", &smask)->is_dict ()) {
+                if ((smask = resolve (gs.as_dict ()["SMask"])).is_dict ()) {
                     Object smaskGroup;
 
-                    if (smask.dictLookup ("G", &smaskGroup)->is_stream ()) {
-                        smaskGroup.streamGetDict ()->lookupNF (
-                            "Resources", &resObj);
+                    if ((smaskGroup = resolve (smask.as_dict ()["G"])).is_stream ()) {
+                        resObj = (*smaskGroup.streamGetDict ()) ["Resources"];
                         scanFonts (&resObj, doc);
                     }
                 }
@@ -326,8 +325,7 @@ static void scanFont (GfxFont* font, PDFDoc* doc) {
 
     if (fontObj.is_dict ()) {
         Object toUnicodeObj;
-        hasToUnicode = fontObj.dictLookup (
-            "ToUnicode", &toUnicodeObj)->is_stream ();
+        hasToUnicode = resolve (fontObj.as_dict ()["ToUnicode"]).is_stream ();
     }
 
     // check for a font subset name: capital letters followed by a '+'

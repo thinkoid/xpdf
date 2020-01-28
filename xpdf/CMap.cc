@@ -12,7 +12,7 @@
 #include <goo/GString.hh>
 
 #include <xpdf/CMap.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/obj.hh>
@@ -99,7 +99,7 @@ CMap* CMap::parse (CMapCache* cache, GString* collectionA, Stream* str) {
 
     cMap = new CMap (collectionA->copy (), NULL);
 
-    if (!str->as_dict ()->lookup ("UseCMap", &obj1)->is_null ()) {
+    if (!(obj1 = resolve ((str->as_dict ()) ["UseCMap"])).is_null ()) {
         cMap->useCMap (cache, &obj1);
     }
 

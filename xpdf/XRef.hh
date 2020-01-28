@@ -11,7 +11,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
-class Dict;
 class Parser;
 class ObjectStream;
 class XRefPosSet;
@@ -90,7 +89,6 @@ public:
 
     // Return the document's Info dictionary (if any).
     Object* getDocInfo (Object* obj);
-    Object* getDocInfoNF (Object* obj);
 
     // Return the number of objects in the xref table.
     int getNumObjects () { return last + 1; }

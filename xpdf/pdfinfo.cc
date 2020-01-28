@@ -15,7 +15,7 @@
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/Page.hh>
@@ -154,21 +154,21 @@ int main (int argc, char* argv[]) {
     doc->getDocInfo (&info);
 
     if (info.is_dict ()) {
-        printInfoString (info.as_dict (), "Title", "Title:          ", uMap);
-        printInfoString (info.as_dict (), "Subject", "Subject:        ", uMap);
-        printInfoString (info.as_dict (), "Keywords", "Keywords:       ", uMap);
-        printInfoString (info.as_dict (), "Author", "Author:         ", uMap);
-        printInfoString (info.as_dict (), "Creator", "Creator:        ", uMap);
-        printInfoString (info.as_dict (), "Producer", "Producer:       ", uMap);
+        printInfoString (&info.as_dict (), "Title", "Title:          ", uMap);
+        printInfoString (&info.as_dict (), "Subject", "Subject:        ", uMap);
+        printInfoString (&info.as_dict (), "Keywords", "Keywords:       ", uMap);
+        printInfoString (&info.as_dict (), "Author", "Author:         ", uMap);
+        printInfoString (&info.as_dict (), "Creator", "Creator:        ", uMap);
+        printInfoString (&info.as_dict (), "Producer", "Producer:       ", uMap);
         if (rawDates) {
             printInfoString (
-                info.as_dict (), "CreationDate", "CreationDate:   ", uMap);
+                &info.as_dict (), "CreationDate", "CreationDate:   ", uMap);
             printInfoString (
-                info.as_dict (), "ModDate", "ModDate:        ", uMap);
+                &info.as_dict (), "ModDate", "ModDate:        ", uMap);
         }
         else {
-            printInfoDate (info.as_dict (), "CreationDate", "CreationDate:   ");
-            printInfoDate (info.as_dict (), "ModDate", "ModDate:        ");
+            printInfoDate (&info.as_dict (), "CreationDate", "CreationDate:   ");
+            printInfoDate (&info.as_dict (), "ModDate", "ModDate:        ");
         }
     }
 
@@ -179,8 +179,7 @@ int main (int argc, char* argv[]) {
 
     // print form info
     if ((acroForm = doc->getCatalog ()->getAcroForm ())->is_dict ()) {
-        Object xfa;
-        acroForm->dictLookup ("XFA", &xfa);
+        Object xfa = resolve (acroForm->as_dict ()["XFA"]);
 
         if (xfa.is_stream () || xfa.is_array ()) {
             printf ("Form:           XFA\n");
@@ -308,7 +307,7 @@ static void printInfoString (
 
     Object obj;
 
-    if (infoDict->lookup (key, &obj)->is_string ()) {
+    if ((obj = resolve ((*infoDict) [key])).is_string ()) {
         fputs (text, stdout);
         s = new TextString (obj.as_string ());
         u = s->getUnicode ();
@@ -329,7 +328,7 @@ static void printInfoDate (Dict* infoDict, const char* key, const char* text) {
 
     Object obj;
 
-    if (infoDict->lookup (key, &obj)->is_string ()) {
+    if ((obj = resolve ((*infoDict) [key])).is_string ()) {
         fputs (text, stdout);
         s = obj.as_string ()->c_str ();
         if (s[0] == 'D' && s[1] == ':') { s += 2; }

@@ -15,7 +15,6 @@ libxpdf_a_SOURCES =                             \
    CharCodeToUnicode.cc                         \
    CoreOutputDev.cc                             \
    Decrypt.cc                                   \
-   Dict.cc                                      \
    Error.cc                                     \
    FontEncodingTables.cc                        \
    Form.cc                                      \
@@ -52,6 +51,7 @@ libxpdf_a_SOURCES =                             \
    XRef.cc                                      \
    Zoox.cc                                      \
    bitpack.cc                                   \
+   dict.cc                                      \
    function.cc                                  \
    lexer.cc                                     \
    obj.cc                                       \

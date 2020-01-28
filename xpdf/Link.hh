@@ -10,7 +10,6 @@
 #include <xpdf/obj.hh>
 
 class GString;
-class Dict;
 
 //------------------------------------------------------------------------
 // LinkAction
@@ -360,7 +359,7 @@ private:
 class Link {
 public:
     // Construct a link, given its dictionary.
-    Link (Dict* dict, GString* baseURI);
+    Link (const Object& dict, GString* baseURI);
 
     // Destructor.
     ~Link ();

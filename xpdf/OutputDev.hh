@@ -8,21 +8,22 @@
 
 #include <xpdf/CharTypes.hh>
 #include <xpdf/function.hh>
+#include <xpdf/obj.hh>
 
+class Catalog;
 class GString;
 class Gfx;
-class GfxState;
+class GfxAxialShading;
 struct GfxColor;
 class GfxColorSpace;
-class GfxImageColorMap;
 class GfxFunctionShading;
-class GfxAxialShading;
+class GfxImageColorMap;
 class GfxRadialShading;
-class Stream;
-class Links;
+class GfxState;
 class Link;
-class Catalog;
+class Links;
 class Page;
+class Stream;
 
 //------------------------------------------------------------------------
 // OutputDev

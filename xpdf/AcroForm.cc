@@ -12,7 +12,7 @@
 #include <xpdf/AcroForm.hh>
 #include <xpdf/Annot.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
@@ -85,16 +85,14 @@ AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
     int i;
 
     acroForm = new AcroForm (docA, acroFormObjA);
-
-    Object obj;
-    acroFormObjA->dictLookup ("NeedAppearances", &obj);
+    Object obj = resolve (acroFormObjA->as_dict ()["NeedAppearances"]);
 
     if (obj.is_bool ()) {
         acroForm->needAppearances = obj.as_bool ();
     }
 
     acroForm->buildAnnotPageList (catalog);
-    acroFormObjA->dictLookup ("Fields", &obj);
+    obj = resolve (acroFormObjA->as_dict ()["Fields"]);
 
     if (!obj.is_array ()) {
         if (!obj.is_null ()) {
@@ -175,7 +173,7 @@ void AcroForm::scanField (Object* fieldRef) {
     isTerminal = true;
 
     Object kidsObj;
-    fieldObj.dictLookup ("Kids", &kidsObj);
+    *&kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
 
     if (kidsObj.is_array ()) {
         isTerminal = false;
@@ -186,7 +184,7 @@ void AcroForm::scanField (Object* fieldRef) {
 
             if (kidObj.is_dict ()) {
                 Object subtypeObj;
-                kidObj.dictLookup ("Parent", &subtypeObj);
+                *&subtypeObj = resolve (kidObj.as_dict ()["Parent"]);
 
                 if (subtypeObj.is_null ()) {
                     isTerminal = true;
@@ -232,7 +230,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     //----- get field info
 
     Object obj;
-    fieldObjA.dictLookup ("T", &obj);
+    *&obj = resolve (fieldObjA.as_dict ()["T"]);
 
     if (obj.is_string ()) {
         nameA = new TextString (obj.as_string ());
@@ -241,7 +239,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         nameA = new TextString ();
     }
 
-    fieldObjA.dictLookup ("FT", &obj);
+    *&obj = resolve (fieldObjA.as_dict ()["FT"]);
 
     if (obj.is_name ()) {
         typeStr = new GString (obj.as_name ());
@@ -250,7 +248,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         typeStr = NULL;
     }
 
-    fieldObjA.dictLookup ("Ff", &obj);
+    *&obj = resolve (fieldObjA.as_dict ()["Ff"]);
 
     if (obj.is_int ()) {
         flagsA = (unsigned)obj.as_int ();
@@ -264,11 +262,11 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     //----- get info from parent non-terminal fields
 
     Object parentObj;
-    fieldObjA.dictLookup ("Parent", &parentObj);
+    *&parentObj = resolve (fieldObjA.as_dict ()["Parent"]);
 
     while (parentObj.is_dict ()) {
         Object obj;
-        parentObj.dictLookup ("T", &obj);
+        *&obj = resolve (parentObj.as_dict ()["T"]);
 
         if (obj.is_string ()) {
             if (nameA->getLength ()) {
@@ -279,7 +277,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
 
         if (!typeStr) {
-            parentObj.dictLookup ("FT", &obj);
+            *&obj = resolve (parentObj.as_dict ()["FT"]);
 
             if (obj.is_name ()) {
                 typeStr = new GString (obj.as_name ());
@@ -287,7 +285,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
 
         if (!haveFlags) {
-            parentObj.dictLookup ("Ff", &obj);
+            *&obj = resolve (parentObj.as_dict ()["Ff"]);
 
             if (obj.is_int ()) {
                 flagsA = (unsigned)obj.as_int ();
@@ -296,7 +294,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
 
         Object tmp;
-        parentObj.dictLookup ("Parent", &tmp);
+        *&tmp = resolve (parentObj.as_dict ()["Parent"]);
 
         parentObj = tmp;
     }
@@ -432,7 +430,7 @@ Unicode* AcroFormField::getValue (int* length) {
 void AcroFormField::draw (int pageNum, Gfx* gfx, bool printing) {
     // find the annotation object(s)
     Object kidsObj;
-    fieldObj.dictLookup ("Kids", &kidsObj);
+    *&kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
     if (kidsObj.is_array ()) {
         for (int i = 0; i < kidsObj.as_array ().size (); ++i) {
             Object annotRef, annotObj;
@@ -461,8 +459,7 @@ void AcroFormField::drawAnnot (
     if (acroForm->lookupAnnotPage (annotRef) != pageNum) { return; }
 
     //----- check annotation flags
-    Object obj;
-    annotObj->dictLookup ("F", &obj);
+    Object obj = resolve (annotObj->as_dict ()["F"]);
 
     if (obj.is_int ()) {
         annotFlags = obj.as_int ();
@@ -479,21 +476,21 @@ void AcroFormField::drawAnnot (
 
     //----- check the optional content entry
 
-    annotObj->dictLookupNF ("OC", &obj);
+    obj = (*annotObj).as_dict ()["OC"];
 
     if (acroForm->doc->getOptionalContent ()->evalOCObject (&obj, &oc) && !oc) {
         return;
     }
 
     //----- get the bounding box
-    annotObj->dictLookup ("Rect", &obj);
+    obj = resolve (annotObj->as_dict ()["Rect"]);
 
     if (obj.is_array () && obj.as_array ().size () == 4) {
         xMin = yMin = xMax = yMax = 0;
 
         Object number;
 
-        if ((number = resolve (obj [0])).is_num ()) { xMin = number.as_num (); }
+        if ((number = resolve (obj [0UL])).is_num ()) { xMin = number.as_num (); }
         if ((number = resolve (obj [1])).is_num ()) { yMin = number.as_num (); }
         if ((number = resolve (obj [2])).is_num ()) { xMax = number.as_num (); }
         if ((number = resolve (obj [3])).is_num ()) { yMax = number.as_num (); }
@@ -518,11 +515,11 @@ void AcroFormField::drawAnnot (
     //----- draw it
 
     if (acroForm->needAppearances) {
-        drawNewAppearance (gfx, annotObj->as_dict (), xMin, yMin, xMax, yMax);
+        drawNewAppearance (gfx, &annotObj->as_dict (), xMin, yMin, xMax, yMax);
     }
     else {
         drawExistingAppearance (
-            gfx, annotObj->as_dict (), xMin, yMin, xMax, yMax);
+            gfx, &annotObj->as_dict (), xMin, yMin, xMax, yMax);
     }
 }
 
@@ -535,28 +532,28 @@ void AcroFormField::drawExistingAppearance (
     Object appearance;
 
     Object apObj;
-    annot->lookup ("AP", &apObj);
+    apObj = resolve ((*annot) ["AP"]);
 
     if (apObj.is_dict ()) {
         Object obj1;
-        apObj.dictLookup ("N", &obj1);
+        *&obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict ()) {
             Object asObj;
-            annot->lookup ("AS", &asObj);
+            asObj = resolve ((*annot) ["AS"]);
 
             if (asObj.is_name ()) {
-                obj1.dictLookupNF (asObj.as_name (), &appearance);
+                appearance = obj1.as_dict ()[asObj.as_name ()];
             }
-            else if (obj1.dictGetLength () == 1) {
-                obj1.dictGetValNF (0, &appearance);
+            else if (obj1.as_dict ().size () == 1) {
+                appearance = obj1.val_at (0);
             }
             else {
-                obj1.dictLookupNF ("Off", &appearance);
+                appearance = obj1.as_dict ()["Off"];
             }
         }
         else {
-            apObj.dictLookupNF ("N", &appearance);
+            appearance = apObj.as_dict ()["N"];
         }
     }
 
@@ -587,14 +584,14 @@ void AcroFormField::drawNewAppearance (
     int borderDashLength, rot, quadding, comb, nOptions, topIdx, i, j;
 
     // get the appearance characteristics (MK) dictionary
-    if (annot->lookup ("MK", &mkObj)->is_dict ()) { mkDict = mkObj.as_dict (); }
+    if ((mkObj = resolve ((*annot) ["MK"])).is_dict ()) { mkDict = &mkObj.as_dict (); }
     else {
         mkDict = NULL;
     }
 
     // draw the background
     if (mkDict) {
-        if (mkDict->lookup ("BG", &obj1)->is_array () && obj1.as_array ().size () > 0) {
+        if ((obj1 = resolve ((*mkDict) ["BG"])).is_array () && obj1.as_array ().size () > 0) {
             setColor (obj1.as_array (), true, 0);
             appearBuf += format (
                 "0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
@@ -609,8 +606,8 @@ void AcroFormField::drawNewAppearance (
     borderWidth = 1;
     borderDash = NULL;
     borderDashLength = 0;
-    if (annot->lookup ("BS", &obj1)->is_dict ()) {
-        if (obj1.dictLookup ("S", &obj2)->is_name ()) {
+    if ((obj1 = resolve ((*annot) ["BS"])).is_dict ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["S"])).is_name ()) {
             if (obj2.is_name ("S")) { borderType = annotBorderSolid; }
             else if (obj2.is_name ("D")) {
                 borderType = annotBorderDashed;
@@ -625,10 +622,10 @@ void AcroFormField::drawNewAppearance (
                 borderType = annotBorderUnderlined;
             }
         }
-        if (obj1.dictLookup ("W", &obj2)->is_num ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["W"])).is_num ()) {
             borderWidth = obj2.as_num ();
         }
-        if (obj1.dictLookup ("D", &obj2)->is_array ()) {
+        if ((obj2 = resolve (obj1.as_dict ()["D"])).is_array ()) {
             borderDashLength = obj2.as_array ().size ();
             borderDash = (double*)calloc (borderDashLength, sizeof (double));
             for (i = 0; i < borderDashLength; ++i) {
@@ -642,7 +639,7 @@ void AcroFormField::drawNewAppearance (
         }
     }
     else {
-        if (annot->lookup ("Border", &obj1)->is_array ()) {
+        if ((obj1 = resolve ((*annot) ["Border"])).is_array ()) {
             if (obj1.as_array ().size () >= 3) {
                 if ((obj2 = resolve (obj1 [2])).is_num ()) {
                     borderWidth = obj2.as_num ();
@@ -675,16 +672,16 @@ void AcroFormField::drawNewAppearance (
 
     if (mkDict) {
         if (borderWidth > 0) {
-            mkDict->lookup ("BC", &obj1);
+            obj1 = resolve ((*mkDict) ["BC"]);
             if (!(obj1.is_array () && obj1.as_array ().size () > 0)) {
-                mkDict->lookup ("BG", &obj1);
+                obj1 = resolve ((*mkDict) ["BG"]);
             }
             if (obj1.is_array () && obj1.as_array ().size () > 0) {
                 dx = xMax - xMin;
                 dy = yMax - yMin;
 
                 // radio buttons with no caption have a round border
-                hasCaption = mkDict->lookup ("CA", &obj2)->is_string ();
+                hasCaption = (obj2 = resolve ((*mkDict) ["CA"])).is_string ();
 
                 if (ftObj.is_name ("Btn") && (flags & acroFormFlagRadio) &&
                     !hasCaption) {
@@ -793,9 +790,9 @@ void AcroFormField::drawNewAppearance (
     fieldLookup ("DR", &drObj);
 
     // build the font dictionary
-    if (drObj.is_dict () && drObj.dictLookup ("Font", &obj1)->is_dict ()) {
+    if (drObj.is_dict () && (obj1 = resolve (drObj.as_dict ()["Font"])).is_dict ()) {
         fontDict = new GfxFontDict (
-            acroForm->doc->getXRef (), 0, obj1.as_dict ());
+            acroForm->doc->getXRef (), 0, &obj1.as_dict ());
     }
     else {
         fontDict = NULL;
@@ -813,14 +810,14 @@ void AcroFormField::drawNewAppearance (
     rot = 0;
 
     if (mkDict) {
-        if (mkDict->lookup ("R", &obj1)->is_int ()) {
+        if ((obj1 = resolve ((*mkDict) ["R"])).is_int ()) {
             rot = obj1.as_int ();
         }
     }
 
     // get the appearance state
-    annot->lookup ("AP", &apObj);
-    annot->lookup ("AS", &asObj);
+    apObj = resolve ((*annot) ["AP"]);
+    asObj = resolve ((*annot) ["AS"]);
 
     appearanceState = 0;
 
@@ -828,10 +825,10 @@ void AcroFormField::drawNewAppearance (
         appearanceState = new GString (asObj.as_name ());
     }
     else if (apObj.is_dict ()) {
-        apObj.dictLookup ("N", &obj1);
+        *&obj1 = resolve (apObj.as_dict ()["N"]);
 
-        if (obj1.is_dict () && obj1.dictGetLength () == 1) {
-            appearanceState = new GString (obj1.dictGetKey (0));
+        if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
+            appearanceState = new GString (obj1.key_at (0));
         }
     }
 
@@ -844,7 +841,7 @@ void AcroFormField::drawNewAppearance (
         caption = 0;
 
         if (mkDict) {
-            if (mkDict->lookup ("CA", &obj1)->is_string ()) {
+            if ((obj1 = resolve ((*mkDict) ["CA"])).is_string ()) {
                 caption = obj1.as_string ()->copy ();
             }
         }
@@ -861,7 +858,7 @@ void AcroFormField::drawNewAppearance (
                 }
                 else {
                     if (mkDict) {
-                        if (mkDict->lookup ("BC", &obj2)->is_array () &&
+                        if ((obj2 = resolve ((*mkDict) ["BC"])).is_array () &&
                             obj2.as_array ().size () > 0) {
                             dx = xMax - xMin;
                             dy = yMax - yMin;
@@ -937,7 +934,7 @@ void AcroFormField::drawNewAppearance (
             // list box
         }
         else {
-            if (fieldObj.dictLookup ("Opt", &obj1)->is_array ()) {
+            if ((obj1 = resolve (fieldObj.as_dict ()["Opt"])).is_array ()) {
                 nOptions = obj1.as_array ().size ();
                 // get the option text
                 text = (GString**)calloc (nOptions, sizeof (GString*));
@@ -975,7 +972,7 @@ void AcroFormField::drawNewAppearance (
                     }
                 }
                 // get the top index
-                if (fieldObj.dictLookup ("TI", &obj2)->is_int ()) {
+                if ((obj2 = resolve (fieldObj.as_dict ()["TI"])).is_int ()) {
                     topIdx = obj2.as_int ();
                 }
                 else {
@@ -1002,10 +999,10 @@ void AcroFormField::drawNewAppearance (
     if (da) { delete da; }
 
     // build the appearance stream dictionary
-    appearDict = xpdf::make_dict_obj (acroForm->doc->getXRef ());
+    appearDict = xpdf::make_dict_obj ();
 
-    appearDict.dictAdd ("Length",  xpdf::make_int_obj (appearBuf.size ()));
-    appearDict.dictAdd ("Subtype", xpdf::make_name_obj ("Form"));
+    appearDict.emplace ("Length",  xpdf::make_int_obj (appearBuf.size ()));
+    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
 
     obj1 = xpdf::make_arr_obj ();
 
@@ -1014,11 +1011,11 @@ void AcroFormField::drawNewAppearance (
     obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
     obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
 
-    appearDict.dictAdd ("BBox", &obj1);
+    appearDict.emplace ("BBox", std::move (obj1));
 
     // set the resource dictionary
     if (drObj.is_dict ()) {
-        appearDict.dictAdd ("Resources", &drObj);
+        appearDict.emplace ("Resources", std::move (drObj));
     }
 
     // build the appearance stream
@@ -1783,11 +1780,11 @@ Object* AcroFormField::getResources (Object* res) {
     else {
         *res = xpdf::make_arr_obj ();
         // find the annotation object(s)
-        if (fieldObj.dictLookup ("Kids", &kidsObj)->is_array ()) {
+        if ((kidsObj = resolve (fieldObj.as_dict ()["Kids"])).is_array ()) {
             for (i = 0; i < kidsObj.as_array ().size (); ++i) {
                 annotObj = resolve (kidsObj [i]);
                 if (annotObj.is_dict ()) {
-                    if (getAnnotResources (annotObj.as_dict (), &obj1)
+                    if (getAnnotResources (&annotObj.as_dict (), &obj1)
                             ->is_dict ()) {
                         res->as_array ().push_back (obj1);
                     }
@@ -1797,7 +1794,7 @@ Object* AcroFormField::getResources (Object* res) {
             }
         }
         else {
-            if (getAnnotResources (fieldObj.as_dict (), &obj1)->is_dict ()) {
+            if (getAnnotResources (&fieldObj.as_dict (), &obj1)->is_dict ()) {
                 res->as_array ().push_back (obj1);
             }
             else {
@@ -1812,22 +1809,22 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
     Object apObj, appearance;
 
     // get the appearance stream
-    if (annot->lookup ("AP", &apObj)->is_dict ()) {
+    if ((apObj = resolve ((*annot) ["AP"])).is_dict ()) {
         Object obj1;
 
-        apObj.dictLookup ("N", &obj1);
+        *&obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict ()) {
             Object asObj;
 
-            if (annot->lookup ("AS", &asObj)->is_name ()) {
-                obj1.dictLookup (asObj.as_name (), &appearance);
+            if ((asObj = resolve ((*annot) ["AS"])).is_name ()) {
+                *&appearance = resolve (obj1.as_dict ()[asObj.as_name ()]);
             }
-            else if (obj1.dictGetLength () == 1) {
-                obj1.dictGetVal (0, &appearance);
+            else if (obj1.as_dict ().size () == 1) {
+                appearance = obj1.val_at (0);
             }
             else {
-                obj1.dictLookup ("Off", &appearance);
+                *&appearance = resolve (obj1.as_dict ()["Off"]);
             }
         }
         else {
@@ -1837,7 +1834,7 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
 
 
     if (appearance.is_stream ()) {
-        appearance.streamGetDict ()->lookup ("Resources", res);
+        *res = resolve ((*appearance.streamGetDict ()) ["Resources"]);
     }
     else {
         *res = { };
@@ -1848,26 +1845,25 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
 
 // Look up an inheritable field dictionary entry.
 Object* AcroFormField::fieldLookup (const char* key, Object* obj) {
-    return fieldLookup (fieldObj.as_dict (), key, obj);
+    return fieldLookup (&fieldObj.as_dict (), key, obj);
 }
 
 Object* AcroFormField::fieldLookup (Dict* dict, const char* key, Object* obj) {
-    dict->lookup (key, obj);
+    *obj = resolve ((*dict) [key]);
 
     if (!obj->is_null ()) {
         return obj;
     }
 
-    Object parent;
-    dict->lookup ("Parent", &parent);
+    Object parent = resolve ((*dict) ["Parent"]);
 
     if (parent.is_dict ()) {
-        fieldLookup (parent.as_dict (), key, obj);
+        fieldLookup (&parent.as_dict (), key, obj);
     }
     else {
         // some fields don't specify a parent, so we check the AcroForm
         // dictionary just in case
-        acroForm->acroFormObj.dictLookup (key, obj);
+        *obj = resolve (acroForm->acroFormObj.as_dict ()[key]);
     }
 
     return obj;

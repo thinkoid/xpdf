@@ -10,22 +10,22 @@
 
 #include <goo/GString.hh>
 
-#include <defs.hh>
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/Page.hh>
 #include <xpdf/Catalog.hh>
-#include <xpdf/Stream.hh>
-#include <xpdf/XRef.hh>
-#include <xpdf/Link.hh>
-#include <xpdf/OutputDev.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
-#include <xpdf/lexer.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/OptionalContent.hh>
+#include <xpdf/Outline.hh>
+#include <xpdf/OutputDev.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/Page.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/SecurityHandler.hh>
-#include <xpdf/Outline.hh>
-#include <xpdf/OptionalContent.hh>
-#include <xpdf/PDFDoc.hh>
+#include <xpdf/Stream.hh>
+#include <xpdf/XRef.hh>
+#include <xpdf/lexer.hh>
 
 //------------------------------------------------------------------------
 
@@ -220,7 +220,8 @@ bool PDFDoc::checkEncryption (GString* ownerPassword, GString* userPassword) {
     SecurityHandler* secHdlr;
     bool ret;
 
-    xref->getTrailerDict ()->dictLookup ("Encrypt", &encrypt);
+    encrypt = resolve (xref->getTrailerDict ()->as_dict ()["Encrypt"]);
+
     if ((encrypted = encrypt.is_dict ())) {
         if ((secHdlr = SecurityHandler::make (this, &encrypt))) {
             if (secHdlr->isUnencrypted ()) {
@@ -318,7 +319,7 @@ bool PDFDoc::isLinearized () {
     parser->getObj (&obj4);
     if (obj1.is_int () && obj2.is_int () && obj3.is_cmd ("obj") &&
         obj4.is_dict ()) {
-        obj4.dictLookup ("Linearized", &obj5);
+        *&obj5 = resolve (obj4.as_dict ()["Linearized"]);
         if (obj5.is_num () && obj5.as_num () > 0) { lin = true; }
     }
     delete parser;

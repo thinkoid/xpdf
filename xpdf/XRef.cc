@@ -18,7 +18,7 @@
 #include <xpdf/Stream.hh>
 #include <xpdf/lexer.hh>
 #include <xpdf/Parser.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/XRef.hh>
@@ -157,7 +157,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         return;
     }
 
-    if (!objStr.streamGetDict ()->lookup ("N", &obj1)->is_int ()) {
+    if (!(obj1 = resolve ((*objStr.streamGetDict ()) ["N"])).is_int ()) {
         return;
     }
 
@@ -167,7 +167,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         return;
     }
 
-    if (!objStr.streamGetDict ()->lookup ("First", &obj1)->is_int ()) {
+    if (!(obj1 = resolve ((*objStr.streamGetDict ()) ["First"])).is_int ()) {
         return;
     }
 
@@ -311,7 +311,7 @@ XRef::XRef (BaseStream* strA, bool repair) {
     }
 
     // get the root dictionary (catalog) object
-    trailerDict.dictLookupNF ("Root", &obj);
+    obj = trailerDict.as_dict ()["Root"];
 
     if (obj.is_ref ()) {
         rootNum = obj.getRefNum ();
@@ -323,10 +323,6 @@ XRef::XRef (BaseStream* strA, bool repair) {
             return;
         }
     }
-
-    // now set the trailer dictionary's xref pointer so we can fetch
-    // indirect objects from it
-    trailerDict.as_dict ()->setXRef (this);
 }
 
 XRef::~XRef () {
@@ -528,7 +524,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     // get the 'Prev' pointer
     //~ this can be a 64-bit int (?)
-    obj.as_dict ()->lookupNF ("Prev", &obj2);
+    obj2 = obj.as_dict () ["Prev"];
     if (obj2.is_int ()) {
         *pos = (GFileOffset) (unsigned)obj2.as_int ();
         more = true;
@@ -550,7 +546,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     // check for an 'XRefStm' key
     //~ this can be a 64-bit int (?)
-    if (obj.as_dict ()->lookup ("XRefStm", &obj2)->is_int ()) {
+    if ((obj2 = resolve (obj.as_dict ()["XRefStm"])).is_int ()) {
         pos2 = (GFileOffset) (unsigned)obj2.as_int ();
         readXRef (&pos2, posSet);
         if (!ok) {
@@ -562,15 +558,17 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 }
 
 bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
-    Dict* dict;
     int w[3];
     bool more;
     Object obj, obj2, idx;
     int newSize, first, n, i;
 
-    dict = xrefStr->as_dict ();
+    auto& dict = xrefStr->as_dict ();
 
-    if (!dict->lookupNF ("Size", &obj)->is_int ()) { goto err1; }
+    if (!(obj = dict ["Size"]).is_int ()) {
+        goto err1;
+    }
+
     newSize = obj.as_int ();
     if (newSize < 0) { goto err1; }
     if (newSize > size) {
@@ -582,7 +580,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
         size = newSize;
     }
 
-    if (!dict->lookupNF ("W", &obj)->is_array () || obj.as_array ().size () < 3) {
+    if (!(obj = dict ["W"]).is_array () || obj.as_array ().size () < 3) {
         goto err1;
     }
     for (i = 0; i < 3; ++i) {
@@ -597,7 +595,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     }
 
     xrefStr->reset ();
-    dict->lookupNF ("Index", &idx);
+    idx = dict ["Index"];
     if (idx.is_array ()) {
         for (i = 0; i + 1 < idx.as_array ().size (); i += 2) {
             if (!(obj = resolve (idx [i])).is_int ()) {
@@ -621,7 +619,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     }
 
     //~ this can be a 64-bit int (?)
-    dict->lookupNF ("Prev", &obj);
+    obj = dict ["Prev"];
     if (obj.is_int ()) {
         *pos = (GFileOffset) (unsigned)obj.as_int ();
         more = true;
@@ -631,7 +629,7 @@ bool XRef::readXRefStream (Stream* xrefStr, GFileOffset* pos) {
     }
 
     if (trailerDict.is_none ()) {
-        trailerDict = xpdf::make_dict_obj (new Dict (*dict));
+        trailerDict = xpdf::make_dict_obj (new Dict (dict));
     }
 
     return more;
@@ -741,7 +739,7 @@ bool XRef::constructXRef () {
             parser.getObj (&newTrailerDict);
 
             if (newTrailerDict.is_dict ()) {
-                newTrailerDict.dictLookupNF ("Root", &obj);
+                obj = newTrailerDict.as_dict ()["Root"];
                 if (obj.is_ref ()) {
                     rootNum = obj.getRefNum ();
                     rootGen = obj.getRefGen ();
@@ -940,12 +938,7 @@ ObjectStream* XRef::getObjectStream (int objStrNum) {
 }
 
 Object* XRef::getDocInfo (Object* obj) {
-    return trailerDict.dictLookup ("Info", obj);
-}
-
-// Added for the pdftex project.
-Object* XRef::getDocInfoNF (Object* obj) {
-    return trailerDict.dictLookupNF ("Info", obj);
+    return *obj = resolve (trailerDict.as_dict ()["Info"]), obj;
 }
 
 bool XRef::getStreamEnd (GFileOffset streamStart, GFileOffset* streamEnd) {

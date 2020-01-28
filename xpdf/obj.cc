@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
@@ -48,49 +48,32 @@ obj_t& obj_t::operator[] (size_t n) {
 // Dict accessors.
 //------------------------------------------------------------------------
 
-int obj_t::dictGetLength () {
-    return as_dict ()->getLength ();
+obj_t& obj_t::operator[] (const char* s) {
+    return as_dict ()[s];
 }
 
-void obj_t::dictAdd (const char* key, const obj_t& val) {
-    as_dict ()->add (key, val);
+obj_t& obj_t::at (const char* s) {
+    return as_dict ().at (s);
 }
 
-void obj_t::dictAdd (const char* key, obj_t&& val) {
-    as_dict ()->add (key, std::move (val));
+void obj_t::emplace (const std::string& key, obj_t obj) {
+    as_dict ().emplace (key, std::move (obj));
 }
 
-void obj_t::dictAdd (const char* key, obj_t* val) {
-    as_dict ()->add (key, val);
+bool obj_t::has_key (const std::string& s) const {
+    return as_dict ().has_key (s);
 }
 
-bool obj_t::dictIs (const char* dictType) const {
-    return as_dict ()->is (dictType);
+bool obj_t::has_type (const std::string& s) const {
+    return is_dict () && as_dict ().has_type (s);
 }
 
-bool obj_t::is_dict (const char* dictType) const {
-    return is_dict () && dictIs (dictType);
+const std::string& obj_t::key_at (size_t n) const {
+    return as_dict ().key_at (n);
 }
 
-obj_t*
-obj_t::dictLookup (const char* key, obj_t* obj, int recursion) {
-    return as_dict ()->lookup (key, obj, recursion);
-}
-
-obj_t* obj_t::dictLookupNF (const char* key, obj_t* obj) {
-    return as_dict ()->lookupNF (key, obj);
-}
-
-char* obj_t::dictGetKey (int i) {
-    return as_dict ()->getKey (i);
-}
-
-obj_t* obj_t::dictGetVal (int i, obj_t* obj) {
-    return as_dict ()->getVal (i, obj);
-}
-
-obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
-    return as_dict ()->getValNF (i, obj);
+obj_t& obj_t::val_at (size_t n) {
+    return as_dict ().val_at (n);
 }
 
 //------------------------------------------------------------------------
@@ -98,7 +81,7 @@ obj_t* obj_t::dictGetValNF (int i, obj_t* obj) {
 //------------------------------------------------------------------------
 
 bool obj_t::streamIs (const char* dictType) const {
-    return as_stream ()->as_dict ()->is (dictType);
+    return as_stream ()->as_dict ().has_type (dictType);
 }
 
 bool obj_t::is_stream (const char* dictType) const {
@@ -138,7 +121,7 @@ void obj_t::streamSetPos (GFileOffset pos, int dir) {
 }
 
 Dict* obj_t::streamGetDict () {
-    return as_stream ()->as_dict ();
+    return &as_stream ()->as_dict ();
 }
 
 //
@@ -154,56 +137,14 @@ const char* obj_t::getTypeName () const {
     return arr [var_.index ()];
 };
 
-void obj_t::print (FILE*) {
-#if 0
-    Object obj;
-    int i;
-
-    switch (type) {
-    case objBool: fprintf (f, "%s", booln ? "true" : "false"); break;
-    case objInt: fprintf (f, "%d", intg); break;
-    case objReal: fprintf (f, "%g", real); break;
-    case objString:
-        fprintf (f, "(");
-        fwrite (string->c_str (), 1, string->getLength (), f);
-        fprintf (f, ")");
-        break;
-    case objName: fprintf (f, "/%s", name); break;
-    case objNull: fprintf (f, "null"); break;
-    case objArray:
-        fprintf (f, "[");
-        for (i = 0; i < as_array ().size () (); ++i) {
-            if (i > 0) fprintf (f, " ");
-            obj = as_array ()[i];
-            obj.print (f);
-        }
-        fprintf (f, "]");
-        break;
-    case objDict:
-        fprintf (f, "<<");
-        for (i = 0; i < dictGetLength (); ++i) {
-            fprintf (f, " /%s ", dictGetKey (i));
-            dictGetValNF (i, &obj);
-            obj.print (f);
-        }
-        fprintf (f, " >>");
-        break;
-    case objStream: fprintf (f, "<stream>"); break;
-    case objRef: fprintf (f, "%d %d R", ref.num, ref.gen); break;
-    case objCmd: fprintf (f, "%s", cmd); break;
-    case objError: fprintf (f, "<error>"); break;
-    case objEOF: fprintf (f, "<EOF>"); break;
-    case objNone: fprintf (f, "<none>"); break;
-    }
-#endif // 0
-}
+void obj_t::print (FILE*) { }
 
 obj_t make_arr_obj () {
     return obj_t (new Array ());
 }
 
-obj_t make_dict_obj (XRef* p) {
-    return obj_t (new Dict (p));
+obj_t make_dict_obj () {
+    return obj_t (new Dict);
 }
 
 obj_t make_dict_obj (Dict* p) {

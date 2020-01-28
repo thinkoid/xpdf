@@ -15,13 +15,14 @@
 #include <splash/SplashPattern.hh>
 
 #include <xpdf/array.hh>
+#include <xpdf/CoreOutputDev.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/GlobalParams.hh>
-#include <xpdf/PDFDoc.hh>
-#include <xpdf/Link.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/GfxState.hh>
-#include <xpdf/CoreOutputDev.hh>
+#include <xpdf/GlobalParams.hh>
+#include <xpdf/Link.hh>
+#include <xpdf/PDFDoc.hh>
 #include <xpdf/XPDFApp.hh>
 #include <xpdf/XPDFCore.hh>
 
@@ -597,8 +598,7 @@ void XPDFCore::doAction (LinkAction* action) {
             if (obj1.is_array ()) {
                 for (i = 0; i < obj1.as_array ().size (); ++i) {
                     if ((movieAnnot = resolve (obj1 [i])).is_dict ()) {
-                        if (movieAnnot.dictLookup ("Subtype", &obj2)
-                                ->is_name ("Movie")) {
+                        if ((obj2 = resolve (movieAnnot.as_dict ()["Subtype"])).is_name ("Movie")) {
                             break;
                         }
                     }
@@ -606,8 +606,8 @@ void XPDFCore::doAction (LinkAction* action) {
             }
         }
         if (movieAnnot.is_dict ()) {
-            if (movieAnnot.dictLookup ("Movie", &obj1)->is_dict ()) {
-                if (obj1.dictLookup ("F", &obj2)) {
+            if ((obj1 = resolve (movieAnnot.as_dict ()["Movie"])).is_dict ()) {
+                if (!(obj2 = resolve (obj1.as_dict ()["F"])).is_null ()) {
                     if ((fileName = LinkAction::getFileSpecName (&obj2))) {
                         if (!isAbsolutePath (fileName->c_str ()) &&
                             doc->getFileName ()) {

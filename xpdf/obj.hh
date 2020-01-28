@@ -17,9 +17,9 @@
 #include <goo/GString.hh>
 
 #include <xpdf/array_fwd.hh>
+#include <xpdf/dict_fwd.hh>
 #include <xpdf/obj_fwd.hh>
 
-class Dict;
 class Stream;
 class XRef;
 
@@ -134,8 +134,13 @@ struct obj_t {
     bool is_string () const { return is< std::shared_ptr< GString > > (); }
 
     bool is_name () const { return is< name_t > (); }
+
     bool is_name (const char* s) const {
         return is_name () && 0 == strcmp (as_name (), s);
+    }
+
+    bool is_name (const std::string& s) const {
+        return is_name (s.c_str ());
     }
 
     bool is_cmd () const { return is< cmd_t > (); }
@@ -146,9 +151,7 @@ struct obj_t {
     bool is_ref () const { return is< ref_t > (); }
 
     bool is_array () const { return is< std::shared_ptr< Array > > (); }
-
-    bool is_dict () const { return is< std::shared_ptr< Dict > > (); }
-    bool is_dict (const char*) const;
+    bool is_dict  () const { return is< std::shared_ptr< Dict > > (); }
 
     bool is_stream () const { return is< std::shared_ptr< Stream > > (); }
     bool is_stream (const char*) const;
@@ -216,9 +219,9 @@ struct obj_t {
         return *as< pointer > ();
     }
 
-    Dict* as_dict () const {
+    Dict& as_dict () const {
         using pointer = std::shared_ptr< Dict >;
-        return as< pointer > ().get ();
+        return *as< pointer > ().get ();
     }
 
     Stream* as_stream () const {
@@ -226,6 +229,7 @@ struct obj_t {
         return as< pointer > ().get ();
     }
 
+    ref_t& as_ref () { return as< ref_t > (); }
     const ref_t& as_ref () const { return as< ref_t > (); }
 
     //
@@ -246,18 +250,45 @@ struct obj_t {
     //
     // Dict accessors:
     //
-    int dictGetLength ();
+    obj_t& operator[] (const char*);
 
-    void dictAdd (const char*, const obj_t&);
-    void dictAdd (const char*, obj_t&&);
-    void dictAdd (const char* key, obj_t* val);
+    //
+    // Tests underlying dictionary for a key matching the argument:
+    //
+    bool has_key  (const std::string&) const;
 
-    bool dictIs (const char* dictType) const;
-    obj_t* dictLookup (const char* key, obj_t* obj, int recursion = 0);
-    obj_t* dictLookupNF (const char* key, obj_t* obj);
-    char* dictGetKey (int i);
-    obj_t* dictGetVal (int i, obj_t* obj);
-    obj_t* dictGetValNF (int i, obj_t* obj);
+    //
+    // Tests underlying dictionary for a value matching the argument under the
+    // key `Type':
+    //
+    bool has_type (const std::string&) const;
+
+    //
+    // Matching std::map::at semantics:
+    //
+    obj_t& at (const char*);
+    const obj_t& at (const char* s) const {
+        return const_cast< obj_t* > (this)->at (s);
+    }
+
+    //
+    // Matching std::map::emplace semantics:
+    //
+    void emplace (const std::string&, obj_t);
+
+    //
+    // Returns the key at index:
+    //
+    const std::string& key_at (size_t) const;
+
+    //
+    // Returns the value at index:
+    //
+    obj_t& val_at (size_t);
+
+    const obj_t& val_at (size_t n) const {
+        return const_cast< obj_t* > (this)->val_at (n);
+    }
 
     //
     // Stream accessors:
@@ -347,8 +378,8 @@ inline obj_t make_ref_obj (ref_t arg) {
 }
 
 obj_t make_arr_obj ();
+obj_t make_dict_obj ();
 obj_t make_dict_obj (Dict*);
-obj_t make_dict_obj (XRef*);
 obj_t make_stream_obj (Stream*);
 
 } // namespace xpdf

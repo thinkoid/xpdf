@@ -7,7 +7,7 @@
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/XRef.hh>
 #include <xpdf/Link.hh>
@@ -89,20 +89,20 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     readBox (dict, "ArtBox", &artBox);
 
     // rotate
-    dict->lookup ("Rotate", &obj1);
+    obj1 = resolve ((*dict) ["Rotate"]);
     if (obj1.is_int ()) { rotate = obj1.as_int (); }
     while (rotate < 0) { rotate += 360; }
     while (rotate >= 360) { rotate -= 360; }
 
     // misc attributes
-    dict->lookup ("LastModified", &lastModified);
-    dict->lookup ("BoxColorInfo", &boxColorInfo);
-    dict->lookup ("Group", &group);
-    dict->lookup ("Metadata", &metadata);
-    dict->lookup ("PieceInfo", &pieceInfo);
-    dict->lookup ("SeparationInfo", &separationInfo);
+    lastModified = resolve ((*dict) ["LastModified"]);
+    boxColorInfo = resolve ((*dict) ["BoxColorInfo"]);
+    group = resolve ((*dict) ["Group"]);
+    metadata = resolve ((*dict) ["Metadata"]);
+    pieceInfo = resolve ((*dict) ["PieceInfo"]);
+    separationInfo = resolve ((*dict) ["SeparationInfo"]);
 
-    if (dict->lookup ("UserUnit", &obj1)->is_num ()) {
+    if ((obj1 = resolve ((*dict) ["UserUnit"])).is_num ()) {
         userUnit = obj1.as_num ();
         if (userUnit < 1) { userUnit = 1; }
     }
@@ -111,7 +111,7 @@ PageAttrs::PageAttrs (PageAttrs* attrs, Dict* dict) {
     }
 
     // resource dictionary
-    dict->lookup ("Resources", &obj1);
+    obj1 = resolve ((*dict) ["Resources"]);
 
     if (obj1.is_dict ()) {
         resources = obj1;
@@ -152,10 +152,10 @@ bool PageAttrs::readBox (Dict* dict, const char* key, PDFRectangle* box) {
     Object obj1, obj2;
     bool ok;
 
-    dict->lookup (key, &obj1);
+    obj1 = resolve ((*dict) [key]);
     if (obj1.is_array () && obj1.as_array ().size () == 4) {
         ok = true;
-        obj2 = resolve (obj1 [0]);
+        obj2 = resolve (obj1 [0UL]);
         if (obj2.is_num ()) { tmp.x1 = obj2.as_num (); }
         else {
             ok = false;
@@ -210,7 +210,7 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
     attrs->clipBoxes ();
 
     // annotations
-    pageDict->lookupNF ("Annots", &annots);
+    annots = (*pageDict) ["Annots"];
     if (!(annots.is_ref () || annots.is_array () || annots.is_null ())) {
         error (
             errSyntaxError, -1,
@@ -220,7 +220,7 @@ Page::Page (PDFDoc* docA, int numA, Dict* pageDict, PageAttrs* attrsA) {
     }
 
     // contents
-    pageDict->lookupNF ("Contents", &contents);
+    contents = (*pageDict) ["Contents"];
     if (!(contents.is_ref () || contents.is_array () || contents.is_null ())) {
         error (
             errSyntaxError, -1,

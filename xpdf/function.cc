@@ -27,7 +27,7 @@
 
 #include <xpdf/array.hh>
 #include <xpdf/obj.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/function.hh>
@@ -494,8 +494,8 @@ struct stitching_function_t : function_t::impl_t {
 
 std::vector< std::shared_ptr< function_t::impl_t > >
 stitched_functions_from (Dict& dict, int recursion) {
-    Object arr;
-    dict.lookup ("Functions", &arr);
+    auto arr = resolve (dict ["Functions"]);
+    ASSERT (arr.is_array ());
 
     std::vector< std::shared_ptr< function_t::impl_t > > fs;
 
@@ -1180,7 +1180,7 @@ static inline Dict*
 dictionary_from (Object& obj) {
     return obj.is_stream ()
         ? obj.streamGetDict ()
-        : obj.is_dict () ? obj.as_dict () : 0;
+        : obj.is_dict () ? &obj.as_dict () : 0;
 }
 
 std::shared_ptr< function_t::impl_t >

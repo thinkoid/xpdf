@@ -11,7 +11,7 @@
 #include <vector>
 
 #include <xpdf/array.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
@@ -28,13 +28,7 @@ inline bool contains (T&& t, U&& ... u) { return ((t == u) || ...); }
 
 template< typename T >
 inline T as (Dict& dict, const char* s) {
-    Object obj;
-
-    if (0 == dict.lookup (s, &obj)) {
-        throw std::runtime_error (format ("missing key {}", s));
-    }
-
-    return obj.cast< T > ();
+    return dict.at (s).cast< T > ();
 }
 
 template< typename T >
@@ -85,9 +79,9 @@ inline auto as_array< std::tuple< double, double > > (Object& src) {
 
 template< typename T >
 inline auto as_array (Dict& dict, const char* s) {
-    Object obj;
+    auto obj = resolve (dict [s]);
 
-    if (0 == dict.lookup (s, &obj) || obj.is_null ()) {
+    if (obj.is_null ()) {
         throw std::runtime_error (format ("missing array \"{}\"", s));
     }
 
@@ -96,9 +90,9 @@ inline auto as_array (Dict& dict, const char* s) {
 
 template< typename T >
 std::vector< T > maybe_array (Dict& dict, const char* s) {
-    Object obj;
+    auto obj = resolve (dict [s]);
 
-    if (0 == dict.lookup (s, &obj) || obj.is_null ()) {
+    if (obj.is_null ()) {
         return { };
     }
 

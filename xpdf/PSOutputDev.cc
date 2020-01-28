@@ -24,7 +24,7 @@
 #include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/Dict.hh>
+#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Form.hh>
 #include <xpdf/function.hh>
@@ -1280,14 +1280,17 @@ void PSOutputDev::writeHeader (
 
     writePSFmt ("%XpdfVersion: {0:s}\n", PACKAGE_VERSION);
     xref->getDocInfo (&info);
-    if (info.is_dict () && info.dictLookup ("Creator", &obj1)->is_string ()) {
+
+    if (info.is_dict () && (obj1 = resolve (info.as_dict ()["Creator"])).is_string ()) {
         writePS ("%%Creator: ");
         writePSTextLine (obj1.as_string ());
     }
-    if (info.is_dict () && info.dictLookup ("Title", &obj1)->is_string ()) {
+
+    if (info.is_dict () && (obj1 = resolve (info.as_dict ()["Title"])).is_string ()) {
         writePS ("%%Title: ");
         writePSTextLine (obj1.as_string ());
     }
+
     writePSFmt (
         "%%LanguageLevel: {0:d}\n",
         (level == psLevel1 || level == psLevel1Sep)
@@ -1432,8 +1435,8 @@ void PSOutputDev::writeDocSetup (
         annots = new Annots (doc, page->getAnnots ());
         for (i = 0; i < annots->getNumAnnots (); ++i) {
             if ((obj1 = annots->getAnnot (i)->getAppearance ()).is_stream ()) {
-                obj1.streamGetDict ()->lookup ("Resources", &obj2);
-                if (obj2.is_dict ()) { setupResources (obj2.as_dict ()); }
+                obj2 = resolve ((*obj1.streamGetDict ()) ["Resources"]);
+                if (obj2.is_dict ()) { setupResources (&obj2.as_dict ()); }
             }
         }
         delete annots;
@@ -1444,11 +1447,11 @@ void PSOutputDev::writeDocSetup (
             if (obj1.is_array ()) {
                 for (j = 0; j < obj1.as_array ().size (); ++j) {
                     obj2 = resolve (obj1 [j]);
-                    if (obj2.is_dict ()) { setupResources (obj2.as_dict ()); }
+                    if (obj2.is_dict ()) { setupResources (&obj2.as_dict ()); }
                 }
             }
             else if (obj1.is_dict ()) {
-                setupResources (obj1.as_dict ());
+                setupResources (&obj1.as_dict ());
             }
         }
     }
@@ -1518,7 +1521,7 @@ void PSOutputDev::writeTrailer () {
 }
 
 void PSOutputDev::setupResources (Dict* resDict) {
-    Object xObjDict, xObjRef, xObj, patDict, patRef, pat;
+    Object xObjDict, xObjRef, patDict, patRef;
     Object gsDict, gsRef, gs, smask, smaskGroup, resObj;
     Ref ref0;
     bool skip;
@@ -1528,13 +1531,17 @@ void PSOutputDev::setupResources (Dict* resDict) {
     setupImages (resDict);
 
     //----- recursively scan XObjects
-    resDict->lookup ("XObject", &xObjDict);
+    xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on XObjects
             skip = false;
-            if ((xObjDict.dictGetValNF (i, &xObjRef)->is_ref ())) {
+
+            auto& xObjRef = xObjDict.val_at (i);
+
+            if (xObjRef.is_ref ()) {
                 ref0 = xObjRef.as_ref ();
+
                 for (j = 0; j < xobjStack.size (); ++j) {
                     auto& ref1 = xobjStack [j];
                     if (ref1 == ref0) {
@@ -1544,13 +1551,15 @@ void PSOutputDev::setupResources (Dict* resDict) {
                 }
                 if (!skip) { xobjStack.push_back (ref0); }
             }
+
             if (!skip) {
                 // process the XObject's resource dictionary
-                xObjDict.dictGetVal (i, &xObj);
+                auto& xObj = xObjDict.val_at (i);
+
                 if (xObj.is_stream ()) {
-                    xObj.streamGetDict ()->lookup ("Resources", &resObj);
+                    resObj = resolve ((*xObj.streamGetDict ()) ["Resources"]);
                     if (resObj.is_dict ()) {
-                        setupResources (resObj.as_dict ());
+                        setupResources (&resObj.as_dict ());
                     }
                 }
             }
@@ -1562,14 +1571,18 @@ void PSOutputDev::setupResources (Dict* resDict) {
     }
 
     //----- recursively scan Patterns
-    resDict->lookup ("Pattern", &patDict);
+    patDict = resolve ((*resDict) ["Pattern"]);
     if (patDict.is_dict ()) {
         inType3Char = true;
-        for (i = 0; i < patDict.dictGetLength (); ++i) {
+        for (i = 0; i < patDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on Patterns
             skip = false;
-            if ((patDict.dictGetValNF (i, &patRef)->is_ref ())) {
+
+            auto& patRef = patDict.val_at (i);
+
+            if (patRef.is_ref ()) {
                 ref0 = patRef.as_ref ();
+
                 for (j = 0; j < xobjStack.size (); ++j) {
                     auto& ref1 = xobjStack [j];
                     if (ref1 == ref0) {
@@ -1581,11 +1594,12 @@ void PSOutputDev::setupResources (Dict* resDict) {
             }
             if (!skip) {
                 // process the Pattern's resource dictionary
-                patDict.dictGetVal (i, &pat);
+                auto& pat = patDict.val_at (i);
+
                 if (pat.is_stream ()) {
-                    pat.streamGetDict ()->lookup ("Resources", &resObj);
+                    resObj = resolve ((*pat.streamGetDict ()) ["Resources"]);
                     if (resObj.is_dict ()) {
-                        setupResources (resObj.as_dict ());
+                        setupResources (&resObj.as_dict ());
                     }
                 }
             }
@@ -1598,12 +1612,15 @@ void PSOutputDev::setupResources (Dict* resDict) {
     }
 
     //----- recursively scan SMask transparency groups in ExtGState dicts
-    resDict->lookup ("ExtGState", &gsDict);
+    gsDict = resolve ((*resDict) ["ExtGState"]);
     if (gsDict.is_dict ()) {
-        for (i = 0; i < gsDict.dictGetLength (); ++i) {
+        for (i = 0; i < gsDict.as_dict ().size (); ++i) {
             // avoid infinite recursion on ExtGStates
             skip = false;
-            if ((gsDict.dictGetValNF (i, &gsRef)->is_ref ())) {
+
+            auto& gsRef = gsDict.val_at (i);
+
+            if (gsRef.is_ref ()) {
                 ref0 = gsRef.as_ref ();
                 for (j = 0; j < xobjStack.size (); ++j) {
                     auto& ref1 = xobjStack [j];
@@ -1614,15 +1631,17 @@ void PSOutputDev::setupResources (Dict* resDict) {
                 }
                 if (!skip) { xobjStack.push_back (ref0); }
             }
+
             if (!skip) {
                 // process the ExtGState's SMask's transparency group's resource dict
-                if (gsDict.dictGetVal (i, &gs)->is_dict ()) {
-                    if (gs.dictLookup ("SMask", &smask)->is_dict ()) {
-                        if (smask.dictLookup ("G", &smaskGroup)->is_stream ()) {
-                            smaskGroup.streamGetDict ()->lookup (
-                                "Resources", &resObj);
+                auto& gs = gsDict.val_at (i);
+
+                if (gs.is_dict ()) {
+                    if ((smask = resolve (gs.as_dict ()["SMask"])).is_dict ()) {
+                        if ((smaskGroup = resolve (smask.as_dict ()["G"])).is_stream ()) {
+                            resObj = resolve ((*smaskGroup.streamGetDict ()) ["Resources"]);
                             if (resObj.is_dict ()) {
-                                setupResources (resObj.as_dict ());
+                                setupResources (&resObj.as_dict ());
                             }
                         }
                     }
@@ -1646,16 +1665,16 @@ void PSOutputDev::setupFonts (Dict* resDict) {
     int i;
 
     gfxFontDict = NULL;
-    resDict->lookupNF ("Font", &obj1);
+    obj1 = (*resDict) ["Font"];
     if (obj1.is_ref ()) {
         obj2 = resolve (obj1);
         if (obj2.is_dict ()) {
             r = obj1.as_ref ();
-            gfxFontDict = new GfxFontDict (xref, &r, obj2.as_dict ());
+            gfxFontDict = new GfxFontDict (xref, &r, &obj2.as_dict ());
         }
     }
     else if (obj1.is_dict ()) {
-        gfxFontDict = new GfxFontDict (xref, NULL, obj1.as_dict ());
+        gfxFontDict = new GfxFontDict (xref, NULL, &obj1.as_dict ());
     }
     if (gfxFontDict) {
         for (i = 0; i < gfxFontDict->getNumFonts (); ++i) {
@@ -1904,8 +1923,10 @@ PSFontFileInfo* PSOutputDev::setupEmbeddedType1Font (GfxFont* font, Ref* id) {
             "Embedded font stream is missing its dictionary");
         goto err1;
     }
-    dict->lookup ("Length1", &obj1);
-    dict->lookup ("Length2", &obj2);
+
+    obj1 = resolve ((*dict) ["Length1"]);
+    obj2 = resolve ((*dict) ["Length2"]);
+
     if (!obj1.is_int () || !obj2.is_int ()) {
         error (
             errSyntaxError, -1,
@@ -2674,7 +2695,6 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
     GString* psName;
     Dict* resDict;
     Dict* charProcs;
-    Object charProc;
     PDFRectangle box;
     double* m;
     GString* buf;
@@ -2723,7 +2743,7 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
     writePS ("  1 index /BuildGlyph get exec\n");
     writePS ("} bind def\n");
     if ((charProcs = ((Gfx8BitFont*)font)->getCharProcs ())) {
-        writePSFmt ("/CharProcs {0:d} dict def\n", charProcs->getLength ());
+        writePSFmt ("/CharProcs {0:d} dict def\n", charProcs->size ());
         writePS ("CharProcs begin\n");
         box.x1 = m[0];
         box.y1 = m[1];
@@ -2732,14 +2752,16 @@ PSOutputDev::setupType3Font (GfxFont* font, Dict* parentResDict) {
 
         auto gfx = std::make_unique< Gfx > (doc, this, resDict, &box, nullptr);
         inType3Char = true;
-        for (i = 0; i < charProcs->getLength (); ++i) {
+        for (i = 0; i < charProcs->size (); ++i) {
             t3FillColorOnly = false;
             t3Cacheable = false;
             t3NeedsRestore = false;
             writePS ("/");
-            writePSName (charProcs->getKey (i));
+            writePSName (charProcs->key_at (i));
             writePS (" {\n");
-            gfx->display (charProcs->getValNF (i, &charProc));
+
+            // TODO: anitize interface
+            gfx->display (&charProcs->val_at (i));
             if (t3String) {
                 if (t3Cacheable) {
                     buf = GString::format (
@@ -2807,19 +2829,19 @@ GString* PSOutputDev::makePSFontName (GfxFont* font, Ref* id) {
 }
 
 void PSOutputDev::setupImages (Dict* resDict) {
-    Object xObjDict, xObj, xObjRef, subtypeObj, maskObj, maskRef;
+    Object xObjDict, subtypeObj, maskObj, maskRef;
     Ref imgID;
     int i, j;
 
     if (!(mode == psModeForm || inType3Char || preload)) { return; }
 
-    resDict->lookup ("XObject", &xObjDict);
+    xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
-            xObjDict.dictGetValNF (i, &xObjRef);
-            xObjDict.dictGetVal (i, &xObj);
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
+            auto& xObjRef = xObjDict.val_at (i);
+            auto& xObj = xObjDict.val_at (i);
             if (xObj.is_stream ()) {
-                xObj.streamGetDict ()->lookup ("Subtype", &subtypeObj);
+                subtypeObj = resolve ((*xObj.streamGetDict ()) ["Subtype"]);
                 if (subtypeObj.is_name ("Image")) {
                     if (xObjRef.is_ref ()) {
                         imgID = xObjRef.as_ref ();
@@ -2840,10 +2862,8 @@ void PSOutputDev::setupImages (Dict* resDict) {
                             }
                             imgIDs[imgIDLen++] = imgID;
                             setupImage (imgID, xObj.as_stream (), false);
-                            if (level >= psLevel3 &&
-                                xObj.streamGetDict ()
-                                    ->lookup ("Mask", &maskObj)
-                                    ->is_stream ()) {
+                            if (level >= psLevel3 && (
+                                    maskObj = resolve ((*xObj.streamGetDict ()) ["Mask"])).is_stream ()) {
                                 setupImage (imgID, maskObj.as_stream (), true);
                             }
                         }
@@ -2986,18 +3006,18 @@ void PSOutputDev::setupImage (Ref id, Stream* str, bool mask) {
 }
 
 void PSOutputDev::setupForms (Dict* resDict) {
-    Object xObjDict, xObj, xObjRef, subtypeObj;
+    Object xObjDict, subtypeObj;
     int i;
 
     if (!preload) { return; }
 
-    resDict->lookup ("XObject", &xObjDict);
+    xObjDict = resolve ((*resDict) ["XObject"]);
     if (xObjDict.is_dict ()) {
-        for (i = 0; i < xObjDict.dictGetLength (); ++i) {
-            xObjDict.dictGetValNF (i, &xObjRef);
-            xObjDict.dictGetVal (i, &xObj);
+        for (i = 0; i < xObjDict.as_dict ().size (); ++i) {
+            auto& xObjRef = xObjDict.val_at (i);
+            auto& xObj = xObjDict.val_at (i);
             if (xObj.is_stream ()) {
-                xObj.streamGetDict ()->lookup ("Subtype", &subtypeObj);
+                subtypeObj = resolve ((*xObj.streamGetDict ()) ["Subtype"]);
                 if (subtypeObj.is_name ("Form")) {
                     if (xObjRef.is_ref ()) { setupForm (&xObjRef, &xObj); }
                     else {
@@ -3040,7 +3060,7 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     dict = strObj->streamGetDict ();
 
     // get bounding box
-    dict->lookup ("BBox", &bboxObj);
+    bboxObj = resolve ((*dict) ["BBox"]);
     if (!bboxObj.is_array ()) {
         error (errSyntaxError, -1, "Bad form bounding box");
         return;
@@ -3051,7 +3071,7 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     }
 
     // get matrix
-    dict->lookup ("Matrix", &matrixObj);
+    matrixObj = resolve ((*dict) ["Matrix"]);
     if (matrixObj.is_array ()) {
         for (i = 0; i < 6; ++i) {
             obj1 = resolve (matrixObj [i]);
@@ -3068,8 +3088,8 @@ void PSOutputDev::setupForm (Object* strRef, Object* strObj) {
     }
 
     // get resources
-    dict->lookup ("Resources", &resObj);
-    resDict = resObj.is_dict () ? resObj.as_dict () : (Dict*)NULL;
+    resObj = resolve ((*dict) ["Resources"]);
+    resDict = resObj.is_dict () ? &resObj.as_dict () : (Dict*)NULL;
 
     writePSFmt (
         "/f_{0:d}_{1:d} {{\n", strRef->getRefNum (), strRef->getRefGen ());
@@ -6078,13 +6098,13 @@ void PSOutputDev::opiBegin (GfxState* state, Dict* opiDict) {
     Object dict;
 
     if (globalParams->getPSOPI ()) {
-        opiDict->lookup ("2.0", &dict);
+        dict = resolve ((*opiDict) ["2.0"]);
         if (dict.is_dict ()) {
-            opiBegin20 (state, dict.as_dict ());
+            opiBegin20 (state, &dict.as_dict ());
         }
         else {
-            opiDict->lookup ("1.3", &dict);
-            if (dict.is_dict ()) { opiBegin13 (state, dict.as_dict ()); }
+            dict = resolve ((*opiDict) ["1.3"]);
+            if (dict.is_dict ()) { opiBegin13 (state, &dict.as_dict ()); }
         }
     }
 }
@@ -6098,12 +6118,12 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
     writePS ("%%BeginOPI: 2.0\n");
     writePS ("%%Distilled\n");
 
-    dict->lookup ("F", &obj1);
+    obj1 = resolve ((*dict) ["F"]);
     if (getFileSpec (&obj1, &obj2)) {
         writePSFmt ("%%ImageFileName: {0:t}\n", obj2.as_string ());
     }
 
-    dict->lookup ("MainImage", &obj1);
+    obj1 = resolve ((*dict) ["MainImage"]);
     if (obj1.is_string ()) {
         writePSFmt ("%%MainImage: {0:t}\n", obj1.as_string ());
     }
@@ -6111,7 +6131,7 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
     //~ ignoring 'Tags' entry
     //~ need to use writePSString() and deal with >255-char lines
 
-    dict->lookup ("Size", &obj1);
+    obj1 = resolve ((*dict) ["Size"]);
     if (obj1.is_array () && obj1.as_array ().size () == 2) {
         obj2 = resolve (obj1 [0]);
         width = obj2.as_num ();
@@ -6120,7 +6140,7 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
         writePSFmt ("%%ImageDimensions: {0:.6g} {1:.6g}\n", width, height);
     }
 
-    dict->lookup ("CropRect", &obj1);
+    obj1 = resolve ((*dict) ["CropRect"]);
     if (obj1.is_array () && obj1.as_array ().size () == 4) {
         obj2 = resolve (obj1 [0]);
         left = obj2.as_num ();
@@ -6135,13 +6155,13 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
             right, bottom);
     }
 
-    dict->lookup ("Overprint", &obj1);
+    obj1 = resolve ((*dict) ["Overprint"]);
     if (obj1.is_bool ()) {
         writePSFmt (
             "%%ImageOverprint: {0:s}\n", obj1.as_bool () ? "true" : "false");
     }
 
-    dict->lookup ("Inks", &obj1);
+    obj1 = resolve ((*dict) ["Inks"]);
     if (obj1.is_name ()) {
         writePSFmt ("%%ImageInks: {0:s}\n", obj1.as_name ());
     }
@@ -6168,7 +6188,7 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
 
     writePS ("%%BeginIncludedImage\n");
 
-    dict->lookup ("IncludedImageDimensions", &obj1);
+    obj1 = resolve ((*dict) ["IncludedImageDimensions"]);
     if (obj1.is_array () && obj1.as_array ().size () == 2) {
         obj2 = resolve (obj1 [0]);
         w = obj2.as_int ();
@@ -6177,7 +6197,7 @@ void PSOutputDev::opiBegin20 (GfxState* state, Dict* dict) {
         writePSFmt ("%%IncludedImageDimensions: {0:d} {1:d}\n", w, h);
     }
 
-    dict->lookup ("IncludedImageQuality", &obj1);
+    obj1 = resolve ((*dict) ["IncludedImageQuality"]);
     if (obj1.is_num ()) {
         writePSFmt ("%%IncludedImageQuality: {0:.4g}\n", obj1.as_num ());
     }
@@ -6198,12 +6218,12 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     writePS ("/opiMatrix2 matrix currentmatrix def\n");
     writePS ("opiMatrix setmatrix\n");
 
-    dict->lookup ("F", &obj1);
+    obj1 = resolve ((*dict) ["F"]);
     if (getFileSpec (&obj1, &obj2)) {
         writePSFmt ("%ALDImageFileName: {0:t}\n", obj2.as_string ());
     }
 
-    dict->lookup ("CropRect", &obj1);
+    obj1 = resolve ((*dict) ["CropRect"]);
     if (obj1.is_array () && obj1.as_array ().size () == 4) {
         obj2 = resolve (obj1 [0]);
         left = obj2.as_int ();
@@ -6218,7 +6238,7 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
             bottom);
     }
 
-    dict->lookup ("Color", &obj1);
+    obj1 = resolve ((*dict) ["Color"]);
     if (obj1.is_array () && obj1.as_array ().size () == 5) {
         obj2 = resolve (obj1 [0]);
         c = obj2.as_num ();
@@ -6237,7 +6257,7 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
         }
     }
 
-    dict->lookup ("ColorType", &obj1);
+    obj1 = resolve ((*dict) ["ColorType"]);
     if (obj1.is_name ()) {
         writePSFmt ("%ALDImageColorType: {0:s}\n", obj1.as_name ());
     }
@@ -6245,7 +6265,7 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     //~ ignores 'Comments' entry
     //~ need to handle multiple lines
 
-    dict->lookup ("CropFixed", &obj1);
+    obj1 = resolve ((*dict) ["CropFixed"]);
     if (obj1.is_array ()) {
         obj2 = resolve (obj1 [0]);
         ulx = obj2.as_num ();
@@ -6260,7 +6280,7 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
             lrx, lry);
     }
 
-    dict->lookup ("GrayMap", &obj1);
+    obj1 = resolve ((*dict) ["GrayMap"]);
     if (obj1.is_array ()) {
         writePS ("%ALDImageGrayMap:");
         for (i = 0; i < obj1.as_array ().size (); i += 16) {
@@ -6273,12 +6293,12 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
         writePS ("\n");
     }
 
-    dict->lookup ("ID", &obj1);
+    obj1 = resolve ((*dict) ["ID"]);
     if (obj1.is_string ()) {
         writePSFmt ("%ALDImageID: {0:t}\n", obj1.as_string ());
     }
 
-    dict->lookup ("ImageType", &obj1);
+    obj1 = resolve ((*dict) ["ImageType"]);
     if (obj1.is_array () && obj1.as_array ().size () == 2) {
         obj2 = resolve (obj1 [0]);
         samples = obj2.as_int ();
@@ -6287,13 +6307,13 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
         writePSFmt ("%ALDImageType: {0:d} {1:d}\n", samples, bits);
     }
 
-    dict->lookup ("Overprint", &obj1);
+    obj1 = resolve ((*dict) ["Overprint"]);
     if (obj1.is_bool ()) {
         writePSFmt (
             "%ALDImageOverprint: {0:s}\n", obj1.as_bool () ? "true" : "false");
     }
 
-    dict->lookup ("Position", &obj1);
+    obj1 = resolve ((*dict) ["Position"]);
     if (obj1.is_array () && obj1.as_array ().size () == 8) {
         obj2 = resolve (obj1 [0]);
         llx = obj2.as_num ();
@@ -6321,7 +6341,7 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
             tllx, tlly, tulx, tuly, turx, tury, tlrx, tlry);
     }
 
-    dict->lookup ("Resolution", &obj1);
+    obj1 = resolve ((*dict) ["Resolution"]);
     if (obj1.is_array () && obj1.as_array ().size () == 2) {
         obj2 = resolve (obj1 [0]);
         horiz = obj2.as_num ();
@@ -6330,7 +6350,7 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
         writePSFmt ("%ALDImageResoution: {0:.4g} {1:.4g}\n", horiz, vert);
     }
 
-    dict->lookup ("Size", &obj1);
+    obj1 = resolve ((*dict) ["Size"]);
     if (obj1.is_array () && obj1.as_array ().size () == 2) {
         obj2 = resolve (obj1 [0]);
         width = obj2.as_int ();
@@ -6342,12 +6362,12 @@ void PSOutputDev::opiBegin13 (GfxState* state, Dict* dict) {
     //~ ignoring 'Tags' entry
     //~ need to use writePSString() and deal with >255-char lines
 
-    dict->lookup ("Tint", &obj1);
+    obj1 = resolve ((*dict) ["Tint"]);
     if (obj1.is_num ()) {
         writePSFmt ("%ALDImageTint: {0:.4g}\n", obj1.as_num ());
     }
 
-    dict->lookup ("Transparency", &obj1);
+    obj1 = resolve ((*dict) ["Transparency"]);
     if (obj1.is_bool ()) {
         writePSFmt (
             "%ALDImageTransparency: {0:s}\n",
@@ -6391,7 +6411,7 @@ void PSOutputDev::opiEnd (GfxState* state, Dict* opiDict) {
     Object dict;
 
     if (globalParams->getPSOPI ()) {
-        opiDict->lookup ("2.0", &dict);
+        dict = resolve ((*opiDict) ["2.0"]);
         if (dict.is_dict ()) {
             writePS ("%%EndIncludedImage\n");
             writePS ("%%EndOPI\n");
@@ -6399,7 +6419,7 @@ void PSOutputDev::opiEnd (GfxState* state, Dict* opiDict) {
             --opi20Nest;
         }
         else {
-            opiDict->lookup ("1.3", &dict);
+            dict = resolve ((*opiDict) ["1.3"]);
             if (dict.is_dict ()) {
                 writePS ("%%EndObject\n");
                 writePS ("restore\n");
@@ -6415,16 +6435,16 @@ bool PSOutputDev::getFileSpec (Object* fileSpec, Object* fileName) {
     }
 
     if (fileSpec->is_dict ()) {
-        fileSpec->dictLookup ("DOS", fileName);
+        *fileName = resolve (dileSpec->as_dict ()["DOS"]);
         if (fileName->is_string ()) { return true; }
 
-        fileSpec->dictLookup ("Mac", fileName);
+        *fileName = resolve (dileSpec->as_dict ()["Mac"]);
         if (fileName->is_string ()) { return true; }
 
-        fileSpec->dictLookup ("Unix", fileName);
+        *fileName = resolve (dileSpec->as_dict ()["Unix"]);
         if (fileName->is_string ()) { return true; }
 
-        fileSpec->dictLookup ("F", fileName);
+        *fileName = resolve (dileSpec->as_dict ()["F"]);
         if (fileName->is_string ()) { return true; }
     }
 
