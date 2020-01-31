@@ -16,39 +16,39 @@
 // in the object structure.
 #define recursionLimit 500
 
-static inline bool is_keyword (const xpdf::lexer_t::token_t& tok) {
-    return tok.type == xpdf::lexer_t::token_t::KEYWORD_;
+static inline bool is_keyword (const Lexer::token_t& tok) {
+    return tok.type == Lexer::token_t::KEYWORD_;
 }
 
-static inline bool is_keyword (const xpdf::lexer_t::token_t& tok, const char* s) {
-    return tok.type == xpdf::lexer_t::token_t::KEYWORD_ && tok.s == s;
+static inline bool is_keyword (const Lexer::token_t& tok, const char* s) {
+    return tok.type == Lexer::token_t::KEYWORD_ && tok.s == s;
 }
 
-static inline bool is_eof (const xpdf::lexer_t::token_t& tok) {
-    return tok.type == xpdf::lexer_t::token_t::EOF_;
+static inline bool is_eof (const Lexer::token_t& tok) {
+    return tok.type == Lexer::token_t::EOF_;
 }
 
-static inline bool is_error (const xpdf::lexer_t::token_t& tok) {
-    return tok.type == xpdf::lexer_t::token_t::ERROR_;
+static inline bool is_error (const Lexer::token_t& tok) {
+    return tok.type == Lexer::token_t::ERROR_;
 }
 
-static inline bool is_int (const xpdf::lexer_t::token_t& tok) {
-    return tok.type == xpdf::lexer_t::token_t::INT_;
+static inline bool is_int (const Lexer::token_t& tok) {
+    return tok.type == Lexer::token_t::INT_;
 }
 
-static inline bool is_string (const xpdf::lexer_t::token_t& tok) {
-    return tok.type == xpdf::lexer_t::token_t::STRING_;
+static inline bool is_string (const Lexer::token_t& tok) {
+    return tok.type == Lexer::token_t::STRING_;
 }
 
-static inline bool is_name (const xpdf::lexer_t::token_t& tok) {
-    return tok.type == xpdf::lexer_t::token_t::NAME_;
+static inline bool is_name (const Lexer::token_t& tok) {
+    return tok.type == Lexer::token_t::NAME_;
 }
 
-static inline Object make_generic_object (const xpdf::lexer_t::token_t& tok) {
+static inline Object make_generic_object (const Lexer::token_t& tok) {
     Object obj;
 
 #define XPDF_CASE_DEF(tok, name, ...)                                   \
-    case xpdf::lexer_t::token_t::tok:                                   \
+    case Lexer::token_t::tok:                                   \
         obj = XPDF_CAT (XPDF_CAT(xpdf::make_, name), _obj) (__VA_ARGS__); \
         break
 
@@ -72,7 +72,7 @@ static inline Object make_generic_object (const xpdf::lexer_t::token_t& tok) {
     return obj;
 }
 
-Parser::Parser (XRef* xrefA, xpdf::lexer_t* lexerA, bool allowStreamsA) {
+Parser::Parser (XRef* xrefA, Lexer* lexerA, bool allowStreamsA) {
     xref = xrefA;
     lexer = lexerA;
 
@@ -316,7 +316,7 @@ void Parser::shift () {
 
     if (inlineImg > 0){
         // don't buffer inline image data
-        buf2 = { xpdf::lexer_t::token_t::NULL_, { } };
+        buf2 = { Lexer::token_t::NULL_, { } };
     }
     else {
         buf2 = lexer->next ();

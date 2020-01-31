@@ -11,7 +11,7 @@
 
 #include <xpdf/array.hh>
 #include <xpdf/Error.hh>
-#include <xpdf/lexer.hh>
+#include <xpdf/Lexer.hh>
 
 static const char specialChars [256] = {
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, // 0x
@@ -46,9 +46,7 @@ static inline Array make_array (Object* pobj = 0) {
     }
 }
 
-namespace xpdf {
-
-lexer_t::lexer_t (Stream* pstr)
+Lexer::Lexer (Stream* pstr)
     : streams (make_array ()) {
     // TODO: array of streams and nested parsing need some std-ing.
     streams.push_back (curStr = xpdf::make_stream_obj (pstr));
@@ -56,7 +54,7 @@ lexer_t::lexer_t (Stream* pstr)
     curStr.streamReset ();
 }
 
-lexer_t::lexer_t (Object* pobj)
+Lexer::Lexer (Object* pobj)
     : streams (make_array (pobj)) {
     strPtr = 0;
 
@@ -66,14 +64,14 @@ lexer_t::lexer_t (Object* pobj)
     }
 }
 
-lexer_t::~lexer_t () {
+Lexer::~Lexer () {
     if (!curStr.is_none ()) {
         curStr.streamClose ();
         curStr = { };
     }
 }
 
-int lexer_t::getChar () {
+int Lexer::getChar () {
     int c = EOF;
 
     while (!curStr.is_none () && (c = curStr.streamGetChar ()) == EOF) {
@@ -89,7 +87,7 @@ int lexer_t::getChar () {
     return c;
 }
 
-int lexer_t::lookChar () {
+int Lexer::lookChar () {
     if (curStr.is_none ()) {
         return EOF;
     }
@@ -97,7 +95,7 @@ int lexer_t::lookChar () {
     return curStr.streamLookChar ();
 }
 
-lexer_t::token_t lexer_t::next () {
+Lexer::token_t Lexer::next () {
     int c;
 
     //
@@ -432,7 +430,7 @@ doReal:
     return { };
 }
 
-void lexer_t::skipToNextLine () {
+void Lexer::skipToNextLine () {
     int c;
 
     while (1) {
@@ -445,8 +443,6 @@ void lexer_t::skipToNextLine () {
     }
 }
 
-bool lexer_t::isSpace (int c) {
+bool Lexer::isSpace (int c) {
     return c >= 0 && c <= 0xff && specialChars[c] == 1;
 }
-
-} // namespace xpdf

@@ -17,7 +17,7 @@
 #include <xpdf/array.hh>
 #include <xpdf/dict.hh>
 #include <xpdf/Stream.hh>
-#include <xpdf/lexer.hh>
+#include <xpdf/Lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>
@@ -541,7 +541,7 @@ void Gfx::display (Object* objRef, bool topLevel) {
         throw std::runtime_error ("not a content stream");
     }
 
-    parser = new Parser (xref, new xpdf::lexer_t (&obj), false);
+    parser = new Parser (xref, new Lexer (&obj), false);
     go (topLevel);
 
     delete parser;
@@ -4145,7 +4145,7 @@ void Gfx::opBeginImage (Object args[], int numArgs) {
         c1 = str->getUndecodedStream ()->getChar ();
         c2 = str->getUndecodedStream ()->getChar ();
         c3 = str->getUndecodedStream ()->lookChar ();
-        while (!(c1 == 'E' && c2 == 'I' && xpdf::lexer_t::isSpace (c3)) && c3 != EOF) {
+        while (!(c1 == 'E' && c2 == 'I' && Lexer::isSpace (c3)) && c3 != EOF) {
             c1 = c2;
             c2 = str->getUndecodedStream ()->getChar ();
             c3 = str->getUndecodedStream ()->lookChar ();

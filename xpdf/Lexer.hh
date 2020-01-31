@@ -14,12 +14,10 @@
 class XRef;
 
 //------------------------------------------------------------------------
-// lexer_t
+// Lexer
 //------------------------------------------------------------------------
 
-namespace xpdf {
-
-struct lexer_t {
+struct Lexer {
     struct token_t {
         enum {
             ERROR_,
@@ -37,14 +35,14 @@ struct lexer_t {
 
     // Construct a lexer for a single stream.  Deletes the stream when
     // lexer is deleted.
-    lexer_t (Stream* str);
+    Lexer (Stream* str);
 
     // Construct a lexer for a stream or array of streams (assumes obj
     // is either a stream or array of streams).
-    lexer_t (Object* obj);
+    Lexer (Object* obj);
 
     // Destructor.
-    ~lexer_t ();
+    ~Lexer ();
 
     // Get the next object from the input stream.
     token_t next ();
@@ -83,7 +81,5 @@ private:
 
     size_t strPtr;          // index of current stream
 };
-
-} // namespace xpdf
 
 #endif // XPDF_XPDF_LEXER_HH

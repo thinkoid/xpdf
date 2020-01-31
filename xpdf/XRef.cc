@@ -16,7 +16,7 @@
 
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
-#include <xpdf/lexer.hh>
+#include <xpdf/Lexer.hh>
 #include <xpdf/Parser.hh>
 #include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
@@ -196,7 +196,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
 
     str = new EmbedStream (objStr.as_stream (), &obj1, true, first);
 
-    Parser parser (xref, new xpdf::lexer_t (str), false);
+    Parser parser (xref, new Lexer (str), false);
 
     for (i = 0; i < nObjects; ++i) {
         parser.getObj (&obj1, true);
@@ -233,7 +233,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
                 objStr.as_stream (), &obj1, true, offsets[i + 1] - offsets[i]);
         }
 
-        Parser parser (xref, new xpdf::lexer_t (str), false);
+        Parser parser (xref, new Lexer (str), false);
         parser.getObj (&objs[i]);
 
         while (str->getChar () != EOF) ;
@@ -375,12 +375,12 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
     // preceded by whitespace
     str->setPos (start + *pos);
     n = str->getBlock (buf, 100);
-    for (i = 0; i < n && xpdf::lexer_t::isSpace (buf[i]); ++i)
+    for (i = 0; i < n && Lexer::isSpace (buf[i]); ++i)
         ;
 
     // parse an old-style xref table
     if (i + 4 < n && buf[i] == 'x' && buf[i + 1] == 'r' && buf[i + 2] == 'e' &&
-        buf[i + 3] == 'f' && xpdf::lexer_t::isSpace (buf[i + 4])) {
+        buf[i + 3] == 'f' && Lexer::isSpace (buf[i + 4])) {
         more = readXRefTable (pos, i + 5, posSet);
 
         // parse an xref stream
@@ -390,7 +390,7 @@ bool XRef::readXRef (GFileOffset* pos, XRefPosSet* posSet) {
 
         Parser parser (
             NULL,
-            new xpdf::lexer_t (
+            new Lexer (
                 str->makeSubStream (start + *pos, false, 0, &obj)),
             true);
 
@@ -429,7 +429,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     str->setPos (start + *pos + offset);
 
     while (1) {
-        do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
+        do { c = str->getChar (); } while (Lexer::isSpace (c));
         if (c == 't') {
             if (str->getBlock (buf, 6) != 6 || memcmp (buf, "railer", 6)) {
                 return ok = false;
@@ -442,14 +442,14 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
             first = (first * 10) + (c - '0');
             c = str->getChar ();
         } while (c >= '0' && c <= '9');
-        if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
-        do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
+        if (!Lexer::isSpace (c)) { return ok = false; }
+        do { c = str->getChar (); } while (Lexer::isSpace (c));
         n = 0;
         do {
             n = (n * 10) + (c - '0');
             c = str->getChar ();
         } while (c >= '0' && c <= '9');
-        if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
+        if (!Lexer::isSpace (c)) { return ok = false; }
         if (first < 0 || n < 0 || first > INT_MAX - n) { return ok = false; }
         if (first + n > size) {
             for (newSize = size ? 2 * size : 1024;
@@ -465,23 +465,23 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
             size = newSize;
         }
         for (i = first; i < first + n; ++i) {
-            do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
+            do { c = str->getChar (); } while (Lexer::isSpace (c));
             off = 0;
             do {
                 off = (off * 10) + (c - '0');
                 c = str->getChar ();
             } while (c >= '0' && c <= '9');
-            if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
+            if (!Lexer::isSpace (c)) { return ok = false; }
             entry.offset = off;
-            do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
+            do { c = str->getChar (); } while (Lexer::isSpace (c));
             gen = 0;
             do {
                 gen = (gen * 10) + (c - '0');
                 c = str->getChar ();
             } while (c >= '0' && c <= '9');
-            if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
+            if (!Lexer::isSpace (c)) { return ok = false; }
             entry.gen = gen;
-            do { c = str->getChar (); } while (xpdf::lexer_t::isSpace (c));
+            do { c = str->getChar (); } while (Lexer::isSpace (c));
             if (c == 'n') { entry.type = xrefEntryUncompressed; }
             else if (c == 'f') {
                 entry.type = xrefEntryFree;
@@ -490,7 +490,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
                 return ok = false;
             }
             c = str->getChar ();
-            if (!xpdf::lexer_t::isSpace (c)) { return ok = false; }
+            if (!Lexer::isSpace (c)) { return ok = false; }
             if (entries[i].offset == (GFileOffset)-1) {
                 entries[i] = entry;
                 // PDF files of patents from the IBM Intellectual Property
@@ -513,7 +513,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
 
     Parser parser (
         NULL,
-        new xpdf::lexer_t (str->makeSubStream (str->getPos (), false, 0, &obj)),
+        new Lexer (str->makeSubStream (str->getPos (), false, 0, &obj)),
         true);
 
     parser.getObj (&obj);
@@ -725,7 +725,7 @@ bool XRef::constructXRef () {
         p = buf;
 
         // skip whitespace
-        while (*p && xpdf::lexer_t::isSpace (*p & 0xff)) ++p;
+        while (*p && Lexer::isSpace (*p & 0xff)) ++p;
 
         // got trailer dictionary
         if (!strncmp (p, "trailer", 7)) {
@@ -733,7 +733,7 @@ bool XRef::constructXRef () {
 
             Parser parser (
                 NULL,
-                new xpdf::lexer_t (str->makeSubStream (pos + 7, false, 0, &obj)),
+                new Lexer (str->makeSubStream (pos + 7, false, 0, &obj)),
                 false);
 
             parser.getObj (&newTrailerDict);
@@ -861,7 +861,7 @@ Object* XRef::fetch (int num, int gen, Object* obj, int recursion) {
 
         Parser parser (
             this,
-            new xpdf::lexer_t (
+            new Lexer (
                 str->makeSubStream (start + e->offset, false, 0, &obj1)),
             true);
 

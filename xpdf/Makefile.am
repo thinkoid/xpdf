@@ -6,84 +6,68 @@ include $(top_srcdir)/Makefile.common
 
 noinst_LIBRARIES = libxpdf.a
 libxpdf_a_SOURCES =                             \
-   AcroForm.cc                                  \
-   Annot.cc                                     \
-   BuiltinFont.cc                               \
-   BuiltinFontTables.cc                         \
-   CMap.cc                                      \
-   Catalog.cc                                   \
-   CharCodeToUnicode.cc                         \
-   CoreOutputDev.cc                             \
-   Decrypt.cc                                   \
-   Error.cc                                     \
-   FontEncodingTables.cc                        \
-   Form.cc                                      \
-   Gfx.cc                                       \
-   GfxFont.cc                                   \
-   GfxState.cc                                  \
-   GlobalParams.cc                              \
-   HTMLGen.cc                                   \
-   ImageOutputDev.cc                            \
-   JArithmeticDecoder.cc                        \
-   JBIG2Stream.cc                               \
-   JPXStream.cc                                 \
-   Link.cc                                      \
-   NameToCharCode.cc                            \
-   OptionalContent.cc                           \
-   Outline.cc                                   \
-   OutputDev.cc                                 \
-   PDFCore.cc                                   \
-   PDFDoc.cc                                    \
-   PDFDocEncoding.cc                            \
-   PSOutputDev.cc                               \
-   PSTokenizer.cc                               \
-   Page.cc                                      \
-   Parser.cc                                    \
-   PreScanOutputDev.cc                          \
-   SecurityHandler.cc                           \
-   SplashOutputDev.cc                           \
-   Stream.cc                                    \
-   TextOutputDev.cc                             \
-   TextString.cc                                \
-   UnicodeMap.cc                                \
-   UnicodeTypeTable.cc                          \
-   XFAForm.cc                                   \
-   XRef.cc                                      \
-   Zoox.cc                                      \
-   bitpack.cc                                   \
-   dict.cc                                      \
-   function.cc                                  \
-   lexer.cc                                     \
-   obj.cc                                       \
-   xpdf.cc
+	AcroForm.cc                                 \
+	Annot.cc                                    \
+	BuiltinFont.cc                              \
+	BuiltinFontTables.cc                        \
+	CMap.cc                                     \
+	Catalog.cc                                  \
+	CharCodeToUnicode.cc                        \
+	CoreOutputDev.cc                            \
+	Decrypt.cc                                  \
+	Error.cc                                    \
+	FontEncodingTables.cc                       \
+	Form.cc                                     \
+	Gfx.cc                                      \
+	GfxFont.cc                                  \
+	GfxState.cc                                 \
+	GlobalParams.cc                             \
+	HTMLGen.cc                                  \
+	ImageOutputDev.cc                           \
+	JArithmeticDecoder.cc                       \
+	JBIG2Stream.cc                              \
+	JPXStream.cc                                \
+	Lexer.cc                                    \
+	Link.cc                                     \
+	NameToCharCode.cc                           \
+	OptionalContent.cc                          \
+	Outline.cc                                  \
+	OutputDev.cc                                \
+	PDFCore.cc                                  \
+	PDFDoc.cc                                   \
+	PDFDocEncoding.cc                           \
+	PSOutputDev.cc                              \
+	PSTokenizer.cc                              \
+	Page.cc                                     \
+	Parser.cc                                   \
+	parser/ctype.cc                             \
+	PreScanOutputDev.cc                         \
+	SecurityHandler.cc                          \
+	SplashOutputDev.cc                          \
+	Stream.cc                                   \
+	TextOutputDev.cc                            \
+	TextString.cc                               \
+	UnicodeMap.cc                               \
+	UnicodeTypeTable.cc                         \
+	XFAForm.cc                                  \
+	XRef.cc                                     \
+	Zoox.cc                                     \
+	bitpack.cc                                  \
+	dict.cc                                     \
+	function.cc                                 \
+	obj.cc                                      \
+	xpdf.cc
 
-bin_PROGRAMS = xpdfview
-#   pdfdetach
-#   pdffonts
-#   pdfimages
-#   pdfinfo
-#   pdftohtml
-#   pdftopng
-#   pdftoppm
-#   pdftops
-#   pdftotext
+bin_PROGRAMS = xpdf3 xpdf4
 
-xpdfview_SOURCES = xpdfview.cc                  \
+xpdf3_SOURCES = xpdf3.cc                        \
    XPDFApp.cc                                   \
    XPDFAppRes.cc                                \
    XPDFCore.cc                                  \
    XPDFTree.cc                                  \
    XPDFUI.cc
 
-#pdfdetach_SOURCES = pdfdetach.cc
-#pdffonts_SOURCES = pdffonts.cc
-#pdfimages_SOURCES = pdfimages.cc
-#pdfinfo_SOURCES = pdfinfo.cc
-#pdftohtml_SOURCES = pdftohtml.cc
-#pdftopng_SOURCES = pdftopng.cc
-#pdftoppm_SOURCES = pdftoppm.cc
-#pdftops_SOURCES = pdftops.cc
-#pdftotext_SOURCES = pdftotext.cc
+xpdf4_SOURCES = xpdf4.cc
 
 AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
 

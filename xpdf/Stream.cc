@@ -18,7 +18,7 @@
 #include <xpdf/GfxState.hh>
 #include <xpdf/JBIG2Stream.hh>
 #include <xpdf/JPXStream.hh>
-#include <xpdf/lexer.hh>
+#include <xpdf/Lexer.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/Stream-CCITT.hh>
 #include <xpdf/Stream.hh>
@@ -878,7 +878,7 @@ int ASCII85Stream::lookChar () {
     if (index >= n) {
         if (eof) return EOF;
         index = 0;
-        do { c[0] = str->getChar (); } while (xpdf::lexer_t::isSpace (c[0]));
+        do { c[0] = str->getChar (); } while (Lexer::isSpace (c[0]));
         if (c[0] == '~' || c[0] == EOF) {
             eof = true;
             n = 0;
@@ -890,7 +890,7 @@ int ASCII85Stream::lookChar () {
         }
         else {
             for (k = 1; k < 5; ++k) {
-                do { c[k] = str->getChar (); } while (xpdf::lexer_t::isSpace (c[k]));
+                do { c[k] = str->getChar (); } while (Lexer::isSpace (c[k]));
                 if (c[k] == '~' || c[k] == EOF) break;
             }
             n = k - 1;

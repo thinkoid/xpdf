@@ -23,28 +23,6 @@ using fmt::format;
 
 namespace xpdf {
 
-namespace detail {
-
-template< typename T, typename U, typename Enable = void >
-struct cast_t {
-    U operator() (const T&) const { throw_ (); return { }; }
-    U operator() (T&&) const { throw_ (); return { }; }
-private:
-    void throw_ () const { throw std::runtime_error ("invalid cast"); }
-};
-
-template< typename T, typename U>
-using is_convertible_t = typename std::enable_if<
-    std::is_convertible< T, U >::value >::type;
-
-template< typename T, typename U >
-struct cast_t< T, U, is_convertible_t< T, U > >  {
-    U operator() (const T& arg) const { return U (arg); }
-    U operator() (T&& arg) const { return U (std::move (arg)); }
-};
-
-} // namespace detail
-
 template< typename T, typename ... U >
 inline bool contains (T&& t, U&& ... u) { return ((t == u) || ...); }
 

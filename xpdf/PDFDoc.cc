@@ -25,7 +25,7 @@
 #include <xpdf/SecurityHandler.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/XRef.hh>
-#include <xpdf/lexer.hh>
+#include <xpdf/Lexer.hh>
 
 //------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ bool PDFDoc::isLinearized () {
 
     parser = new Parser (
         xref,
-        new xpdf::lexer_t (
+        new Lexer (
             str->makeSubStream (str->getStart (), false, 0, &obj1)),
         true);
 
