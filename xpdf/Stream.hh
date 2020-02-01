@@ -7,8 +7,9 @@
 #include <defs.hh>
 
 #include <cstdio>
-#include <goo/gfile.hh>
+#include <vector>
 
+#include <goo/gfile.hh>
 #include <xpdf/obj.hh>
 
 class BaseStream;
@@ -121,9 +122,6 @@ public:
     virtual void
     getImageParams (int* bitsPerComponent, StreamColorSpaceMode* csMode) {}
 
-    // Return the next stream in the "stack".
-    virtual Stream* getNextStream () { return NULL; }
-
     // Add filters to this stream according to the parameters in <dict>.
     // Returns the new stream.
     Stream* addFilters (Object* dict, int recursion = 0);
@@ -189,8 +187,6 @@ public:
         return const_cast< FilterStream* > (this)->as_dict ();
     }
 
-    virtual Stream* getNextStream () { return str; }
-
 protected:
     Stream* str;
 };
@@ -245,15 +241,12 @@ class StreamPredictor {
 public:
     // Create a predictor object.  Note that the parameters are for the
     // predictor, and may not match the actual image parameters.
-    StreamPredictor (
-        Stream* strA, int predictorA, int widthA, int nCompsA, int nBitsA);
-
+    StreamPredictor (Stream*, int, int, int, int);
     ~StreamPredictor ();
 
     bool isOk () { return ok; }
 
     void reset ();
-
     int lookChar ();
     int getChar ();
     int getBlock (char* blk, int size);
@@ -261,16 +254,20 @@ public:
 private:
     bool getNextLine ();
 
-    Stream* str;      // base stream
-    int predictor;    // predictor
-    int width;        // pixels per line
-    int nComps;       // components per pixel
-    int nBits;        // bits per component
-    int nVals;        // components per line
-    int pixBytes;     // bytes per pixel
-    int rowBytes;     // bytes per line
-    unsigned char* predLine; // line buffer
-    int predIdx;      // current index in predLine
+private:
+    Stream* str;    // base stream
+
+    int predictor;  // predictor
+    int ppl;        // pixels per line
+    int cpp;        // components per pixel
+    int bpc;        // bits per component
+    int cpl;        // components per line
+    int Bpp;        // bytes per pixel
+    int Bpl;        // bytes per line
+
+    int index;                  // current index in ...
+    std::vector< uint8_t > buf; // ... buffer
+
     bool ok;
 };
 

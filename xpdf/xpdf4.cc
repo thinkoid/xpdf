@@ -19,6 +19,28 @@ namespace ast = xpdf::parser::ast;
 #include <range/v3/all.hpp>
 using namespace ranges;
 
+template< typename... Ts> struct overload_ : Ts... { using Ts::operator()...; };
+template< typename... Ts> overload_(Ts...) -> overload_< Ts... >;
+
+namespace xpdf::parser::ast {
+
+inline bool is_array (const obj_t& arg) {
+    return std::visit (overload_ {
+        [](const ast::array_pointer&) { return true; },
+        [](auto&&) { return false; }
+        }, arg);
+}
+
+} // namespace xpdf::parser::ast
+
+static void dump (const ast::doc_t& doc, std::ostream& s) {
+    namespace ast = xpdf::parser::ast;
+
+    for (const auto& [id, obj] : doc.objs) {
+        std::cout << " --> " << id << " : " << ast::is_array (obj) << "\n";
+    }
+}
+
 static bool parse (const fs::path& filename, ast::doc_t& doc) {
     io::mapped_file_source f (filename.c_str ());
 
@@ -44,6 +66,11 @@ int main (int argc, char** argv) {
 
                 assert (s);
                 s.exceptions (std::ios_base::failbit | std::ios_base::badbit);
+
+                dump (doc, s);
+            }
+            else {
+                dump (doc, std::cout);
             }
         }
         else {

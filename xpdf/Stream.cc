@@ -11,6 +11,8 @@
 #include <cstring>
 #include <unistd.h>
 
+#include <iostream>
+
 #include <goo/gfile.hh>
 
 #include <xpdf/dict.hh>
@@ -367,183 +369,252 @@ void ImageStream::skipLine () { str->getBlock (inputLine, inputLineSize); }
 //------------------------------------------------------------------------
 
 StreamPredictor::StreamPredictor (
-    Stream* strA, int predictorA, int widthA, int nCompsA, int nBitsA) {
+    Stream* strA, int predictorA, int pplA, int cppA, int bpcA) {
     str = strA;
     predictor = predictorA;
-    width = widthA;
-    nComps = nCompsA;
-    nBits = nBitsA;
-    predLine = NULL;
+    ppl = pplA;
+    cpp = cppA;
+    bpc = bpcA;
+
     ok = false;
 
-    nVals = width * nComps;
-    pixBytes = (nComps * nBits + 7) >> 3;
-    rowBytes = ((nVals * nBits + 7) >> 3) + pixBytes;
-    if (width <= 0 || nComps <= 0 || nBits <= 0 || nComps > gfxColorMaxComps ||
-        nBits > 16 ||
-        width >= INT_MAX / nComps ||      // check for overflow in nVals
-        nVals >= (INT_MAX - 7) / nBits) { // check for overflow in rowBytes
+    cpl = ppl * cpp;
+
+    Bpp =  (cpp * bpc + 7) / 8;
+    Bpl = ((cpl * bpc + 7) / 8) + Bpp;
+
+    if (ppl <= 0 || cpp <= 0 || bpc <= 0 ||
+        cpp > gfxColorMaxComps ||
+        bpc > 16 ||
+        ppl >= INT_MAX / cpp ||       // check for overflow in cpl
+        cpl >= (INT_MAX - 7) / bpc) { // check for overflow in Bpl
         return;
     }
-    predLine = (unsigned char*)malloc (rowBytes);
 
+    buf.resize (Bpl);
     reset ();
 
     ok = true;
 }
 
-StreamPredictor::~StreamPredictor () { free (predLine); }
+StreamPredictor::~StreamPredictor () { }
 
 void StreamPredictor::reset () {
-    memset (predLine, 0, rowBytes);
-    predIdx = rowBytes;
-}
-
-int StreamPredictor::lookChar () {
-    if (predIdx >= rowBytes) {
-        if (!getNextLine ()) { return EOF; }
-    }
-    return predLine[predIdx];
+    std::fill (buf.begin (), buf.end (), 0);
+    index = Bpl;
 }
 
 int StreamPredictor::getChar () {
-    if (predIdx >= rowBytes) {
-        if (!getNextLine ()) { return EOF; }
-    }
-    return predLine[predIdx++];
+    return index >= Bpl && !getNextLine () ? EOF : buf [index++];
 }
 
-int StreamPredictor::getBlock (char* blk, int size) {
-    int n, m;
+int StreamPredictor::lookChar () {
+    return index >= Bpl && !getNextLine () ? EOF : buf [index];
+}
 
-    n = 0;
+//
+// Read a block of `n' bytes:
+//
+int StreamPredictor::getBlock (char* blk, int size) {
+    int n = 0;
+
     while (n < size) {
-        if (predIdx >= rowBytes) {
-            if (!getNextLine ()) { break; }
+        if (index >= Bpl && !getNextLine ()) {
+            break;
         }
-        m = rowBytes - predIdx;
-        if (m > size - n) { m = size - n; }
-        memcpy (blk + n, predLine + predIdx, m);
-        predIdx += m;
+
+        int m = Bpl - index;
+
+        if (m > size - n) {
+            m = size - n;
+        }
+
+        memcpy (blk + n, buf.data () + index, m);
+
+        index += m;
         n += m;
     }
+
     return n;
 }
 
 bool StreamPredictor::getNextLine () {
-    int curPred;
-    unsigned char upLeftBuf[gfxColorMaxComps * 2 + 1];
+    int current_predictor;
     int left, up, upLeft, p, pa, pb, pc;
     int c;
     size_t inBuf, outBuf, bitMask;
-    int inBits, outBits;
+    int ibpc, outBits;
     int i, j, k, kk;
 
-    // get PNG optimum predictor number
     if (predictor >= 10) {
-        if ((curPred = str->getRawChar ()) == EOF) { return false; }
-        curPred += 10;
-    }
-    else {
-        curPred = predictor;
-    }
-
-    // read the raw line, apply PNG (byte) predictor
-    memset (upLeftBuf, 0, pixBytes + 1);
-    for (i = pixBytes; i < rowBytes; ++i) {
-        for (j = pixBytes; j > 0; --j) { upLeftBuf[j] = upLeftBuf[j - 1]; }
-        upLeftBuf[0] = predLine[i];
-        if ((c = str->getRawChar ()) == EOF) {
-            if (i > pixBytes) {
-                // this ought to return false, but some (broken) PDF files
-                // contain truncated image data, and Adobe apparently reads the
-                // last partial line
-                break;
-            }
+        //
+        // It is a PNG predictor, each line is prefixed with the post-prediction
+        // PNG prediction tag:
+        //
+        // - 10 PNG prediction (on encoding, PNG None on all rows)
+        // - 11 PNG prediction (on encoding, PNG Sub on all rows)
+        // - 12 PNG prediction (on encoding, PNG Up on all rows)
+        // - 13 PNG prediction (on encoding, PNG Average on all rows)
+        // - 14 PNG prediction (on encoding, PNG Paeth on all rows)
+        // - 15 PNG prediction (on encoding, PNG optimum)
+        //
+        // The predictor type is the next byte in the sequence:
+        //
+        if (EOF == (current_predictor = str->getRawChar ())) {
             return false;
         }
-        switch (curPred) {
-        case 11: // PNG sub
-            predLine[i] = predLine[i - pixBytes] + (unsigned char)c;
+
+        current_predictor += 10;
+    }
+    else {
+        current_predictor = predictor;
+    }
+
+    //
+    // Read the raw line, the PNG filter applies at byte level (not pixel
+    // level):
+    //
+    unsigned char upleftbuf [16] = { 0 };
+
+    for (int i = Bpp; i < Bpl; ++i) {
+        //
+        // Rotate right the up-left buffer, by one:
+        //
+        for (int j = Bpp; j > 0; --j) {
+            upleftbuf [j] = upleftbuf [j - 1];
+        }
+
+        //
+        // ... and fill from left with buffer data:
+        //
+        upleftbuf [0] = buf [i];
+
+        if (EOF == (c = str->getRawChar ())) {
+            if (i > Bpp) {
+                //
+                // Fail graciously (mimicking Adobe) when the line is truncated:
+                //
+                break;
+            }
+            else {
+                //
+                // Fail if the line is missing altogether(?):
+                //
+                return false;
+            }
+        }
+
+        switch (current_predictor) {
+        case 11:
+            //
+            // PNG sub:
+            //
+            buf [i] = buf [i - Bpp] + (unsigned char)c;
             break;
-        case 12: // PNG up
-            predLine[i] = predLine[i] + (unsigned char)c;
+
+        case 12:
+            //
+            // PNG up:
+            //
+            buf [i] = buf [i] + (unsigned char)c;
             break;
-        case 13: // PNG average
-            predLine[i] =
-                ((predLine[i - pixBytes] + predLine[i]) >> 1) + (unsigned char)c;
+
+        case 13:
+            //
+            // PNG average:
+            //
+            buf [i] = ((buf [i - Bpp] + buf [i]) / 2) + (unsigned char)c;
             break;
-        case 14: // PNG Paeth
-            left = predLine[i - pixBytes];
-            up = predLine[i];
-            upLeft = upLeftBuf[pixBytes];
+
+        case 14:
+            //
+            // PNG Paeth algorithm:
+            //
+            left = buf [i - Bpp];
+            up = buf [i];
+
+            //
+            //
+            //
+            upLeft = upleftbuf [Bpp];
+
             p = left + up - upLeft;
-            if ((pa = p - left) < 0) pa = -pa;
-            if ((pb = p - up) < 0) pb = -pb;
+
+            if ((pa = p -   left) < 0) pa = -pa;
+            if ((pb = p -     up) < 0) pb = -pb;
             if ((pc = p - upLeft) < 0) pc = -pc;
-            if (pa <= pb && pa <= pc)
-                predLine[i] = left + (unsigned char)c;
-            else if (pb <= pc)
-                predLine[i] = up + (unsigned char)c;
-            else
-                predLine[i] = upLeft + (unsigned char)c;
+
+            if      (pa <= pb && pa <= pc) buf [i] = left   + (unsigned char)c;
+            else if (pb <= pc)             buf [i] = up     + (unsigned char)c;
+            else                           buf [i] = upLeft + (unsigned char)c;
+
             break;
-        case 10: // PNG none
-        default: // no predictor or TIFF predictor
-            predLine[i] = (unsigned char)c;
+
+        case 10:
+            //
+            // PNG none, pass-through:
+            //
+        default:
+            //
+            // No predictor or TIFF predictor:
+            //
+            buf [i] = (unsigned char)c;
             break;
         }
     }
 
-    // apply TIFF (component) predictor
+    //
+    // TIFF (component) predictor:
+    //
     if (predictor == 2) {
-        if (nBits == 8) {
-            for (i = pixBytes; i < rowBytes; ++i) {
-                predLine[i] += predLine[i - nComps];
+        if (bpc == 8) {
+            for (i = Bpp; i < Bpl; ++i) {
+                buf [i] += buf [i - cpp];
             }
         }
-        else if (nBits == 16) {
-            for (i = pixBytes; i < rowBytes; i += 2) {
-                c = ((predLine[i] + predLine[i - 2 * nComps]) << 8) +
-                    predLine[i + 1] + predLine[i + 1 - 2 * nComps];
-                predLine[i] = (unsigned char) (c >> 8);
-                predLine[i + 1] = (unsigned char) (c & 0xff);
+        else if (bpc == 16) {
+            for (i = Bpp; i < Bpl; i += 2) {
+                c = ((buf[i] + buf[i - 2 * cpp]) << 8) + buf[i + 1] + buf[i + 1 - 2 * cpp];
+                buf[i]     = (unsigned char) (c >> 8);
+                buf[i + 1] = (unsigned char) (c & 0xff);
             }
         }
         else {
-            memset (upLeftBuf, 0, nComps);
-            bitMask = (1 << nBits) - 1;
+            memset (upleftbuf, 0, cpp);
+            bitMask = (1 << bpc) - 1;
             inBuf = outBuf = 0;
-            inBits = outBits = 0;
-            j = k = pixBytes;
-            for (i = 0; i < width; ++i) {
-                for (kk = 0; kk < nComps; ++kk) {
-                    if (inBits < nBits) {
-                        inBuf = (inBuf << 8) | (predLine[j++] & 0xff);
-                        inBits += 8;
+            ibpc = outBits = 0;
+            j = k = Bpp;
+            for (i = 0; i < ppl; ++i) {
+                for (kk = 0; kk < cpp; ++kk) {
+                    if (ibpc < bpc) {
+                        inBuf = (inBuf << 8) | (buf[j++] & 0xff);
+                        ibpc += 8;
                     }
-                    upLeftBuf[kk] = (unsigned char) (
-                        (upLeftBuf[kk] + (inBuf >> (inBits - nBits))) &
+                    upleftbuf[kk] = (unsigned char) (
+                        (upleftbuf[kk] + (inBuf >> (ibpc - bpc))) &
                         bitMask);
-                    inBits -= nBits;
-                    outBuf = (outBuf << nBits) | upLeftBuf[kk];
-                    outBits += nBits;
+                    ibpc -= bpc;
+                    outBuf = (outBuf << bpc) | upleftbuf[kk];
+                    outBits += bpc;
                     if (outBits >= 8) {
-                        predLine[k++] = (unsigned char) (outBuf >> (outBits - 8));
+                        buf[k++] = (unsigned char) (outBuf >> (outBits - 8));
                         outBits -= 8;
                     }
                 }
             }
             if (outBits > 0) {
-                predLine[k++] = (unsigned char) (
+                buf[k++] = (unsigned char) (
                     (outBuf << (8 - outBits)) +
                     (inBuf & ((1 << (8 - outBits)) - 1)));
             }
         }
     }
 
-    // reset to start of line
-    predIdx = pixBytes;
+    //
+    // Reset index to start of line:
+    //
+    index = Bpp;
 
     return true;
 }
@@ -926,7 +997,7 @@ bool ASCII85Stream::isBinary (bool last) { return str->isBinary (false); }
 
 LZWStream::LZWStream (
     Stream* strA, int predictor, int columns, int colors, int bits, int earlyA)
-    : FilterStream (strA) {
+    : FilterStream (strA), pred () {
     if (predictor != 1) {
         pred = new StreamPredictor (this, predictor, columns, colors, bits);
         if (!pred->isOk ()) {
@@ -3383,12 +3454,13 @@ static FlateCode flateFixedDistCodeTabCodes[32] = {
     { 5, 0x000f }, { 0, 0x0000 }
 };
 
-FlateHuffmanTab FlateStream::fixedDistCodeTab = { flateFixedDistCodeTabCodes,
-                                                  5 };
+FlateHuffmanTab FlateStream::fixedDistCodeTab = {
+    flateFixedDistCodeTabCodes, 5
+};
 
 FlateStream::FlateStream (
     Stream* strA, int predictor, int columns, int colors, int bits)
-    : FilterStream (strA) {
+    : FilterStream (strA), pred () {
     if (predictor != 1) {
         pred = new StreamPredictor (this, predictor, columns, colors, bits);
         if (!pred->isOk ()) {

@@ -66,12 +66,17 @@ public:
     bool okToChange (bool ignoreOwnerPW = false);
     bool okToCopy (bool ignoreOwnerPW = false);
     bool okToAddNotes (bool ignoreOwnerPW = false);
-    int getPermFlags () { return permFlags; }
 
-    // Get catalog object.
-    Object* getCatalog (Object* obj) { return fetch (rootNum, rootGen, obj); }
+    //
+    // Get catalog object:
+    //
+    Object* getCatalog (Object* obj) {
+        return *obj = fetch (rootNum, rootGen), obj;
+    }
 
-    // Fetch an indirect reference.
+    //
+    // Fetch an indirect reference:
+    //
     Object* fetch (int num, int gen, Object* obj, int recursion = 0);
 
     //
@@ -79,8 +84,7 @@ public:
     //
     Object fetch (int num, int gen = 0, int recursion = 0) {
         Object obj;
-        fetch (num, gen, &obj, recursion);
-        return obj;
+        return fetch (num, gen, &obj, recursion), obj;
     }
 
     Object fetch (const Ref& ref, int recursion = 0) {
@@ -106,7 +110,7 @@ public:
 
     // Direct access.
     int getSize () { return size; }
-    XRefEntry* getEntry (int i) { return &entries[i]; }
+
     Object* getTrailerDict () { return &trailerDict; }
 
 private:

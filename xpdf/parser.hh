@@ -6,9 +6,9 @@
 
 #include <defs.hh>
 
+#include <xpdf/parser/ast.hh>
 #include <xpdf/parser/any.hh>
 #include <xpdf/parser/array.hh>
-#include <xpdf/parser/ast.hh>
 #include <xpdf/parser/character.hh>
 #include <xpdf/parser/comment.hh>
 #include <xpdf/parser/dict.hh>

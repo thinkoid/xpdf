@@ -469,7 +469,6 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
     }
 
     if (f) {
-        printf (" --> %s\n", fileName->c_str ());
         parseFile (fileName, f);
         delete fileName;
         fclose (f);
