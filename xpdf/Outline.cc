@@ -3,8 +3,8 @@
 
 #include <defs.hh>
 
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/dict.hh>
 #include <xpdf/Error.hh>

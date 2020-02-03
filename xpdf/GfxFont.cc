@@ -12,7 +12,7 @@
 
 #include <algorithm>
 
-#include <goo/memory.hh>
+#include <utils/memory.hh>
 
 #include <fofi/FoFiIdentifier.hh>
 #include <fofi/FoFiTrueType.hh>
@@ -797,7 +797,7 @@ Gfx8BitFont::Gfx8BitFont (
         name2 = name->copy ();
         i = 0;
         while (i < name2->getLength ()) {
-            if (name2->getChar (i) == ' ') { name2->del (i); }
+            if ((*name2) [i] == ' ') { name2->del (i); }
             else {
                 ++i;
             }
@@ -1504,8 +1504,11 @@ GfxCIDFont::GfxCIDFont (
             "Invalid CIDSystemInfo dictionary in Type 0 descendant font");
         goto err3;
     }
-    collection =
-        obj2.as_string ()->copy ()->append ('-')->append (obj3.as_string ());
+
+    collection = obj2.as_string ()->copy ();
+
+    collection->append (1UL, '-');
+    collection->append (*obj3.as_string ());
 
     // look for a ToUnicode CMap
     if (!(ctu = readToUnicodeCMap (fontDict, 16, NULL))) {

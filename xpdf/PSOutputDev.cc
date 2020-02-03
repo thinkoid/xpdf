@@ -9,10 +9,10 @@
 #include <signal.h>
 #include <cmath>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
-#include <goo/GHash.hh>
+#include <utils/memory.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
+#include <utils/GHash.hh>
 
 #include <fofi/FoFiType1C.hh>
 #include <fofi/FoFiTrueType.hh>
@@ -2817,12 +2817,14 @@ GString* PSOutputDev::makePSFontName (GfxFont* font, Ref* id) {
     psName = GString::format ("FF{0:d}_{1:d}", id->num, id->gen);
     if ((s = font->getEmbeddedFontName ())) {
         s = filterPSName (s);
-        psName->append ('_')->append (s);
+        psName->append (1UL, '_');
+        psName->append (*s);
         delete s;
     }
     else if ((s = font->as_name ())) {
         s = filterPSName (s);
-        psName->append ('_')->append (s);
+        psName->append (1UL, '_');
+        psName->append (*s);
         delete s;
     }
     return psName;
@@ -4596,7 +4598,7 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
                 }
                 for (i = 0; i < uLen; ++i) {
                     m = uMap->mapUnicode (u[i], buf, (int)sizeof (buf));
-                    for (j = 0; j < m; ++j) { s2->append (buf[j]); }
+                    for (j = 0; j < m; ++j) { s2->append (1UL, buf[j]); }
                     //~ this really needs to get the number of chars in the target
                     //~ encoding - which may be more than the number of Unicode
                     //~ chars
@@ -4611,8 +4613,8 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
                     dxdy = (double*)reallocarray (
                         dxdy, 2 * dxdySize, sizeof (double));
                 }
-                s2->append ((char)((code >> 8) & 0xff));
-                s2->append ((char)(code & 0xff));
+                s2->append (1UL, (char)((code >> 8) & 0xff));
+                s2->append (1UL, (char)(code & 0xff));
                 dxdy[2 * nChars] = dx;
                 dxdy[2 * nChars + 1] = dy;
                 ++nChars;
@@ -4620,7 +4622,7 @@ void PSOutputDev::drawString (GfxState* state, GString* s) {
         }
         else {
             if (!codeToGID || codeToGID[code] >= 0) {
-                s2->append ((char)code);
+                s2->append (1UL, (char)code);
                 dxdy[2 * nChars] = dx;
                 dxdy[2 * nChars + 1] = dy;
                 ++nChars;
@@ -5515,7 +5517,7 @@ void PSOutputDev::doImageL3 (
         else if (maskUseRLE) {
             maskFilters->append ("  /RunLengthDecode filter\n");
         }
-        if (maskUseCompressed) { maskFilters->append (s); }
+        if (maskUseCompressed) { maskFilters->append (*s); }
         if (s) { delete s; }
         if (mode == psModeForm || inType3Char || preload) {
             writePSFmt (
@@ -6509,7 +6511,7 @@ void PSOutputDev::cvtFunction (const Function& func) {
 }
 
 void PSOutputDev::writePSChar (char c) {
-    if (t3String) { t3String->append (c); }
+    if (t3String) { t3String->append (1UL, c); }
     else {
         (*outputFunc) (outputStream, &c, 1);
     }
@@ -6602,11 +6604,11 @@ GString* PSOutputDev::filterPSName (GString* name) {
     // ghostscript chokes on names that begin with out-of-limits
     // numbers, e.g., 1e4foo is handled correctly (as a name), but
     // 1e999foo generates a limitcheck error
-    c = name->getChar (0);
-    if (c >= '0' && c <= '9') { name2->append ('f'); }
+    c = (*name) [0];
+    if (c >= '0' && c <= '9') { name2->append (1UL, 'f'); }
 
     for (i = 0; i < name->getLength (); ++i) {
-        c = name->getChar (i);
+        c = (*name) [i];
         if (c <= (char)0x20 || c >= (char)0x7f || c == '(' || c == ')' ||
             c == '<' || c == '>' || c == '[' || c == ']' || c == '{' ||
             c == '}' || c == '/' || c == '%') {
@@ -6614,7 +6616,7 @@ GString* PSOutputDev::filterPSName (GString* name) {
             name2->append (buf);
         }
         else {
-            name2->append (c);
+            name2->append (1UL, c);
         }
     }
     return name2;

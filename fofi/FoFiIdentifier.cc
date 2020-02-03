@@ -6,8 +6,8 @@
 #include <cstdio>
 #include <cstring>
 #include <climits>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 #include <fofi/FoFiIdentifier.hh>
 
 //------------------------------------------------------------------------

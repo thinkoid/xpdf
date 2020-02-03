@@ -5,9 +5,9 @@
 
 #include <cmath>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/memory.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 
 #include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>

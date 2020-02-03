@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstring>
 
-#include <goo/memory.hh>
+#include <utils/memory.hh>
 
 #include <xpdf/obj.hh>
 #include <xpdf/XRef.hh>

@@ -10,8 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
+#include <utils/memory.hh>
+#include <utils/GString.hh>
 
 namespace {
 
@@ -95,15 +95,6 @@ void formatDoubleSmallAware (
 
 //------------------------------------------------------------------------
 
-GString* GString::fromInt (int x) {
-    char buf[24]; // enough space for 64-bit ints plus a little extra
-    const char* p;
-    int len;
-    formatInt (x, buf, sizeof (buf), false, 0, 10, &p, &len);
-
-    return new GString (p, len);
-}
-
 GString* GString::format (const char* fmt, ...) {
     auto* s = new GString ();
 
@@ -117,9 +108,7 @@ GString* GString::format (const char* fmt, ...) {
 
 GString* GString::formatv (const char* fmt, va_list argList) {
     auto* s = new GString ();
-
     s->appendfv (fmt, argList);
-
     return s;
 }
 
@@ -155,7 +144,7 @@ GString* GString::appendfv (const char* fmt, va_list argList) {
             ++p0;
             if (*p0 == '{') {
                 ++p0;
-                append ('{');
+                append (1UL, '{');
             }
             else {
                 // parse the format string
@@ -472,18 +461,18 @@ GString* GString::appendfv (const char* fmt, va_list argList) {
 
                 // append the formatted arg, handling width and alignment
                 if (!reverseAlign && len < width) {
-                    for (i = len; i < width; ++i) { append (' '); }
+                    for (i = len; i < width; ++i) { append (1UL, ' '); }
                 }
                 append (str, len);
                 if (reverseAlign && len < width) {
-                    for (i = len; i < width; ++i) { append (' '); }
+                    for (i = len; i < width; ++i) { append (1UL, ' '); }
                 }
             }
         }
         else if (*p0 == '}') {
             ++p0;
             if (*p0 == '}') { ++p0; }
-            append ('}');
+            append (1UL, '}');
         }
         else {
             for (p1 = p0 + 1; *p1 && *p1 != '{' && *p1 != '}'; ++p1)
@@ -605,22 +594,6 @@ void formatDoubleSmallAware (
 
 } // namespace
 
-GString* GString::upperCase () {
-    for (auto& c : *this) {
-        if (std::islower (c)) { c = std::toupper (c); }
-    }
-
-    return this;
-}
-
-GString* GString::lowerCase () {
-    for (auto& c : *this) {
-        if (std::isupper (c)) { c = std::tolower (c); }
-    }
-
-    return this;
-}
-
 void GString::prependUnicodeMarker () { insert (0, "\xFE\xFF", 2); }
 
 bool GString::startsWith (const char* prefix) const {
@@ -650,8 +623,8 @@ GString* GString::sanitizedName (bool psmode) const {
         // ghostscript chokes on names that begin with out-of-limits
         // numbers, e.g., 1e4foo is handled correctly (as a name), but
         // 1e999foo generates a limitcheck error
-        const auto c = getChar (0);
-        if (c >= '0' && c <= '9') { name->append ('f'); }
+        const auto c = front ();
+        if (c >= '0' && c <= '9') { name->append (1UL, 'f'); }
     }
 
     for (const auto c : *this) {
@@ -663,7 +636,7 @@ GString* GString::sanitizedName (bool psmode) const {
             name->append (buf);
         }
         else {
-            name->append (c);
+            name->append (1UL, c);
         }
     }
 

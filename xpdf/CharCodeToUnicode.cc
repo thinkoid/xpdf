@@ -6,9 +6,9 @@
 #include <cstdio>
 #include <cstring>
 
-#include <goo/memory.hh>
-#include <goo/gfile.hh>
-#include <goo/GString.hh>
+#include <utils/memory.hh>
+#include <utils/gfile.hh>
+#include <utils/string.hh>
 
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>

@@ -9,10 +9,10 @@
 
 #include <paper.h>
 
-#include <goo/GString.hh>
-#include <goo/GList.hh>
-#include <goo/GHash.hh>
-#include <goo/gfile.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
+#include <utils/GHash.hh>
+#include <utils/gfile.hh>
 
 #include <fofi/FoFiIdentifier.hh>
 
@@ -192,7 +192,7 @@ SysFontInfo* SysFontList::find (GString* name) {
     // remove space, comma, dash chars
     i = 0;
     while (i < name2->getLength ()) {
-        c = name2->getChar (i);
+        c = (*name2) [i];
         if (c == ' ' || c == ',' || c == '-') { name2->del (i); }
         else {
             ++i;
@@ -637,7 +637,7 @@ void GlobalParams::parseLine (char* buf, GString* fileName, int line) {
 
     // parse the line
     if (tokens->getLength () > 0 &&
-        ((GString*)tokens->get (0))->getChar (0) != '#') {
+        ((GString*)tokens->get (0))->front () != '#') {
         cmd = (GString*)tokens->get (0);
         if (!cmd->cmp ("include")) {
             if (tokens->getLength () == 2) {
@@ -1630,12 +1630,12 @@ void GlobalParams::parseInteger (
             cmdName, fileName, line);
         return;
     }
-    if (tok->getChar (0) == '-') { i = 1; }
+    if (tok->front () == '-') { i = 1; }
     else {
         i = 0;
     }
     for (; i < tok->getLength (); ++i) {
-        if (tok->getChar (i) < '0' || tok->getChar (i) > '9') {
+        if ((*tok) [i] < '0' || (*tok) [i] > '9') {
             error (
                 errConfig, -1, "Bad '{0:s}' config file command ({1:t}:{2:d})",
                 cmdName, fileName, line);
@@ -1664,13 +1664,13 @@ void GlobalParams::parseFloat (
             cmdName, fileName, line);
         return;
     }
-    if (tok->getChar (0) == '-') { i = 1; }
+    if (tok->front () == '-') { i = 1; }
     else {
         i = 0;
     }
     for (; i < tok->getLength (); ++i) {
-        if (!((tok->getChar (i) >= '0' && tok->getChar (i) <= '9') ||
-              tok->getChar (i) == '.')) {
+        if (!(((*tok) [i] >= '0' && (*tok) [i] <= '9') ||
+              (*tok) [i] == '.')) {
             error (
                 errConfig, -1, "Bad '{0:s}' config file command ({1:t}:{2:d})",
                 cmdName, fileName, line);

@@ -3,8 +3,8 @@
 
 #include <defs.hh>
 
-#include <goo/GString.hh>
-#include <goo/GHash.hh>
+#include <utils/string.hh>
+#include <utils/GHash.hh>
 
 //------------------------------------------------------------------------
 

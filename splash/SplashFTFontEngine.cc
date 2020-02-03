@@ -7,8 +7,8 @@
 
 #include <iostream>
 
-#include <goo/GString.hh>
-#include <goo/gfile.hh>
+#include <utils/string.hh>
+#include <utils/gfile.hh>
 
 #include <fofi/FoFiTrueType.hh>
 #include <fofi/FoFiType1C.hh>

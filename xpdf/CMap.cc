@@ -8,8 +8,8 @@
 #include <cstring>
 #include <cctype>
 
-#include <goo/gfile.hh>
-#include <goo/GString.hh>
+#include <utils/gfile.hh>
+#include <utils/string.hh>
 
 #include <xpdf/CMap.hh>
 #include <xpdf/dict.hh>

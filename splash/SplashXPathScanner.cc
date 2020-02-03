@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include <goo/GList.hh>
+#include <utils/GList.hh>
 
 #include <splash/SplashMath.hh>
 #include <splash/SplashXPath.hh>

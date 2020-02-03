@@ -6,10 +6,10 @@
 #include <cstdlib>
 #include <sstream>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
-#include <goo/GHash.hh>
+#include <utils/memory.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
+#include <utils/GHash.hh>
 
 #include <xpdf/array.hh>
 #include <xpdf/dict.hh>
@@ -428,38 +428,38 @@ Unicode* XFAFormField::utf8ToUnicode (GString* s, int* length) {
             size = size ? size * 2 : 16;
             u = (Unicode*)reallocarray (u, size, sizeof (Unicode));
         }
-        c0 = s->getChar (i++) & 0xff;
+        c0 = (*s) [i++] & 0xff;
         if (c0 <= 0x7f) { u[n++] = c0; }
         else if (c0 <= 0xdf && i < n) {
-            c1 = s->getChar (i++) & 0xff;
+            c1 = (*s) [i++] & 0xff;
             u[n++] = ((c0 & 0x1f) << 6) | (c1 & 0x3f);
         }
         else if (c0 <= 0xef && i + 1 < n) {
-            c1 = s->getChar (i++) & 0xff;
-            c2 = s->getChar (i++) & 0xff;
+            c1 = (*s) [i++] & 0xff;
+            c2 = (*s) [i++] & 0xff;
             u[n++] = ((c0 & 0x0f) << 12) | ((c1 & 0x3f) << 6) | (c2 & 0x3f);
         }
         else if (c0 <= 0xf7 && i + 2 < n) {
-            c1 = s->getChar (i++) & 0xff;
-            c2 = s->getChar (i++) & 0xff;
-            c3 = s->getChar (i++) & 0xff;
+            c1 = (*s) [i++] & 0xff;
+            c2 = (*s) [i++] & 0xff;
+            c3 = (*s) [i++] & 0xff;
             u[n++] = ((c0 & 0x07) << 18) | ((c1 & 0x3f) << 12) |
                      ((c2 & 0x3f) << 6) | (c3 & 0x3f);
         }
         else if (c0 <= 0xfb && i + 3 < n) {
-            c1 = s->getChar (i++) & 0xff;
-            c2 = s->getChar (i++) & 0xff;
-            c3 = s->getChar (i++) & 0xff;
-            c4 = s->getChar (i++) & 0xff;
+            c1 = (*s) [i++] & 0xff;
+            c2 = (*s) [i++] & 0xff;
+            c3 = (*s) [i++] & 0xff;
+            c4 = (*s) [i++] & 0xff;
             u[n++] = ((c0 & 0x03) << 24) | ((c1 & 0x3f) << 18) |
                      ((c2 & 0x3f) << 12) | ((c3 & 0x3f) << 6) | (c4 & 0x3f);
         }
         else if (c0 <= 0xfd && i + 4 < n) {
-            c1 = s->getChar (i++) & 0xff;
-            c2 = s->getChar (i++) & 0xff;
-            c3 = s->getChar (i++) & 0xff;
-            c4 = s->getChar (i++) & 0xff;
-            c5 = s->getChar (i++) & 0xff;
+            c1 = (*s) [i++] & 0xff;
+            c2 = (*s) [i++] & 0xff;
+            c3 = (*s) [i++] & 0xff;
+            c4 = (*s) [i++] & 0xff;
+            c5 = (*s) [i++] & 0xff;
             u[n++] = ((c0 & 0x01) << 30) | ((c1 & 0x3f) << 24) |
                      ((c2 & 0x3f) << 18) | ((c3 & 0x3f) << 12) |
                      ((c4 & 0x3f) << 6) | (c5 & 0x3f);
@@ -920,12 +920,13 @@ void XFAFormField::drawBarCode (
     //--- remove extraneous start/stop chars
     //~ this may depend on barcode type
     value2 = value->copy ();
-    if (value2->getLength () >= 1 && value2->getChar (0) == '*') {
+
+    if (value2->getLength () >= 1 && (*value2) [0] == '*') {
         value2->del (0);
     }
-    if (value2->getLength () >= 1 &&
-        value2->getChar (value2->getLength () - 1) == '*') {
-        value2->del (value2->getLength () - 1);
+
+    if (value2->getLength () >= 1 && value2->back () == '*') {
+        value2->pop_back ();
     }
 
     //--- draw the bar code
@@ -936,7 +937,7 @@ void XFAFormField::drawBarCode (
         for (i = -1; i <= value2->getLength (); ++i) {
             if (i < 0 || i >= value2->getLength ()) { c = '*'; }
             else {
-                c = value2->getChar (i) & 0x7f;
+                c = (*value2) [i] & 0x7f;
             }
             for (j = 0; j < 10; j += 2) {
                 appearBuf->appendf (
@@ -985,37 +986,37 @@ double XFAFormField::getMeasurement (ZxAttr* attr, double defaultVal) {
     s = attr->getValue ();
     i = 0;
     neg = false;
-    if (i < s->getLength () && s->getChar (i) == '+') { ++i; }
-    else if (i < s->getLength () && s->getChar (i) == '-') {
+    if (i < s->getLength () && (*s) [i] == '+') { ++i; }
+    else if (i < s->getLength () && (*s) [i] == '-') {
         neg = true;
         ++i;
     }
     val = 0;
-    while (i < s->getLength () && s->getChar (i) >= '0' &&
-           s->getChar (i) <= '9') {
-        val = val * 10 + s->getChar (i) - '0';
+    while (i < s->getLength () && (*s) [i] >= '0' &&
+           (*s) [i] <= '9') {
+        val = val * 10 + (*s) [i] - '0';
         ++i;
     }
-    if (i < s->getLength () && s->getChar (i) == '.') {
+    if (i < s->getLength () && (*s) [i] == '.') {
         ++i;
         mul = 0.1;
-        while (i < s->getLength () && s->getChar (i) >= '0' &&
-               s->getChar (i) <= '9') {
-            val += mul * (s->getChar (i) - '0');
+        while (i < s->getLength () && (*s) [i] >= '0' &&
+               (*s) [i] <= '9') {
+            val += mul * ((*s) [i] - '0');
             mul *= 0.1;
             ++i;
         }
     }
     if (neg) { val = -val; }
     if (i + 1 < s->getLength ()) {
-        if (s->getChar (i) == 'i' && s->getChar (i + 1) == 'n') { val *= 72; }
-        else if (s->getChar (i) == 'p' && s->getChar (i + 1) == 't') {
+        if ((*s) [i] == 'i' && (*s) [i + 1] == 'n') { val *= 72; }
+        else if ((*s) [i] == 'p' && (*s) [i + 1] == 't') {
             // no change
         }
-        else if (s->getChar (i) == 'c' && s->getChar (i + 1) == 'm') {
+        else if ((*s) [i] == 'c' && (*s) [i + 1] == 'm') {
             val *= 72 / 2.54;
         }
-        else if (s->getChar (i) == 'm' && s->getChar (i + 1) == 'm') {
+        else if ((*s) [i] == 'm' && (*s) [i + 1] == 'm') {
             val *= 72 / 25.4;
         }
         else {
@@ -1178,18 +1179,18 @@ void XFAFormField::drawText (
 
             // draw the line
             appearBuf->appendf ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", xx, yy);
-            appearBuf->append ('(');
+            appearBuf->append (1UL, '(');
             for (; i < j; ++i) {
-                c = text->getChar (i) & 0xff;
+                c = (*text) [i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
-                    appearBuf->append ('\\');
-                    appearBuf->append (c);
+                    appearBuf->append (1UL, '\\');
+                    appearBuf->append (1UL, c);
                 }
                 else if (c < 0x20 || c >= 0x80) {
                     appearBuf->appendf ("\\{0:03o}", c);
                 }
                 else {
-                    appearBuf->append (c);
+                    appearBuf->append (1UL, c);
                 }
             }
             appearBuf->append (") Tj\n");
@@ -1231,7 +1232,7 @@ void XFAFormField::drawText (
 
         // write the text string
         for (i = 0; i < text->getLength (); ++i) {
-            c = text->getChar (i) & 0xff;
+            c = (*text) [i] & 0xff;
             if (!font->isCIDFont ()) {
                 charWidth = fontSize * ((Gfx8BitFont*)font)->getWidth (c);
                 appearBuf->appendf (
@@ -1242,16 +1243,16 @@ void XFAFormField::drawText (
                 appearBuf->appendf (
                     "1 0 0 1 {0:.4f} {1:.4f} Tm\n", xx + i * tw, yy);
             }
-            appearBuf->append ('(');
+            appearBuf->append (1UL, '(');
             if (c == '(' || c == ')' || c == '\\') {
-                appearBuf->append ('\\');
-                appearBuf->append (c);
+                appearBuf->append (1UL, '\\');
+                appearBuf->append (1UL, c);
             }
             else if (c < 0x20 || c >= 0x80) {
                 appearBuf->appendf ("{0:.4f} 0 Td\n", w);
             }
             else {
-                appearBuf->append (c);
+                appearBuf->append (1UL, c);
             }
             appearBuf->append (") Tj\n");
         }
@@ -1263,7 +1264,7 @@ void XFAFormField::drawText (
         if (!font->isCIDFont ()) {
             tw = 0;
             for (i = 0; i < text->getLength (); ++i) {
-                tw += ((Gfx8BitFont*)font)->getWidth (text->getChar (i));
+                tw += ((Gfx8BitFont*)font)->getWidth ((*text) [i]);
             }
         }
         else {
@@ -1294,18 +1295,18 @@ void XFAFormField::drawText (
         appearBuf->appendf ("{0:.4f} {1:.4f} Td\n", xx, yy);
 
         // write the text string
-        appearBuf->append ('(');
+        appearBuf->append (1UL, '(');
         for (i = 0; i < text->getLength (); ++i) {
-            c = text->getChar (i) & 0xff;
+            c = (*text) [i] & 0xff;
             if (c == '(' || c == ')' || c == '\\') {
-                appearBuf->append ('\\');
-                appearBuf->append (c);
+                appearBuf->append (1UL, '\\');
+                appearBuf->append (1UL, c);
             }
             else if (c < 0x20 || c >= 0x80) {
                 appearBuf->appendf ("\\{0:03o}", c);
             }
             else {
-                appearBuf->append (c);
+                appearBuf->append (1UL, c);
             }
         }
         appearBuf->append (") Tj\n");
@@ -1346,8 +1347,8 @@ GfxFont* XFAFormField::findFont (
 
     reqName = new GString ();
     for (i = 0; i < fontName->getLength (); ++i) {
-        c = fontName->getChar (i);
-        if (c != ' ') { reqName->append (c); }
+        c = (*fontName) [i];
+        if (c != ' ') { reqName->append (1UL, c); }
     }
 
     for (i = 0; i < fontDict->getNumFonts (); ++i) {
@@ -1355,8 +1356,8 @@ GfxFont* XFAFormField::findFont (
         if (!font || !font->as_name ()) { continue; }
         testName = new GString ();
         for (j = 0; j < font->as_name ()->getLength (); ++j) {
-            c = font->as_name ()->getChar (j);
-            if (c != ' ') { testName->append (c); }
+            c = (*font->as_name ()) [j];
+            if (c != ' ') { testName->append (1UL, c); }
         }
         foundName = foundBold = foundItalic = false;
         for (const char* p = testName->c_str (); *p; ++p) {
@@ -1395,7 +1396,7 @@ void XFAFormField::getNextLine (
     //~ what does Adobe do with tabs?
     w = 0;
     for (j = start; j < text->getLength () && w <= wMax; ++j) {
-        c = text->getChar (j) & 0xff;
+        c = (*text) [j] & 0xff;
         if (c == 0x0a || c == 0x0d) { break; }
         if (font && !font->isCIDFont ()) {
             dw = ((Gfx8BitFont*)font)->getWidth (c) * fontSize;
@@ -1407,9 +1408,9 @@ void XFAFormField::getNextLine (
         w += dw;
     }
     if (w > wMax) {
-        for (k = j; k > start && text->getChar (k - 1) != ' '; --k)
+        for (k = j; k > start && (*text) [k - 1] != ' '; --k)
             ;
-        for (; k > start && text->getChar (k - 1) == ' '; --k)
+        for (; k > start && (*text) [k - 1] == ' '; --k)
             ;
         if (k > start) { j = k; }
         if (j == start) {
@@ -1424,7 +1425,7 @@ void XFAFormField::getNextLine (
     w = 0;
     for (k = start; k < j; ++k) {
         if (font && !font->isCIDFont ()) {
-            dw = ((Gfx8BitFont*)font)->getWidth (text->getChar (k)) * fontSize;
+            dw = ((Gfx8BitFont*)font)->getWidth ((*text) [k]) * fontSize;
         }
         else {
             // otherwise, make a crude estimate
@@ -1435,8 +1436,8 @@ void XFAFormField::getNextLine (
     *width = w;
 
     // next line
-    while (j < text->getLength () && text->getChar (j) == ' ') { ++j; }
-    if (j < text->getLength () && text->getChar (j) == 0x0d) { ++j; }
-    if (j < text->getLength () && text->getChar (j) == 0x0a) { ++j; }
+    while (j < text->getLength () && (*text) [j] == ' ') { ++j; }
+    if (j < text->getLength () && (*text) [j] == 0x0d) { ++j; }
+    if (j < text->getLength () && (*text) [j] == 0x0a) { ++j; }
     *next = j;
 }

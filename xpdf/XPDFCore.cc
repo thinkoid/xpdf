@@ -8,8 +8,8 @@
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 
 #include <splash/SplashBitmap.hh>
 #include <splash/SplashPattern.hh>
@@ -518,8 +518,8 @@ void XPDFCore::doAction (LinkAction* action) {
         else {
             fileName = fileName->copy ();
             if (((LinkLaunch*)action)->getParams ()) {
-                fileName->append (' ');
-                fileName->append (((LinkLaunch*)action)->getParams ());
+                fileName->append (1UL, ' ');
+                fileName->append (*((LinkLaunch*)action)->getParams ());
             }
             fileName->append (" &");
             if (globalParams->getLaunchCommand ()) {
@@ -529,7 +529,7 @@ void XPDFCore::doAction (LinkAction* action) {
             }
             else {
                 msg = new GString ("About to execute the command:\n");
-                msg->append (fileName);
+                msg->append (*fileName);
                 if (doQuestionDialog ("Launching external application", msg)) {
                     system (fileName->c_str ());
                 }
@@ -675,8 +675,8 @@ GString* XPDFCore::mungeURL (GString* url) {
 
     newURL = new GString ();
     for (i = 0; i < url->getLength (); ++i) {
-        c = url->getChar (i);
-        if (strchr (allowed, c)) { newURL->append (c); }
+        c = (*url) [i];
+        if (strchr (allowed, c)) { newURL->append (1UL, c); }
         else {
             sprintf (buf, "%%%02x", c & 0xff);
             newURL->append (buf);

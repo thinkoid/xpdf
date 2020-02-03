@@ -7,9 +7,9 @@
 #include <cstddef>
 #include <climits>
 
-#include <goo/memory.hh>
-#include <goo/gfile.hh>
-#include <goo/GList.hh>
+#include <utils/memory.hh>
+#include <utils/gfile.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
@@ -124,7 +124,7 @@ Catalog::Catalog (PDFDoc* docA) {
         if (baseURI) { delete baseURI; }
         if (doc->getFileName ()) {
             baseURI = makePathAbsolute (grabPath (doc->getFileName ()->c_str ()));
-            if (baseURI->getChar (0) == '/') {
+            if (baseURI->front () == '/') {
                 baseURI->insert (0, "file://localhost");
             }
             else {

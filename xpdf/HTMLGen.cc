@@ -19,8 +19,8 @@
 
 #include <cstdlib>
 #include <png.h>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 #include <splash/SplashBitmap.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextOutputDev.hh>
@@ -417,41 +417,41 @@ int HTMLGen::convertPage (
                                 s->append ("&gt;");
                             }
                             else {
-                                s->append ((char)u);
+                                s->append (1UL, (char)u);
                             }
                         }
                         else if (u <= 0x7ff) {
-                            s->append ((char)(0xc0 + (u >> 6)));
-                            s->append ((char)(0x80 + (u & 0x3f)));
+                            s->append (1UL, (char)(0xc0 + (u >> 6)));
+                            s->append (1UL, (char)(0x80 + (u & 0x3f)));
                         }
                         else if (u <= 0xffff) {
-                            s->append ((char)0xe0 + (u >> 12));
-                            s->append ((char)0x80 + ((u >> 6) & 0x3f));
-                            s->append ((char)0x80 + (u & 0x3f));
+                            s->append (1UL, (char)0xe0 + (u >> 12));
+                            s->append (1UL, (char)0x80 + ((u >> 6) & 0x3f));
+                            s->append (1UL, (char)0x80 + (u & 0x3f));
                         }
                         else if (u <= 0x1fffff) {
-                            s->append ((char)0xf0 + (u >> 18));
-                            s->append ((char)0x80 + ((u >> 12) & 0x3f));
-                            s->append ((char)0x80 + ((u >> 6) & 0x3f));
-                            s->append ((char)0x80 + (u & 0x3f));
+                            s->append (1UL, (char)0xf0 + (u >> 18));
+                            s->append (1UL, (char)0x80 + ((u >> 12) & 0x3f));
+                            s->append (1UL, (char)0x80 + ((u >> 6) & 0x3f));
+                            s->append (1UL, (char)0x80 + (u & 0x3f));
                         }
                         else if (u <= 0x3ffffff) {
-                            s->append ((char)0xf8 + (u >> 24));
-                            s->append ((char)0x80 + ((u >> 18) & 0x3f));
-                            s->append ((char)0x80 + ((u >> 12) & 0x3f));
-                            s->append ((char)0x80 + ((u >> 6) & 0x3f));
-                            s->append ((char)0x80 + (u & 0x3f));
+                            s->append (1UL, (char)0xf8 + (u >> 24));
+                            s->append (1UL, (char)0x80 + ((u >> 18) & 0x3f));
+                            s->append (1UL, (char)0x80 + ((u >> 12) & 0x3f));
+                            s->append (1UL, (char)0x80 + ((u >> 6) & 0x3f));
+                            s->append (1UL, (char)0x80 + (u & 0x3f));
                         }
                         else if (u <= 0x7fffffff) {
-                            s->append ((char)0xfc + (u >> 30));
-                            s->append ((char)0x80 + ((u >> 24) & 0x3f));
-                            s->append ((char)0x80 + ((u >> 18) & 0x3f));
-                            s->append ((char)0x80 + ((u >> 12) & 0x3f));
-                            s->append ((char)0x80 + ((u >> 6) & 0x3f));
-                            s->append ((char)0x80 + (u & 0x3f));
+                            s->append (1UL, (char)0xfc + (u >> 30));
+                            s->append (1UL, (char)0x80 + ((u >> 24) & 0x3f));
+                            s->append (1UL, (char)0x80 + ((u >> 18) & 0x3f));
+                            s->append (1UL, (char)0x80 + ((u >> 12) & 0x3f));
+                            s->append (1UL, (char)0x80 + ((u >> 6) & 0x3f));
+                            s->append (1UL, (char)0x80 + (u & 0x3f));
                         }
                     }
-                    if (word1->getSpaceAfter ()) { s->append (' '); }
+                    if (word1->getSpaceAfter ()) { s->append (1UL, ' '); }
                     word0 = word1;
                     subSuper0 = subSuper1;
                     r0 = r1;

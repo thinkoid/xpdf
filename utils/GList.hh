@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef XPDF_GOO_GLIST_HH
-#define XPDF_GOO_GLIST_HH
+#ifndef XPDF_UTILS_GLIST_HH
+#define XPDF_UTILS_GLIST_HH
 
 #include <defs.hh>
 
@@ -90,4 +90,4 @@ private:
         }                                                  \
     } while (0)
 
-#endif // XPDF_GOO_GLIST_HH
+#endif // XPDF_UTILS_GLIST_HH

@@ -9,6 +9,7 @@
 #include <splash/SplashTypes.hh>
 
 class GString;
+
 class SplashFontEngine;
 class SplashFont;
 class SplashFontFileID;

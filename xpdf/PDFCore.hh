@@ -10,7 +10,6 @@
 #include <splash/SplashTypes.hh>
 #include <xpdf/CharTypes.hh>
 
-class GString;
 class GList;
 class SplashBitmap;
 class SplashPattern;

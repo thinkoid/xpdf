@@ -4,9 +4,9 @@ ACLOCAL_AMFLAGS = -I etc/m4
 
 include $(top_srcdir)/Makefile.common
 
-noinst_LIBRARIES = libgoo.a
+noinst_LIBRARIES = libutils.a
 
-libgoo_a_SOURCES =                              \
+libutils_a_SOURCES =                            \
 	gfile.cc                                    \
 	memory.cc                                   \
 	parseargs.cc                                \

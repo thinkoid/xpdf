@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <unistd.h>
 
-#include <goo/GString.hh>
+#include <utils/string.hh>
 
 #include <splash/SplashFontFile.hh>
 #include <splash/SplashFontFileID.hh>

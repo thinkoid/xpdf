@@ -76,7 +76,7 @@ AM_CONDITIONAL([DARWIN],[test `uname` == Darwin])
 AM_CONDITIONAL([LINUX], [test `uname` == Linux])
 
 AC_CONFIG_FILES(Makefile)
-AC_CONFIG_FILES(goo/Makefile)
+AC_CONFIG_FILES(utils/Makefile)
 AC_CONFIG_FILES(fofi/Makefile)
 AC_CONFIG_FILES(splash/Makefile)
 AC_CONFIG_FILES(xpdf/Makefile)

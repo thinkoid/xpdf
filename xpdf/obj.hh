@@ -13,8 +13,8 @@
 #include <memory>
 #include <variant>
 
-#include <goo/gfile.hh>
-#include <goo/GString.hh>
+#include <utils/gfile.hh>
+#include <utils/string.hh>
 
 #include <xpdf/array_fwd.hh>
 #include <xpdf/dict_fwd.hh>

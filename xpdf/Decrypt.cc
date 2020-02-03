@@ -134,7 +134,7 @@ bool Decrypt::makeFileKey (
                 fx = fy = 0;
                 for (i = 0; i < 32; ++i) {
                     test2[i] = rc4DecryptByte (
-                        fState, &fx, &fy, ownerKey->getChar (i));
+                        fState, &fx, &fy, (*ownerKey) [i]);
                 }
             }
             else {
@@ -264,7 +264,7 @@ bool Decrypt::makeFileKey2 (
         rc4InitKey (fileKey, keyLength, fState);
         fx = fy = 0;
         for (i = 0; i < 32; ++i) {
-            test[i] = rc4DecryptByte (fState, &fx, &fy, userKey->getChar (i));
+            test[i] = rc4DecryptByte (fState, &fx, &fy, (*userKey) [i]);
         }
         ok = memcmp (test, passwordPad, 32) == 0;
     }

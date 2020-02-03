@@ -13,7 +13,6 @@ class Catalog;
 class Gfx;
 class GfxFontDict;
 class PDFDoc;
-class GString;
 
 //------------------------------------------------------------------------
 // AnnotBorderStyle

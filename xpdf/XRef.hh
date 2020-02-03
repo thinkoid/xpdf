@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <goo/gfile.hh>
+#include <utils/gfile.hh>
 
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>

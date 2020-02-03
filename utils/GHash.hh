@@ -1,12 +1,11 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
 
-#ifndef XPDF_GOO_GHASH_HH
-#define XPDF_GOO_GHASH_HH
+#ifndef XPDF_UTILS_GHASH_HH
+#define XPDF_UTILS_GHASH_HH
 
 #include <defs.hh>
 
-class GString;
 struct GHashBucket;
 struct GHashIter;
 
@@ -60,4 +59,4 @@ private:
         }                                                                  \
     } while (0)
 
-#endif // XPDF_GOO_GHASH_HH
+#endif // XPDF_UTILS_GHASH_HH

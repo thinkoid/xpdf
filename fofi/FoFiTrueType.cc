@@ -8,8 +8,8 @@
 
 #include <algorithm>
 
-#include <goo/GString.hh>
-#include <goo/GHash.hh>
+#include <utils/string.hh>
+#include <utils/GHash.hh>
 
 #include <fofi/FoFiType1C.hh>
 #include <fofi/FoFiTrueType.hh>
@@ -836,10 +836,13 @@ void FoFiTrueType::convertToType0 (
     if (openTypeCFF) { return; }
 
     // write the Type 42 sfnts array
-    sfntsName = (new GString (psName))->append ("_sfnts");
+    sfntsName = new GString (psName);
+    sfntsName->append ("_sfnts");
+
     cvtSfnts (
         outputFunc, outputStream, sfntsName, needVerticalMetrics,
         &maxUsedGlyph);
+
     delete sfntsName;
 
     // write the descendant Type 42 fonts

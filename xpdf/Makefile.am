@@ -73,7 +73,7 @@ AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
 
 LDADD = libxpdf.a                                       \
 	$(top_srcdir)/fofi/libfofi.a                        \
-	$(top_srcdir)/goo/libgoo.a                          \
+	$(top_srcdir)/utils/libutils.a                      \
 	$(top_srcdir)/splash/libsplash.a                    \
 	$(LIBS) $(FREETYPE2_LIBS)                           \
 	$(MOTIF_LIBS) $(XPM_LIBS) $(XT_LIBS) $(X11_LIBS)    \

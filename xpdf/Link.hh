@@ -9,7 +9,6 @@
 #include <xpdf/array_fwd.hh>
 #include <xpdf/obj.hh>
 
-class GString;
 
 //------------------------------------------------------------------------
 // LinkAction

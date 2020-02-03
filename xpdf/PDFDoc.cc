@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstring>
 
-#include <goo/GString.hh>
+#include <utils/string.hh>
 
 #include <xpdf/Catalog.hh>
 #include <xpdf/dict.hh>
@@ -40,7 +40,7 @@ PDFDoc::PDFDoc (
     GString* fileNameA, GString* ownerPassword, GString* userPassword,
     PDFCore* coreA) {
     Object obj;
-    GString *fileName1, *fileName2;
+    GString *fileName1;
 
     ok = false;
     errCode = errNone;
@@ -59,20 +59,9 @@ PDFDoc::PDFDoc (
     fileName1 = fileName;
 
     // try to open file
-    fileName2 = NULL;
-    if (!(file = fopen (fileName1->c_str (), "rb"))) {
-        fileName2 = fileName->copy ();
-        fileName2->lowerCase ();
-        if (!(file = fopen (fileName2->c_str (), "rb"))) {
-            fileName2->upperCase ();
-            if (!(file = fopen (fileName2->c_str (), "rb"))) {
-                error (errIO, -1, "Couldn't open file '{0:t}'", fileName);
-                delete fileName2;
-                errCode = errOpenFile;
-                return;
-            }
-        }
-        delete fileName2;
+    if (0 == (file = fopen (fileName1->c_str (), "rb"))) {
+        errCode = errOpenFile;
+        return;
     }
 
     // create stream

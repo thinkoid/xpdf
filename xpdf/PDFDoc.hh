@@ -11,7 +11,6 @@
 #include <xpdf/Catalog.hh>
 #include <xpdf/Page.hh>
 
-class GString;
 class BaseStream;
 class OutputDev;
 class Links;

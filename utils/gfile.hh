@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef XPDF_GOO_GFILE_HH
-#define XPDF_GOO_GFILE_HH
+#ifndef XPDF_UTILS_GFILE_HH
+#define XPDF_UTILS_GFILE_HH
 
 #include <cstdio>
 #include <cstdlib>
@@ -105,4 +105,4 @@ private:
     DIR* dir;      // the DIR structure from opendir()
 };
 
-#endif // XPDF_GOO_GFILE_HH
+#endif // XPDF_UTILS_GFILE_HH

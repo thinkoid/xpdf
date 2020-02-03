@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include <goo/gfile.hh>
+#include <utils/gfile.hh>
 
 #include <xpdf/array_fwd.hh>
 #include <xpdf/function.hh>
@@ -16,7 +16,6 @@
 
 class AnnotBorderStyle;
 class GList;
-class GString;
 class Gfx;
 class GfxAxialShading;
 class GfxColorSpace;

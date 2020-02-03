@@ -12,8 +12,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <goo/GString.hh>
-#include <goo/gfile.hh>
+#include <utils/string.hh>
+#include <utils/gfile.hh>
 
 #include <string>
 
@@ -62,11 +62,11 @@ GString* appendToPath (GString* path, const char* fileName) {
 
     // appending ".." goes up one directory
     if (!strcmp (fileName, "..")) {
-        for (i = path->getLength () - 2; i >= 0; --i) {
-            if (path->getChar (i) == '/') break;
+        for (i = (*path) [path->size () - 2]; i >= 0; --i) {
+            if ((*path) [i] == '/') break;
         }
         if (i <= 0) {
-            if (path->getChar (0) == '/') {
+            if (path->front () == '/') {
                 path->del (1, path->getLength () - 1);
             }
             else {
@@ -81,9 +81,11 @@ GString* appendToPath (GString* path, const char* fileName) {
     }
 
     // otherwise, append "/" and new path component
-    if (path->getLength () > 0 && path->getChar (path->getLength () - 1) != '/')
-        path->append ('/');
+    if (path->getLength () > 0 && path->back () != '/')
+        path->append (1UL, '/');
+
     path->append (fileName);
+
     return path;
 }
 
@@ -101,8 +103,8 @@ GString* makePathAbsolute (GString* path) {
     GString* s;
     int n;
 
-    if (path->getChar (0) == '~') {
-        if (path->getChar (1) == '/' || path->getLength () == 1) {
+    if (path->front () == '~') {
+        if ((*path) [1] == '/' || path->getLength () == 1) {
             path->del (0, 1);
             s = getHomeDir ();
             path->insert (0, s);

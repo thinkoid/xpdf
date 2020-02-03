@@ -11,7 +11,6 @@
 #include <xpdf/obj.hh>
 
 class Catalog;
-class GString;
 class Gfx;
 class GfxAxialShading;
 struct GfxColor;

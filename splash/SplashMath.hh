@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #if USE_FIXEDPONT
-#include <goo/FixedPoint.hh>
+#include <utils/FixedPoint.hh>
 #else
 #include <cmath>
 #endif

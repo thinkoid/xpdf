@@ -9,11 +9,10 @@
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object
-#include <goo/gfile.hh> // for time_t
+#include <utils/gfile.hh> // for time_t
 #include <splash/SplashTypes.hh>
 #include <xpdf/PDFCore.hh>
 
-class GString;
 class BaseStream;
 class PDFDoc;
 class LinkAction;

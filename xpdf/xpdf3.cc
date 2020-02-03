@@ -2,9 +2,9 @@
 // Copyright 1996-2003 Glyph & Cog, LLC
 
 #include <defs.hh>
-#include <goo/GString.hh>
-#include <goo/parseargs.hh>
-#include <goo/gfile.hh>
+#include <utils/string.hh>
+#include <utils/parseargs.hh>
+#include <utils/gfile.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/XPDFApp.hh>

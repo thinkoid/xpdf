@@ -5,9 +5,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
-#include <goo/GHash.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
+#include <utils/GHash.hh>
 #include <xpdf/Zoox.hh>
 
 //~ all of this code assumes the encoding is UTF-8 or ASCII or something
@@ -393,19 +393,19 @@ ZxAttr* ZxDoc::parseAttr () {
                 n = (int)(parsePtr - start);
                 if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
                 if (n == 2 && !strncmp (start, "lt", 2)) {
-                    value->append ('<');
+                    value->append (1UL, '<');
                 }
                 else if (n == 2 && !strncmp (start, "gt", 2)) {
-                    value->append ('>');
+                    value->append (1UL, '>');
                 }
                 else if (n == 3 && !strncmp (start, "amp", 3)) {
-                    value->append ('&');
+                    value->append (1UL, '&');
                 }
                 else if (n == 4 && !strncmp (start, "apos", 4)) {
-                    value->append ('\'');
+                    value->append (1UL, '\'');
                 }
                 else if (n == 4 && !strncmp (start, "quot", 4)) {
-                    value->append ('"');
+                    value->append (1UL, '"');
                 }
                 else {
                     value->append (start - 1, (int)(parsePtr - start) + 1);
@@ -429,7 +429,8 @@ ZxAttr* ZxDoc::parseAttr () {
 void ZxDoc::parseContent (ZxElement* par) {
     GString* endType;
 
-    endType = (new GString ("</"))->append (par->getType ());
+    endType = new GString ("</");
+    endType->append (*par->getType ());
 
     while (parsePtr < parseEnd) {
         if (match (endType->c_str ())) {
@@ -512,18 +513,18 @@ void ZxDoc::parseCharData (ZxElement* par) {
                     ;
                 n = (int)(parsePtr - start);
                 if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                if (n == 2 && !strncmp (start, "lt", 2)) { data->append ('<'); }
+                if (n == 2 && !strncmp (start, "lt", 2)) { data->append (1UL, '<'); }
                 else if (n == 2 && !strncmp (start, "gt", 2)) {
-                    data->append ('>');
+                    data->append (1UL, '>');
                 }
                 else if (n == 3 && !strncmp (start, "amp", 3)) {
-                    data->append ('&');
+                    data->append (1UL, '&');
                 }
                 else if (n == 4 && !strncmp (start, "apos", 4)) {
-                    data->append ('\'');
+                    data->append (1UL, '\'');
                 }
                 else if (n == 4 && !strncmp (start, "quot", 4)) {
-                    data->append ('"');
+                    data->append (1UL, '"');
                 }
                 else {
                     data->append (start - 1, (int)(parsePtr - start) + 1);
@@ -543,36 +544,36 @@ void ZxDoc::parseCharData (ZxElement* par) {
 }
 
 void ZxDoc::appendUTF8 (GString* s, int c) {
-    if (c <= 0x7f) { s->append ((char)c); }
+    if (c <= 0x7f) { s->append (1UL, (char)c); }
     else if (c <= 0x7ff) {
-        s->append ((char)(0xc0 + (c >> 6)));
-        s->append ((char)(0x80 + (c & 0x3f)));
+        s->append (1UL, (char)(0xc0 + (c >> 6)));
+        s->append (1UL, (char)(0x80 + (c & 0x3f)));
     }
     else if (c <= 0xffff) {
-        s->append ((char)(0xe0 + (c >> 12)));
-        s->append ((char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append ((char)(0x80 + (c & 0x3f)));
+        s->append (1UL, (char)(0xe0 + (c >> 12)));
+        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append (1UL, (char)(0x80 + (c & 0x3f)));
     }
     else if (c <= 0x1fffff) {
-        s->append ((char)(0xf0 + (c >> 18)));
-        s->append ((char)(0x80 + ((c >> 12) & 0x3f)));
-        s->append ((char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append ((char)(0x80 + (c & 0x3f)));
+        s->append (1UL, (char)(0xf0 + (c >> 18)));
+        s->append (1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
+        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append (1UL, (char)(0x80 + (c & 0x3f)));
     }
     else if (c <= 0x3ffffff) {
-        s->append ((char)(0xf8 + (c >> 24)));
-        s->append ((char)(0x80 + ((c >> 18) & 0x3f)));
-        s->append ((char)(0x80 + ((c >> 12) & 0x3f)));
-        s->append ((char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append ((char)(0x80 + (c & 0x3f)));
+        s->append (1UL, (char)(0xf8 + (c >> 24)));
+        s->append (1UL, (char)(0x80 + ((c >> 18) & 0x3f)));
+        s->append (1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
+        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append (1UL, (char)(0x80 + (c & 0x3f)));
     }
     else if (c <= 0x7fffffff) {
-        s->append ((char)(0xfc + (c >> 30)));
-        s->append ((char)(0x80 + ((c >> 24) & 0x3f)));
-        s->append ((char)(0x80 + ((c >> 18) & 0x3f)));
-        s->append ((char)(0x80 + ((c >> 12) & 0x3f)));
-        s->append ((char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append ((char)(0x80 + (c & 0x3f)));
+        s->append (1UL, (char)(0xfc + (c >> 30)));
+        s->append (1UL, (char)(0x80 + ((c >> 24) & 0x3f)));
+        s->append (1UL, (char)(0x80 + ((c >> 18) & 0x3f)));
+        s->append (1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
+        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append (1UL, (char)(0x80 + (c & 0x3f)));
     }
 }
 
@@ -662,9 +663,9 @@ GString* ZxDoc::parseName () {
 
     name = new GString ();
     if (parsePtr < parseEnd && nameStartChar[*parsePtr & 0xff]) {
-        name->append (*parsePtr++);
+        name->append (1UL, *parsePtr++);
         while (parsePtr < parseEnd && nameChar[*parsePtr & 0xff]) {
-            name->append (*parsePtr++);
+            name->append (1UL, *parsePtr++);
         }
     }
     return name;

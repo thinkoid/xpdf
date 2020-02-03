@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <cmath>
 
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/AcroForm.hh>
 #include <xpdf/Annot.hh>
@@ -1092,15 +1092,15 @@ void AcroFormField::drawText (
 
     // check for a Unicode string
     //~ this currently drops all non-Latin1 characters
-    if (text->getLength () >= 2 && text->getChar (0) == '\xfe' &&
-        text->getChar (1) == '\xff') {
+    if (text->getLength () >= 2 && (*text) [0] == '\xfe' &&
+        (*text) [1] == '\xff') {
         text2 = new GString ();
         for (i = 2; i + 1 < text->getLength (); i += 2) {
-            c = ((text->getChar (i) & 0xff) << 8) +
-                (text->getChar (i + 1) & 0xff);
-            if (c <= 0xff) { text2->append ((char)c); }
+            c = (((*text) [i] & 0xff) << 8) +
+                ((*text) [i + 1] & 0xff);
+            if (c <= 0xff) { text2->append (1UL, (char)c); }
             else {
-                text2->append ('?');
+                text2->append (1UL, '?');
             }
         }
     }
@@ -1114,12 +1114,12 @@ void AcroFormField::drawText (
         daToks = new GList ();
         i = 0;
         while (i < da->getLength ()) {
-            while (i < da->getLength () && Lexer::isSpace (da->getChar (i))) {
+            while (i < da->getLength () && Lexer::isSpace ((*da) [i])) {
                 ++i;
             }
             if (i < da->getLength ()) {
                 for (j = i + 1;
-                     j < da->getLength () && !Lexer::isSpace (da->getChar (j));
+                     j < da->getLength () && !Lexer::isSpace ((*da) [j]);
                      ++j)
                     ;
                 daToks->append (new GString (da, i, j - i));
@@ -1156,7 +1156,7 @@ void AcroFormField::drawText (
     fontSize = 0;
     if (tfPos >= 0) {
         tok = (GString*)daToks->get (tfPos);
-        if (tok->getLength () >= 1 && tok->getChar (0) == '/') {
+        if (tok->getLength () >= 1 && (*tok) [0] == '/') {
             if (!fontDict ||
                 !(font = fontDict->lookup (tok->c_str () + 1))) {
                 error (errSyntaxError, -1, "Unknown font in field's DA string");
@@ -1237,7 +1237,7 @@ void AcroFormField::drawText (
         if (tmPos >= 0) {
             tok = (GString*)daToks->get (tmPos + 4);
             tok->clear ();
-            tok->append ('0');
+            tok->append (1UL, '0');
             tok = (GString*)daToks->get (tmPos + 5);
             tok->clear ();
             tok->appendf ("{0:.4f}", y);
@@ -1273,7 +1273,7 @@ void AcroFormField::drawText (
             appearBuf += format ("{0:.4f} {1:.4f} Td\n", x - xPrev, -fontSize);
             appearBuf.append (1UL, '(');
             for (; i < j; ++i) {
-                c = text2->getChar (i) & 0xff;
+                c = (*text2) [i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
                     appearBuf += '\\';
                     appearBuf += c;
@@ -1357,7 +1357,7 @@ void AcroFormField::drawText (
             for (i = 0; i < text2->getLength (); ++i) {
                 if (i > 0) { appearBuf += format ("{0:.4f} 0 Td\n", w); }
                 appearBuf.append (1UL, '(');
-                c = text2->getChar (i) & 0xff;
+                c = (*text2) [i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
                     appearBuf += '\\';
                     appearBuf += c;
@@ -1378,7 +1378,7 @@ void AcroFormField::drawText (
             if (font && !font->isCIDFont ()) {
                 w = 0;
                 for (i = 0; i < text2->getLength (); ++i) {
-                    w += ((Gfx8BitFont*)font)->getWidth (text2->getChar (i));
+                    w += ((Gfx8BitFont*)font)->getWidth ((*text2) [i]);
                 }
             }
             else {
@@ -1436,7 +1436,7 @@ void AcroFormField::drawText (
             // write the text string
             appearBuf.append (1UL, '(');
             for (i = 0; i < text2->getLength (); ++i) {
-                c = text2->getChar (i) & 0xff;
+                c = (*text2) [i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
                     appearBuf += '\\';
                     appearBuf += c;
@@ -1482,12 +1482,12 @@ void AcroFormField::drawListBox (
         daToks = new GList ();
         i = 0;
         while (i < da->getLength ()) {
-            while (i < da->getLength () && Lexer::isSpace (da->getChar (i))) {
+            while (i < da->getLength () && Lexer::isSpace ((*da) [i])) {
                 ++i;
             }
             if (i < da->getLength ()) {
                 for (j = i + 1;
-                     j < da->getLength () && !Lexer::isSpace (da->getChar (j));
+                     j < da->getLength () && !Lexer::isSpace ((*da) [j]);
                      ++j)
                     ;
                 daToks->append (new GString (da, i, j - i));
@@ -1512,7 +1512,7 @@ void AcroFormField::drawListBox (
     fontSize = 0;
     if (tfPos >= 0) {
         tok = (GString*)daToks->get (tfPos);
-        if (tok->getLength () >= 1 && tok->getChar (0) == '/') {
+        if (tok->getLength () >= 1 && (*tok) [0] == '/') {
             if (!fontDict ||
                 !(font = fontDict->lookup (tok->c_str () + 1))) {
                 error (errSyntaxError, -1, "Unknown font in field's DA string");
@@ -1538,7 +1538,7 @@ void AcroFormField::drawListBox (
             if (font && !font->isCIDFont ()) {
                 w = 0;
                 for (j = 0; j < text[i]->getLength (); ++j) {
-                    w += ((Gfx8BitFont*)font)->getWidth (text[i]->getChar (j));
+                    w += ((Gfx8BitFont*)font)->getWidth ((*text [i]) [j]);
                 }
             }
             else {
@@ -1579,7 +1579,7 @@ void AcroFormField::drawListBox (
         if (font && !font->isCIDFont ()) {
             w = 0;
             for (j = 0; j < text[i]->getLength (); ++j) {
-                w += ((Gfx8BitFont*)font)->getWidth (text[i]->getChar (j));
+                w += ((Gfx8BitFont*)font)->getWidth ((*text [i]) [j]);
             }
         }
         else {
@@ -1626,7 +1626,7 @@ void AcroFormField::drawListBox (
         // write the text string
         appearBuf.append (1UL, '(');
         for (j = 0; j < text[i]->getLength (); ++j) {
-            c = text[i]->getChar (j) & 0xff;
+            c = (*text[i]) [j] & 0xff;
             if (c == '(' || c == ')' || c == '\\') {
                 appearBuf += '\\';
                 appearBuf += c;
@@ -1664,7 +1664,7 @@ void AcroFormField::getNextLine (
     //~ what does Adobe do with tabs?
     w = 0;
     for (j = start; j < text->getLength () && w <= wMax; ++j) {
-        c = text->getChar (j) & 0xff;
+        c = (*text) [j] & 0xff;
         if (c == 0x0a || c == 0x0d) { break; }
         if (font && !font->isCIDFont ()) {
             dw = ((Gfx8BitFont*)font)->getWidth (c) * fontSize;
@@ -1676,9 +1676,9 @@ void AcroFormField::getNextLine (
         w += dw;
     }
     if (w > wMax) {
-        for (k = j; k > start && text->getChar (k - 1) != ' '; --k)
+        for (k = j; k > start && (*text) [k - 1] != ' '; --k)
             ;
-        for (; k > start && text->getChar (k - 1) == ' '; --k)
+        for (; k > start && (*text) [k - 1] == ' '; --k)
             ;
         if (k > start) { j = k; }
         if (j == start) {
@@ -1693,7 +1693,7 @@ void AcroFormField::getNextLine (
     w = 0;
     for (k = start; k < j; ++k) {
         if (font && !font->isCIDFont ()) {
-            dw = ((Gfx8BitFont*)font)->getWidth (text->getChar (k)) * fontSize;
+            dw = ((Gfx8BitFont*)font)->getWidth ((*text) [k]) * fontSize;
         }
         else {
             // otherwise, make a crude estimate
@@ -1704,9 +1704,9 @@ void AcroFormField::getNextLine (
     *width = w;
 
     // next line
-    while (j < text->getLength () && text->getChar (j) == ' ') { ++j; }
-    if (j < text->getLength () && text->getChar (j) == 0x0d) { ++j; }
-    if (j < text->getLength () && text->getChar (j) == 0x0a) { ++j; }
+    while (j < text->getLength () && (*text) [j] == ' ') { ++j; }
+    if (j < text->getLength () && (*text) [j] == 0x0d) { ++j; }
+    if (j < text->getLength () && (*text) [j] == 0x0a) { ++j; }
     *next = j;
 }
 

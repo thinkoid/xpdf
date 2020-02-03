@@ -10,8 +10,8 @@
 
 #include <fofi/FoFiBase.hh>
 
-class GString;
 class GHash;
+class GString;
 
 struct TrueTypeTable;
 struct TrueTypeCmap;

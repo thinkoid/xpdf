@@ -6,8 +6,8 @@
 #include <cstddef>
 #include <cstring>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
+#include <utils/memory.hh>
+#include <utils/string.hh>
 
 #include <xpdf/Error.hh>
 #include <xpdf/obj.hh>
@@ -530,27 +530,27 @@ LinkURI::LinkURI (Object* uriObj, GString* baseURI) {
     if (uriObj->is_string ()) {
         uri2 = uriObj->as_string ();
         n = (int)strcspn (uri2->c_str (), "/:");
-        if (n < uri2->getLength () && uri2->getChar (n) == ':') {
+        if (n < uri2->getLength () && (*uri2) [n] == ':') {
             // "http:..." etc.
             uri = uri2->copy ();
         }
         else if (!uri2->cmpN ("www.", 4)) {
             // "www.[...]" without the leading "http://"
             uri = new GString ("http://");
-            uri->append (uri2);
+            uri->append (*uri2);
         }
         else {
             // relative URI
             if (baseURI) {
                 uri = baseURI->copy ();
-                c = uri->getChar (uri->getLength () - 1);
-                if (c != '/' && c != '?') { uri->append ('/'); }
-                if (uri2->getChar (0) == '/') {
+                c = uri->back ();
+                if (c != '/' && c != '?') { uri->append (1UL, '/'); }
+                if (uri2->front () == '/') {
                     uri->append (
                         uri2->c_str () + 1, uri2->getLength () - 1);
                 }
                 else {
-                    uri->append (uri2);
+                    uri->append (*uri2);
                 }
             }
             else {

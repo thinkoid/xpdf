@@ -19,8 +19,8 @@
 #include <tuple>
 #include <vector>
 
-#include <goo/memory.hh>
-#include <goo/GList.hh>
+#include <utils/memory.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/bitpack.hh>
 #include <xpdf/xpdf.hh>

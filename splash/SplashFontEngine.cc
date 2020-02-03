@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <unistd.h>
 
-#include <goo/GString.hh>
+#include <utils/string.hh>
 
 #include <splash/SplashMath.hh>
 #include <splash/SplashFTFontEngine.hh>

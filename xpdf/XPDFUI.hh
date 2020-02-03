@@ -17,7 +17,6 @@
 #undef USE_COMBO_BOX
 #endif
 
-class GString;
 class GList;
 class UnicodeMap;
 class LinkDest;

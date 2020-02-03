@@ -9,7 +9,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
 
-class GString;
 class GList;
 class PDFDoc;
 class TextString;

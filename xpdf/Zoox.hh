@@ -5,7 +5,6 @@
 
 #include <defs.hh>
 
-class GString;
 class GList;
 class GHash;
 

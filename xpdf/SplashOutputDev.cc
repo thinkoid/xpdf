@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <goo/gfile.hh>
+#include <utils/gfile.hh>
 
 #include <fofi/FoFiTrueType.hh>
 

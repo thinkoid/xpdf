@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef XPDF_GOO_GSTRING_HH
-#define XPDF_GOO_GSTRING_HH
+#ifndef XPDF_UTILS_GSTRING_HH
+#define XPDF_UTILS_GSTRING_HH
 
 #include <defs.hh>
 
@@ -11,56 +11,28 @@
 
 #include <string>
 
-class GString : std::string {
-public:
-    // Create an empty string.
-    GString () = default;
+struct GString : std::string {
+    using base_type = std::string;
 
-    // Destructor.
+    GString () = default;
     ~GString () = default;
 
-    GString (GString&& other) = default;
-    GString& operator= (GString&& other) = default;
-
-    GString (const GString& other) = delete;
-    GString& operator= (const GString& other) = delete;
-
-    // Create a string from a C string.
-    explicit GString (const char* sA) : std::string (sA ? sA : "") {}
+    using base_type::base_type;
+    using base_type::operator=;
 
     // Zero-cost conversion from and to std::string
-    explicit GString (const std::string& str) : std::string (str) {}
-    explicit GString (std::string&& str) : std::string (std::move (str)) {}
-
-    // Create a string from <lengthA> chars at <sA>.  This string
-    // can contain null characters.
-    GString (const char* sA, int lengthA)
-        : std::string (sA ? sA : "", sA ? lengthA : 0) {}
+    explicit GString (const std::string& s) : std::string (s) { }
+    explicit GString (std::string&& s) : std::string (std::move (s)) { }
 
     // Create a string from <lengthA> chars at <idx> in <str>.
     GString (const GString* str, int idx, int lengthA)
-        : std::string (*str, idx, lengthA) {}
-
-    // Set content of a string to <newStr>.
-    GString* Set (const GString* newStr) {
-        assign (
-            newStr ? static_cast< const std::string& > (*newStr)
-                   : std::string{});
-        return this;
-    }
-    GString* Set (const char* newStr) {
-        assign (newStr ? newStr : "");
-        return this;
-    }
-    GString* Set (const char* newStr, int newLen) {
-        assign (newStr ? newStr : "", newStr ? newLen : 0);
-        return this;
-    }
+        : std::string (*str, idx, lengthA) { }
 
     // Copy a string.
-    explicit GString (const GString* str)
-        : std::string (
-              str ? static_cast< const std::string& > (*str) : std::string{}) {}
+    explicit GString (const GString* p)
+        : std::string (p ? reinterpret_cast< const base_type& > (*p) : std::string{ })
+        { }
+
     GString* copy () const { return new GString (this); }
 
     // Concatenate two strings.
@@ -69,9 +41,6 @@ public:
         static_cast< std::string& > (*this).append (*str1);
         static_cast< std::string& > (*this).append (*str2);
     }
-
-    // Convert an integer to a string.
-    static GString* fromInt (int x);
 
     // Create a formatted string.  Similar to printf, but without the
     // string overflow issues.  Formatting elements consist of:
@@ -108,36 +77,7 @@ public:
 
     // Get C string.
     using std::string::c_str;
-
-    // Get <i>th character.
-    char getChar (int i) const { return (*this)[i]; }
-
-    // Change <i>th character.
-    void setChar (int i, char c) { (*this)[i] = c; }
-
-    // Clear string to zero length.
-    GString* clear () {
-        static_cast< std::string& > (*this).clear ();
-        return this;
-    }
-
-    // Append a character or string.
-    GString* append (char c) {
-        push_back (c);
-        return this;
-    }
-    GString* append (const GString* str) {
-        static_cast< std::string& > (*this).append (*str);
-        return this;
-    }
-    GString* append (const char* str) {
-        static_cast< std::string& > (*this).append (str);
-        return this;
-    }
-    GString* append (const char* str, int lengthA) {
-        static_cast< std::string& > (*this).append (str, lengthA);
-        return this;
-    }
+    using std::string::operator[];
 
     // Append a formatted string.
     GString* appendf (const char* fmt, ...);
@@ -166,10 +106,6 @@ public:
         erase (i, n);
         return this;
     }
-
-    // Convert string to all-upper/all-lower case.
-    GString* upperCase ();
-    GString* lowerCase ();
 
     // Compare two strings:  -1:<  0:=  +1:>
     int cmp (const GString* str) const { return compare (*str); }
@@ -202,4 +138,4 @@ public:
     GString* sanitizedName (bool psmode) const;
 };
 
-#endif // XPDF_GOO_GSTRING_HH
+#endif // XPDF_UTILS_GSTRING_HH

@@ -5,7 +5,7 @@
 
 #include <climits>
 
-#include <goo/memory.hh>
+#include <utils/memory.hh>
 
 #include <xpdf/Error.hh>
 #include <xpdf/JArithmeticDecoder.hh>

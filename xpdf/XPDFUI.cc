@@ -13,10 +13,10 @@
 
 #undef True
 
-#include <goo/memory.hh>
-#include <goo/gfile.hh>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/memory.hh>
+#include <utils/gfile.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
@@ -1033,13 +1033,13 @@ void XPDFUI::cmdRun (GString* args[], int nArgs, XEvent* event) {
     i = 0;
     gotSel = gotMouse = false;
     while (i < fmt->getLength ()) {
-        c0 = fmt->getChar (i);
+        c0 = (*fmt) [i];
         if (c0 == '%' && i + 1 < fmt->getLength ()) {
-            c1 = fmt->getChar (i + 1);
+            c1 = (*fmt) [i + 1];
             switch (c1) {
             case 'f':
                 if (core->getDoc () && (s = core->getDoc ()->getFileName ())) {
-                    cmd->append (s);
+                    cmd->append (*s);
                 }
                 break;
             case 'b':
@@ -1048,7 +1048,7 @@ void XPDFUI::cmdRun (GString* args[], int nArgs, XEvent* event) {
                         cmd->append (s->c_str (), p - s->c_str ());
                     }
                     else {
-                        cmd->append (s);
+                        cmd->append (*s);
                     }
                 }
                 break;
@@ -1056,7 +1056,7 @@ void XPDFUI::cmdRun (GString* args[], int nArgs, XEvent* event) {
                 if ((action = core->getLinkAction ()) &&
                     action->getKind () == actionURI) {
                     s = core->mungeURL (((LinkURI*)action)->getURI ());
-                    cmd->append (s);
+                    cmd->append (*s);
                     delete s;
                 }
                 break;
@@ -1112,12 +1112,12 @@ void XPDFUI::cmdRun (GString* args[], int nArgs, XEvent* event) {
                 }
                 cmd->append (buf);
                 break;
-            default: cmd->append (c1); break;
+            default: cmd->append (1UL, c1); break;
             }
             i += 2;
         }
         else {
-            cmd->append (c0);
+            cmd->append (1UL, c0);
             ++i;
         }
     }
@@ -2565,8 +2565,9 @@ void XPDFUI::updateCbk (
 
     if (fileName) {
         if (!(title = viewer->app->getTitle ())) {
-            title =
-                (new GString (xpdfAppName))->append (": ")->append (fileName);
+            title = new GString (xpdfAppName);
+            title->append (": ");
+            title->append (*fileName);
         }
         XtVaSetValues (
             viewer->win, XmNtitle, title->c_str (), XmNiconName,
@@ -3502,7 +3503,7 @@ void XPDFUI::initPrintDialog () {
 
     //----- initial values
     if ((psFileName = globalParams->getPSFile ())) {
-        if (psFileName->getChar (0) == '|') {
+        if (psFileName->front () == '|') {
             XmTextFieldSetString (printCmdText, (char*)psFileName->c_str () + 1);
         }
         else {
@@ -3520,7 +3521,7 @@ void XPDFUI::setupPrintDialog () {
 
     doc = core->getDoc ();
     psFileName = globalParams->getPSFile ();
-    if (!psFileName || psFileName->getChar (0) == '|') {
+    if (!psFileName || (*psFileName) [0] == '|') {
         if ((pdfFileName = doc->getFileName ())) {
             p = pdfFileName->c_str () + pdfFileName->getLength () - 4;
             if (!strcmp (p, ".pdf") || !strcmp (p, ".PDF")) {
@@ -3535,7 +3536,7 @@ void XPDFUI::setupPrintDialog () {
             delete psFileName2;
         }
     }
-    if (psFileName && psFileName->getChar (0) == '|') {
+    if (psFileName && (*psFileName) [0] == '|') {
         XmToggleButtonSetState (printWithCmdBtn, True, False);
         XmToggleButtonSetState (printToFileBtn, False, False);
         XtVaSetValues (printCmdText, XmNsensitive, True, NULL);

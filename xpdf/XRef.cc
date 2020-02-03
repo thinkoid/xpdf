@@ -11,8 +11,8 @@
 
 #include <iostream>
 
-#include <goo/memory.hh>
-#include <goo/gfile.hh>
+#include <utils/memory.hh>
+#include <utils/gfile.hh>
 
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>

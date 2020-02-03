@@ -6,7 +6,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
-#include <goo/parseargs.hh>
+#include <utils/parseargs.hh>
 
 static ArgDesc* findArg (ArgDesc* args, char* arg);
 static bool grabArg (ArgDesc* arg, int i, int* argc, char* argv[]);

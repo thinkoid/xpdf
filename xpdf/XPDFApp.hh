@@ -11,7 +11,6 @@
 #undef Object
 #include <splash/SplashTypes.hh>
 
-class GString;
 class GList;
 class PDFDoc;
 class XPDFUI;

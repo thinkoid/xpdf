@@ -5,8 +5,8 @@
 
 #include <cstring>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
+#include <utils/memory.hh>
+#include <utils/string.hh>
 
 #include <xpdf/PDFDocEncoding.hh>
 #include <xpdf/TextString.hh>
@@ -47,12 +47,12 @@ TextString* TextString::append (Unicode c) {
 TextString* TextString::append (GString* s) {
     int n, i;
 
-    if ((s->getChar (0) & 0xff) == 0xfe && (s->getChar (1) & 0xff) == 0xff) {
+    if ((s->front () & 0xff) == 0xfe && ((*s) [1] & 0xff) == 0xff) {
         n = (s->getLength () - 2) / 2;
         expand (n);
         for (i = 0; i < n; ++i) {
-            u[len + i] = ((s->getChar (2 + 2 * i) & 0xff) << 8) |
-                         (s->getChar (3 + 2 * i) & 0xff);
+            u[len + i] = (((*s) [2 + 2 * i] & 0xff) << 8) |
+                         ((*s) [3 + 2 * i] & 0xff);
         }
         len += n;
     }
@@ -60,7 +60,7 @@ TextString* TextString::append (GString* s) {
         n = s->getLength ();
         expand (n);
         for (i = 0; i < n; ++i) {
-            u[len + i] = pdfDocEncoding[s->getChar (i) & 0xff];
+            u[len + i] = pdfDocEncoding[(*s) [i] & 0xff];
         }
         len += n;
     }
@@ -83,16 +83,16 @@ TextString* TextString::insert (int idx, GString* s) {
     int n, i;
 
     if (idx >= 0 && idx <= len) {
-        if ((s->getChar (0) & 0xff) == 0xfe &&
-            (s->getChar (1) & 0xff) == 0xff) {
+        if ((s->front () & 0xff) == 0xfe &&
+            ((*s) [1] & 0xff) == 0xff) {
             n = (s->getLength () - 2) / 2;
             expand (n);
             if (idx < len) {
                 memmove (u + idx + n, u + idx, (len - idx) * sizeof (Unicode));
             }
             for (i = 0; i < n; ++i) {
-                u[idx + i] = ((s->getChar (2 + 2 * i) & 0xff) << 8) |
-                             (s->getChar (3 + 2 * i) & 0xff);
+                u[idx + i] = (((*s) [2 + 2 * i] & 0xff) << 8) |
+                             ((*s) [3 + 2 * i] & 0xff);
             }
             len += n;
         }
@@ -103,7 +103,7 @@ TextString* TextString::insert (int idx, GString* s) {
                 memmove (u + idx + n, u + idx, (len - idx) * sizeof (Unicode));
             }
             for (i = 0; i < n; ++i) {
-                u[idx + i] = pdfDocEncoding[s->getChar (i) & 0xff];
+                u[idx + i] = pdfDocEncoding[(*s) [i] & 0xff];
             }
             len += n;
         }
@@ -145,15 +145,15 @@ GString* TextString::toPDFTextString () {
     }
     s = new GString ();
     if (useUnicode) {
-        s->append ((char)0xfe);
-        s->append ((char)0xff);
+        s->append (1UL, (char)0xfe);
+        s->append (1UL, (char)0xff);
         for (i = 0; i < len; ++i) {
-            s->append ((char)(u[i] >> 8));
-            s->append ((char)u[i]);
+            s->append (1UL, (char)(u[i] >> 8));
+            s->append (1UL, (char)u[i]);
         }
     }
     else {
-        for (i = 0; i < len; ++i) { s->append ((char)u[i]); }
+        for (i = 0; i < len; ++i) { s->append (1UL, (char)u[i]); }
     }
     return s;
 }

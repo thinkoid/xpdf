@@ -3,7 +3,7 @@
 
 #include <defs.hh>
 
-#include <goo/GString.hh>
+#include <utils/string.hh>
 
 #include <xpdf/array.hh>
 #include <xpdf/Decrypt.hh>

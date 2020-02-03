@@ -9,9 +9,9 @@
 #include <cmath>
 #include <cctype>
 
-#include <goo/memory.hh>
-#include <goo/GString.hh>
-#include <goo/GList.hh>
+#include <utils/memory.hh>
+#include <utils/string.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
@@ -3774,7 +3774,7 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     ret = new GString ();
     for (i = 0; i < ph; ++i) {
         if (out[i]) {
-            ret->append (out[i]);
+            ret->append (*out[i]);
             delete out[i];
         }
         if (ph > 1) { ret->append (eol, eolLen); }

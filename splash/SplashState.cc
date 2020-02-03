@@ -6,7 +6,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <goo/memory.hh>
+#include <utils/memory.hh>
 
 #include <splash/SplashPattern.hh>
 #include <splash/SplashScreen.hh>

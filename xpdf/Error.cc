@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <cstddef>
 #include <cstdarg>
-#include <goo/GString.hh>
+#include <utils/string.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/Error.hh>
 
@@ -44,8 +44,8 @@ void error (ErrorCategory category, GFileOffset pos, const char* msg, ...) {
     // problems for the terminal program
     sanitized = new GString ();
     for (i = 0; i < s->getLength (); ++i) {
-        c = s->getChar (i);
-        if (c >= 0x20 && c <= 0x7e) { sanitized->append (c); }
+        c = (*s) [i];
+        if (c >= 0x20 && c <= 0x7e) { sanitized->append (1UL, c); }
         else {
             sanitized->appendf ("<{0:02x}>", c & 0xff);
         }

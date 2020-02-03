@@ -6,7 +6,6 @@
 
 #include <defs.hh>
 
-class GString;
 
 class SplashFTFontEngine;
 class SplashDTFontEngine;

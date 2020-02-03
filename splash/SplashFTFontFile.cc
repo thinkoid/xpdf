@@ -3,7 +3,7 @@
 
 #include <defs.hh>
 
-#include <goo/GString.hh>
+#include <utils/string.hh>
 #include <splash/SplashFTFontEngine.hh>
 #include <splash/SplashFTFont.hh>
 #include <splash/SplashFTFontFile.hh>

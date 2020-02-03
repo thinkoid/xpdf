@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <goo/GString.hh>
+#include <utils/string.hh>
 #include <xpdf/obj.hh>
 #include <xpdf/CharTypes.hh>
 

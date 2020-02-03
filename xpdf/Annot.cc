@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <cmath>
 
-#include <goo/memory.hh>
-#include <goo/GList.hh>
+#include <utils/memory.hh>
+#include <utils/GList.hh>
 
 #include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>

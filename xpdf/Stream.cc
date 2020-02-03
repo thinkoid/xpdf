@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <goo/gfile.hh>
+#include <utils/gfile.hh>
 
 #include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
@@ -919,7 +919,10 @@ GString* ASCIIHexStream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 2) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("/ASCIIHexDecode filter\n");
+
+    s->append (indent);
+    s->append ("/ASCIIHexDecode filter\n");
+
     return s;
 }
 
@@ -985,7 +988,8 @@ GString* ASCII85Stream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 2) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("/ASCII85Decode filter\n");
+    s->append (indent);
+    s->append ("/ASCII85Decode filter\n");
     return s;
 }
 
@@ -1169,7 +1173,8 @@ GString* LZWStream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 2 || pred) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("<< ");
+    s->append (indent);
+    s->append ("<< ");
     if (!early) { s->append ("/EarlyChange 0 "); }
     s->append (">> /LZWDecode filter\n");
     return s;
@@ -1216,7 +1221,8 @@ GString* RunLengthStream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 2) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("/RunLengthDecode filter\n");
+    s->append (indent);
+    s->append ("/RunLengthDecode filter\n");
     return s;
 }
 
@@ -1862,7 +1868,8 @@ GString* CCITTFaxStream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 2) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("<< ");
+    s->append (indent);
+    s->append ("<< ");
     if (encoding != 0) {
         sprintf (s1, "/K %d ", encoding);
         s->append (s1);
@@ -3304,7 +3311,8 @@ GString* DCTStream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 2) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("<< >> /DCTDecode filter\n");
+    s->append (indent);
+    s->append ("<< >> /DCTDecode filter\n");
     return s;
 }
 
@@ -3587,7 +3595,8 @@ GString* FlateStream::getPSFilter (int psLevel, const char* indent) {
 
     if (psLevel < 3 || pred) { return NULL; }
     if (!(s = str->getPSFilter (psLevel, indent))) { return NULL; }
-    s->append (indent)->append ("<< >> /FlateDecode filter\n");
+    s->append (indent);
+    s->append ("<< >> /FlateDecode filter\n");
     return s;
 }
 
