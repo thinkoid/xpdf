@@ -34,7 +34,7 @@ struct CMapVectorEntry {
 static int getCharFromFile (void* data) { return fgetc ((FILE*)data); }
 
 static int getCharFromStream (void* data) {
-    return ((Stream*)data)->getChar ();
+    return ((Stream*)data)->get ();
 }
 
 //------------------------------------------------------------------------

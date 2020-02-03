@@ -27,8 +27,8 @@ public:
     virtual StreamKind getKind () { return strJBIG2; }
     virtual void reset ();
     virtual void close ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual int getBlock (char* blk, int size);
     virtual GString* getPSFilter (int psLevel, const char* indent);
     virtual bool isBinary (bool last = true);

@@ -17,8 +17,8 @@ public:
     bool getToken (char* buf, int size, int* length);
 
 private:
-    int lookChar ();
-    int getChar ();
+    int peek ();
+    int get ();
 
     int (*getCharFunc) (void*);
     void* data;

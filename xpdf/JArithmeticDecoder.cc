@@ -90,7 +90,7 @@ inline unsigned JArithmeticDecoder::readByte () {
         if (dataLen < 0) { return 0xff; }
     }
     ++nBytesRead;
-    return (unsigned)str->getChar () & 0xff;
+    return (unsigned)str->get () & 0xff;
 }
 
 JArithmeticDecoder::~JArithmeticDecoder () { cleanup (); }

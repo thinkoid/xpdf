@@ -355,7 +355,7 @@ void DecryptStream::reset () {
     }
 }
 
-int DecryptStream::getChar () {
+int DecryptStream::get () {
     unsigned char in[16];
     int c;
 
@@ -363,7 +363,7 @@ int DecryptStream::getChar () {
     switch (algo) {
     case cryptRC4:
         if (state.rc4.buf == EOF) {
-            c = str->getChar ();
+            c = str->get ();
             if (c != EOF) {
                 state.rc4.buf = rc4DecryptByte (
                     state.rc4.state, &state.rc4.x, &state.rc4.y, (unsigned char)c);
@@ -375,7 +375,7 @@ int DecryptStream::getChar () {
     case cryptAES:
         if (state.aes.bufIdx == 16) {
             if (str->getBlock ((char*)in, 16) != 16) { return EOF; }
-            aesDecryptBlock (&state.aes, in, str->lookChar () == EOF);
+            aesDecryptBlock (&state.aes, in, str->peek () == EOF);
         }
         if (state.aes.bufIdx == 16) { c = EOF; }
         else {
@@ -385,7 +385,7 @@ int DecryptStream::getChar () {
     case cryptAES256:
         if (state.aes256.bufIdx == 16) {
             if (str->getBlock ((char*)in, 16) != 16) { return EOF; }
-            aes256DecryptBlock (&state.aes256, in, str->lookChar () == EOF);
+            aes256DecryptBlock (&state.aes256, in, str->peek () == EOF);
         }
         if (state.aes256.bufIdx == 16) { c = EOF; }
         else {
@@ -396,7 +396,7 @@ int DecryptStream::getChar () {
     return c;
 }
 
-int DecryptStream::lookChar () {
+int DecryptStream::peek () {
     unsigned char in[16];
     int c;
 
@@ -404,7 +404,7 @@ int DecryptStream::lookChar () {
     switch (algo) {
     case cryptRC4:
         if (state.rc4.buf == EOF) {
-            c = str->getChar ();
+            c = str->get ();
             if (c != EOF) {
                 state.rc4.buf = rc4DecryptByte (
                     state.rc4.state, &state.rc4.x, &state.rc4.y, (unsigned char)c);
@@ -415,7 +415,7 @@ int DecryptStream::lookChar () {
     case cryptAES:
         if (state.aes.bufIdx == 16) {
             if (str->getBlock ((char*)in, 16) != 16) { return EOF; }
-            aesDecryptBlock (&state.aes, in, str->lookChar () == EOF);
+            aesDecryptBlock (&state.aes, in, str->peek () == EOF);
         }
         if (state.aes.bufIdx == 16) { c = EOF; }
         else {
@@ -425,7 +425,7 @@ int DecryptStream::lookChar () {
     case cryptAES256:
         if (state.aes256.bufIdx == 16) {
             if (str->getBlock ((char*)in, 16) != 16) { return EOF; }
-            aes256DecryptBlock (&state.aes256, in, str->lookChar () == EOF);
+            aes256DecryptBlock (&state.aes256, in, str->peek () == EOF);
         }
         if (state.aes256.bufIdx == 16) { c = EOF; }
         else {

@@ -97,11 +97,11 @@ void obj_t::streamClose () {
 }
 
 int obj_t::streamGetChar () {
-    return as_stream ()->getChar ();
+    return as_stream ()->get ();
 }
 
 int obj_t::streamLookChar () {
-    return as_stream ()->lookChar ();
+    return as_stream ()->peek ();
 }
 
 int obj_t::streamGetBlock (char* blk, int size) {

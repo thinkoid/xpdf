@@ -3703,7 +3703,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
         if (!ocState) {
             str->reset ();
             n = height * ((width + 7) / 8);
-            for (i = 0; i < n; ++i) { str->getChar (); }
+            for (i = 0; i < n; ++i) { str->get (); }
             str->close ();
 
             // draw it
@@ -3891,7 +3891,7 @@ void Gfx::doImage (Object* ref, Stream* str, bool inlineImg) {
                 ((width * colorMap->getNumPixelComps () * colorMap->getBits () +
                   7) /
                  8);
-            for (i = 0; i < n; ++i) { str->getChar (); }
+            for (i = 0; i < n; ++i) { str->get (); }
             str->close ();
 
             // draw it
@@ -4142,13 +4142,13 @@ void Gfx::opBeginImage (Object args[], int numArgs) {
         doImage (NULL, str, true);
 
         // skip 'EI' tag
-        c1 = str->getUndecodedStream ()->getChar ();
-        c2 = str->getUndecodedStream ()->getChar ();
-        c3 = str->getUndecodedStream ()->lookChar ();
+        c1 = str->getUndecodedStream ()->get ();
+        c2 = str->getUndecodedStream ()->get ();
+        c3 = str->getUndecodedStream ()->peek ();
         while (!(c1 == 'E' && c2 == 'I' && Lexer::isSpace (c3)) && c3 != EOF) {
             c1 = c2;
-            c2 = str->getUndecodedStream ()->getChar ();
-            c3 = str->getUndecodedStream ()->lookChar ();
+            c2 = str->getUndecodedStream ()->get ();
+            c3 = str->getUndecodedStream ()->peek ();
         }
         delete str;
     }

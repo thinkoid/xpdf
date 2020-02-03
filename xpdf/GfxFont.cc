@@ -120,7 +120,7 @@ static const char* base14SubstFonts[14] = {
 
 //------------------------------------------------------------------------
 
-static int readFromStream (void* data) { return ((Stream*)data)->getChar (); }
+static int readFromStream (void* data) { return ((Stream*)data)->get (); }
 
 //------------------------------------------------------------------------
 // GfxFontLoc

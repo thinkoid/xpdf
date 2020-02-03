@@ -71,8 +71,8 @@ public:
     virtual ~DecryptStream ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual bool isBinary (bool last);
     virtual Stream* getUndecodedStream () { return this; }
 

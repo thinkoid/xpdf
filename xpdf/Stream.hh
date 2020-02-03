@@ -69,10 +69,10 @@ public:
     virtual void close ();
 
     // Get next char from stream.
-    virtual int getChar () = 0;
+    virtual int get () = 0;
 
     // Peek at next char in stream.
-    virtual int lookChar () = 0;
+    virtual int peek () = 0;
 
     // Get next char from stream without using the predictor.
     // This is only used by StreamPredictor.
@@ -247,8 +247,8 @@ public:
     bool isOk () { return ok; }
 
     void reset ();
-    int lookChar ();
-    int getChar ();
+    int peek ();
+    int get ();
     int getBlock (char* blk, int size);
 
 private:
@@ -288,10 +288,10 @@ public:
     virtual StreamKind getKind () { return strFile; }
     virtual void reset ();
     virtual void close ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr++ & 0xff);
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr & 0xff);
     }
     virtual int getBlock (char* blk, int size);
@@ -328,10 +328,10 @@ public:
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
     virtual void close ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufPtr < bufEnd) ? (*bufPtr++ & 0xff) : EOF;
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufPtr < bufEnd) ? (*bufPtr & 0xff) : EOF;
     }
     virtual int getBlock (char* blk, int size);
@@ -367,8 +367,8 @@ public:
         GFileOffset start, bool limitedA, GFileOffset lengthA, Object* dictA);
     virtual StreamKind getKind () { return str->getKind (); }
     virtual void reset () {}
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual int getBlock (char* blk, int size);
     virtual GFileOffset getPos () { return str->getPos (); }
     virtual void setPos (GFileOffset pos, int dir = 0);
@@ -391,12 +391,12 @@ public:
     virtual ~ASCIIHexStream ();
     virtual StreamKind getKind () { return strASCIIHex; }
     virtual void reset ();
-    virtual int getChar () {
-        int c = lookChar ();
+    virtual int get () {
+        int c = peek ();
         buf = EOF;
         return c;
     }
-    virtual int lookChar ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent);
     virtual bool isBinary (bool last = true);
 
@@ -415,12 +415,12 @@ public:
     virtual ~ASCII85Stream ();
     virtual StreamKind getKind () { return strASCII85; }
     virtual void reset ();
-    virtual int getChar () {
-        int ch = lookChar ();
+    virtual int get () {
+        int ch = peek ();
         ++index;
         return ch;
     }
-    virtual int lookChar ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent);
     virtual bool isBinary (bool last = true);
 
@@ -443,8 +443,8 @@ public:
     virtual ~LZWStream ();
     virtual StreamKind getKind () { return strLZW; }
     virtual void reset ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual int getRawChar ();
     virtual int getBlock (char* blk, int size);
     virtual GString* getPSFilter (int psLevel, const char* indent);
@@ -485,10 +485,10 @@ public:
     virtual ~RunLengthStream ();
     virtual StreamKind getKind () { return strRunLength; }
     virtual void reset ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr++ & 0xff);
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr & 0xff);
     }
     virtual int getBlock (char* blk, int size);
@@ -518,12 +518,12 @@ public:
     virtual ~CCITTFaxStream ();
     virtual StreamKind getKind () { return strCCITTFax; }
     virtual void reset ();
-    virtual int getChar () {
-        int c = lookChar ();
+    virtual int get () {
+        int c = peek ();
         buf = EOF;
         return c;
     }
-    virtual int lookChar ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent);
     virtual bool isBinary (bool last = true);
 
@@ -595,8 +595,8 @@ public:
     virtual StreamKind getKind () { return strDCT; }
     virtual void reset ();
     virtual void close ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent);
     virtual bool isBinary (bool last = true);
     Stream* getRawStream () { return str; }
@@ -697,8 +697,8 @@ public:
     virtual ~FlateStream ();
     virtual StreamKind getKind () { return strFlate; }
     virtual void reset ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual int getRawChar ();
     virtual int getBlock (char* blk, int size);
     virtual GString* getPSFilter (int psLevel, const char* indent);
@@ -750,8 +750,8 @@ public:
     virtual ~EOFStream ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset () {}
-    virtual int getChar () { return EOF; }
-    virtual int lookChar () { return EOF; }
+    virtual int get () { return EOF; }
+    virtual int peek () { return EOF; }
     virtual int getBlock (char* blk, int size) { return 0; }
     virtual GString* getPSFilter (int psLevel, const char* indent) {
         return NULL;
@@ -769,14 +769,14 @@ public:
     virtual ~BufStream ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent) {
         return NULL;
     }
     virtual bool isBinary (bool last = true);
 
-    int lookChar (int idx);
+    int peek (int idx);
 
 private:
     int* buf;
@@ -793,8 +793,8 @@ public:
     ~FixedLengthEncoder ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent) {
         return NULL;
     }
@@ -816,10 +816,10 @@ public:
     virtual ~ASCIIHexEncoder ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr++ & 0xff);
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr & 0xff);
     }
     virtual GString* getPSFilter (int psLevel, const char* indent) {
@@ -848,10 +848,10 @@ public:
     virtual ~ASCII85Encoder ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr++ & 0xff);
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr & 0xff);
     }
     virtual GString* getPSFilter (int psLevel, const char* indent) {
@@ -880,10 +880,10 @@ public:
     virtual ~RunLengthEncoder ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr++ & 0xff);
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufPtr >= bufEnd && !fillBuf ()) ? EOF : (*bufPtr & 0xff);
     }
     virtual GString* getPSFilter (int psLevel, const char* indent) {
@@ -918,8 +918,8 @@ public:
     virtual ~LZWEncoder ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent) {
         return NULL;
     }

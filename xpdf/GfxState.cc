@@ -2128,7 +2128,7 @@ bool GfxShadingBitBuf::getBits (int n, unsigned* val) {
             nBits = 0;
         }
         while (n > 0) {
-            if ((bitBuf = str->getChar ()) == EOF) {
+            if ((bitBuf = str->get ()) == EOF) {
                 nBits = 0;
                 return false;
             }

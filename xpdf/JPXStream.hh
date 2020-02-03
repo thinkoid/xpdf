@@ -272,8 +272,8 @@ public:
     virtual StreamKind getKind () { return strJPX; }
     virtual void reset ();
     virtual void close ();
-    virtual int getChar ();
-    virtual int lookChar ();
+    virtual int get ();
+    virtual int peek ();
     virtual GString* getPSFilter (int psLevel, const char* indent);
     virtual bool isBinary (bool last = true);
     virtual void
@@ -335,7 +335,7 @@ private:
                       //   (for bit stuffing)
     unsigned byteCount;  // number of available bytes left
 
-    unsigned curX, curY, curComp; // current position for lookChar/getChar
+    unsigned curX, curY, curComp; // current position for peek/get
     unsigned readBuf;             // read buffer
     unsigned readBufLen;          // number of valid bits in readBuf
 };

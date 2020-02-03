@@ -215,7 +215,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
             return;
         }
     }
-    while (str->getChar () != EOF) ;
+    while (str->get () != EOF) ;
 
     // skip to the first object - this shouldn't be necessary because
     // the First key is supposed to be equal to offsets[0], but just in
@@ -236,7 +236,7 @@ ObjectStream::ObjectStream (XRef* xref, int objStrNumA) {
         Parser parser (xref, new Lexer (str), false);
         parser.getObj (&objs[i]);
 
-        while (str->getChar () != EOF) ;
+        while (str->get () != EOF) ;
     }
 
     free (offsets);
@@ -429,7 +429,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     str->setPos (start + *pos + offset);
 
     while (1) {
-        do { c = str->getChar (); } while (Lexer::isSpace (c));
+        do { c = str->get (); } while (Lexer::isSpace (c));
         if (c == 't') {
             if (str->getBlock (buf, 6) != 6 || memcmp (buf, "railer", 6)) {
                 return ok = false;
@@ -440,14 +440,14 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
         first = 0;
         do {
             first = (first * 10) + (c - '0');
-            c = str->getChar ();
+            c = str->get ();
         } while (c >= '0' && c <= '9');
         if (!Lexer::isSpace (c)) { return ok = false; }
-        do { c = str->getChar (); } while (Lexer::isSpace (c));
+        do { c = str->get (); } while (Lexer::isSpace (c));
         n = 0;
         do {
             n = (n * 10) + (c - '0');
-            c = str->getChar ();
+            c = str->get ();
         } while (c >= '0' && c <= '9');
         if (!Lexer::isSpace (c)) { return ok = false; }
         if (first < 0 || n < 0 || first > INT_MAX - n) { return ok = false; }
@@ -465,23 +465,23 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
             size = newSize;
         }
         for (i = first; i < first + n; ++i) {
-            do { c = str->getChar (); } while (Lexer::isSpace (c));
+            do { c = str->get (); } while (Lexer::isSpace (c));
             off = 0;
             do {
                 off = (off * 10) + (c - '0');
-                c = str->getChar ();
+                c = str->get ();
             } while (c >= '0' && c <= '9');
             if (!Lexer::isSpace (c)) { return ok = false; }
             entry.offset = off;
-            do { c = str->getChar (); } while (Lexer::isSpace (c));
+            do { c = str->get (); } while (Lexer::isSpace (c));
             gen = 0;
             do {
                 gen = (gen * 10) + (c - '0');
-                c = str->getChar ();
+                c = str->get ();
             } while (c >= '0' && c <= '9');
             if (!Lexer::isSpace (c)) { return ok = false; }
             entry.gen = gen;
-            do { c = str->getChar (); } while (Lexer::isSpace (c));
+            do { c = str->get (); } while (Lexer::isSpace (c));
             if (c == 'n') { entry.type = xrefEntryUncompressed; }
             else if (c == 'f') {
                 entry.type = xrefEntryFree;
@@ -489,7 +489,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
             else {
                 return ok = false;
             }
-            c = str->getChar ();
+            c = str->get ();
             if (!Lexer::isSpace (c)) { return ok = false; }
             if (entries[i].offset == (GFileOffset)-1) {
                 entries[i] = entry;
@@ -661,16 +661,16 @@ bool XRef::readXRefStreamSection (Stream* xrefStr, int* w, int first, int n) {
         if (w[0] == 0) { type = 1; }
         else {
             for (type = 0, j = 0; j < w[0]; ++j) {
-                if ((c = xrefStr->getChar ()) == EOF) { return false; }
+                if ((c = xrefStr->get ()) == EOF) { return false; }
                 type = (type << 8) + c;
             }
         }
         for (offset = 0, j = 0; j < w[1]; ++j) {
-            if ((c = xrefStr->getChar ()) == EOF) { return false; }
+            if ((c = xrefStr->get ()) == EOF) { return false; }
             offset = (offset << 8) + c;
         }
         for (gen = 0, j = 0; j < w[2]; ++j) {
-            if ((c = xrefStr->getChar ()) == EOF) { return false; }
+            if ((c = xrefStr->get ()) == EOF) { return false; }
             gen = (gen << 8) + c;
         }
         if (entries[i].offset == (GFileOffset)-1) {

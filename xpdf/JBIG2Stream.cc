@@ -290,12 +290,12 @@ unsigned JBIG2HuffmanDecoder::readBits (unsigned n) {
         nLeft = n - bufLen;
         bufLen = 0;
         while (nLeft >= 8) {
-            x = (x << 8) | (str->getChar () & 0xff);
+            x = (x << 8) | (str->get () & 0xff);
             ++byteCounter;
             nLeft -= 8;
         }
         if (nLeft > 0) {
-            buf = str->getChar ();
+            buf = str->get ();
             ++byteCounter;
             bufLen = 8 - nLeft;
             x = (x << nLeft) | ((buf >> bufLen) & ((1 << nLeft) - 1));
@@ -306,7 +306,7 @@ unsigned JBIG2HuffmanDecoder::readBits (unsigned n) {
 
 unsigned JBIG2HuffmanDecoder::readBit () {
     if (bufLen == 0) {
-        buf = str->getChar ();
+        buf = str->get ();
         ++byteCounter;
         bufLen = 8;
     }
@@ -397,7 +397,7 @@ int JBIG2MMRDecoder::get2DCode () {
     CCITTCode* p;
 
     if (bufLen == 0) {
-        buf = str->getChar () & 0xff;
+        buf = str->get () & 0xff;
         bufLen = 8;
         ++nBytesRead;
         ++byteCounter;
@@ -409,7 +409,7 @@ int JBIG2MMRDecoder::get2DCode () {
     else {
         p = &twoDimTab1[(buf << (7 - bufLen)) & 0x7f];
         if (p->bits < 0 || p->bits > (int)bufLen) {
-            buf = (buf << 8) | (str->getChar () & 0xff);
+            buf = (buf << 8) | (str->get () & 0xff);
             bufLen += 8;
             ++nBytesRead;
             ++byteCounter;
@@ -431,7 +431,7 @@ int JBIG2MMRDecoder::getWhiteCode () {
     unsigned code;
 
     if (bufLen == 0) {
-        buf = str->getChar () & 0xff;
+        buf = str->get () & 0xff;
         bufLen = 8;
         ++nBytesRead;
         ++byteCounter;
@@ -456,7 +456,7 @@ int JBIG2MMRDecoder::getWhiteCode () {
             return p->n;
         }
         if (bufLen >= 12) { break; }
-        buf = (buf << 8) | (str->getChar () & 0xff);
+        buf = (buf << 8) | (str->get () & 0xff);
         bufLen += 8;
         ++nBytesRead;
         ++byteCounter;
@@ -474,7 +474,7 @@ int JBIG2MMRDecoder::getBlackCode () {
     unsigned code;
 
     if (bufLen == 0) {
-        buf = str->getChar () & 0xff;
+        buf = str->get () & 0xff;
         bufLen = 8;
         ++nBytesRead;
         ++byteCounter;
@@ -508,7 +508,7 @@ int JBIG2MMRDecoder::getBlackCode () {
             return p->n;
         }
         if (bufLen >= 13) { break; }
-        buf = (buf << 8) | (str->getChar () & 0xff);
+        buf = (buf << 8) | (str->get () & 0xff);
         bufLen += 8;
         ++nBytesRead;
         ++byteCounter;
@@ -523,7 +523,7 @@ int JBIG2MMRDecoder::getBlackCode () {
 
 unsigned JBIG2MMRDecoder::get24Bits () {
     while (bufLen < 24) {
-        buf = (buf << 8) | (str->getChar () & 0xff);
+        buf = (buf << 8) | (str->get () & 0xff);
         bufLen += 8;
         ++nBytesRead;
         ++byteCounter;
@@ -1112,12 +1112,12 @@ void JBIG2Stream::close () {
     FilterStream::close ();
 }
 
-int JBIG2Stream::getChar () {
+int JBIG2Stream::get () {
     if (dataPtr && dataPtr < dataEnd) { return (*dataPtr++ ^ 0xff) & 0xff; }
     return EOF;
 }
 
-int JBIG2Stream::lookChar () {
+int JBIG2Stream::peek () {
     if (dataPtr && dataPtr < dataEnd) { return (*dataPtr ^ 0xff) & 0xff; }
     return EOF;
 }
@@ -1156,9 +1156,9 @@ void JBIG2Stream::readSegments () {
         if (!readUByte (&refFlags)) { goto eofError1; }
         nRefSegs = refFlags >> 5;
         if (nRefSegs == 7) {
-            if ((c1 = curStr->getChar ()) == EOF ||
-                (c2 = curStr->getChar ()) == EOF ||
-                (c3 = curStr->getChar ()) == EOF) {
+            if ((c1 = curStr->get ()) == EOF ||
+                (c2 = curStr->get ()) == EOF ||
+                (c3 = curStr->get ()) == EOF) {
                 goto eofError1;
             }
             refFlags = (refFlags << 24) | (c1 << 16) | (c2 << 8) | c3;
@@ -3755,7 +3755,7 @@ void JBIG2Stream::resetIntStats (int symCodeLen) {
 bool JBIG2Stream::readUByte (unsigned* x) {
     int c0;
 
-    if ((c0 = curStr->getChar ()) == EOF) { return false; }
+    if ((c0 = curStr->get ()) == EOF) { return false; }
     ++byteCounter;
     *x = (unsigned)c0;
     return true;
@@ -3764,7 +3764,7 @@ bool JBIG2Stream::readUByte (unsigned* x) {
 bool JBIG2Stream::readByte (int* x) {
     int c0;
 
-    if ((c0 = curStr->getChar ()) == EOF) { return false; }
+    if ((c0 = curStr->get ()) == EOF) { return false; }
     ++byteCounter;
     *x = c0;
     if (c0 & 0x80) { *x |= -1 - 0xff; }
@@ -3774,7 +3774,7 @@ bool JBIG2Stream::readByte (int* x) {
 bool JBIG2Stream::readUWord (unsigned* x) {
     int c0, c1;
 
-    if ((c0 = curStr->getChar ()) == EOF || (c1 = curStr->getChar ()) == EOF) {
+    if ((c0 = curStr->get ()) == EOF || (c1 = curStr->get ()) == EOF) {
         return false;
     }
     byteCounter += 2;
@@ -3785,8 +3785,8 @@ bool JBIG2Stream::readUWord (unsigned* x) {
 bool JBIG2Stream::readULong (unsigned* x) {
     int c0, c1, c2, c3;
 
-    if ((c0 = curStr->getChar ()) == EOF || (c1 = curStr->getChar ()) == EOF ||
-        (c2 = curStr->getChar ()) == EOF || (c3 = curStr->getChar ()) == EOF) {
+    if ((c0 = curStr->get ()) == EOF || (c1 = curStr->get ()) == EOF ||
+        (c2 = curStr->get ()) == EOF || (c3 = curStr->get ()) == EOF) {
         return false;
     }
     byteCounter += 4;
@@ -3797,8 +3797,8 @@ bool JBIG2Stream::readULong (unsigned* x) {
 bool JBIG2Stream::readLong (int* x) {
     int c0, c1, c2, c3;
 
-    if ((c0 = curStr->getChar ()) == EOF || (c1 = curStr->getChar ()) == EOF ||
-        (c2 = curStr->getChar ()) == EOF || (c3 = curStr->getChar ()) == EOF) {
+    if ((c0 = curStr->get ()) == EOF || (c1 = curStr->get ()) == EOF ||
+        (c2 = curStr->get ()) == EOF || (c3 = curStr->get ()) == EOF) {
         return false;
     }
     byteCounter += 4;

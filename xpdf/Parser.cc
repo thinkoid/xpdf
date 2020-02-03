@@ -210,7 +210,7 @@ Object* Parser::getObj (
 
         decrypt->reset ();
 
-        while ((c = decrypt->getChar ()) != EOF) {
+        while ((c = decrypt->get ()) != EOF) {
             s.append (1UL, char (c));
         }
 

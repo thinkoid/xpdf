@@ -71,7 +71,7 @@ Lexer::~Lexer () {
     }
 }
 
-int Lexer::getChar () {
+int Lexer::get () {
     int c = EOF;
 
     while (!curStr.is_none () && (c = curStr.streamGetChar ()) == EOF) {
@@ -87,7 +87,7 @@ int Lexer::getChar () {
     return c;
 }
 
-int Lexer::lookChar () {
+int Lexer::peek () {
     if (curStr.is_none ()) {
         return EOF;
     }
@@ -104,7 +104,7 @@ Lexer::token_t Lexer::next () {
     bool comment = false;
 
     for (;;) {
-        if ((c = getChar ()) == EOF) {
+        if ((c = get ()) == EOF) {
             return { token_t::EOF_, { } };
         }
 
@@ -135,14 +135,14 @@ Lexer::token_t Lexer::next () {
         }
 
         for (;;) {
-            c = lookChar ();
+            c = peek ();
 
             if (isdigit (c)) {
-                getChar ();
+                get ();
                 s.append (1, c);
             }
             else if (c == '.') {
-                getChar ();
+                get ();
                 s.append (1, c);
                 goto doReal;
             }
@@ -155,11 +155,11 @@ Lexer::token_t Lexer::next () {
 
 doReal:
         for (;;) {
-            c = lookChar ();
+            c = peek ();
 
             if (c == '-') {
                 // Ignore, just like Adobe(?):
-                getChar ();
+                get ();
                 continue;
             }
 
@@ -167,7 +167,7 @@ doReal:
                 break;
             }
 
-            getChar ();
+            get ();
             s.append (1, c);
         }
 
@@ -186,7 +186,7 @@ doReal:
         do {
             c2 = EOF;
 
-            switch (c = getChar ()) {
+            switch (c = get ()) {
             case EOF:
 #if 0
             case '\r': case '\n':
@@ -212,7 +212,7 @@ doReal:
                 break;
 
             case '\\':
-                switch (c = getChar ()) {
+                switch (c = get ()) {
                 case 'n': c2 = '\n'; break;
                 case 'r': c2 = '\r'; break;
                 case 't': c2 = '\t'; break;
@@ -222,21 +222,21 @@ doReal:
                 case '0': case '1': case '2': case '3': case '4':
                 case '5': case '6': case '7':
                     c2 = c - '0';
-                    c = lookChar ();
+                    c = peek ();
                     if (c >= '0' && c <= '7') {
-                        getChar ();
+                        get ();
                         c2 = (c2 << 3) + (c - '0');
-                        c = lookChar ();
+                        c = peek ();
                         if (c >= '0' && c <= '7') {
-                            getChar ();
+                            get ();
                             c2 = (c2 << 3) + (c - '0');
                         }
                     }
                     break;
 
                 case '\r':
-                    if ((c = lookChar ()) == '\n') {
-                        getChar ();
+                    if ((c = peek ()) == '\n') {
+                        get ();
                     }
                     break;
 
@@ -274,11 +274,11 @@ doReal:
         int c2;
         std::string s;
 
-        while ((c = lookChar ()) != EOF && !specialChars [c]) {
-            getChar ();
+        while ((c = peek ()) != EOF && !specialChars [c]) {
+            get ();
 
             if (c == '#') {
-                c2 = lookChar ();
+                c2 = peek ();
 
                 if (c2 >= '0' && c2 <= '9') {
                     c = c2 - '0';
@@ -293,10 +293,10 @@ doReal:
                     goto notEscChar;
                 }
 
-                getChar ();
+                get ();
 
                 c <<= 4;
-                c2 = getChar ();
+                c2 = get ();
 
                 if (c2 >= '0' && c2 <= '9') {
                     c += c2 - '0';
@@ -329,13 +329,13 @@ doReal:
 
     // hex string or dict punctuation
     case '<': {
-        c = lookChar ();
+        c = peek ();
 
         if (c == '<') {
             //
             // Dict punctuation:
             //
-            getChar ();
+            get ();
             return { token_t::KEYWORD_, "<<" };
         }
         else {
@@ -346,7 +346,7 @@ doReal:
             std::string s;
 
             while (1) {
-                c = getChar ();
+                c = get ();
 
                 if (c == '>') {
                     break;
@@ -388,8 +388,8 @@ doReal:
         //
         // Dict punctuation:
         //
-        if ((c = lookChar ()) == '>') {
-            getChar ();
+        if ((c = peek ()) == '>') {
+            get ();
             return { token_t::KEYWORD_, ">>" };
         }
         else {
@@ -410,8 +410,8 @@ doReal:
         //
         std::string s (1UL, char (c));
 
-        while ((c = lookChar ()) != EOF && !specialChars [c]) {
-            getChar ();
+        while ((c = peek ()) != EOF && !specialChars [c]) {
+            get ();
             s.append (1, c);
         }
 
@@ -434,10 +434,10 @@ void Lexer::skipToNextLine () {
     int c;
 
     while (1) {
-        c = getChar ();
+        c = get ();
         if (c == EOF || c == '\n') { return; }
         if (c == '\r') {
-            if ((c = lookChar ()) == '\n') { getChar (); }
+            if ((c = peek ()) == '\n') { get (); }
             return;
         }
     }

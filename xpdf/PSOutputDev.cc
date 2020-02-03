@@ -929,10 +929,10 @@ public:
     virtual ~DeviceNRecoder ();
     virtual StreamKind getKind () { return strWeird; }
     virtual void reset ();
-    virtual int getChar () {
+    virtual int get () {
         return (bufIdx >= bufSize && !fillBuf ()) ? EOF : buf[bufIdx++];
     }
-    virtual int lookChar () {
+    virtual int peek () {
         return (bufIdx >= bufSize && !fillBuf ()) ? EOF : buf[bufIdx];
     }
     virtual GString* getPSFilter (int psLevel, const char* indent) { return NULL; }
@@ -2934,13 +2934,13 @@ void PSOutputDev::setupImage (Ref id, Stream* str, bool mask) {
     str->reset ();
     col = size = 0;
     do {
-        do { c = str->getChar (); } while (c == '\n' || c == '\r');
+        do { c = str->get (); } while (c == '\n' || c == '\r');
         if (c == (useASCIIHex ? '>' : '~') || c == EOF) { break; }
         if (c == 'z') { ++col; }
         else {
             ++col;
             for (i = 1; i <= (useASCIIHex ? 1 : 4); ++i) {
-                do { c = str->getChar (); } while (c == '\n' || c == '\r');
+                do { c = str->get (); } while (c == '\n' || c == '\r');
                 if (c == (useASCIIHex ? '>' : '~') || c == EOF) { break; }
                 ++col;
             }
@@ -2964,7 +2964,7 @@ void PSOutputDev::setupImage (Ref id, Stream* str, bool mask) {
     line = col = 0;
     writePS ((char*)(useASCIIHex ? "dup 0 <" : "dup 0 <~"));
     do {
-        do { c = str->getChar (); } while (c == '\n' || c == '\r');
+        do { c = str->get (); } while (c == '\n' || c == '\r');
         if (c == (useASCIIHex ? '>' : '~') || c == EOF) { break; }
         if (c == 'z') {
             writePSChar (c);
@@ -2974,7 +2974,7 @@ void PSOutputDev::setupImage (Ref id, Stream* str, bool mask) {
             writePSChar (c);
             ++col;
             for (i = 1; i <= (useASCIIHex ? 1 : 4); ++i) {
-                do { c = str->getChar (); } while (c == '\n' || c == '\r');
+                do { c = str->get (); } while (c == '\n' || c == '\r');
                 if (c == (useASCIIHex ? '>' : '~') || c == EOF) { break; }
                 writePSChar (c);
                 ++col;
@@ -4771,7 +4771,7 @@ void PSOutputDev::doImageL1 (
             col = 0;
             writePS ("[<");
             do {
-                do { c = str->getChar (); } while (c == '\n' || c == '\r');
+                do { c = str->get (); } while (c == '\n' || c == '\r');
                 if (c == '>' || c == EOF) { break; }
                 writePSChar (c);
                 ++col;
@@ -4847,7 +4847,7 @@ void PSOutputDev::doImageL1 (
             i = 0;
             for (y = 0; y < height; ++y) {
                 for (x = 0; x < width; x += 8) {
-                    writePSFmt ("{0:02x}", str->getChar () & 0xff);
+                    writePSFmt ("{0:02x}", str->get () & 0xff);
                     if (++i == 32) {
                         writePSChar ('\n');
                         i = 0;
@@ -5210,7 +5210,7 @@ void PSOutputDev::doImageL2 (
             col = 0;
             writePS ((char*)(useASCIIHex ? "[<" : "[<~"));
             do {
-                do { c = str2->getChar (); } while (c == '\n' || c == '\r');
+                do { c = str2->get (); } while (c == '\n' || c == '\r');
                 if (c == (useASCIIHex ? '>' : '~') || c == EOF) { break; }
                 if (c == 'z') {
                     writePSChar (c);
@@ -5221,7 +5221,7 @@ void PSOutputDev::doImageL2 (
                     ++col;
                     for (i = 1; i <= (useASCIIHex ? 1 : 4); ++i) {
                         do {
-                            c = str2->getChar ();
+                            c = str2->get ();
                         } while (c == '\n' || c == '\r');
                         if (c == (useASCIIHex ? '>' : '~') || c == EOF) {
                             break;
@@ -5577,7 +5577,7 @@ void PSOutputDev::doImageL3 (
             col = 0;
             writePS ((char*)(useASCIIHex ? "[<" : "[<~"));
             do {
-                do { c = str2->getChar (); } while (c == '\n' || c == '\r');
+                do { c = str2->get (); } while (c == '\n' || c == '\r');
                 if (c == (useASCIIHex ? '>' : '~') || c == EOF) { break; }
                 if (c == 'z') {
                     writePSChar (c);
@@ -5588,7 +5588,7 @@ void PSOutputDev::doImageL3 (
                     ++col;
                     for (i = 1; i <= (useASCIIHex ? 1 : 4); ++i) {
                         do {
-                            c = str2->getChar ();
+                            c = str2->get ();
                         } while (c == '\n' || c == '\r');
                         if (c == (useASCIIHex ? '>' : '~') || c == EOF) {
                             break;

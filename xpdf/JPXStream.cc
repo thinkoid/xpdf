@@ -353,7 +353,7 @@ void JPXStream::close () {
     bufStr->close ();
 }
 
-int JPXStream::getChar () {
+int JPXStream::get () {
     int c;
 
     if (readBufLen < 8) { fillReadBuf (); }
@@ -375,7 +375,7 @@ int JPXStream::getChar () {
     return c;
 }
 
-int JPXStream::lookChar () {
+int JPXStream::peek () {
     int c;
 
     if (readBufLen < 8) { fillReadBuf (); }
@@ -464,7 +464,7 @@ void JPXStream::getImageParams (
     csPrec = 0; // make gcc happy
     haveBPC = haveCSMode = false;
     bufStr->reset ();
-    if (bufStr->lookChar () == 0xff) {
+    if (bufStr->peek () == 0xff) {
         getImageParams2 (bitsPerComponent, csMode);
     }
     else {
@@ -580,7 +580,7 @@ JPXDecodeResult JPXStream::readBoxes () {
     // check for a naked JPEG 2000 codestream (without the JP2/JPX
     // wrapper) -- this appears to be a violation of the PDF spec, but
     // Acrobat allows it
-    if (bufStr->lookChar () == 0xff) {
+    if (bufStr->peek () == 0xff) {
         cover (7);
         error (
             errSyntaxWarning, getPos (),
@@ -3503,10 +3503,10 @@ int JPXStream::readMarkerHdr (int* segType, unsigned* segLen) {
 
     do {
         do {
-            if ((c = bufStr->getChar ()) == EOF) { return false; }
+            if ((c = bufStr->get ()) == EOF) { return false; }
         } while (c != 0xff);
         do {
-            if ((c = bufStr->getChar ()) == EOF) { return false; }
+            if ((c = bufStr->get ()) == EOF) { return false; }
         } while (c == 0xff);
     } while (c == 0x00);
     *segType = c;
@@ -3521,7 +3521,7 @@ int JPXStream::readMarkerHdr (int* segType, unsigned* segLen) {
 bool JPXStream::readUByte (unsigned* x) {
     int c0;
 
-    if ((c0 = bufStr->getChar ()) == EOF) { return false; }
+    if ((c0 = bufStr->get ()) == EOF) { return false; }
     *x = (unsigned)c0;
     return true;
 }
@@ -3529,7 +3529,7 @@ bool JPXStream::readUByte (unsigned* x) {
 bool JPXStream::readByte (int* x) {
     int c0;
 
-    if ((c0 = bufStr->getChar ()) == EOF) { return false; }
+    if ((c0 = bufStr->get ()) == EOF) { return false; }
     *x = c0;
     if (c0 & 0x80) { *x |= -1 - 0xff; }
     return true;
@@ -3538,7 +3538,7 @@ bool JPXStream::readByte (int* x) {
 bool JPXStream::readUWord (unsigned* x) {
     int c0, c1;
 
-    if ((c0 = bufStr->getChar ()) == EOF || (c1 = bufStr->getChar ()) == EOF) {
+    if ((c0 = bufStr->get ()) == EOF || (c1 = bufStr->get ()) == EOF) {
         return false;
     }
     *x = (unsigned) ((c0 << 8) | c1);
@@ -3548,8 +3548,8 @@ bool JPXStream::readUWord (unsigned* x) {
 bool JPXStream::readULong (unsigned* x) {
     int c0, c1, c2, c3;
 
-    if ((c0 = bufStr->getChar ()) == EOF || (c1 = bufStr->getChar ()) == EOF ||
-        (c2 = bufStr->getChar ()) == EOF || (c3 = bufStr->getChar ()) == EOF) {
+    if ((c0 = bufStr->get ()) == EOF || (c1 = bufStr->get ()) == EOF ||
+        (c2 = bufStr->get ()) == EOF || (c3 = bufStr->get ()) == EOF) {
         return false;
     }
     *x = (unsigned) ((c0 << 24) | (c1 << 16) | (c2 << 8) | c3);
@@ -3561,7 +3561,7 @@ bool JPXStream::readNBytes (int nBytes, bool signd, int* x) {
 
     y = 0;
     for (i = 0; i < nBytes; ++i) {
-        if ((c = bufStr->getChar ()) == EOF) { return false; }
+        if ((c = bufStr->get ()) == EOF) { return false; }
         y = (y << 8) + c;
     }
     if (signd) {
@@ -3583,7 +3583,7 @@ bool JPXStream::readBits (int nBits, unsigned* x) {
     int c;
 
     while (bitBufLen < nBits) {
-        if (byteCount == 0 || (c = bufStr->getChar ()) == EOF) {
+        if (byteCount == 0 || (c = bufStr->get ()) == EOF) {
             return false;
         }
         --byteCount;
@@ -3605,8 +3605,8 @@ bool JPXStream::readBits (int nBits, unsigned* x) {
 void JPXStream::skipSOP () {
     // SOP occurs at the start of the packet header, so we don't need to
     // worry about bit-stuff prior to it
-    if (byteCount >= 6 && bufStr->lookChar (0) == 0xff &&
-        bufStr->lookChar (1) == 0x91) {
+    if (byteCount >= 6 && bufStr->peek (0) == 0xff &&
+        bufStr->peek (1) == 0x91) {
         bufStr->discardChars (6);
         byteCount -= 6;
         bitBufLen = 0;
@@ -3618,8 +3618,8 @@ void JPXStream::skipEPH () {
     int k;
 
     k = bitBufSkip ? 1 : 0;
-    if (byteCount >= (unsigned) (k + 2) && bufStr->lookChar (k) == 0xff &&
-        bufStr->lookChar (k + 1) == 0x92) {
+    if (byteCount >= (unsigned) (k + 2) && bufStr->peek (k) == 0xff &&
+        bufStr->peek (k + 1) == 0x92) {
         bufStr->discardChars (k + 2);
         byteCount -= k + 2;
         bitBufLen = 0;
@@ -3629,7 +3629,7 @@ void JPXStream::skipEPH () {
 
 unsigned JPXStream::finishBitBuf () {
     if (bitBufSkip) {
-        bufStr->getChar ();
+        bufStr->get ();
         --byteCount;
     }
     return byteCount;

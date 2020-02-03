@@ -667,7 +667,7 @@ next_token (Stream& str) {
     int c = 0;
 
     for (bool comment = false;;) {
-        c = str.getChar ();
+        c = str.get ();
 
         if (c == EOF) {
             return { };
@@ -694,25 +694,25 @@ next_token (Stream& str) {
     else if (isdigit (c) || c == '.' || c == '-') {
         while (true) {
             s.append (1UL, char (c));
-            c = str.lookChar ();
+            c = str.peek ();
 
             if (c == EOF || !(isdigit (c) || c == '.' || c == '-')) {
                 break;
             }
 
-            str.getChar ();
+            str.get ();
         }
     }
     else {
         while (1) {
             s.append (1UL, char (c));
-            c = str.lookChar ();
+            c = str.peek ();
 
             if (c == EOF || !isalnum (c)) {
                 break;
             }
 
-            str.getChar ();
+            str.get ();
         }
     }
 

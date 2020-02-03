@@ -48,7 +48,7 @@ bool PSTokenizer::getToken (char* buf, int size, int* length) {
     // skip whitespace and comments
     comment = false;
     while (1) {
-        if ((c = getChar ()) == EOF) {
+        if ((c = get ()) == EOF) {
             buf[0] = '\0';
             *length = 0;
             return false;
@@ -69,9 +69,9 @@ bool PSTokenizer::getToken (char* buf, int size, int* length) {
     buf[i++] = c;
     if (c == '(') {
         backslash = false;
-        while ((c = lookChar ()) != EOF) {
+        while ((c = peek ()) != EOF) {
             if (i < size - 1) { buf[i++] = c; }
-            getChar ();
+            get ();
             if (c == '\\') { backslash = true; }
             else if (!backslash && c == ')') {
                 break;
@@ -82,15 +82,15 @@ bool PSTokenizer::getToken (char* buf, int size, int* length) {
         }
     }
     else if (c == '<') {
-        while ((c = lookChar ()) != EOF) {
-            getChar ();
+        while ((c = peek ()) != EOF) {
+            get ();
             if (i < size - 1 && specialChars[c] != 1) { buf[i++] = c; }
             if (c == '>') { break; }
         }
     }
     else if (c != '[' && c != ']') {
-        while ((c = lookChar ()) != EOF && !specialChars[c]) {
-            getChar ();
+        while ((c = peek ()) != EOF && !specialChars[c]) {
+            get ();
             if (i < size - 1) { buf[i++] = c; }
         }
     }
@@ -100,12 +100,12 @@ bool PSTokenizer::getToken (char* buf, int size, int* length) {
     return true;
 }
 
-int PSTokenizer::lookChar () {
+int PSTokenizer::peek () {
     if (charBuf < 0) { charBuf = (*getCharFunc) (data); }
     return charBuf;
 }
 
-int PSTokenizer::getChar () {
+int PSTokenizer::get () {
     int c;
 
     if (charBuf < 0) { charBuf = (*getCharFunc) (data); }

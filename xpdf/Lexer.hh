@@ -51,7 +51,7 @@ struct Lexer {
     void skipToNextLine ();
 
     // Skip over one character.
-    void skipChar () { getChar (); }
+    void skipChar () { get (); }
 
     // Get stream.
     Stream* as_stream () {
@@ -72,8 +72,8 @@ struct Lexer {
     static bool isSpace (int c);
 
 private:
-    int getChar ();
-    int lookChar ();
+    int get ();
+    int peek ();
 
 private:
     Array streams;          // array of input streams

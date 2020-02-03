@@ -402,7 +402,7 @@ int HTMLGen::convertPage (
                             (int)(r1 * 255), (int)(g1 * 255), (int)(b1 * 255));
                     }
                     for (i = 0; i < word1->size (); ++i) {
-                        u = word1->getChar (i);
+                        u = word1->get (i);
                         if (u >= privateUnicodeMapStart &&
                             u <= privateUnicodeMapEnd &&
                             privateUnicodeMap[u - privateUnicodeMapStart]) {

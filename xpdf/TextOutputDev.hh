@@ -95,7 +95,7 @@ struct TextWord {
 
     size_t size () const { return text.size (); }
 
-    Unicode getChar (int idx) { return text[idx]; }
+    Unicode get (int idx) { return text[idx]; }
 
     GString* getFontName () const { return font->fontName; }
 
