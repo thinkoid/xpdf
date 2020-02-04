@@ -15,12 +15,11 @@
 #include <xpdf/OutputDev.hh>
 
 class GList;
-class UnicodeMap;
-
 class TextBlock;
 class TextChar;
 class TextLink;
 class TextPage;
+class UnicodeMap;
 
 //------------------------------------------------------------------------
 
@@ -131,11 +130,6 @@ struct TextWord {
 
     GString* getLinkURI ();
 
-private:
-    static int cmpYX (const void* p1, const void* p2);
-    static int cmpCharPos (const void* p1, const void* p2);
-
-private:
     //
     // Rotation in multiple of 90°: 0, 1, 2, or 3.
     //
@@ -188,29 +182,48 @@ private:
 class TextLine {
 public:
     TextLine (
-        GList* wordsA, double xMinA, double yMinA, double xMaxA, double yMaxA,
-        double fontSizeA);
-    ~TextLine ();
+        std::vector< std::shared_ptr< TextWord > >,
+        double, double, double, double, double);
 
     double getXMin () { return xMin; }
     double getYMin () { return yMin; }
+
     double getBaseline ();
+
     int getRotation () { return rot; }
-    GList* getWords () { return words; }
+
+    std::vector< std::shared_ptr< TextWord > >&
+    getWords () {
+        return words;
+    }
+
+    const std::vector< std::shared_ptr< TextWord > >&
+    getWords () const {
+        return words;
+    }
 
 private:
-    GList* words;      // [TextWord]
+    std::vector< std::shared_ptr< TextWord > > words;
+
     int rot;           // rotation, multiple of 90 degrees
                        //   (0, 1, 2, or 3)
     double xMin, xMax; // bounding box x coordinates
     double yMin, yMax; // bounding box y coordinates
     double fontSize;   // main (max) font size for this line
-    Unicode* text;     // Unicode text of the line, including
-                       //   spaces between words
-    double* edge;      // "near" edge x or y coord of each char
-                       //   (plus one extra entry for the last char)
+
+    //
+    // Unicode text of the line, including spaces between words:
+    //
+    std::vector< Unicode > text;
+
+    //
+    // "Near" edge x or y coord of each char (plus one extra entry for the last
+    // char):
+    //
+    std::vector< double > edge;
+
     int len;           // number of Unicode chars
-    bool hyphenated;  // set if last char is a hyphen
+    bool hyphenated;   // set if last char is a hyphen
     int px;            // x offset (in characters, relative to
                        //   containing column) in physical layout mode
     int pw;            // line width (in characters) in physical
@@ -224,20 +237,13 @@ private:
 // TextParagraph
 //------------------------------------------------------------------------
 
-class TextParagraph {
-public:
-    TextParagraph (GList* linesA);
-    ~TextParagraph ();
+struct TextParagraph {
+    TextParagraph (std::vector< std::shared_ptr< TextLine > >);
 
-    // Get the list of TextLine objects.
-    GList* getLines () { return lines; }
+    std::vector< std::shared_ptr< TextLine > > lines;
 
-private:
-    GList* lines;      // [TextLine]
     double xMin, xMax; // bounding box x coordinates
     double yMin, yMax; // bounding box y coordinates
-
-    friend class TextPage;
 };
 
 //------------------------------------------------------------------------
@@ -268,26 +274,6 @@ private:
                        //   physical layout mode
 
     friend class TextPage;
-};
-
-//------------------------------------------------------------------------
-// TextWordList
-//------------------------------------------------------------------------
-
-class TextWordList {
-public:
-    TextWordList (GList* wordsA);
-
-    ~TextWordList ();
-
-    // Return the number of words on the list.
-    int getLength ();
-
-    // Return the <idx>th word from the list.
-    TextWord* get (int idx);
-
-private:
-    GList* words; // [TextWord]
 };
 
 //------------------------------------------------------------------------
@@ -332,7 +318,8 @@ public:
     GList* getFonts () { return fonts; }
 
     // Build a flat word list, in the specified ordering.
-    TextWordList* makeWordList ();
+    std::vector< std::shared_ptr< TextWord > >
+    makeWordList ();
 
 private:
     void startPage (GfxState* state);
@@ -369,7 +356,7 @@ private:
     void rotateUnderlinesAndLinks (int rot);
     void unrotateChars (GList* charsA, int rot);
     void unrotateColumns (GList* columns, int rot);
-    void unrotateWords (GList* words, int rot);
+    void unrotateWords (std::vector< std::shared_ptr< TextWord > >&, int);
     bool checkPrimaryLR (GList* charsA);
     void removeDuplicates (GList* charsA, int rot);
     TextBlock* splitChars (GList* charsA);
@@ -387,16 +374,28 @@ private:
     GList* buildColumns (TextBlock* tree);
     void buildColumns2 (TextBlock* blk, GList* columns);
     TextColumn* buildColumn (TextBlock* tree);
-    double getLineIndent (TextLine* line, TextBlock* blk);
-    double getAverageLineSpacing (GList* lines);
-    double getLineSpacing (TextLine* line0, TextLine* line1);
-    void buildLines (TextBlock* blk, GList* lines);
-    TextLine* buildLine (TextBlock* blk);
+
+    double
+    getLineIndent (const TextLine&, TextBlock*) const;
+
+    double
+    getAverageLineSpacing (
+        const std::vector< std::shared_ptr< TextLine > >&) const;
+
+    double
+    getLineSpacing (const TextLine&, const TextLine&) const;
+
+    void
+    buildLines (TextBlock*, std::vector< std::shared_ptr< TextLine > >&);
+
+    std::shared_ptr< TextLine >
+    buildLine (TextBlock*);
+
     void getLineChars (TextBlock* blk, GList* charsA);
     double computeWordSpacingThreshold (GList* charsA, int rot);
     int assignPhysLayoutPositions (GList* columns);
     void assignLinePhysPositions (GList* columns);
-    void computeLinePhysWidth (TextLine* line, UnicodeMap* uMap);
+    void computeLinePhysWidth (TextLine& line, UnicodeMap* uMap);
     int assignColumnPhysPositions (GList* columns);
     void generateUnderlinesAndLinks (GList* columns);
 
@@ -546,7 +545,7 @@ public:
     // this->rawOrder is true), physical layout order (if
     // this->physLayout is true and this->rawOrder is false), or reading
     // order (if both flags are false).
-    TextWordList* makeWordList ();
+    std::vector< std::shared_ptr< TextWord > > makeWordList ();
 
     // Returns the TextPage object for the last rasterized page,
     // transferring ownership to the caller.

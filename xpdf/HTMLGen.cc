@@ -19,19 +19,24 @@
 
 #include <cstdlib>
 #include <png.h>
-#include <utils/string.hh>
+
 #include <utils/GList.hh>
+#include <utils/string.hh>
+
 #include <splash/SplashBitmap.hh>
+
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/SplashOutputDev.hh>
 #include <xpdf/ErrorCodes.hh>
+
 #if EVAL_MODE
 #include <splash/SplashMath.hh>
 #include <splash/Splash.hh>
 #include <xpdf/BuiltinFontTables.hh>
 #include <xpdf/FontEncodingTables.hh>
 #endif
+
 #include <xpdf/HTMLGen.hh>
 
 //------------------------------------------------------------------------
@@ -270,18 +275,16 @@ int HTMLGen::convertPage (
     unsigned char* p;
     double pageW, pageH;
     TextPage* text;
-    GList *fonts, *cols, *pars, *lines, *words;
+    GList *fonts, *cols, *pars;
     double* fontScales;
     TextFontInfo* font;
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
-    TextWord *word0, *word1;
     GString* s;
     double base, base1;
     int subSuper0, subSuper1;
     double r0, g0, b0, r1, g1, b1;
-    int colIdx, parIdx, lineIdx, wordIdx;
+    int colIdx, parIdx, lineIdx;
     int y, i, u;
 
     // generate the background bitmap
@@ -354,18 +357,17 @@ int HTMLGen::convertPage (
         pars = col->getParagraphs ();
         for (parIdx = 0; parIdx < pars->getLength (); ++parIdx) {
             par = (TextParagraph*)pars->get (parIdx);
-            lines = par->getLines ();
-            for (lineIdx = 0; lineIdx < lines->getLength (); ++lineIdx) {
-                line = (TextLine*)lines->get (lineIdx);
+            auto& lines = par->lines;
+            for (lineIdx = 0; lineIdx < lines.size (); ++lineIdx) {
+                auto& line = lines [lineIdx];
                 if (line->getRotation () != 0) { continue; }
-                words = line->getWords ();
+                auto& words = line->getWords ();
                 base = line->getBaseline ();
                 s = new GString ();
-                word0 = NULL;
+                std::shared_ptr< TextWord > word0;
                 subSuper0 = 0;    // make gcc happy
                 r0 = g0 = b0 = 0; // make gcc happy
-                for (wordIdx = 0; wordIdx < words->getLength (); ++wordIdx) {
-                    word1 = (TextWord*)words->get (wordIdx);
+                for (auto& word1 : words) {
                     if (!drawInvisibleText && word1->isInvisible ()) {
                         continue;
                     }
@@ -451,9 +453,14 @@ int HTMLGen::convertPage (
                             s->append (1UL, (char)0x80 + (u & 0x3f));
                         }
                     }
-                    if (word1->getSpaceAfter ()) { s->append (1UL, ' '); }
+
+                    if (word1->getSpaceAfter ()) {
+                        s->append (1UL, ' ');
+                    }
+
                     word0 = word1;
                     subSuper0 = subSuper1;
+
                     r0 = r1;
                     g0 = g1;
                     b0 = b1;

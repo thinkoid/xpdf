@@ -21,6 +21,9 @@
 #include <xpdf/Link.hh>
 #include <xpdf/TextOutputDev.hh>
 
+#include <range/v3/all.hpp>
+using namespace ranges;
+
 //------------------------------------------------------------------------
 // parameters
 //------------------------------------------------------------------------
@@ -130,6 +133,20 @@
 // fraction of font size).
 #define hyperlinkSlack 0.2
 
+namespace {
+
+const auto lessYX = [](auto& lhs, auto& rhs) {
+    return
+        lhs->yMin  < rhs->yMin || (
+        lhs->yMin == rhs->yMin && lhs->xMin < rhs->xMin);
+};
+
+const auto lessCharPos = [](auto& lhs, auto& rhs) {
+    return lhs->charPos [0] < rhs->charPos [0];
+};
+
+} // anonymous namespace
+
 //------------------------------------------------------------------------
 // TextChar
 //------------------------------------------------------------------------
@@ -142,19 +159,44 @@ public:
         TextFontInfo* fontA, double fontSizeA, double colorRA, double colorGA,
         double colorBA);
 
-    static int cmpX (const void* p1, const void* p2);
-    static int cmpY (const void* p1, const void* p2);
+    static int cmpX (const void* p1, const void* p2) {
+        const TextChar* ch1 = *(const TextChar**)p1;
+        const TextChar* ch2 = *(const TextChar**)p2;
+
+        if (ch1->xMin < ch2->xMin) {
+            return -1;
+        }
+        else if (ch1->xMin > ch2->xMin) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    static int cmpY (const void* p1, const void* p2) {
+        const TextChar* ch1 = *(const TextChar**)p1;
+        const TextChar* ch2 = *(const TextChar**)p2;
+
+        if (ch1->yMin < ch2->yMin) {
+            return -1;
+        }
+        else if (ch1->yMin > ch2->yMin) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    TextFontInfo* font;
+
+    double xMin, yMin, xMax, yMax, fontSize, colorR, colorG, colorB;
+    size_t charPos;
 
     Unicode c;
-    int charPos;
-    int charLen;
-    double xMin, yMin, xMax, yMax;
-    unsigned char rot;
-    char clipped;
-    char invisible;
-    TextFontInfo* font;
-    double fontSize;
-    double colorR, colorG, colorB;
+
+    unsigned char charLen : 4, rot : 2, clipped : 1, invisible : 1;
 };
 
 TextChar::TextChar (
@@ -191,32 +233,6 @@ TextChar::TextChar (
     colorR = colorRA;
     colorG = colorGA;
     colorB = colorBA;
-}
-
-int TextChar::cmpX (const void* p1, const void* p2) {
-    const TextChar* ch1 = *(const TextChar**)p1;
-    const TextChar* ch2 = *(const TextChar**)p2;
-
-    if (ch1->xMin < ch2->xMin) { return -1; }
-    else if (ch1->xMin > ch2->xMin) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-int TextChar::cmpY (const void* p1, const void* p2) {
-    const TextChar* ch1 = *(const TextChar**)p1;
-    const TextChar* ch2 = *(const TextChar**)p2;
-
-    if (ch1->yMin < ch2->yMin) { return -1; }
-    else if (ch1->yMin > ch2->yMin) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
 }
 
 //------------------------------------------------------------------------
@@ -525,24 +541,6 @@ TextWord::TextWord (
     invisible = ch->invisible;
 }
 
-int TextWord::cmpYX (const void* p1, const void* p2) {
-    const TextWord* word1 = *(const TextWord**)p1;
-    const TextWord* word2 = *(const TextWord**)p2;
-    double cmp;
-
-    if ((cmp = word1->yMin - word2->yMin) == 0) {
-        cmp = word1->xMin - word2->xMin;
-    }
-    return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
-}
-
-int TextWord::cmpCharPos (const void* p1, const void* p2) {
-    const TextWord* word1 = *(const TextWord**)p1;
-    const TextWord* word2 = *(const TextWord**)p2;
-
-    return word1->charPos[0] - word2->charPos[0];
-}
-
 void TextWord::getCharBBox (
     int charIdx, double* xMinA, double* yMinA, double* xMaxA, double* yMaxA) {
     if (charIdx < 0 || charIdx >= text.size ()) { return; }
@@ -591,66 +589,77 @@ GString* TextWord::getLinkURI () { return link ? link->uri : (GString*)NULL; }
 //------------------------------------------------------------------------
 
 TextLine::TextLine (
-    GList* wordsA, double xMinA, double yMinA, double xMaxA, double yMaxA,
-    double fontSizeA) {
-    TextWord* word;
-    int i, j, k;
+    std::vector< std::shared_ptr< TextWord > > wordsA,
+    double xMinA, double yMinA,
+    double xMaxA, double yMaxA,
+    double fontSizeA)
+    : words (std::move (wordsA)) {
 
-    words = wordsA;
     rot = 0;
+
     xMin = xMinA;
     yMin = yMinA;
+
     xMax = xMaxA;
     yMax = yMaxA;
+
     fontSize = fontSizeA;
+
     px = 0;
     pw = 0;
 
-    // build the text
+    //
+    // Build the text:
+    //
     len = 0;
-    for (i = 0; i < words->getLength (); ++i) {
-        word = (TextWord*)words->get (i);
-        len += word->size ();
-        if (word->spaceAfter) { ++len; }
-    }
-    text = (Unicode*)calloc (len, sizeof (Unicode));
-    edge = (double*)calloc (len + 1, sizeof (double));
-    j = 0;
-    for (i = 0; i < words->getLength (); ++i) {
-        word = (TextWord*)words->get (i);
-        if (i == 0) { rot = word->rot; }
-        for (k = 0; k < word->size (); ++k) {
-            text[j] = word->text[k];
-            edge[j] = word->edge[k];
-            ++j;
-        }
-        edge[j] = word->edge[word->size ()];
-        if (word->spaceAfter) {
-            text[j] = (Unicode)0x0020;
-            ++j;
-            edge[j] = edge[j - 1];
-        }
-    }
-    //~ need to check for other Unicode chars used as hyphens
-    hyphenated = text[len - 1] == (Unicode)'-';
-}
 
-TextLine::~TextLine () {
-    deleteGList (words, TextWord);
-    free (text);
-    free (edge);
+    for (auto& word : words) {
+        len += word->size ();
+
+        if (word->spaceAfter) {
+            ++len;
+        }
+    }
+
+    text.resize (len);
+    edge.resize (len + 1);
+
+    if (!words.empty ()) {
+        rot = words.front ()->rot;
+    }
+
+    size_t j = 0;
+
+    for (auto& word : words) {
+        for (size_t k = 0; k < word->size (); ++k) {
+            text [j] = word->text [k];
+            edge [j] = word->edge [k];
+            ++j;
+        }
+
+        edge[j] = word->edge[word->size ()];
+
+        if (word->spaceAfter) {
+            text [j++] = (Unicode)0x0020;
+            edge [j] = edge [j - 1];
+        }
+    }
+
+    //
+    // TODO: need to check for other Unicode chars used as hyphens:
+    //
+    hyphenated = text [len - 1] == (Unicode)'-';
 }
 
 double TextLine::getBaseline () {
-    TextWord* word0;
+    auto& word = words.front ();
 
-    word0 = (TextWord*)words->get (0);
     switch (rot) {
+    case 1:  return xMin - fontSize * word->font->descent;
+    case 2:  return yMin - fontSize * word->font->descent;
+    case 3:  return xMax + fontSize * word->font->descent;
     case 0:
-    default: return yMax + fontSize * word0->font->descent;
-    case 1: return xMin - fontSize * word0->font->descent;
-    case 2: return yMin - fontSize * word0->font->descent;
-    case 3: return xMax + fontSize * word0->font->descent;
+    default: return yMax + fontSize * word->font->descent;
     }
 }
 
@@ -658,22 +667,20 @@ double TextLine::getBaseline () {
 // TextParagraph
 //------------------------------------------------------------------------
 
-TextParagraph::TextParagraph (GList* linesA) {
-    TextLine* line;
-    int i;
+TextParagraph::TextParagraph (std::vector< std::shared_ptr< TextLine > > arg)
+    : lines (std::move (arg)), xMin{ }, xMax{ }, yMin{ }, yMax{ } {
 
-    lines = linesA;
-    xMin = yMin = xMax = yMax = 0;
-    for (i = 0; i < lines->getLength (); ++i) {
-        line = (TextLine*)lines->get (i);
-        if (i == 0 || line->xMin < xMin) { xMin = line->xMin; }
-        if (i == 0 || line->yMin < yMin) { yMin = line->yMin; }
-        if (i == 0 || line->xMax > xMax) { xMax = line->xMax; }
-        if (i == 0 || line->yMax > yMax) { yMax = line->yMax; }
+    bool first = true;
+
+    for (auto& line : lines) {
+        if (first || line->xMin < xMin) { xMin = line->xMin; }
+        if (first || line->yMin < yMin) { yMin = line->yMin; }
+        if (first || line->xMax > xMax) { xMax = line->xMax; }
+        if (first || line->yMax > yMax) { yMax = line->yMax; }
+
+        first = false;
     }
 }
-
-TextParagraph::~TextParagraph () { deleteGList (lines, TextLine); }
 
 //------------------------------------------------------------------------
 // TextColumn
@@ -730,21 +737,6 @@ int TextColumn::cmpPX (const void* p1, const void* p2) {
     else {
         return 0;
     }
-}
-
-//------------------------------------------------------------------------
-// TextWordList
-//------------------------------------------------------------------------
-
-TextWordList::TextWordList (GList* wordsA) { words = wordsA; }
-
-TextWordList::~TextWordList () { deleteGList (words, TextWord); }
-
-int TextWordList::getLength () { return words->getLength (); }
-
-TextWord* TextWordList::get (int idx) {
-    if (idx < 0 || idx >= words->getLength ()) { return NULL; }
-    return (TextWord*)words->get (idx);
 }
 
 //------------------------------------------------------------------------
@@ -1155,7 +1147,6 @@ void TextPage::writeReadingOrder (
     TextBlock* tree;
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
     GList* columns;
     bool primaryLR;
     GString* s;
@@ -1187,20 +1178,24 @@ void TextPage::writeReadingOrder (
         col = (TextColumn*)columns->get (colIdx);
         for (parIdx = 0; parIdx < col->paragraphs->getLength (); ++parIdx) {
             par = (TextParagraph*)col->paragraphs->get (parIdx);
-            for (lineIdx = 0; lineIdx < par->lines->getLength (); ++lineIdx) {
-                line = (TextLine*)par->lines->get (lineIdx);
+            for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
+                auto& line = par->lines [lineIdx];
+
                 n = line->len;
-                if (line->hyphenated &&
-                    lineIdx + 1 < par->lines->getLength ()) {
+
+                if (line->hyphenated && lineIdx + 1 < par->lines.size ()) {
                     --n;
                 }
+
                 s = new GString ();
-                encodeFragment (line->text, n, uMap, primaryLR, s);
-                if (lineIdx + 1 < par->lines->getLength () &&
-                    !line->hyphenated) {
+                encodeFragment (line->text.data (), n, uMap, primaryLR, s);
+
+                if (lineIdx + 1 < par->lines.size () && !line->hyphenated) {
                     s->append (space, spaceLen);
                 }
+
                 (*outputFunc) (outputStream, s->c_str (), s->getLength ());
+
                 delete s;
             }
             (*outputFunc) (outputStream, eol, eolLen);
@@ -1235,7 +1230,6 @@ void TextPage::writePhysLayout (
     int* outLen;
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
     GList* columns;
     bool primaryLR;
     int ph, colIdx, parIdx, lineIdx, rot, y, i;
@@ -1280,15 +1274,15 @@ void TextPage::writePhysLayout (
         for (parIdx = 0; parIdx < col->paragraphs->getLength () && y < ph;
              ++parIdx) {
             par = (TextParagraph*)col->paragraphs->get (parIdx);
-            for (lineIdx = 0; lineIdx < par->lines->getLength () && y < ph;
+            for (lineIdx = 0; lineIdx < par->lines.size () && y < ph;
                  ++lineIdx) {
-                line = (TextLine*)par->lines->get (lineIdx);
+                auto& line = par->lines [lineIdx];
                 if (!out[y]) { out[y] = new GString (); }
                 while (outLen[y] < col->px + line->px) {
                     out[y]->append (space, spaceLen);
                     ++outLen[y];
                 }
-                encodeFragment (line->text, line->len, uMap, primaryLR, out[y]);
+                encodeFragment (line->text.data (), line->len, uMap, primaryLR, out[y]);
                 outLen[y] += line->pw;
                 ++y;
             }
@@ -1843,8 +1837,6 @@ void TextPage::unrotateChars (GList* charsA, int rot) {
 void TextPage::unrotateColumns (GList* columns, int rot) {
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
-    TextWord* word;
     double xMin, yMin, xMax, yMax, t;
     int colIdx, parIdx, lineIdx, wordIdx, i;
 
@@ -1877,9 +1869,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                 par->xMax = xMax;
                 par->yMin = yMin;
                 par->yMax = yMax;
-                for (lineIdx = 0; lineIdx < par->lines->getLength ();
+                for (lineIdx = 0; lineIdx < par->lines.size ();
                      ++lineIdx) {
-                    line = (TextLine*)par->lines->get (lineIdx);
+                    auto& line = par->lines [lineIdx];
                     xMin = pageWidth - line->yMax;
                     xMax = pageWidth - line->yMin;
                     yMin = line->xMin;
@@ -1889,9 +1881,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                     line->yMin = yMin;
                     line->yMax = yMax;
                     line->rot = (line->rot + 1) & 3;
-                    for (wordIdx = 0; wordIdx < line->words->getLength ();
+                    for (wordIdx = 0; wordIdx < line->words.size ();
                          ++wordIdx) {
-                        word = (TextWord*)line->words->get (wordIdx);
+                        auto& word = line->words [wordIdx];
                         xMin = pageWidth - word->yMax;
                         xMax = pageWidth - word->yMin;
                         yMin = word->xMin;
@@ -1927,9 +1919,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                 par->xMax = xMax;
                 par->yMin = yMin;
                 par->yMax = yMax;
-                for (lineIdx = 0; lineIdx < par->lines->getLength ();
+                for (lineIdx = 0; lineIdx < par->lines.size ();
                      ++lineIdx) {
-                    line = (TextLine*)par->lines->get (lineIdx);
+                    auto& line = par->lines [lineIdx];
                     xMin = pageWidth - line->xMax;
                     xMax = pageWidth - line->xMin;
                     yMin = pageHeight - line->yMax;
@@ -1942,9 +1934,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                     for (i = 0; i <= line->len; ++i) {
                         line->edge[i] = pageWidth - line->edge[i];
                     }
-                    for (wordIdx = 0; wordIdx < line->words->getLength ();
+                    for (wordIdx = 0; wordIdx < line->words.size ();
                          ++wordIdx) {
-                        word = (TextWord*)line->words->get (wordIdx);
+                        auto& word = line->words [wordIdx];
                         xMin = pageWidth - word->xMax;
                         xMax = pageWidth - word->xMin;
                         yMin = pageHeight - word->yMax;
@@ -1986,9 +1978,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                 par->xMax = xMax;
                 par->yMin = yMin;
                 par->yMax = yMax;
-                for (lineIdx = 0; lineIdx < par->lines->getLength ();
+                for (lineIdx = 0; lineIdx < par->lines.size ();
                      ++lineIdx) {
-                    line = (TextLine*)par->lines->get (lineIdx);
+                    auto& line = par->lines [lineIdx];
                     xMin = line->yMin;
                     xMax = line->yMax;
                     yMin = pageHeight - line->xMax;
@@ -2001,9 +1993,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                     for (i = 0; i <= line->len; ++i) {
                         line->edge[i] = pageHeight - line->edge[i];
                     }
-                    for (wordIdx = 0; wordIdx < line->words->getLength ();
+                    for (wordIdx = 0; wordIdx < line->words.size ();
                          ++wordIdx) {
-                        word = (TextWord*)line->words->get (wordIdx);
+                        auto& word = line->words [wordIdx];
                         xMin = word->yMin;
                         xMax = word->yMax;
                         yMin = pageHeight - word->xMax;
@@ -2024,8 +2016,9 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
     }
 }
 
-void TextPage::unrotateWords (GList* words, int rot) {
-    TextWord* word;
+void TextPage::unrotateWords (
+    std::vector< std::shared_ptr< TextWord > >& words, int rot) {
+
     double xMin, yMin, xMax, yMax;
     int i, j;
 
@@ -2035,8 +2028,8 @@ void TextPage::unrotateWords (GList* words, int rot) {
         // no transform
         break;
     case 1:
-        for (i = 0; i < words->getLength (); ++i) {
-            word = (TextWord*)words->get (i);
+        for (i = 0; i < words.size (); ++i) {
+            auto& word = words [i];
             xMin = pageWidth - word->yMax;
             xMax = pageWidth - word->yMin;
             yMin = word->xMin;
@@ -2049,8 +2042,8 @@ void TextPage::unrotateWords (GList* words, int rot) {
         }
         break;
     case 2:
-        for (i = 0; i < words->getLength (); ++i) {
-            word = (TextWord*)words->get (i);
+        for (i = 0; i < words.size (); ++i) {
+            auto& word = words [i];
             xMin = pageWidth - word->xMax;
             xMax = pageWidth - word->xMin;
             yMin = pageHeight - word->yMax;
@@ -2066,8 +2059,8 @@ void TextPage::unrotateWords (GList* words, int rot) {
         }
         break;
     case 3:
-        for (i = 0; i < words->getLength (); ++i) {
-            word = (TextWord*)words->get (i);
+        for (i = 0; i < words.size (); ++i) {
+            auto& word = words [i];
             xMin = word->yMin;
             xMax = word->yMax;
             yMin = pageHeight - word->xMax;
@@ -2918,13 +2911,11 @@ void TextPage::buildColumns2 (TextBlock* blk, GList* columns) {
 }
 
 TextColumn* TextPage::buildColumn (TextBlock* blk) {
-    GList *lines, *parLines;
     GList* paragraphs;
-    TextLine *line0, *line1;
     double spaceThresh, indent0, indent1, fontSize0, fontSize1;
     int i;
 
-    lines = new GList ();
+    std::vector< std::shared_ptr< TextLine > > lines;
     buildLines (blk, lines);
 
     spaceThresh = paragraphSpacingThreshold * getAverageLineSpacing (lines);
@@ -2935,41 +2926,51 @@ TextColumn* TextPage::buildColumn (TextBlock* blk) {
     // build the paragraphs
     paragraphs = new GList ();
     i = 0;
-    while (i < lines->getLength ()) {
+    while (i < lines.size ()) {
         // get the first line of the paragraph
-        parLines = new GList ();
-        line0 = (TextLine*)lines->get (i);
-        parLines->append (line0);
+        std::vector< std::shared_ptr< TextLine > > parLines;
+
+        auto& line0 = lines [i];
+        parLines.push_back (line0);
+
         ++i;
 
-        if (i < lines->getLength ()) {
-            line1 = (TextLine*)lines->get (i);
-            indent0 = getLineIndent (line0, blk);
-            indent1 = getLineIndent (line1, blk);
+        if (i < lines.size ()) {
+            auto& line1 = lines [i];
+
+            indent0 = getLineIndent (*line0, blk);
+            indent1 = getLineIndent (*line1, blk);
+
             fontSize0 = line0->fontSize;
             fontSize1 = line1->fontSize;
 
             // inverted indent
-            if (indent1 - indent0 > minParagraphIndent * fontSize0 &&
-                fabs (fontSize0 - fontSize1) <= paragraphFontSizeDelta &&
-                getLineSpacing (line0, line1) <= spaceThresh) {
-                parLines->append (line1);
+            if (   indent1 - indent0 > minParagraphIndent * fontSize0
+                && fabs (fontSize0 - fontSize1) <= paragraphFontSizeDelta
+                && getLineSpacing (*line0, *line1) <= spaceThresh) {
+
+                parLines.push_back (line1);
                 indent0 = indent1;
-                for (++i; i < lines->getLength (); ++i) {
-                    line1 = (TextLine*)lines->get (i);
-                    indent1 = getLineIndent (line1, blk);
+
+                for (++i; i < lines.size (); ++i) {
+                    auto& line1 = lines [i];
+
+                    indent1 = getLineIndent (*line1, blk);
                     fontSize1 = line1->fontSize;
+
                     if (indent0 - indent1 > minParagraphIndent * fontSize0) {
                         break;
                     }
+
                     if (fabs (fontSize0 - fontSize1) > paragraphFontSizeDelta) {
                         break;
                     }
-                    if (getLineSpacing ((TextLine*)lines->get (i - 1), line1) >
-                        spaceThresh) {
+
+                    if (getLineSpacing (*lines [i - 1], *line1) > spaceThresh) {
                         break;
                     }
-                    parLines->append (line1);
+
+                    parLines.push_back (line1);
                 }
 
                 // drop cap
@@ -2977,60 +2978,68 @@ TextColumn* TextPage::buildColumn (TextBlock* blk) {
             else if (
                 fontSize0 > largeCharThreshold * fontSize1 &&
                 indent1 - indent0 > minParagraphIndent * fontSize1 &&
-                getLineSpacing (line0, line1) < 0) {
-                parLines->append (line1);
+                getLineSpacing (*line0, *line1) < 0) {
+                parLines.push_back (line1);
                 fontSize0 = fontSize1;
-                for (++i; i < lines->getLength (); ++i) {
-                    line1 = (TextLine*)lines->get (i);
-                    indent1 = getLineIndent (line1, blk);
+                for (++i; i < lines.size (); ++i) {
+                    auto& line1 = lines [i];
+                    indent1 = getLineIndent (*line1, blk);
                     if (indent1 - indent0 <= minParagraphIndent * fontSize0) {
                         break;
                     }
-                    if (getLineSpacing ((TextLine*)lines->get (i - 1), line1) >
-                        spaceThresh) {
+                    if (getLineSpacing (*lines [i - 1], *line1) > spaceThresh) {
                         break;
                     }
-                    parLines->append (line1);
+                    parLines.push_back (line1);
                 }
-                for (; i < lines->getLength (); ++i) {
-                    line1 = (TextLine*)lines->get (i);
-                    indent1 = getLineIndent (line1, blk);
+                for (; i < lines.size (); ++i) {
+                    auto& line1 = lines [i];
+
+                    indent1 = getLineIndent (*line1, blk);
                     fontSize1 = line1->fontSize;
+
                     if (indent1 - indent0 > minParagraphIndent * fontSize0) {
                         break;
                     }
+
                     if (fabs (fontSize0 - fontSize1) > paragraphFontSizeDelta) {
                         break;
                     }
-                    if (getLineSpacing ((TextLine*)lines->get (i - 1), line1) >
-                        spaceThresh) {
+
+                    if (getLineSpacing (*lines [i - 1], *line1) > spaceThresh) {
                         break;
                     }
-                    parLines->append (line1);
+
+                    parLines.push_back (line1);
                 }
 
                 // regular indent or no indent
             }
-            else if (
-                fabs (fontSize0 - fontSize1) <= paragraphFontSizeDelta &&
-                getLineSpacing (line0, line1) <= spaceThresh) {
-                parLines->append (line1);
+            else if (   fabs (fontSize0 - fontSize1) <= paragraphFontSizeDelta
+                     && getLineSpacing (*line0, *line1) <= spaceThresh) {
+
+                parLines.push_back (line1);
                 indent0 = indent1;
-                for (++i; i < lines->getLength (); ++i) {
-                    line1 = (TextLine*)lines->get (i);
-                    indent1 = getLineIndent (line1, blk);
+
+                for (++i; i < lines.size (); ++i) {
+                    auto& line1 = lines [i];
+
+                    indent1 = getLineIndent (*line1, blk);
                     fontSize1 = line1->fontSize;
+
                     if (indent1 - indent0 > minParagraphIndent * fontSize0) {
                         break;
                     }
+
                     if (fabs (fontSize0 - fontSize1) > paragraphFontSizeDelta) {
                         break;
                     }
-                    if (getLineSpacing ((TextLine*)lines->get (i - 1), line1) >
-                        spaceThresh) {
+
+                    if (getLineSpacing (*lines [i - 1], *line1) > spaceThresh) {
                         break;
                     }
-                    parLines->append (line1);
+
+                    parLines.push_back (line1);
                 }
             }
         }
@@ -3038,84 +3047,99 @@ TextColumn* TextPage::buildColumn (TextBlock* blk) {
         paragraphs->append (new TextParagraph (parLines));
     }
 
-    delete lines;
-
     return new TextColumn (
         paragraphs, blk->xMin, blk->yMin, blk->xMax, blk->yMax);
 }
 
-double TextPage::getLineIndent (TextLine* line, TextBlock* blk) {
+double
+TextPage::getLineIndent (const TextLine& line, TextBlock* blk) const {
     double indent;
 
-    switch (line->rot) {
+    switch (line.rot) {
     case 0:
-    default: indent = line->xMin - blk->xMin; break;
-    case 1: indent = line->yMin - blk->yMin; break;
-    case 2: indent = blk->xMax - line->xMax; break;
-    case 3: indent = blk->yMax - line->yMax; break;
+    default: indent = line.xMin - blk->xMin; break;
+    case 1:  indent = line.yMin - blk->yMin; break;
+    case 2:  indent = blk->xMax - line.xMax; break;
+    case 3:  indent = blk->yMax - line.yMax; break;
     }
+
     return indent;
 }
 
 // Compute average line spacing in column.
-double TextPage::getAverageLineSpacing (GList* lines) {
-    double avg, sp;
-    int n, i;
+double
+TextPage::getAverageLineSpacing (
+    const std::vector< std::shared_ptr< TextLine > >& lines) const {
 
-    avg = 0;
-    n = 0;
-    for (i = 1; i < lines->getLength (); ++i) {
-        sp = getLineSpacing (
-            (TextLine*)lines->get (i - 1), (TextLine*)lines->get (i));
+    double avg = 0, sp;
+    size_t n = 0;
+
+    for (size_t i = 1; i < lines.size (); ++i) {
+        sp = getLineSpacing (*lines [i - 1], *lines [i]);
+
         if (sp > 0) {
             avg += sp;
             ++n;
         }
     }
-    if (n > 0) { avg /= n; }
+
+    if (n > 0) {
+        avg /= n;
+    }
+
     return avg;
 }
 
 // Compute the space between two lines.
-double TextPage::getLineSpacing (TextLine* line0, TextLine* line1) {
+double TextPage::getLineSpacing (const TextLine& lhs, const TextLine& rhs) const {
     double sp;
 
-    switch (line0->rot) {
+    switch (lhs.rot) {
     case 0:
-    default: sp = line1->yMin - line0->yMax; break;
-    case 1: sp = line0->xMin - line1->xMax; break;
-    case 2: sp = line0->yMin - line1->yMin; break;
-    case 3: sp = line1->xMin - line1->xMax; break;
+    default: sp = rhs.yMin - lhs.yMax; break;
+    case 1:  sp = lhs.xMin - rhs.xMax; break;
+    case 2:  sp = lhs.yMin - rhs.yMin; break;
+    case 3:  sp = rhs.xMin - rhs.xMax; break;
     }
+
     return sp;
 }
 
-void TextPage::buildLines (TextBlock* blk, GList* lines) {
-    TextLine* line;
-    int i;
+void
+TextPage::buildLines (
+    TextBlock* blk, std::vector< std::shared_ptr< TextLine > >& lines) {
 
     switch (blk->tag) {
-    case blkTagLine:
-        line = buildLine (blk);
-        if (blk->rot == 1 || blk->rot == 2) { lines->insert (0, line); }
-        else {
-            lines->append (line);
+    case blkTagLine: {
+        auto line = buildLine (blk);
+
+        if (blk->rot == 1 || blk->rot == 2) {
+            lines.insert (lines.begin (), line);
         }
+        else {
+            lines.push_back (line);
+        }
+    }
         break;
+
     case blkTagColumn:
-    case blkTagMulticolumn: // multicolumn should never happen here
-        for (i = 0; i < blk->children->getLength (); ++i) {
+    case blkTagMulticolumn: {
+        // multicolumn should never happen here
+        for (size_t i = 0; i < blk->children->getLength (); ++i) {
             buildLines ((TextBlock*)blk->children->get (i), lines);
         }
+    }
         break;
     }
 }
 
-TextLine* TextPage::buildLine (TextBlock* blk) {
+std::shared_ptr< TextLine >
+TextPage::buildLine (TextBlock* blk) {
     GList* charsA;
-    GList* words;
+    std::vector< std::shared_ptr< TextWord > > words;
+
     TextChar *ch, *ch2;
-    TextWord* word;
+
     double wordSp, lineFontSize, sp;
     bool spaceAfter, spaceAfter2;
 
@@ -3123,8 +3147,6 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
     getLineChars (blk, charsA);
 
     wordSp = computeWordSpacingThreshold (charsA, blk->rot);
-
-    words = new GList ();
 
     lineFontSize = 0;
     spaceAfter = false;
@@ -3152,16 +3174,16 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
         spaceAfter2 = spaceAfter;
         spaceAfter = sp > wordSp;
 
-        word = new TextWord (
+        auto word = std::make_shared< TextWord > (
             charsA, i, j - i, blk->rot, (blk->rot >= 2) ? spaceAfter2 : spaceAfter);
 
         i = j;
 
         if (blk->rot >= 2) {
-            words->insert (0, word);
+            words.insert (words.begin (), word);
         }
         else {
-            words->append (word);
+            words.push_back (word);
         }
 
         if (0 == i || word->fontSize > lineFontSize) {
@@ -3171,8 +3193,11 @@ TextLine* TextPage::buildLine (TextBlock* blk) {
 
     delete charsA;
 
-    return new TextLine (
-        words, blk->xMin, blk->yMin, blk->xMax, blk->yMax, lineFontSize);
+    return std::make_shared< TextLine > (
+        std::move (words),
+        blk->xMin, blk->yMin,
+        blk->xMax, blk->yMax,
+        lineFontSize);
 }
 
 void TextPage::getLineChars (TextBlock* blk, GList* charsA) {
@@ -3241,7 +3266,6 @@ int TextPage::assignPhysLayoutPositions (GList* columns) {
 void TextPage::assignLinePhysPositions (GList* columns) {
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
     UnicodeMap* uMap;
     int colIdx, parIdx, lineIdx;
 
@@ -3252,9 +3276,9 @@ void TextPage::assignLinePhysPositions (GList* columns) {
         col->pw = col->ph = 0;
         for (parIdx = 0; parIdx < col->paragraphs->getLength (); ++parIdx) {
             par = (TextParagraph*)col->paragraphs->get (parIdx);
-            for (lineIdx = 0; lineIdx < par->lines->getLength (); ++lineIdx) {
-                line = (TextLine*)par->lines->get (lineIdx);
-                computeLinePhysWidth (line, uMap);
+            for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
+                auto& line = par->lines [lineIdx];
+                computeLinePhysWidth (*line, uMap);
                 if (control.fixedPitch > 0) {
                     line->px =
                         (int)((line->xMin - col->xMin) / control.fixedPitch);
@@ -3270,7 +3294,7 @@ void TextPage::assignLinePhysPositions (GList* columns) {
                     col->pw = line->px + line->pw;
                 }
             }
-            col->ph += par->lines->getLength ();
+            col->ph += par->lines.size ();
         }
         col->ph += col->paragraphs->getLength () - 1;
     }
@@ -3278,16 +3302,16 @@ void TextPage::assignLinePhysPositions (GList* columns) {
     uMap->decRefCnt ();
 }
 
-void TextPage::computeLinePhysWidth (TextLine* line, UnicodeMap* uMap) {
+void TextPage::computeLinePhysWidth (TextLine& line, UnicodeMap* uMap) {
     char buf[8];
     int n, i;
 
-    if (uMap->isUnicode ()) { line->pw = line->len; }
+    if (uMap->isUnicode ()) { line.pw = line.len; }
     else {
-        line->pw = 0;
-        for (i = 0; i < line->len; ++i) {
-            n = uMap->mapUnicode (line->text[i], buf, sizeof (buf));
-            line->pw += n;
+        line.pw = 0;
+        for (i = 0; i < line.len; ++i) {
+            n = uMap->mapUnicode (line.text[i], buf, sizeof (buf));
+            line.pw += n;
         }
     }
 }
@@ -3374,8 +3398,6 @@ int TextPage::assignColumnPhysPositions (GList* columns) {
 void TextPage::generateUnderlinesAndLinks (GList* columns) {
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
-    TextWord* word;
     TextUnderline* underline;
     TextLink* link;
     double base, uSlack, ubSlack, hSlack;
@@ -3385,11 +3407,11 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
         col = (TextColumn*)columns->get (colIdx);
         for (parIdx = 0; parIdx < col->paragraphs->getLength (); ++parIdx) {
             par = (TextParagraph*)col->paragraphs->get (parIdx);
-            for (lineIdx = 0; lineIdx < par->lines->getLength (); ++lineIdx) {
-                line = (TextLine*)par->lines->get (lineIdx);
-                for (wordIdx = 0; wordIdx < line->words->getLength ();
+            for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
+                auto& line = par->lines [lineIdx];
+                for (wordIdx = 0; wordIdx < line->words.size ();
                      ++wordIdx) {
-                    word = (TextWord*)line->words->get (wordIdx);
+                    auto& word = line->words [wordIdx];
                     base = word->getBaseline ();
                     uSlack = underlineSlack * word->fontSize;
                     ubSlack = underlineBaselineSlack * word->fontSize;
@@ -3445,7 +3467,6 @@ bool TextPage::findText (
     TextBlock* tree;
     TextColumn* column;
     TextParagraph* par;
-    TextLine* line;
     Unicode *s2, *txt;
     Unicode* p;
     double xStart, yStart, xStop, yStop;
@@ -3538,10 +3559,10 @@ bool TextPage::findText (
                 continue;
             }
 
-            for (lineIdx = backward ? par->lines->getLength () - 1 : 0;
-                 backward ? lineIdx >= 0 : lineIdx < par->lines->getLength ();
+            for (lineIdx = backward ? par->lines.size () - 1 : 0;
+                 backward ? lineIdx >= 0 : lineIdx < par->lines.size ();
                  lineIdx += backward ? -1 : 1) {
-                line = (TextLine*)par->lines->get (lineIdx);
+                auto& line = par->lines [lineIdx];
 
                 // check: is the line above the top limit?
                 if (!startAtTop &&
@@ -3567,7 +3588,7 @@ bool TextPage::findText (
                     }
                 }
                 else {
-                    txt = line->text;
+                    txt = line->text.data ();
                 }
 
                 // search each position in this line
@@ -3657,7 +3678,7 @@ bool TextPage::findText (
 
     if (!caseSensitive) {
         free (s2);
-        free (txt);
+        free (txt); // TODO: memory management
     }
 
     if (found) {
@@ -3684,7 +3705,6 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     int* outLen;
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
     TextChar* ch;
     bool primaryLR;
     TextBlock* tree;
@@ -3755,15 +3775,15 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
         for (parIdx = 0; parIdx < col->paragraphs->getLength () && y < ph;
              ++parIdx) {
             par = (TextParagraph*)col->paragraphs->get (parIdx);
-            for (lineIdx = 0; lineIdx < par->lines->getLength () && y < ph;
+            for (lineIdx = 0; lineIdx < par->lines.size () && y < ph;
                  ++lineIdx) {
-                line = (TextLine*)par->lines->get (lineIdx);
+                auto& line = par->lines [lineIdx];
                 if (!out[y]) { out[y] = new GString (); }
                 while (outLen[y] < col->px + line->px) {
                     out[y]->append (space, spaceLen);
                     ++outLen[y];
                 }
-                encodeFragment (line->text, line->len, uMap, primaryLR, out[y]);
+                encodeFragment (line->text.data (), line->len, uMap, primaryLR, out[y]);
                 outLen[y] += line->pw;
                 ++y;
             }
@@ -3820,42 +3840,43 @@ bool TextPage::findCharRange (
     return true;
 }
 
-TextWordList* TextPage::makeWordList () {
+std::vector< std::shared_ptr< TextWord > >
+TextPage::makeWordList () {
     TextBlock* tree;
     GList* columns;
     TextColumn* col;
     TextParagraph* par;
-    TextLine* line;
-    TextWord* word;
-    GList* words;
+    std::vector< std::shared_ptr< TextWord > > words;
     int rot, colIdx, parIdx, lineIdx, wordIdx;
 
     rot = rotateChars (chars);
-    tree = splitChars (chars);
-    if (!tree) {
-        // no text
+
+    if (0 == (tree = splitChars (chars))) {
         unrotateChars (chars, rot);
-        return new TextWordList (new GList ());
+        return { };
     }
+
     columns = buildColumns (tree);
     delete tree;
+
     unrotateChars (chars, rot);
+
     if (control.html) {
         rotateUnderlinesAndLinks (rot);
         generateUnderlinesAndLinks (columns);
     }
 
-    words = new GList ();
     for (colIdx = 0; colIdx < columns->getLength (); ++colIdx) {
         col = (TextColumn*)columns->get (colIdx);
+
         for (parIdx = 0; parIdx < col->paragraphs->getLength (); ++parIdx) {
             par = (TextParagraph*)col->paragraphs->get (parIdx);
-            for (lineIdx = 0; lineIdx < par->lines->getLength (); ++lineIdx) {
-                line = (TextLine*)par->lines->get (lineIdx);
-                for (wordIdx = 0; wordIdx < line->words->getLength ();
-                     ++wordIdx) {
-                    word = (TextWord*)line->words->get (wordIdx);
-                    words->append (new TextWord (*word));
+
+            for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
+                auto& line = par->lines [lineIdx];
+
+                for (wordIdx = 0; wordIdx < line->words.size (); ++wordIdx) {
+                    words.push_back (line->words [wordIdx]);
                 }
             }
         }
@@ -3865,10 +3886,16 @@ TextWordList* TextPage::makeWordList () {
     case textOutReadingOrder:
         // already in reading order
         break;
+
     case textOutPhysLayout:
     case textOutTableLayout:
-    case textOutLinePrinter: words->sort (&TextWord::cmpYX); break;
-    case textOutRawOrder: words->sort (&TextWord::cmpCharPos); break;
+    case textOutLinePrinter:
+        actions::sort (words, lessYX);
+        break;
+
+    case textOutRawOrder:
+        actions::sort (words, lessCharPos);
+        break;
     }
 
     // this has to be done after sorting with cmpYX
@@ -3877,7 +3904,7 @@ TextWordList* TextPage::makeWordList () {
 
     deleteGList (columns, TextColumn);
 
-    return new TextWordList (words);
+    return words;
 }
 
 //------------------------------------------------------------------------
@@ -3939,7 +3966,7 @@ void TextPage::dumpColumns(GList *columns) {
     for (parIdx = 0; parIdx < col->paragraphs->getLength(); ++parIdx) {
       par = (TextParagraph *)col->paragraphs->get(parIdx);
       printf("  paragraph:\n");
-      for (lineIdx = 0; lineIdx < par->lines->getLength(); ++lineIdx) {
+      for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
     line = (TextLine *)par->lines->get(lineIdx);
     printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
            line->xMin, line->yMin, line->xMax, line->yMax,
@@ -4186,7 +4213,10 @@ bool TextOutputDev::findCharRange (
     return text->findCharRange (pos, length, xMin, yMin, xMax, yMax);
 }
 
-TextWordList* TextOutputDev::makeWordList () { return text->makeWordList (); }
+std::vector< std::shared_ptr< TextWord > >
+TextOutputDev::makeWordList () {
+    return text->makeWordList ();
+}
 
 TextPage* TextOutputDev::takeText () {
     TextPage* ret;

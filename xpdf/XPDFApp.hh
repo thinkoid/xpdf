@@ -6,12 +6,15 @@
 
 #include <defs.hh>
 
+#include <memory>
+#include <vector>
+
+#include <splash/SplashTypes.hh>
+
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object
-#include <splash/SplashTypes.hh>
 
-class GList;
 class PDFDoc;
 class XPDFUI;
 
@@ -78,11 +81,12 @@ private:
     int screenNum;
     XtAppContext appContext;
     Widget appShell;
-    GList* viewers; // [XPDFUI]
+
+    std::vector< std::shared_ptr< XPDFUI > > viewers;
+    std::shared_ptr< XPDFUI > remoteViewer;
 
     Atom remoteAtom;
     Window remoteXWin;
-    XPDFUI* remoteViewer;
     Widget remoteWin;
 
     //----- resource/option values

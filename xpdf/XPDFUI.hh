@@ -9,12 +9,13 @@
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object
+
 #include <xpdf/XPDFCore.hh>
 
 #if (XmVERSION >= 2 && !defined(LESSTIF_VERSION))
-#define USE_COMBO_BOX 1
+#  define USE_COMBO_BOX 1
 #else
-#undef USE_COMBO_BOX
+#  undef USE_COMBO_BOX
 #endif
 
 class GList;

@@ -3,23 +3,29 @@
 
 #include <defs.hh>
 
+//
+// Include early, conflicts with Motif:
+//
+#include <range/v3/all.hpp>
+#include <range/v3/action/remove.hpp>
+using namespace ranges;
+
 #include <utils/string.hh>
 #include <utils/GList.hh>
 
 #include <xpdf/Error.hh>
 #include <xpdf/XPDFUI.hh>
 #include <xpdf/XPDFApp.hh>
-
 #include <xpdf/XPDFAppRes.hh>
 
 // these macro defns conflict with xpdf's Object class
 #ifdef LESSTIF_VERSION
-#undef XtDisplay
-#undef XtScreen
-#undef XtWindow
-#undef XtParent
-#undef XtIsRealized
-#endif
+#  undef XtDisplay
+#  undef XtScreen
+#  undef XtWindow
+#  undef XtParent
+#  undef XtIsRealized
+#endif // LESSTIF_VERSION
 
 //------------------------------------------------------------------------
 
@@ -75,8 +81,6 @@ XPDFApp::XPDFApp (int* argc, char* argv[]) {
     remoteWin = None;
 
     getResources ();
-
-    viewers = new GList ();
 }
 
 void XPDFApp::getResources () {
@@ -141,7 +145,6 @@ void XPDFApp::getResources () {
 }
 
 XPDFApp::~XPDFApp () {
-    deleteGList (viewers, XPDFUI);
     if (geometry) { delete geometry; }
     if (title) { delete title; }
     if (initialZoom) { delete initialZoom; }
@@ -150,100 +153,121 @@ XPDFApp::~XPDFApp () {
 XPDFUI* XPDFApp::open (
     GString* fileName, int page, GString* ownerPassword,
     GString* userPassword) {
-    XPDFUI* viewer;
 
-    viewer = new XPDFUI (
-        this, fileName, page, NULL, fullScreen, ownerPassword, userPassword);
+    auto viewer = std::make_shared< XPDFUI > (
+        this, fileName, page, nullptr, fullScreen,
+        ownerPassword, userPassword);
+
     if (!viewer->isOk ()) {
-        delete viewer;
         return NULL;
     }
+
     if (remoteAtom != None) {
         remoteViewer = viewer;
         remoteWin = viewer->getWindow ();
+
         XtAddEventHandler (
             remoteWin, PropertyChangeMask, False, &remoteMsgCbk, this);
+
         XSetSelectionOwner (
             display, remoteAtom, XtWindow (remoteWin), CurrentTime);
     }
-    viewers->append (viewer);
-    return viewer;
+
+    viewers.emplace_back (viewer);
+
+    return viewer.get ();
 }
 
 XPDFUI* XPDFApp::openAtDest (
     GString* fileName, GString* dest, GString* ownerPassword,
     GString* userPassword) {
-    XPDFUI* viewer;
 
-    viewer = new XPDFUI (
+    auto viewer = std::make_shared< XPDFUI > (
         this, fileName, 1, dest, fullScreen, ownerPassword, userPassword);
+
     if (!viewer->isOk ()) {
-        delete viewer;
         return NULL;
     }
+
     if (remoteAtom != None) {
         remoteViewer = viewer;
         remoteWin = viewer->getWindow ();
+
         XtAddEventHandler (
             remoteWin, PropertyChangeMask, False, &remoteMsgCbk, this);
+
         XSetSelectionOwner (
             display, remoteAtom, XtWindow (remoteWin), CurrentTime);
     }
-    viewers->append (viewer);
-    return viewer;
+
+    viewers.emplace_back (viewer);
+
+    return viewer.get ();
 }
 
 XPDFUI*
-XPDFApp::reopen (XPDFUI* viewer, PDFDoc* doc, int page, bool fullScreenA) {
-    int i;
+XPDFApp::reopen (XPDFUI* pviewer, PDFDoc* doc, int page, bool fullScreenA) {
+    actions::remove (viewers, pviewer, &std::shared_ptr< XPDFUI >::get);
 
-    for (i = 0; i < viewers->getLength (); ++i) {
-        if (((XPDFUI*)viewers->get (i)) == viewer) {
-            viewers->del (i);
-            delete viewer;
-        }
-    }
-    viewer = new XPDFUI (this, doc, page, NULL, fullScreenA);
+    auto viewer = std::make_shared< XPDFUI > (
+        this, doc, page, nullptr, fullScreenA);
+
     if (!viewer->isOk ()) {
-        delete viewer;
         return NULL;
     }
+
     if (remoteAtom != None) {
         remoteViewer = viewer;
         remoteWin = viewer->getWindow ();
+
         XtAddEventHandler (
             remoteWin, PropertyChangeMask, False, &remoteMsgCbk, this);
+
         XSetSelectionOwner (
             display, remoteAtom, XtWindow (remoteWin), CurrentTime);
     }
-    viewers->append (viewer);
-    return viewer;
+
+    viewers.emplace_back (viewer);
+
+    return viewer.get ();
 }
 
 void XPDFApp::close (XPDFUI* viewer, bool closeLast) {
-    int i;
+    if (viewers.size () == 1) {
+        if (viewer != viewers.front ().get ()) {
+            return;
+        }
 
-    if (viewers->getLength () == 1) {
-        if (viewer != (XPDFUI*)viewers->get (0)) { return; }
-        if (closeLast) { quit (); }
+        if (closeLast) {
+            quit ();
+        }
         else {
             viewer->clear ();
         }
     }
     else {
-        for (i = 0; i < viewers->getLength (); ++i) {
-            if (((XPDFUI*)viewers->get (i)) == viewer) {
-                viewers->del (i);
-                if (remoteAtom != None && remoteViewer == viewer) {
-                    remoteViewer =
-                        (XPDFUI*)viewers->get (viewers->getLength () - 1);
-                    remoteWin = remoteViewer->getWindow ();
-                    XSetSelectionOwner (
-                        display, remoteAtom, XtWindow (remoteWin), CurrentTime);
+        decltype(viewers) other = viewers
+            | views::filter ([&](auto& x) { return viewer != x.get (); })
+            | to< std::vector >;
+
+        for_each (
+            viewers | views::filter ([&](auto& x) {
+                return viewer == x.get ();
+            }),
+            [&](auto& x) {
+                if (remoteAtom != None && remoteViewer == x) {
+                    remoteViewer.reset ();
                 }
-                delete viewer;
-                return;
-            }
+            });
+
+        viewers = other;
+
+        if (!remoteViewer && !viewers.empty ()) {
+            remoteViewer = viewers.back ();
+            remoteWin = remoteViewer->getWindow ();
+
+            XSetSelectionOwner (
+                display, remoteAtom, XtWindow (remoteWin), CurrentTime);
         }
     }
 }
@@ -252,7 +276,9 @@ void XPDFApp::quit () {
     if (remoteAtom != None) {
         XSetSelectionOwner (display, remoteAtom, None, CurrentTime);
     }
-    while (viewers->getLength () > 0) { delete (XPDFUI*)viewers->del (0); }
+
+    viewers.clear ();
+
     XtAppSetExitFlag (appContext);
 }
 
