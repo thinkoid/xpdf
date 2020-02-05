@@ -1773,31 +1773,38 @@ void TextPage::encodeFragment (
 }
 
 //
-// TextPage: layout analysis
+// TextPage layout analysis.
 //
-// Determine primary (most common) rotation value.  Rotate all chars
-// to that primary rotation.
+// Determine most prevalent rotation value.  Rotate all characters to that
+// primary rotation.
+//
 int TextPage::rotateChars (GList* charsA) {
     TextChar* ch;
     int nChars[4];
     double xMin, yMin, xMax, yMax, t;
     int rot, i;
 
-    // determine primary rotation
+    //
+    // Count the numbers of characters for each rotation:
+    //
     nChars[0] = nChars[1] = nChars[2] = nChars[3] = 0;
+
     for (i = 0; i < charsA->getLength (); ++i) {
         ch = (TextChar*)charsA->get (i);
         ++nChars[ch->rot];
     }
+
+    //
+    // Find the prevalent rotation amongst all characters:
+    //
     rot = 0;
+
     for (i = 1; i < 4; ++i) {
         if (nChars[i] > nChars[rot]) { rot = i; }
     }
 
     // rotate
     switch (rot) {
-    case 0:
-    default: break;
     case 1:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
@@ -1815,6 +1822,7 @@ int TextPage::rotateChars (GList* charsA) {
         pageWidth = pageHeight;
         pageHeight = t;
         break;
+
     case 2:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
@@ -1829,6 +1837,7 @@ int TextPage::rotateChars (GList* charsA) {
             ch->rot = (ch->rot + 2) & 3;
         }
         break;
+
     case 3:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
@@ -1846,6 +1855,9 @@ int TextPage::rotateChars (GList* charsA) {
         pageWidth = pageHeight;
         pageHeight = t;
         break;
+
+    case 0:
+    default: break;
     }
 
     return rot;
