@@ -135,6 +135,27 @@ using namespace ranges;
 
 namespace {
 
+//
+// Character/column comparison objects:
+//
+const auto lessX = [](auto& lhs, auto& rhs) {
+    return lhs->xMin < rhs->xMin;
+};
+
+const auto lessY = [](auto& lhs, auto& rhs) {
+    return lhs->yMin < rhs->yMin;
+};
+
+//
+// Pixel-based column comparison object:
+//
+const auto lessPixels = [](auto& lhs, auto& rhs) {
+    return lhs->px < rhs->px;
+};
+
+//
+// Word comparison objects:
+//
 const auto lessYX = [](auto& lhs, auto& rhs) {
     return
         lhs->yMin  < rhs->yMin || (
