@@ -2391,12 +2391,9 @@ TextBlock* TextPage::splitChars (GList* charsA) {
 TextBlock* TextPage::split (GList* charsA, int rot) {
     TextBlock* blk;
     GList *chars2, *chars3;
-    int *horizProfile, *vertProfile;
-    double xMin, yMin, xMax, yMax;
     int xMinI, yMinI, xMaxI, yMaxI;
     int xMinI2, yMinI2, xMaxI2, yMaxI2;
     TextChar* ch;
-    double minFontSize, avgFontSize, splitPrecision;
     double nLines, vertGapThreshold, ascentAdjust, descentAdjust, minChunk;
     int horizGapSize, vertGapSize;
     double horizGapSize2, vertGapSize2;
@@ -2406,40 +2403,52 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
     bool doHorizSplit, doVertSplit, smallSplit;
     int i, x, y, prev, start;
 
-    //----- compute bbox, min font size, average font size, and
-    //      split precision for this block
+    //
+    // Compute minimum and maximum bbox, minimum and average font size:
+    //
+    double xMin = 0, yMin = 0, xMax = 0, yMax = 0;
+    double minFontSize = 0, avgFontSize = 0;
 
-    xMin = yMin = xMax = yMax = 0; // make gcc happy
-    minFontSize = avgFontSize = 0;
     for (i = 0; i < charsA->getLength (); ++i) {
         ch = (TextChar*)charsA->get (i);
+
         if (i == 0 || ch->xmin < xMin) { xMin = ch->xmin; }
         if (i == 0 || ch->ymin < yMin) { yMin = ch->ymin; }
         if (i == 0 || ch->xmax > xMax) { xMax = ch->xmax; }
         if (i == 0 || ch->ymax > yMax) { yMax = ch->ymax; }
+
         avgFontSize += ch->size;
+
         if (i == 0 || ch->size < minFontSize) {
             minFontSize = ch->size;
         }
     }
+
     avgFontSize /= charsA->getLength ();
-    splitPrecision = splitPrecisionMul * minFontSize;
+
+    //
+    // Split precision is 105% of minimum font size:
+    //
+    double splitPrecision = splitPrecisionMul * minFontSize;
+
     if (splitPrecision < minSplitPrecision) {
         splitPrecision = minSplitPrecision;
     }
 
-    //----- compute the horizontal and vertical profiles
-
-    // add some slack to the array bounds to avoid floating point
-    // precision problems
+    //
+    // Compute the horizontal and vertical profiles.
+    //
+    // Add some slack to the array bounds to avoid floating point precision
+    // problems:
+    //
     xMinI = (int)floor (xMin / splitPrecision) - 1;
     yMinI = (int)floor (yMin / splitPrecision) - 1;
     xMaxI = (int)floor (xMax / splitPrecision) + 1;
     yMaxI = (int)floor (yMax / splitPrecision) + 1;
-    horizProfile = (int*)calloc (yMaxI - yMinI + 1, sizeof (int));
-    vertProfile = (int*)calloc (xMaxI - xMinI + 1, sizeof (int));
-    memset (horizProfile, 0, (yMaxI - yMinI + 1) * sizeof (int));
-    memset (vertProfile, 0, (xMaxI - xMinI + 1) * sizeof (int));
+
+    std::vector< int > horizProfile (yMaxI - yMinI + 1);
+    std::vector< int >  vertProfile (xMaxI - xMinI + 1);
+
     for (i = 0; i < charsA->getLength (); ++i) {
         ch = (TextChar*)charsA->get (i);
         // yMinI2 and yMaxI2 are adjusted to allow for slightly overlapping lines
@@ -2722,9 +2731,6 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
             blk->addChild ((TextChar*)charsA->get (i));
         }
     }
-
-    free (horizProfile);
-    free (vertProfile);
 
     tagBlock (blk);
 
@@ -3272,10 +3278,7 @@ double TextPage::getLineSpacing (const TextLine& lhs, const TextLine& rhs) const
     return sp;
 }
 
-void
-TextPage::makeLines (
-    TextBlock* blk, TextLines& lines) {
-
+void TextPage::makeLines (TextBlock* blk, TextLines& lines) {
     switch (blk->tag) {
     case blkTagLine: {
         auto line = makeLine (blk);
@@ -3293,12 +3296,14 @@ TextPage::makeLines (
         break;
 
     case blkTagColumn:
-    case blkTagMulticolumn: {
-        // multicolumn should never happen here
+    case blkTagMulticolumn:
+        //
+        // Multi-column should never happen here:
+        //
         for (size_t i = 0; i < blk->children->getLength (); ++i) {
             makeLines ((TextBlock*)blk->children->get (i), lines);
         }
-    }
+
         break;
     }
 }
