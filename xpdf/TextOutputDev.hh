@@ -25,10 +25,9 @@ class UnicodeMap;
 
 typedef void (*TextOutputFunc) (void* stream, const char* text, int len);
 
-//------------------------------------------------------------------------
+//
 // TextOutputControl
-//------------------------------------------------------------------------
-
+//
 enum TextOutputMode {
     textOutReadingOrder, // format into reading order
     textOutPhysLayout,   // maintain original physical layout
@@ -67,225 +66,20 @@ struct TextOutputControl {
     unsigned char clipText: 1 = 0;
 };
 
-//------------------------------------------------------------------------
-// TextFontInfo
-//------------------------------------------------------------------------
-
-struct TextFontInfo {
-    explicit TextFontInfo (GfxState*);
-
-    bool matches (GfxState*) const;
-
-    //
-    // Get the font name (which may be NULL):
-    //
-    GString* getFontName () const { return name; }
-
-    //
-    // Get font descriptor flags:
-    //
-    bool isFixedWidth () const { return flags & fontFixedWidth; }
-    bool isSerif      () const { return flags & fontSerif;      }
-    bool isSymbolic   () const { return flags & fontSymbolic;   }
-    bool isItalic     () const { return flags & fontItalic;     }
-    bool isBold       () const { return flags & fontBold;       }
-
-    double getWidth () const { return width; }
-
-    Ref id;
-    GString* name;
-
-    double width, ascent, descent;
-    unsigned flags;
-};
-
-//------------------------------------------------------------------------
-// TextWord
-//------------------------------------------------------------------------
-
-struct TextWord {
-    TextWord (GList* chars, int start, int lenA, int rotA, bool spaceAfterA);
-
-    // Get the TextFontInfo object associated with this word.
-    TextFontInfo* getFontInfo () const { return font; }
-
-    size_t size () const { return text.size (); }
-
-    Unicode get (int idx) { return text[idx]; }
-
-    GString* getFontName () const { return font->name; }
-
-    void getColor (double* r, double* g, double* b) const {
-        *r = colorR;
-        *g = colorG;
-        *b = colorB;
-    }
-
-    void getBBox (double* xMinA, double* yMinA,
-                  double* xMaxA, double* yMaxA) const {
-        *xMinA = xMin;
-        *yMinA = yMin;
-        *xMaxA = xMax;
-        *yMaxA = yMax;
-    }
-
-    void getCharBBox (
-        int charIdx, double* xMinA, double* yMinA, double* xMaxA,
-        double* yMaxA);
-
-    double getFontSize () const { return fontSize; }
-    int getRotation () const { return rot; }
-
-    int getCharPos () const { return charPos.front (); }
-    int getCharLen () const { return charPos.back () - charPos.front (); }
-
-    bool isInvisible () const { return invisible; }
-    bool isUnderlined () const { return underlined; }
-    bool getSpaceAfter () const { return spaceAfter; }
-
-    double getBaseline ();
-
-    //
-    // The text:
-    //
-    std::vector< Unicode > text;
-
-    //
-    // Character position (within content stream) of each char (plus one extra
-    // entry for the last char):
-    //
-    std::vector< off_t > charPos;
-
-    //
-    // "Near" edge x or y coord of each char (plus one extra entry for the last
-    // char):
-    //
-    std::vector< double > edge;
-
-    //
-    // Bounding box, colors:
-    //
-    double xMin, xMax, yMin, yMax, colorR, colorG, colorB;
-
-    double fontSize;
-    TextFontInfo* font;
-
-    unsigned char
-        rot        : 2, // multiple of 90°: 0, 1, 2, or 3
-        spaceAfter : 1, // set if ∃ separating space before next character
-        underlined : 1, // underlined ...?
-        invisible  : 1; // invisible, render mode 3
-};
+struct TextFontInfo;
+struct TextWord;
+struct TextLine;
+struct TextColumn;
 
 using TextWordPtr = std::shared_ptr< TextWord >;
 using TextWords = std::vector< TextWordPtr >;
 
-//------------------------------------------------------------------------
-// TextLine
-//------------------------------------------------------------------------
-
-class TextLine {
-public:
-    TextLine (TextWords, double, double, double, double, double);
-
-    double getXMin () { return xMin; }
-    double getYMin () { return yMin; }
-
-    double getBaseline ();
-
-    int getRotation () { return rot; }
-
-    TextWords&
-    getWords () {
-        return words;
-    }
-
-    const TextWords&
-    getWords () const {
-        return words;
-    }
-
-private:
-    TextWords words;
-
-    int rot;           // rotation, multiple of 90 degrees
-                       //   (0, 1, 2, or 3)
-    double xMin, xMax; // bounding box x coordinates
-    double yMin, yMax; // bounding box y coordinates
-    double fontSize;   // main (max) font size for this line
-
-    //
-    // Unicode text of the line, including spaces between words:
-    //
-    std::vector< Unicode > text;
-
-    //
-    // "Near" edge x or y coord of each char (plus one extra entry for the last
-    // char):
-    //
-    std::vector< double > edge;
-
-    int len;           // number of Unicode chars
-    bool hyphenated;   // set if last char is a hyphen
-    int px;            // x offset (in characters, relative to
-                       //   containing column) in physical layout mode
-    int pw;            // line width (in characters) in physical
-                       //   layout mode
-
-    friend class TextPage;
-    friend class TextParagraph;
-};
-
 using TextLinePtr = std::shared_ptr< TextLine >;
 using TextLines = std::vector< TextLinePtr >;
 
-//------------------------------------------------------------------------
-// TextParagraph
-//------------------------------------------------------------------------
-
-struct TextParagraph {
-    TextParagraph (TextLines);
-
-    TextLines lines;
-
-    double xMin, xMax; // bounding box x coordinates
-    double yMin, yMax; // bounding box y coordinates
-};
-
-//------------------------------------------------------------------------
-// TextColumn
-//------------------------------------------------------------------------
-
-class TextColumn {
-public:
-    TextColumn (
-        GList* paragraphsA, double xMinA, double yMinA, double xMaxA,
-        double yMaxA);
-    ~TextColumn ();
-
-    // Get the list of TextParagraph objects.
-    GList* getParagraphs () { return paragraphs; }
-
-private:
-    static int cmpX (const void* p1, const void* p2);
-    static int cmpY (const void* p1, const void* p2);
-    static int cmpPX (const void* p1, const void* p2);
-
-    GList* paragraphs; // [TextParagraph]
-    double xMin, xMax; // bounding box x coordinates
-    double yMin, yMax; // bounding box y coordinates
-    int px, py;        // x, y position (in characters) in physical
-                       //   layout mode
-    int pw, ph;        // column width, height (in characters) in
-                       //   physical layout mode
-
-    friend class TextPage;
-};
-
-//------------------------------------------------------------------------
+//
 // TextPage
-//------------------------------------------------------------------------
-
+//
 class TextPage {
 public:
     TextPage (TextOutputControl* controlA);
@@ -324,8 +118,7 @@ public:
     GList* getFonts () { return fonts; }
 
     // Build a flat word list, in the specified ordering.
-    TextWords
-    makeWordList ();
+    TextWords makeWordList ();
 
 private:
     void startPage (GfxState* state);
@@ -444,10 +237,9 @@ private:
     friend class TextOutputDev;
 };
 
-//------------------------------------------------------------------------
+//
 // TextOutputDev
-//------------------------------------------------------------------------
-
+//
 class TextOutputDev : public OutputDev {
 public:
     // Open a text output file.  If <fileName> is NULL, no file is
@@ -514,14 +306,6 @@ public:
     virtual void beginActualText (GfxState* state, Unicode* u, int uLen);
     virtual void endActualText (GfxState* state);
 
-    //----- path painting
-    virtual void stroke (GfxState* state);
-    virtual void fill (GfxState* state);
-    virtual void eoFill (GfxState* state);
-
-    //----- link borders
-    virtual void processLink (Link* link);
-
     //----- special access
 
     // Find a string.  If <startAtTop> is true, starts looking at the
@@ -556,9 +340,6 @@ public:
     // Returns the TextPage object for the last rasterized page,
     // transferring ownership to the caller.
     TextPage* takeText ();
-
-    // Turn extra processing for HTML conversion on or off.
-    void enableHTMLExtras (bool html) { control.html = html; }
 
 private:
     TextOutputFunc outputFunc; // output function

@@ -169,6 +169,38 @@ const auto lessCharPos = [](auto& lhs, auto& rhs) {
 } // anonymous namespace
 
 //
+// TextFontInfo
+//
+
+struct TextFontInfo {
+    explicit TextFontInfo (GfxState*);
+
+    bool matches (GfxState*) const;
+
+    //
+    // Get the font name (which may be NULL):
+    //
+    GString* getFontName () const { return name; }
+
+    //
+    // Get font descriptor flags:
+    //
+    bool isFixedWidth () const { return flags & fontFixedWidth; }
+    bool isSerif      () const { return flags & fontSerif;      }
+    bool isSymbolic   () const { return flags & fontSymbolic;   }
+    bool isItalic     () const { return flags & fontItalic;     }
+    bool isBold       () const { return flags & fontBold;       }
+
+    double getWidth () const { return width; }
+
+    Ref id;
+    GString* name;
+
+    double width, ascent, descent;
+    unsigned flags;
+};
+
+//
 // TextChar
 //
 class TextChar {
@@ -254,6 +286,172 @@ TextChar::TextChar (
     colorG = colorGA;
     colorB = colorBA;
 }
+
+//
+// TextWord
+//
+struct TextWord {
+    TextWord (GList* chars, int start, int lenA, int rotA, bool spaceAfterA);
+
+    // Get the TextFontInfo object associated with this word.
+    TextFontInfo* getFontInfo () const { return font; }
+
+    size_t size () const { return text.size (); }
+
+    Unicode get (int idx) { return text[idx]; }
+
+    GString* getFontName () const;
+
+    void getColor (double* r, double* g, double* b) const {
+        *r = colorR;
+        *g = colorG;
+        *b = colorB;
+    }
+
+    void getBBox (double* xMinA, double* yMinA,
+                  double* xMaxA, double* yMaxA) const {
+        *xMinA = xMin;
+        *yMinA = yMin;
+        *xMaxA = xMax;
+        *yMaxA = yMax;
+    }
+
+    void getCharBBox (
+        int charIdx, double* xMinA, double* yMinA, double* xMaxA,
+        double* yMaxA);
+
+    double getFontSize () const { return fontSize; }
+    int getRotation () const { return rot; }
+
+    int getCharPos () const { return charPos.front (); }
+    int getCharLen () const { return charPos.back () - charPos.front (); }
+
+    bool isInvisible () const { return invisible; }
+    bool isUnderlined () const { return underlined; }
+    bool getSpaceAfter () const { return spaceAfter; }
+
+    double getBaseline ();
+
+    //
+    // The text:
+    //
+    std::vector< Unicode > text;
+
+    //
+    // Character position (within content stream) of each char (plus one extra
+    // entry for the last char):
+    //
+    std::vector< off_t > charPos;
+
+    //
+    // "Near" edge x or y coord of each char (plus one extra entry for the last
+    // char):
+    //
+    std::vector< double > edge;
+
+    //
+    // Bounding box, colors:
+    //
+    double xMin, xMax, yMin, yMax, colorR, colorG, colorB;
+
+    double fontSize;
+    TextFontInfo* font;
+
+    unsigned char
+        rot        : 2, // multiple of 90°: 0, 1, 2, or 3
+        spaceAfter : 1, // set if ∃ separating space before next character
+        underlined : 1, // underlined ...?
+        invisible  : 1; // invisible, render mode 3
+};
+
+//
+// TextLine
+//
+class TextLine {
+public:
+    TextLine (TextWords, double, double, double, double, double);
+
+    double getXMin () { return xMin; }
+    double getYMin () { return yMin; }
+
+    double getBaseline ();
+
+    int getRotation () { return rot; }
+
+    TextWords&       getWords ()       { return words; }
+    TextWords const& getWords () const { return words; }
+
+private:
+    TextWords words;
+
+    int rot;           // rotation, multiple of 90 degrees
+                       //   (0, 1, 2, or 3)
+    double xMin, xMax; // bounding box x coordinates
+    double yMin, yMax; // bounding box y coordinates
+    double fontSize;   // main (max) font size for this line
+
+    //
+    // Unicode text of the line, including spaces between words:
+    //
+    std::vector< Unicode > text;
+
+    //
+    // "Near" edge x or y coord of each char (plus one extra entry for the last
+    // char):
+    //
+    std::vector< double > edge;
+
+    int len;           // number of Unicode chars
+    bool hyphenated;   // set if last char is a hyphen
+    int px;            // x offset (in characters, relative to
+                       //   containing column) in physical layout mode
+    int pw;            // line width (in characters) in physical
+                       //   layout mode
+
+    friend class TextPage;
+    friend class TextParagraph;
+};
+
+//
+// TextParagraph
+//
+struct TextParagraph {
+    TextParagraph (TextLines);
+
+    TextLines lines;
+
+    double xMin, xMax; // bounding box x coordinates
+    double yMin, yMax; // bounding box y coordinates
+};
+
+//
+// TextColumn
+//
+class TextColumn {
+public:
+    TextColumn (
+        GList* paragraphsA, double xMinA, double yMinA, double xMaxA,
+        double yMaxA);
+    ~TextColumn ();
+
+    // Get the list of TextParagraph objects.
+    GList* getParagraphs () { return paragraphs; }
+
+private:
+    static int cmpX (const void* p1, const void* p2);
+    static int cmpY (const void* p1, const void* p2);
+    static int cmpPX (const void* p1, const void* p2);
+
+    GList* paragraphs; // [TextParagraph]
+    double xMin, xMax; // bounding box x coordinates
+    double yMin, yMax; // bounding box y coordinates
+    int px, py;        // x, y position (in characters) in physical
+                       //   layout mode
+    int pw, ph;        // column width, height (in characters) in
+                       //   physical layout mode
+
+    friend class TextPage;
+};
 
 //
 // TextBlock
@@ -543,6 +741,10 @@ TextWord::TextWord (
     colorB = ch->colorB;
 
     invisible = ch->invisible;
+}
+
+GString* TextWord::getFontName () const {
+    return font->name;
 }
 
 void TextWord::getCharBBox (
@@ -1163,10 +1365,6 @@ void TextPage::writeReadingOrder (
     columns = buildColumns (tree);
     delete tree;
     unrotateChars (chars, rot);
-    if (control.html) {
-        rotateUnderlinesAndLinks (rot);
-        generateUnderlinesAndLinks (columns);
-    }
 #if 0 //~debug
   dumpColumns(columns);
 #endif
@@ -1214,7 +1412,6 @@ GList* TextPage::makeColumns () {
     }
     columns = buildColumns (tree);
     delete tree;
-    if (control.html) { generateUnderlinesAndLinks (columns); }
     return columns;
 }
 
@@ -1248,10 +1445,6 @@ void TextPage::writePhysLayout (
     columns = buildColumns (tree);
     delete tree;
     unrotateChars (chars, rot);
-    if (control.html) {
-        rotateUnderlinesAndLinks (rot);
-        generateUnderlinesAndLinks (columns);
-    }
     ph = assignPhysLayoutPositions (columns);
 #if 0 //~debug
   dumpColumns(columns);
@@ -3855,11 +4048,6 @@ TextPage::makeWordList () {
 
     unrotateChars (chars, rot);
 
-    if (control.html) {
-        rotateUnderlinesAndLinks (rot);
-        generateUnderlinesAndLinks (columns);
-    }
-
     for (colIdx = 0; colIdx < columns->getLength (); ++colIdx) {
         col = (TextColumn*)columns->get (colIdx);
 
@@ -4056,133 +4244,6 @@ void TextOutputDev::beginActualText (GfxState* state, Unicode* u, int uLen) {
 
 void TextOutputDev::endActualText (GfxState* state) {
     text->endActualText (state);
-}
-
-void TextOutputDev::stroke (GfxState* state) {
-    GfxPath* path;
-    GfxSubpath* subpath;
-    double x[2], y[2];
-
-    if (!control.html) { return; }
-    path = state->getPath ();
-    if (path->getNumSubpaths () != 1) { return; }
-    subpath = path->getSubpath (0);
-    if (subpath->getNumPoints () != 2) { return; }
-    state->transform (subpath->getX (0), subpath->getY (0), &x[0], &y[0]);
-    state->transform (subpath->getX (1), subpath->getY (1), &x[1], &y[1]);
-
-    // look for a vertical or horizontal line
-    if (x[0] == x[1] || y[0] == y[1]) {
-        text->addUnderline (x[0], y[0], x[1], y[1]);
-    }
-}
-
-void TextOutputDev::fill (GfxState* state) {
-    GfxPath* path;
-    GfxSubpath* subpath;
-    double x[5], y[5];
-    double rx0, ry0, rx1, ry1, t;
-    int i;
-
-    if (!control.html) { return; }
-    path = state->getPath ();
-    if (path->getNumSubpaths () != 1) { return; }
-    subpath = path->getSubpath (0);
-    if (subpath->getNumPoints () != 5) { return; }
-    for (i = 0; i < 5; ++i) {
-        if (subpath->getCurve (i)) { return; }
-        state->transform (subpath->getX (i), subpath->getY (i), &x[i], &y[i]);
-    }
-
-    // look for a rectangle
-    if (x[0] == x[1] && y[1] == y[2] && x[2] == x[3] && y[3] == y[4] &&
-        x[0] == x[4] && y[0] == y[4]) {
-        rx0 = x[0];
-        ry0 = y[0];
-        rx1 = x[2];
-        ry1 = y[1];
-    }
-    else if (
-        y[0] == y[1] && x[1] == x[2] && y[2] == y[3] && x[3] == x[4] &&
-        x[0] == x[4] && y[0] == y[4]) {
-        rx0 = x[0];
-        ry0 = y[0];
-        rx1 = x[1];
-        ry1 = y[2];
-    }
-    else {
-        return;
-    }
-    if (rx1 < rx0) {
-        t = rx0;
-        rx0 = rx1;
-        rx1 = t;
-    }
-    if (ry1 < ry0) {
-        t = ry0;
-        ry0 = ry1;
-        ry1 = t;
-    }
-
-    // skinny horizontal rectangle
-    if (ry1 - ry0 < rx1 - rx0) {
-        if (ry1 - ry0 < maxUnderlineWidth) {
-            ry0 = 0.5 * (ry0 + ry1);
-            text->addUnderline (rx0, ry0, rx1, ry0);
-        }
-
-        // skinny vertical rectangle
-    }
-    else {
-        if (rx1 - rx0 < maxUnderlineWidth) {
-            rx0 = 0.5 * (rx0 + rx1);
-            text->addUnderline (rx0, ry0, rx0, ry1);
-        }
-    }
-}
-
-void TextOutputDev::eoFill (GfxState* state) {
-    if (!control.html) { return; }
-    fill (state);
-}
-
-void TextOutputDev::processLink (Link* link) {
-    double x1, y1, x2, y2;
-    int xMin, yMin, xMax, yMax, x, y;
-
-    if (!control.html) { return; }
-    link->getRect (&x1, &y1, &x2, &y2);
-    cvtUserToDev (x1, y1, &x, &y);
-    xMin = xMax = x;
-    yMin = yMax = y;
-    cvtUserToDev (x1, y2, &x, &y);
-    if (x < xMin) { xMin = x; }
-    else if (x > xMax) {
-        xMax = x;
-    }
-    if (y < yMin) { yMin = y; }
-    else if (y > yMax) {
-        yMax = y;
-    }
-    cvtUserToDev (x2, y1, &x, &y);
-    if (x < xMin) { xMin = x; }
-    else if (x > xMax) {
-        xMax = x;
-    }
-    if (y < yMin) { yMin = y; }
-    else if (y > yMax) {
-        yMax = y;
-    }
-    cvtUserToDev (x2, y2, &x, &y);
-    if (x < xMin) { xMin = x; }
-    else if (x > xMax) {
-        xMax = x;
-    }
-    if (y < yMin) { yMin = y; }
-    else if (y > yMax) {
-        yMax = y;
-    }
-    text->addLink (xMin, yMin, xMax, yMax, link);
 }
 
 bool TextOutputDev::findText (
