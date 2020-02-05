@@ -39,18 +39,32 @@ enum TextOutputMode {
 };
 
 struct TextOutputControl {
-    TextOutputControl ();
+    //
+    // Fixed-pitch characters with this width (if non-zero, only relevant for
+    // PhysLayout, Table, and LinePrinter modes):
+    //
+    double fixedPitch = 0.;
 
-    TextOutputMode mode;     // formatting mode
-    double fixedPitch;       // if this is non-zero, assume fixed-pitch
-                             //   characters with this width
-                             //   (only relevant for PhysLayout, Table,
-                             //   and LinePrinter modes)
-    double fixedLineSpacing; // fixed line spacing (only relevant for
-                             //   LinePrinter mode)
-    bool html;              // enable extra processing for HTML
-    bool clipText;          // separate clipped text and add it back
-        //   in after forming columns
+    //
+    // Fixed line spacing (only relevant for LinePrinter mode):
+    //
+    double fixedLineSpacing = 0.;
+
+    //
+    // Formatting mode:
+    //
+    TextOutputMode mode = textOutReadingOrder;
+
+    //
+    // - html : enable extra processing for HTML
+    //
+    unsigned char html: 1 = 0;
+
+    //
+    // - clipText : separate clipped text and add it back in after forming
+    //              columns:
+    //
+    unsigned char clipText: 1 = 0;
 };
 
 //------------------------------------------------------------------------
@@ -62,24 +76,27 @@ struct TextFontInfo {
 
     bool matches (GfxState*) const;
 
-    // Get the font name (which may be NULL).
-    GString* getFontName () const { return fontName; }
+    //
+    // Get the font name (which may be NULL):
+    //
+    GString* getFontName () const { return name; }
 
-    // Get font descriptor flags.
-    bool isFixedWidth () { return flags & fontFixedWidth; }
-    bool isSerif () { return flags & fontSerif; }
-    bool isSymbolic () { return flags & fontSymbolic; }
-    bool isItalic () { return flags & fontItalic; }
-    bool isBold () { return flags & fontBold; }
+    //
+    // Get font descriptor flags:
+    //
+    bool isFixedWidth () const { return flags & fontFixedWidth; }
+    bool isSerif      () const { return flags & fontSerif;      }
+    bool isSymbolic   () const { return flags & fontSymbolic;   }
+    bool isItalic     () const { return flags & fontItalic;     }
+    bool isBold       () const { return flags & fontBold;       }
 
-    // Get the width of the 'm' character, if available.
-    double getMWidth () { return mWidth; }
+    double getWidth () const { return width; }
 
-    Ref fontID;
-    GString* fontName;
-    double mWidth, ascent, descent;
+    Ref id;
+    GString* name;
 
-    int flags;
+    double width, ascent, descent;
+    unsigned flags;
 };
 
 //------------------------------------------------------------------------
@@ -96,7 +113,7 @@ struct TextWord {
 
     Unicode get (int idx) { return text[idx]; }
 
-    GString* getFontName () const { return font->fontName; }
+    GString* getFontName () const { return font->name; }
 
     void getColor (double* r, double* g, double* b) const {
         *r = colorR;

@@ -24,9 +24,9 @@
 #include <range/v3/all.hpp>
 using namespace ranges;
 
-//------------------------------------------------------------------------
+//
 // parameters
-//------------------------------------------------------------------------
+//
 
 // Size of bins used for horizontal and vertical profiles is
 // splitPrecisionMul * minFontSize.
@@ -147,10 +147,9 @@ const auto lessCharPos = [](auto& lhs, auto& rhs) {
 
 } // anonymous namespace
 
-//------------------------------------------------------------------------
+//
 // TextChar
-//------------------------------------------------------------------------
-
+//
 class TextChar {
 public:
     TextChar (
@@ -235,10 +234,9 @@ TextChar::TextChar (
     colorB = colorBA;
 }
 
-//------------------------------------------------------------------------
+//
 // TextBlock
-//------------------------------------------------------------------------
-
+//
 enum TextBlockType { blkVertSplit, blkHorizSplit, blkLeaf };
 
 enum TextBlockTag { blkTagMulticolumn, blkTagColumn, blkTagLine };
@@ -336,10 +334,9 @@ void TextBlock::updateBounds (int childIdx) {
     if (child->yMax > yMax) { yMax = child->yMax; }
 }
 
-//------------------------------------------------------------------------
+//
 // TextUnderline
-//------------------------------------------------------------------------
-
+//
 class TextUnderline {
 public:
     TextUnderline (double x0A, double y0A, double x1A, double y1A) {
@@ -355,10 +352,9 @@ public:
     bool horiz;
 };
 
-//------------------------------------------------------------------------
+//
 // TextLink
-//------------------------------------------------------------------------
-
+//
 class TextLink {
 public:
     TextLink (
@@ -379,33 +375,17 @@ TextLink::~TextLink () {
     if (uri) { delete uri; }
 }
 
-//------------------------------------------------------------------------
-// TextOutputControl
-//------------------------------------------------------------------------
-
-TextOutputControl::TextOutputControl () {
-    mode = textOutReadingOrder;
-    fixedPitch = 0;
-    fixedLineSpacing = 0;
-    html = false;
-    clipText = false;
-}
-
-//------------------------------------------------------------------------
+//
 // TextFontInfo
-//------------------------------------------------------------------------
-
+//
 TextFontInfo::TextFontInfo (GfxState* state)
-    : fontID{ 0, -1, -1 },
-      fontName{ },
-      mWidth{ },
-      ascent{ 0.75 },
-      descent{ -0.25 },
-      flags{ } {
+    : id{ 0, -1, -1 }, name (), width (), ascent (0.75), descent (-0.25),
+      flags () {
+
     GfxFont* gfxFont = state->getFont ();
 
     if (gfxFont) {
-        fontID = *gfxFont->getID ();
+        id = *gfxFont->getID ();
 
         ascent  = gfxFont->getAscent ();
         descent = gfxFont->getDescent ();
@@ -415,13 +395,13 @@ TextFontInfo::TextFontInfo (GfxState* state)
         // fonts -- but they are more often due to buggy PDF generators)
         // (values that are too small are a different issue -- those seem
         // to be more commonly legitimate)
-        if (ascent > 1) { ascent = 0.75; }
+        if (ascent  >    1) { ascent  =  0.75; }
         if (descent < -0.5) { descent = -0.25; }
 
         flags = gfxFont->getFlags ();
 
         if (gfxFont->as_name ()) {
-            fontName = gfxFont->as_name ();
+            name = gfxFont->as_name ();
         }
     }
     else {
@@ -430,13 +410,13 @@ TextFontInfo::TextFontInfo (GfxState* state)
     }
 
     if (gfxFont && !gfxFont->isCIDFont ()) {
-        Gfx8BitFont* pfont = (Gfx8BitFont*)gfxFont;
+        Gfx8BitFont* cidFont = reinterpret_cast< Gfx8BitFont* > (gfxFont);
 
         for (int code = 0; code < 256; ++code) {
-            const char* name = pfont->getCharName (code);
+            const char* name = cidFont->getCharName (code);
 
             if (name && name [0] == 'm' && name [1] == '\0') {
-                mWidth = pfont->getWidth (code);
+                width = cidFont->getWidth (code);
                 break;
             }
         }
@@ -444,13 +424,12 @@ TextFontInfo::TextFontInfo (GfxState* state)
 }
 
 bool TextFontInfo::matches (GfxState* state) const {
-    return state->getFont () && *state->getFont ()->getID () == fontID;
+    return state->getFont () && *state->getFont ()->getID () == id;
 }
 
-//------------------------------------------------------------------------
+//
 // TextWord
-//------------------------------------------------------------------------
-
+//
 //
 // Build a TextWord object, using chars[start .. start+len-1].
 // (If rot >= 2, the chars list is in reverse order.)
@@ -586,10 +565,9 @@ double TextWord::getBaseline () {
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextLine
-//------------------------------------------------------------------------
-
+//
 TextLine::TextLine (
     std::vector< std::shared_ptr< TextWord > > wordsA,
     double xMinA, double yMinA,
@@ -665,10 +643,9 @@ double TextLine::getBaseline () {
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextParagraph
-//------------------------------------------------------------------------
-
+//
 TextParagraph::TextParagraph (std::vector< std::shared_ptr< TextLine > > arg)
     : lines (std::move (arg)), xMin{ }, xMax{ }, yMin{ }, yMax{ } {
 
@@ -684,10 +661,9 @@ TextParagraph::TextParagraph (std::vector< std::shared_ptr< TextLine > > arg)
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextColumn
-//------------------------------------------------------------------------
-
+//
 TextColumn::TextColumn (
     GList* paragraphsA, double xMinA, double yMinA, double xMaxA,
     double yMaxA) {
@@ -741,10 +717,9 @@ int TextColumn::cmpPX (const void* p1, const void* p2) {
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextPage
-//------------------------------------------------------------------------
-
+//
 TextPage::TextPage (TextOutputControl* controlA) {
     control = *controlA;
     pageWidth = pageHeight = 0;
@@ -1093,10 +1068,9 @@ void TextPage::addLink (
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextPage: output
-//------------------------------------------------------------------------
-
+//
 void TextPage::write (void* outputStream, TextOutputFunc outputFunc) {
     UnicodeMap* uMap;
     char space[8], eol[16], eop[8];
@@ -1605,10 +1579,9 @@ void TextPage::encodeFragment (
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextPage: layout analysis
-//------------------------------------------------------------------------
-
+//
 // Determine primary (most common) rotation value.  Rotate all chars
 // to that primary rotation.
 int TextPage::rotateChars (GList* charsA) {
@@ -3457,10 +3430,9 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
     }
 }
 
-//------------------------------------------------------------------------
+//
 // TextPage: access
-//------------------------------------------------------------------------
-
+//
 bool TextPage::findText (
     Unicode* s, int len, bool startAtTop, bool stopAtBottom,
     bool startAtLast, bool stopAtLast, bool caseSensitive, bool backward,
@@ -3908,86 +3880,84 @@ TextPage::makeWordList () {
     return words;
 }
 
-//------------------------------------------------------------------------
+//
 // TextPage: debug
-//------------------------------------------------------------------------
-
+//
 #if 0 //~debug
 
 void TextPage::dumpChars(GList *charsA) {
-  TextChar *ch;
-  int i;
+    TextChar *ch;
+    int i;
 
-  for (i = 0; i < charsA->getLength(); ++i) {
-    ch = (TextChar *)charsA->get(i);
-    printf("char: U+%04x '%c' xMin=%g yMin=%g xMax=%g yMax=%g fontSize=%g rot=%d\n",
-       ch->c, ch->c & 0xff, ch->xMin, ch->yMin, ch->xMax, ch->yMax,
-       ch->fontSize, ch->rot);
-  }
+    for (i = 0; i < charsA->getLength(); ++i) {
+        ch = (TextChar *)charsA->get(i);
+        printf("char: U+%04x '%c' xMin=%g yMin=%g xMax=%g yMax=%g fontSize=%g rot=%d\n",
+               ch->c, ch->c & 0xff, ch->xMin, ch->yMin, ch->xMax, ch->yMax,
+               ch->fontSize, ch->rot);
+    }
 }
 
 void TextPage::dumpTree(TextBlock *tree, int indent) {
-  TextChar *ch;
-  int i;
+    TextChar *ch;
+    int i;
 
-  printf("%*sblock: type=%s tag=%s small=%d rot=%d xMin=%g yMin=%g xMax=%g yMax=%g\n",
-     indent, "",
-     tree->type == blkLeaf ? "leaf" :
-                     tree->type == blkHorizSplit ? "horiz" : "vert",
-     tree->tag == blkTagMulticolumn ? "multicolumn" :
-                    tree->tag == blkTagColumn ? "column" : "line",
-     tree->smallSplit,
-     tree->rot, tree->xMin, tree->yMin, tree->xMax, tree->yMax);
-  if (tree->type == blkLeaf) {
-    for (i = 0; i < tree->children->getLength(); ++i) {
-      ch = (TextChar *)tree->children->get(i);
-      printf("%*schar: '%c' xMin=%g yMin=%g xMax=%g yMax=%g font=%d.%d\n",
-         indent + 2, "", ch->c & 0xff,
-         ch->xMin, ch->yMin, ch->xMax, ch->yMax,
-         ch->font->fontID.num, ch->font->fontID.gen);
+    printf("%*sblock: type=%s tag=%s small=%d rot=%d xMin=%g yMin=%g xMax=%g yMax=%g\n",
+           indent, "",
+           tree->type == blkLeaf ? "leaf" :
+           tree->type == blkHorizSplit ? "horiz" : "vert",
+           tree->tag == blkTagMulticolumn ? "multicolumn" :
+           tree->tag == blkTagColumn ? "column" : "line",
+           tree->smallSplit,
+           tree->rot, tree->xMin, tree->yMin, tree->xMax, tree->yMax);
+    if (tree->type == blkLeaf) {
+        for (i = 0; i < tree->children->getLength(); ++i) {
+            ch = (TextChar *)tree->children->get(i);
+            printf("%*schar: '%c' xMin=%g yMin=%g xMax=%g yMax=%g font=%d.%d\n",
+                   indent + 2, "", ch->c & 0xff,
+                   ch->xMin, ch->yMin, ch->xMax, ch->yMax,
+                   ch->font->fontID.num, ch->font->fontID.gen);
+        }
+    } else {
+        for (i = 0; i < tree->children->getLength(); ++i) {
+            dumpTree((TextBlock *)tree->children->get(i), indent + 2);
+        }
     }
-  } else {
-    for (i = 0; i < tree->children->getLength(); ++i) {
-      dumpTree((TextBlock *)tree->children->get(i), indent + 2);
-    }
-  }
 }
 
 void TextPage::dumpColumns(GList *columns) {
-  TextColumn *col;
-  TextParagraph *par;
-  TextLine *line;
-  int colIdx, parIdx, lineIdx, i;
+    TextColumn *col;
+    TextParagraph *par;
+    TextLine *line;
+    int colIdx, parIdx, lineIdx, i;
 
-  for (colIdx = 0; colIdx < columns->getLength(); ++colIdx) {
-    col = (TextColumn *)columns->get(colIdx);
-    printf("column: xMin=%g yMin=%g xMax=%g yMax=%g px=%d py=%d pw=%d ph=%d\n",
-       col->xMin, col->yMin, col->xMax, col->yMax,
-       col->px, col->py, col->pw, col->ph);
-    for (parIdx = 0; parIdx < col->paragraphs->getLength(); ++parIdx) {
-      par = (TextParagraph *)col->paragraphs->get(parIdx);
-      printf("  paragraph:\n");
-      for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
-    line = (TextLine *)par->lines->get(lineIdx);
-    printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
-           line->xMin, line->yMin, line->xMax, line->yMax,
-           line->px, line->pw, line->rot);
-    printf("          ");
-    for (i = 0; i < line->len; ++i) {
-      printf("%c", line->text[i] & 0xff);
+    for (colIdx = 0; colIdx < columns->getLength(); ++colIdx) {
+        col = (TextColumn *)columns->get(colIdx);
+        printf("column: xMin=%g yMin=%g xMax=%g yMax=%g px=%d py=%d pw=%d ph=%d\n",
+               col->xMin, col->yMin, col->xMax, col->yMax,
+               col->px, col->py, col->pw, col->ph);
+        for (parIdx = 0; parIdx < col->paragraphs->getLength(); ++parIdx) {
+            par = (TextParagraph *)col->paragraphs->get(parIdx);
+            printf("  paragraph:\n");
+            for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
+                line = (TextLine *)par->lines->get(lineIdx);
+                printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
+                       line->xMin, line->yMin, line->xMax, line->yMax,
+                       line->px, line->pw, line->rot);
+                printf("          ");
+                for (i = 0; i < line->len; ++i) {
+                    printf("%c", line->text[i] & 0xff);
+                }
+                printf("\n");
+            }
+        }
     }
-    printf("\n");
-      }
-    }
-  }
 }
 
 #endif //~debug
 
-//------------------------------------------------------------------------
+//
 // TextOutputDev
-//------------------------------------------------------------------------
-
+//
 static void outputToFile (void* stream, const char* text, int len) {
     fwrite (text, 1, len, (FILE*)stream);
 }

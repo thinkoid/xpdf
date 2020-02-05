@@ -22,7 +22,6 @@ libxpdf_a_SOURCES =                             \
 	GfxFont.cc                                  \
 	GfxState.cc                                 \
 	GlobalParams.cc                             \
-	HTMLGen.cc                                  \
 	ImageOutputDev.cc                           \
 	JArithmeticDecoder.cc                       \
 	JBIG2Stream.cc                              \
