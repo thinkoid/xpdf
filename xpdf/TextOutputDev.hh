@@ -220,15 +220,17 @@ private:
     int actualTextNBytes;
 
     GList* chars; // [TextChar]
+
     GList* fonts; // all font info objects used on this
                   //   page [TextFontInfo]
 
-    GList* underlines; // [TextUnderline]
-    GList* links;      // [TextLink]
+    GList* underlines;   // [TextUnderline]
+    GList* links;        // [TextLink]
 
     GList* findCols;     // text used by the findText function
                          //   [TextColumn]
-    bool findLR;        // primary text direction, used by the
+
+    bool findLR;         // primary text direction, used by the
                          //   findText function
     double lastFindXMin, // coordinates of the last "find" result
         lastFindYMin;

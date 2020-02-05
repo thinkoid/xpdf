@@ -1113,8 +1113,7 @@ void TextPage::addChar (
     }
 
     // check the tiny chars limit
-    if (!globalParams->getTextKeepTinyChars () && fabs (w1) < 3 &&
-        fabs (h1) < 3) {
+    if (!globalParams->getTextKeepTinyChars () && fabs (w1) < 3 && fabs (h1) < 3) {
         if (++nTinyChars > 50000) {
             charPos += nBytes;
             return;
@@ -1772,6 +1771,39 @@ void TextPage::encodeFragment (
     }
 }
 
+inline void
+do_rotate (TextChar& c, double x0, double y0, double x1, double y1, int n) {
+    c.xmin = x0; c.xmax = x1; c.ymin = y0; c.ymax = y1;
+    c.rot = (c.rot + n) & 3;
+}
+
+inline void
+rotate90 (TextChar& c, int w, int) {
+    do_rotate (c, c.ymin, w - c.xmax, c.ymax, w - c.xmin, 3);
+};
+
+inline void
+rotate180 (TextChar& c, int w, int h) {
+    do_rotate (c, w - c.xmax, h - c.ymax, w - c.xmin, h - c.ymin, 2);
+}
+
+inline void
+rotate270 (TextChar& c, int, int h) {
+    do_rotate (c, h - c.ymax, c.xmin, h - c.ymin, c.xmax, 1);
+}
+
+inline int
+prevalent_rotation_amongst (GList* chars) {
+    std::array< int, 4 > counters{ 0, 0, 0, 0 };
+
+    for (size_t i = 0; i < chars->getLength (); ++i) {
+        const auto& c = *(TextChar*)chars->get (i);
+        ++counters [c.rot];
+    }
+
+    return std::distance (counters.begin (), max_element (counters));
+}
+
 //
 // TextPage layout analysis.
 //
@@ -1779,81 +1811,31 @@ void TextPage::encodeFragment (
 // primary rotation.
 //
 int TextPage::rotateChars (GList* charsA) {
-    TextChar* ch;
-    int nChars[4];
-    double xMin, yMin, xMax, yMax, t;
-    int rot, i;
-
     //
     // Count the numbers of characters for each rotation:
     //
-    nChars[0] = nChars[1] = nChars[2] = nChars[3] = 0;
-
-    for (i = 0; i < charsA->getLength (); ++i) {
-        ch = (TextChar*)charsA->get (i);
-        ++nChars[ch->rot];
-    }
-
-    //
-    // Find the prevalent rotation amongst all characters:
-    //
-    rot = 0;
-
-    for (i = 1; i < 4; ++i) {
-        if (nChars[i] > nChars[rot]) { rot = i; }
-    }
+    const int rot = prevalent_rotation_amongst (charsA);
 
     // rotate
     switch (rot) {
     case 1:
-        for (i = 0; i < charsA->getLength (); ++i) {
-            ch = (TextChar*)charsA->get (i);
-            xMin = ch->ymin;
-            xMax = ch->ymax;
-            yMin = pageWidth - ch->xmax;
-            yMax = pageWidth - ch->xmin;
-            ch->xmin = xMin;
-            ch->xmax = xMax;
-            ch->ymin = yMin;
-            ch->ymax = yMax;
-            ch->rot = (ch->rot + 3) & 3;
+        for (size_t i = 0; i < charsA->getLength (); ++i) {
+            rotate90 (*(TextChar*)charsA->get (i), pageWidth, 0);
         }
-        t = pageWidth;
-        pageWidth = pageHeight;
-        pageHeight = t;
+        std::swap (pageWidth, pageHeight);
         break;
 
     case 2:
-        for (i = 0; i < charsA->getLength (); ++i) {
-            ch = (TextChar*)charsA->get (i);
-            xMin = pageWidth - ch->xmax;
-            xMax = pageWidth - ch->xmin;
-            yMin = pageHeight - ch->ymax;
-            yMax = pageHeight - ch->ymin;
-            ch->xmin = xMin;
-            ch->xmax = xMax;
-            ch->ymin = yMin;
-            ch->ymax = yMax;
-            ch->rot = (ch->rot + 2) & 3;
+        for (size_t i = 0; i < charsA->getLength (); ++i) {
+            rotate180 (*(TextChar*)charsA->get (i), pageWidth, pageHeight);
         }
         break;
 
     case 3:
-        for (i = 0; i < charsA->getLength (); ++i) {
-            ch = (TextChar*)charsA->get (i);
-            xMin = pageHeight - ch->ymax;
-            xMax = pageHeight - ch->ymin;
-            yMin = ch->xmin;
-            yMax = ch->xmax;
-            ch->xmin = xMin;
-            ch->xmax = xMax;
-            ch->ymin = yMin;
-            ch->ymax = yMax;
-            ch->rot = (ch->rot + 1) & 3;
+        for (size_t i = 0; i < charsA->getLength (); ++i) {
+            rotate270 (*(TextChar*)charsA->get (i), 0, pageHeight);
         }
-        t = pageWidth;
-        pageWidth = pageHeight;
-        pageHeight = t;
+        std::swap (pageWidth, pageHeight);
         break;
 
     case 0:
@@ -2324,10 +2306,12 @@ void TextPage::removeDuplicates (GList* charsA, int rot) {
     }
 }
 
-// Split the characters into trees of TextBlocks, one tree for each
-// rotation.  Merge into a single tree (with the primary rotation).
+//
+// Split the characters into a tree of TextBlocks, one tree for each
+// rotation. Merge into a single tree (with the primary rotation).
+//
 TextBlock* TextPage::splitChars (GList* charsA) {
-    TextBlock* tree[4];
+    TextBlock* tree [4];
     TextBlock* blk;
     GList *chars2, *clippedChars;
     TextChar* ch;
@@ -3649,7 +3633,6 @@ bool TextPage::findText (
     Unicode* s, int len, bool startAtTop, bool stopAtBottom,
     bool startAtLast, bool stopAtLast, bool caseSensitive, bool backward,
     bool wholeWord, double* xMin, double* yMin, double* xMax, double* yMax) {
-    TextBlock* tree;
     TextColumn* column;
     TextParagraph* par;
     Unicode *s2, *txt;
@@ -3662,9 +3645,10 @@ bool TextPage::findText (
 
     //~ need to handle right-to-left text
 
-    if (!findCols) {
+    if (0 == findCols) {
         rot = rotateChars (chars);
-        if ((tree = splitChars (chars))) {
+
+        if (TextBlock* tree = splitChars (chars)) {
             findCols = buildColumns (tree);
             delete tree;
         }
@@ -3672,6 +3656,7 @@ bool TextPage::findText (
             // no text
             findCols = new GList ();
         }
+
         unrotateChars (chars, rot);
         unrotateColumns (findCols, rot);
     }
