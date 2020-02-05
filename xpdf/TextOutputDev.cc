@@ -590,7 +590,7 @@ double TextWord::getBaseline () {
 // TextLine
 //
 TextLine::TextLine (
-    std::vector< std::shared_ptr< TextWord > > wordsA,
+    TextWords wordsA,
     double xMinA, double yMinA,
     double xMaxA, double yMaxA,
     double fontSizeA)
@@ -667,7 +667,7 @@ double TextLine::getBaseline () {
 //
 // TextParagraph
 //
-TextParagraph::TextParagraph (std::vector< std::shared_ptr< TextLine > > arg)
+TextParagraph::TextParagraph (TextLines arg)
     : lines (std::move (arg)), xMin{ }, xMax{ }, yMin{ }, yMax{ } {
 
     bool first = true;
@@ -2013,7 +2013,7 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
 }
 
 void TextPage::unrotateWords (
-    std::vector< std::shared_ptr< TextWord > >& words, int rot) {
+    TextWords& words, int rot) {
 
     double xMin, yMin, xMax, yMax;
     int i, j;
@@ -2911,7 +2911,7 @@ TextColumn* TextPage::buildColumn (TextBlock* blk) {
     double spaceThresh, indent0, indent1, fontSize0, fontSize1;
     int i;
 
-    std::vector< std::shared_ptr< TextLine > > lines;
+    TextLines lines;
     buildLines (blk, lines);
 
     spaceThresh = paragraphSpacingThreshold * getAverageLineSpacing (lines);
@@ -2924,7 +2924,7 @@ TextColumn* TextPage::buildColumn (TextBlock* blk) {
     i = 0;
     while (i < lines.size ()) {
         // get the first line of the paragraph
-        std::vector< std::shared_ptr< TextLine > > parLines;
+        TextLines parLines;
 
         auto& line0 = lines [i];
         parLines.push_back (line0);
@@ -3065,7 +3065,7 @@ TextPage::getLineIndent (const TextLine& line, TextBlock* blk) const {
 // Compute average line spacing in column.
 double
 TextPage::getAverageLineSpacing (
-    const std::vector< std::shared_ptr< TextLine > >& lines) const {
+    const TextLines& lines) const {
 
     double avg = 0, sp;
     size_t n = 0;
@@ -3103,7 +3103,7 @@ double TextPage::getLineSpacing (const TextLine& lhs, const TextLine& rhs) const
 
 void
 TextPage::buildLines (
-    TextBlock* blk, std::vector< std::shared_ptr< TextLine > >& lines) {
+    TextBlock* blk, TextLines& lines) {
 
     switch (blk->tag) {
     case blkTagLine: {
@@ -3129,10 +3129,10 @@ TextPage::buildLines (
     }
 }
 
-std::shared_ptr< TextLine >
+TextLinePtr
 TextPage::buildLine (TextBlock* blk) {
     GList* charsA;
-    std::vector< std::shared_ptr< TextWord > > words;
+    TextWords words;
 
     TextChar *ch, *ch2;
 
@@ -3834,13 +3834,13 @@ bool TextPage::findCharRange (
     return true;
 }
 
-std::vector< std::shared_ptr< TextWord > >
+TextWords
 TextPage::makeWordList () {
     TextBlock* tree;
     GList* columns;
     TextColumn* col;
     TextParagraph* par;
-    std::vector< std::shared_ptr< TextWord > > words;
+    TextWords words;
     int rot, colIdx, parIdx, lineIdx, wordIdx;
 
     rot = rotateChars (chars);
@@ -4205,7 +4205,7 @@ bool TextOutputDev::findCharRange (
     return text->findCharRange (pos, length, xMin, yMin, xMax, yMax);
 }
 
-std::vector< std::shared_ptr< TextWord > >
+TextWords
 TextOutputDev::makeWordList () {
     return text->makeWordList ();
 }

@@ -177,15 +177,16 @@ struct TextWord {
         invisible  : 1; // invisible, render mode 3
 };
 
+using TextWordPtr = std::shared_ptr< TextWord >;
+using TextWords = std::vector< TextWordPtr >;
+
 //------------------------------------------------------------------------
 // TextLine
 //------------------------------------------------------------------------
 
 class TextLine {
 public:
-    TextLine (
-        std::vector< std::shared_ptr< TextWord > >,
-        double, double, double, double, double);
+    TextLine (TextWords, double, double, double, double, double);
 
     double getXMin () { return xMin; }
     double getYMin () { return yMin; }
@@ -194,18 +195,18 @@ public:
 
     int getRotation () { return rot; }
 
-    std::vector< std::shared_ptr< TextWord > >&
+    TextWords&
     getWords () {
         return words;
     }
 
-    const std::vector< std::shared_ptr< TextWord > >&
+    const TextWords&
     getWords () const {
         return words;
     }
 
 private:
-    std::vector< std::shared_ptr< TextWord > > words;
+    TextWords words;
 
     int rot;           // rotation, multiple of 90 degrees
                        //   (0, 1, 2, or 3)
@@ -235,14 +236,17 @@ private:
     friend class TextParagraph;
 };
 
+using TextLinePtr = std::shared_ptr< TextLine >;
+using TextLines = std::vector< TextLinePtr >;
+
 //------------------------------------------------------------------------
 // TextParagraph
 //------------------------------------------------------------------------
 
 struct TextParagraph {
-    TextParagraph (std::vector< std::shared_ptr< TextLine > >);
+    TextParagraph (TextLines);
 
-    std::vector< std::shared_ptr< TextLine > > lines;
+    TextLines lines;
 
     double xMin, xMax; // bounding box x coordinates
     double yMin, yMax; // bounding box y coordinates
@@ -320,7 +324,7 @@ public:
     GList* getFonts () { return fonts; }
 
     // Build a flat word list, in the specified ordering.
-    std::vector< std::shared_ptr< TextWord > >
+    TextWords
     makeWordList ();
 
 private:
@@ -358,7 +362,7 @@ private:
     void rotateUnderlinesAndLinks (int rot);
     void unrotateChars (GList* charsA, int rot);
     void unrotateColumns (GList* columns, int rot);
-    void unrotateWords (std::vector< std::shared_ptr< TextWord > >&, int);
+    void unrotateWords (TextWords&, int);
     bool checkPrimaryLR (GList* charsA);
     void removeDuplicates (GList* charsA, int rot);
     TextBlock* splitChars (GList* charsA);
@@ -382,15 +386,15 @@ private:
 
     double
     getAverageLineSpacing (
-        const std::vector< std::shared_ptr< TextLine > >&) const;
+        const TextLines&) const;
 
     double
     getLineSpacing (const TextLine&, const TextLine&) const;
 
     void
-    buildLines (TextBlock*, std::vector< std::shared_ptr< TextLine > >&);
+    buildLines (TextBlock*, TextLines&);
 
-    std::shared_ptr< TextLine >
+    TextLinePtr
     buildLine (TextBlock*);
 
     void getLineChars (TextBlock* blk, GList* charsA);
@@ -547,7 +551,7 @@ public:
     // this->rawOrder is true), physical layout order (if
     // this->physLayout is true and this->rawOrder is false), or reading
     // order (if both flags are false).
-    std::vector< std::shared_ptr< TextWord > > makeWordList ();
+    TextWords makeWordList ();
 
     // Returns the TextPage object for the last rasterized page,
     // transferring ownership to the caller.
