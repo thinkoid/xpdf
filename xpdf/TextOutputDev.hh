@@ -185,10 +185,10 @@ private:
     getLineSpacing (const TextLine&, const TextLine&) const;
 
     void
-    buildLines (TextBlock*, TextLines&);
+    makeLines (TextBlock*, TextLines&);
 
     TextLinePtr
-    buildLine (TextBlock*);
+    makeLine (TextBlock*);
 
     void getLineChars (TextBlock* blk, GList* charsA);
     double computeWordSpacingThreshold (GList* charsA, int rot);

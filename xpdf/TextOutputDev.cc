@@ -309,13 +309,13 @@ struct TextWord {
     //
     std::vector< double > edge;
 
+    TextFontInfo* font;
+    double fontSize;
+
     //
     // Bounding box, colors:
     //
     double xMin, xMax, yMin, yMax, colorR, colorG, colorB;
-
-    double fontSize;
-    TextFontInfo* font;
 
     unsigned char
         rot        : 2, // multiple of 90°: 0, 1, 2, or 3
@@ -3083,7 +3083,7 @@ TextColumn* TextPage::buildColumn (TextBlock* blk) {
     int i;
 
     TextLines lines;
-    buildLines (blk, lines);
+    makeLines (blk, lines);
 
     spaceThresh = paragraphSpacingThreshold * getAverageLineSpacing (lines);
 
@@ -3273,14 +3273,17 @@ double TextPage::getLineSpacing (const TextLine& lhs, const TextLine& rhs) const
 }
 
 void
-TextPage::buildLines (
+TextPage::makeLines (
     TextBlock* blk, TextLines& lines) {
 
     switch (blk->tag) {
     case blkTagLine: {
-        auto line = buildLine (blk);
+        auto line = makeLine (blk);
 
         if (blk->rot == 1 || blk->rot == 2) {
+            //
+            // In 90° and 180° orientations, insert at front:
+            //
             lines.insert (lines.begin (), line);
         }
         else {
@@ -3293,7 +3296,7 @@ TextPage::buildLines (
     case blkTagMulticolumn: {
         // multicolumn should never happen here
         for (size_t i = 0; i < blk->children->getLength (); ++i) {
-            buildLines ((TextBlock*)blk->children->get (i), lines);
+            makeLines ((TextBlock*)blk->children->get (i), lines);
         }
     }
         break;
@@ -3301,7 +3304,7 @@ TextPage::buildLines (
 }
 
 TextLinePtr
-TextPage::buildLine (TextBlock* blk) {
+TextPage::makeLine (TextBlock* blk) {
     GList* charsA;
     TextWords words;
 
