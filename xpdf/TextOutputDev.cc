@@ -24,114 +24,114 @@
 #include <range/v3/all.hpp>
 using namespace ranges;
 
-//
-// parameters
-//
+////////////////////////////////////////////////////////////////////////
 
 // Size of bins used for horizontal and vertical profiles is
 // splitPrecisionMul * minFontSize.
-#define splitPrecisionMul 0.05
+const double splitPrecisionMul = 0.05;
 
 // Minimum allowed split precision.
-#define minSplitPrecision 0.01
+const double minSplitPrecision = 0.01;
 
 // yMin and yMax (or xMin and xMax for rot=1,3) are adjusted by this
 // fraction of the text height, to allow for slightly overlapping
 // lines (or large ascent/descent values).
-#define ascentAdjustFactor 0
-#define descentAdjustFactor 0.35
+const double ascentAdjustFactor = 0;
+const double descentAdjustFactor = 0.35;
 
 // Gaps larger than max{gap} - splitGapSlack * avgFontSize are
 // considered to be equivalent.
-#define splitGapSlack 0.2
+const double splitGapSlack = 0.2;
 
 // The vertical gap threshold (minimum gap required to split
 // vertically) depends on the (approximate) number of lines in the
 // block:
 //   threshold = (max + slope * nLines) * avgFontSize
 // with a min value of vertGapThresholdMin * avgFontSize.
-#define vertGapThresholdMin 0.8
-#define vertGapThresholdMax 3
-#define vertGapThresholdSlope -0.5
+const double vertGapThresholdMin = 0.8;
+const double vertGapThresholdMax = 3;
+const double vertGapThresholdSlope = -0.5;
 
 // Vertical gap threshold for table mode.
-#define vertGapThresholdTableMin 0.2
-#define vertGapThresholdTableMax 0.5
-#define vertGapThresholdTableSlope -0.02
+const double vertGapThresholdTableMin = 0.2;
+const double vertGapThresholdTableMax = 0.5;
+const double vertGapThresholdTableSlope = -0.02;
 
 // A large character has a font size larger than
 // largeCharThreshold * avgFontSize.
-#define largeCharThreshold 1.5
+const double largeCharThreshold = 1.5;
 
 // A block will be split vertically only if the resulting chunk
 // widths are greater than vertSplitChunkThreshold * avgFontSize.
-#define vertSplitChunkThreshold 2
+const double vertSplitChunkThreshold = 2;
 
 // Max difference in primary,secondary coordinates (as a fraction of
 // the font size) allowed for duplicated text (fake boldface, drop
 // shadows) which is to be discarded.
-#define dupMaxPriDelta 0.1
-#define dupMaxSecDelta 0.2
+const double dupMaxPriDelta = 0.1;
+const double dupMaxSecDelta = 0.2;
 
 // Inter-character spacing that varies by less than this multiple of
 // font size is assumed to be equivalent.
-#define uniformSpacing 0.07
+const double uniformSpacing = 0.07;
 
 // Typical word spacing, as a fraction of font size.  This will be
 // added to the minimum inter-character spacing, to account for wide
 // character spacing.
-#define wordSpacing 0.1
+const double wordSpacing = 0.1;
 
 // Minimum paragraph indent from left margin, as a fraction of font
 // size.
-#define minParagraphIndent 0.5
+const double minParagraphIndent = 0.5;
 
 // If the space between two lines is greater than
 // paragraphSpacingThreshold * avgLineSpacing, start a new paragraph.
-#define paragraphSpacingThreshold 1.2
+const double paragraphSpacingThreshold = 1.2;
 
 // If font size changes by at least this much (measured in points)
 // between lines, start a new paragraph.
-#define paragraphFontSizeDelta 1
+const double paragraphFontSizeDelta = 1;
 
 // Spaces at the start of a line in physical layout mode are this wide
 // (as a multiple of font size).
-#define physLayoutSpaceWidth 0.33
+const double physLayoutSpaceWidth = 0.33;
 
 // Table cells (TextColumns) are allowed to overlap by this much
 // in table layout mode (as a fraction of cell width or height).
-#define tableCellOverlapSlack 0.05
+const double tableCellOverlapSlack = 0.05;
 
 // Primary axis delta which will cause a line break in raw mode
 // (as a fraction of font size).
-#define rawModeLineDelta 0.5
+const double rawModeLineDelta = 0.5;
 
 // Secondary axis delta which will cause a word break in raw mode
 // (as a fraction of font size).
-#define rawModeWordSpacing 0.15
+const double rawModeWordSpacing = 0.15;
 
 // Secondary axis overlap which will cause a line break in raw mode
 // (as a fraction of font size).
-#define rawModeCharOverlap 0.2
+const double rawModeCharOverlap = 0.2;
 
 // Max spacing (as a multiple of font size) allowed between the end of
 // a line and a clipped character to be included in that line.
-#define clippedTextMaxWordSpace 0.5
+const double clippedTextMaxWordSpace = 0.5;
 
 // Max width of underlines (in points).
-#define maxUnderlineWidth 3
+const double maxUnderlineWidth = 3;
 
 // Max horizontal distance between edge of word and start of underline
 // (as a fraction of font size).
-#define underlineSlack 0.2
+const double underlineSlack = 0.2;
 
 // Max vertical distance between baseline of word and start of
 // underline (as a fraction of font size).
-#define underlineBaselineSlack 0.2
+const double underlineBaselineSlack = 0.2;
 
 // Max distance between edge of text and edge of link border (as a
 // fraction of font size).
-#define hyperlinkSlack 0.2
+const double hyperlinkSlack = 0.2;
+
+////////////////////////////////////////////////////////////////////////
 
 namespace {
 
@@ -168,10 +168,11 @@ const auto lessCharPos = [](auto& lhs, auto& rhs) {
 
 } // anonymous namespace
 
+////////////////////////////////////////////////////////////////////////
+
 //
 // TextFontInfo
 //
-
 struct TextFontInfo {
     explicit TextFontInfo (GfxState*);
 
@@ -203,22 +204,15 @@ struct TextFontInfo {
 //
 // TextChar
 //
-class TextChar {
-public:
-    TextChar (
-        Unicode cA, int charPosA, int charLenA, double xMinA, double yMinA,
-        double xMaxA, double yMaxA, int rotA, bool clippedA, bool invisibleA,
-        TextFontInfo* fontA, double fontSizeA, double colorRA, double colorGA,
-        double colorBA);
-
+struct TextChar {
     static int cmpX (const void* p1, const void* p2) {
         const TextChar* ch1 = *(const TextChar**)p1;
         const TextChar* ch2 = *(const TextChar**)p2;
 
-        if (ch1->xMin < ch2->xMin) {
+        if (ch1->xmin < ch2->xmin) {
             return -1;
         }
-        else if (ch1->xMin > ch2->xMin) {
+        else if (ch1->xmin > ch2->xmin) {
             return 1;
         }
         else {
@@ -230,10 +224,10 @@ public:
         const TextChar* ch1 = *(const TextChar**)p1;
         const TextChar* ch2 = *(const TextChar**)p2;
 
-        if (ch1->yMin < ch2->yMin) {
+        if (ch1->ymin < ch2->ymin) {
             return -1;
         }
-        else if (ch1->yMin > ch2->yMin) {
+        else if (ch1->ymin > ch2->ymin) {
             return 1;
         }
         else {
@@ -242,50 +236,16 @@ public:
     }
 
     TextFontInfo* font;
+    double fontSize;
 
-    double xMin, yMin, xMax, yMax, fontSize, colorR, colorG, colorB;
-    size_t charPos;
+    double xmin, ymin, xmax, ymax;
+    double r, g, b;
 
     Unicode c;
+    int charPos;
 
     unsigned char charLen : 4, rot : 2, clipped : 1, invisible : 1;
 };
-
-TextChar::TextChar (
-    Unicode cA, int charPosA, int charLenA, double xMinA, double yMinA,
-    double xMaxA, double yMaxA, int rotA, bool clippedA, bool invisibleA,
-    TextFontInfo* fontA, double fontSizeA, double colorRA, double colorGA,
-    double colorBA) {
-    double t;
-
-    c = cA;
-    charPos = charPosA;
-    charLen = charLenA;
-    xMin = xMinA;
-    yMin = yMinA;
-    xMax = xMaxA;
-    yMax = yMaxA;
-    // this can happen with vertical writing mode, or with odd values
-    // for the char/word spacing parameters
-    if (xMin > xMax) {
-        t = xMin;
-        xMin = xMax;
-        xMax = t;
-    }
-    if (yMin > yMax) {
-        t = yMin;
-        yMin = yMax;
-        yMax = t;
-    }
-    rot = (unsigned char)rotA;
-    clipped = (char)clippedA;
-    invisible = (char)invisibleA;
-    font = fontA;
-    fontSize = fontSizeA;
-    colorR = colorRA;
-    colorG = colorGA;
-    colorB = colorBA;
-}
 
 //
 // TextWord
@@ -513,32 +473,32 @@ void TextBlock::addChild (TextBlock* child) {
 
 void TextBlock::addChild (TextChar* child) {
     if (children->getLength () == 0) {
-        xMin = child->xMin;
-        yMin = child->yMin;
-        xMax = child->xMax;
-        yMax = child->yMax;
+        xMin = child->xmin;
+        yMin = child->ymin;
+        xMax = child->xmax;
+        yMax = child->ymax;
     }
     else {
-        if (child->xMin < xMin) { xMin = child->xMin; }
-        if (child->yMin < yMin) { yMin = child->yMin; }
-        if (child->xMax > xMax) { xMax = child->xMax; }
-        if (child->yMax > yMax) { yMax = child->yMax; }
+        if (child->xmin < xMin) { xMin = child->xmin; }
+        if (child->ymin < yMin) { yMin = child->ymin; }
+        if (child->xmax > xMax) { xMax = child->xmax; }
+        if (child->ymax > yMax) { yMax = child->ymax; }
     }
     children->append (child);
 }
 
 void TextBlock::prependChild (TextChar* child) {
     if (children->getLength () == 0) {
-        xMin = child->xMin;
-        yMin = child->yMin;
-        xMax = child->xMax;
-        yMax = child->yMax;
+        xMin = child->xmin;
+        yMin = child->ymin;
+        xMax = child->xmax;
+        yMax = child->ymax;
     }
     else {
-        if (child->xMin < xMin) { xMin = child->xMin; }
-        if (child->yMin < yMin) { yMin = child->yMin; }
-        if (child->xMax > xMax) { xMax = child->xMax; }
-        if (child->yMax > yMax) { yMax = child->yMax; }
+        if (child->xmin < xMin) { xMin = child->xmin; }
+        if (child->ymin < yMin) { yMin = child->ymin; }
+        if (child->xmax > xMax) { xMax = child->xmax; }
+        if (child->ymax > yMax) { yMax = child->ymax; }
     }
     children->insert (0, child);
 }
@@ -670,35 +630,35 @@ TextWord::TextWord (
     case 0:
     default:
         ch = (TextChar*)chars->get (start);
-        xMin = ch->xMin;
-        yMin = ch->yMin;
-        yMax = ch->yMax;
+        xMin = ch->xmin;
+        yMin = ch->ymin;
+        yMax = ch->ymax;
         ch = (TextChar*)chars->get (start + len - 1);
-        xMax = ch->xMax;
+        xMax = ch->xmax;
         break;
     case 1:
         ch = (TextChar*)chars->get (start);
-        xMin = ch->xMin;
-        xMax = ch->xMax;
-        yMin = ch->yMin;
+        xMin = ch->xmin;
+        xMax = ch->xmax;
+        yMin = ch->ymin;
         ch = (TextChar*)chars->get (start + len - 1);
-        yMax = ch->yMax;
+        yMax = ch->ymax;
         break;
     case 2:
         ch = (TextChar*)chars->get (start);
-        xMax = ch->xMax;
-        yMin = ch->yMin;
-        yMax = ch->yMax;
+        xMax = ch->xmax;
+        yMin = ch->ymin;
+        yMax = ch->ymax;
         ch = (TextChar*)chars->get (start + len - 1);
-        xMin = ch->xMin;
+        xMin = ch->xmin;
         break;
     case 3:
         ch = (TextChar*)chars->get (start);
-        xMin = ch->xMin;
-        xMax = ch->xMax;
-        yMax = ch->yMax;
+        xMin = ch->xmin;
+        xMax = ch->xmax;
+        yMax = ch->ymax;
         ch = (TextChar*)chars->get (start + len - 1);
-        yMin = ch->yMin;
+        yMin = ch->ymin;
         break;
     }
 
@@ -710,20 +670,20 @@ TextWord::TextWord (
         switch (rot) {
         case 0:
         default:
-            edge[i] = ch->xMin;
-            if (i == len - 1) { edge[len] = ch->xMax; }
+            edge[i] = ch->xmin;
+            if (i == len - 1) { edge[len] = ch->xmax; }
             break;
         case 1:
-            edge[i] = ch->yMin;
-            if (i == len - 1) { edge[len] = ch->yMax; }
+            edge[i] = ch->ymin;
+            if (i == len - 1) { edge[len] = ch->ymax; }
             break;
         case 2:
-            edge[i] = ch->xMax;
-            if (i == len - 1) { edge[len] = ch->xMin; }
+            edge[i] = ch->xmax;
+            if (i == len - 1) { edge[len] = ch->xmin; }
             break;
         case 3:
-            edge[i] = ch->yMax;
-            if (i == len - 1) { edge[len] = ch->yMin; }
+            edge[i] = ch->ymax;
+            if (i == len - 1) { edge[len] = ch->ymin; }
             break;
         }
     }
@@ -736,9 +696,9 @@ TextWord::TextWord (
     spaceAfter = spaceAfterA;
     underlined = false;
 
-    colorR = ch->colorR;
-    colorG = ch->colorG;
-    colorB = ch->colorB;
+    colorR = ch->r;
+    colorG = ch->g;
+    colorB = ch->b;
 
     invisible = ch->invisible;
 }
@@ -1229,18 +1189,33 @@ void TextPage::addChar (
                 yMax = y2;
                 break;
             }
-            if ((state->getRender () & 3) == 1) { state->getStrokeRGB (&rgb); }
+            if ((state->getRender () & 3) == 1) {
+                state->getStrokeRGB (&rgb);
+            }
             else {
                 state->getFillRGB (&rgb);
             }
-            if (rtl) { j = uLen - 1 - i; }
+
+            if (rtl) {
+                j = uLen - 1 - i;
+            }
             else {
                 j = i;
             }
-            chars->append (new TextChar (
-                u[j], charPos, nBytes, xMin, yMin, xMax, yMax, curRot, clipped,
-                state->getRender () == 3, curFont, curFontSize,
-                xpdf::to_double (rgb.r), xpdf::to_double (rgb.g), xpdf::to_double (rgb.b)));
+
+            if (xMin > xMax) { std::swap (xMin, xMax); }
+            if (yMin > yMax) { std::swap (yMin, yMax); }
+
+            chars->append (
+                new TextChar{
+                    curFont, curFontSize,
+                    xMin, yMin, xMax, yMax,
+                    xpdf::to_double (rgb.r),
+                    xpdf::to_double (rgb.g),
+                    xpdf::to_double (rgb.b),
+                    u [j], charPos,
+                    uint8_t (nBytes), uint8_t (curRot), clipped,
+                    state->getRender () == 3 });
         }
     }
 
@@ -1431,13 +1406,16 @@ void TextPage::writePhysLayout (
 #if 0 //~debug
   dumpChars(chars);
 #endif
-    rot = rotateChars (chars);
+
+  rot = rotateChars (chars);
     primaryLR = checkPrimaryLR (chars);
     tree = splitChars (chars);
+
 #if 0 //~debug
   dumpTree(tree);
 #endif
-    if (!tree) {
+
+  if (!tree) {
         // no text
         unrotateChars (chars, rot);
         return;
@@ -1446,6 +1424,7 @@ void TextPage::writePhysLayout (
     delete tree;
     unrotateChars (chars, rot);
     ph = assignPhysLayoutPositions (columns);
+
 #if 0 //~debug
   dumpColumns(columns);
 #endif
@@ -1521,13 +1500,13 @@ void TextPage::writeLinePrinter (
             ch = (TextChar*)chars->get (i);
             for (j = i + 1; j < chars->getLength (); ++j) {
                 ch2 = (TextChar*)chars->get (j);
-                if (ch2->yMin + ascentAdjustFactor * (ch2->yMax - ch2->yMin) <
-                        ch->yMax -
-                            descentAdjustFactor * (ch->yMax - ch->yMin) &&
-                    ch->yMin + ascentAdjustFactor * (ch->yMax - ch->yMin) <
-                        ch2->yMax -
-                            descentAdjustFactor * (ch2->yMax - ch2->yMin)) {
-                    delta = fabs (ch2->xMin - ch->xMin);
+                if (ch2->ymin + ascentAdjustFactor * (ch2->ymax - ch2->ymin) <
+                        ch->ymax -
+                            descentAdjustFactor * (ch->ymax - ch->ymin) &&
+                    ch->ymin + ascentAdjustFactor * (ch->ymax - ch->ymin) <
+                        ch2->ymax -
+                            descentAdjustFactor * (ch2->ymax - ch2->ymin)) {
+                    delta = fabs (ch2->xmin - ch->xmin);
                     if (delta > 0 && delta < pitch) { pitch = delta; }
                 }
             }
@@ -1549,9 +1528,9 @@ void TextPage::writeLinePrinter (
             delta = 0;
             for (++i; delta == 0 && i < chars->getLength (); ++i) {
                 ch2 = (TextChar*)chars->get (i);
-                if (ch2->yMin + ascentAdjustFactor * (ch2->yMax - ch2->yMin) >
-                    ch->yMax - descentAdjustFactor * (ch->yMax - ch->yMin)) {
-                    delta = ch2->yMin - ch->yMin;
+                if (ch2->ymin + ascentAdjustFactor * (ch2->ymax - ch2->ymin) >
+                    ch->ymax - descentAdjustFactor * (ch->ymax - ch->ymin)) {
+                    delta = ch2->ymin - ch->ymin;
                 }
             }
             if (delta > 0 && delta < lineSpacing) { lineSpacing = delta; }
@@ -1562,7 +1541,7 @@ void TextPage::writeLinePrinter (
     // for fixed line spacing, this avoids problems with
     // dropping/inserting blank lines
     if (chars->getLength ()) {
-        yMin0 = ((TextChar*)chars->get (0))->yMin;
+        yMin0 = ((TextChar*)chars->get (0))->ymin;
         yShift = yMin0 - (int)(yMin0 / lineSpacing + 0.5) * lineSpacing -
                  0.5 * lineSpacing;
     }
@@ -1577,7 +1556,7 @@ void TextPage::writeLinePrinter (
         // get the characters in this line
         line = new GList;
         while (i < chars->getLength () &&
-               ((TextChar*)chars->get (i))->yMin < y + lineSpacing) {
+               ((TextChar*)chars->get (i))->ymin < y + lineSpacing) {
             line->append (chars->get (i++));
         }
         line->sort (&TextChar::cmpX);
@@ -1586,7 +1565,7 @@ void TextPage::writeLinePrinter (
         // -- for fixed char spacing, this avoids problems with
         // dropping/inserting spaces
         if (line->getLength ()) {
-            xMin0 = ((TextChar*)line->get (0))->xMin;
+            xMin0 = ((TextChar*)line->get (0))->xmin;
             xShift = xMin0 - (int)(xMin0 / pitch + 0.5) * pitch - 0.5 * pitch;
         }
         else {
@@ -1599,7 +1578,7 @@ void TextPage::writeLinePrinter (
         k = 0;
         while (k < line->getLength ()) {
             ch = (TextChar*)line->get (k);
-            if (ch->xMin < x + pitch) {
+            if (ch->xmin < x + pitch) {
                 n = uMap->mapUnicode (ch->c, buf, sizeof (buf));
                 s->append (buf, n);
                 ++k;
@@ -1643,53 +1622,53 @@ void TextPage::writeRaw (
                 switch (ch->rot) {
                 case 0:
                 default:
-                    if (fabs (ch2->yMin - ch->yMin) >
+                    if (fabs (ch2->ymin - ch->ymin) >
                             rawModeLineDelta * ch->fontSize ||
-                        ch2->xMin - ch->xMax <
+                        ch2->xmin - ch->xmax <
                             -rawModeCharOverlap * ch->fontSize) {
                         s->append (eol, eolLen);
                     }
                     else if (
-                        ch2->xMin - ch->xMax >
+                        ch2->xmin - ch->xmax >
                         rawModeWordSpacing * ch->fontSize) {
                         s->append (space, spaceLen);
                     }
                     break;
                 case 1:
-                    if (fabs (ch->xMax - ch2->xMax) >
+                    if (fabs (ch->xmax - ch2->xmax) >
                             rawModeLineDelta * ch->fontSize ||
-                        ch2->yMin - ch->yMax <
+                        ch2->ymin - ch->ymax <
                             -rawModeCharOverlap * ch->fontSize) {
                         s->append (eol, eolLen);
                     }
                     else if (
-                        ch2->yMin - ch->yMax >
+                        ch2->ymin - ch->ymax >
                         rawModeWordSpacing * ch->fontSize) {
                         s->append (space, spaceLen);
                     }
                     break;
                 case 2:
-                    if (fabs (ch->yMax - ch2->yMax) >
+                    if (fabs (ch->ymax - ch2->ymax) >
                             rawModeLineDelta * ch->fontSize ||
-                        ch->xMin - ch2->xMax <
+                        ch->xmin - ch2->xmax <
                             -rawModeCharOverlap * ch->fontSize) {
                         s->append (eol, eolLen);
                     }
                     else if (
-                        ch->xMin - ch2->xMax >
+                        ch->xmin - ch2->xmax >
                         rawModeWordSpacing * ch->fontSize) {
                         s->append (space, spaceLen);
                     }
                     break;
                 case 3:
-                    if (fabs (ch2->xMin - ch->xMin) >
+                    if (fabs (ch2->xmin - ch->xmin) >
                             rawModeLineDelta * ch->fontSize ||
-                        ch->yMin - ch2->yMax <
+                        ch->ymin - ch2->ymax <
                             -rawModeCharOverlap * ch->fontSize) {
                         s->append (eol, eolLen);
                     }
                     else if (
-                        ch->yMin - ch2->yMax >
+                        ch->ymin - ch2->ymax >
                         rawModeWordSpacing * ch->fontSize) {
                         s->append (space, spaceLen);
                     }
@@ -1822,14 +1801,14 @@ int TextPage::rotateChars (GList* charsA) {
     case 1:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
-            xMin = ch->yMin;
-            xMax = ch->yMax;
-            yMin = pageWidth - ch->xMax;
-            yMax = pageWidth - ch->xMin;
-            ch->xMin = xMin;
-            ch->xMax = xMax;
-            ch->yMin = yMin;
-            ch->yMax = yMax;
+            xMin = ch->ymin;
+            xMax = ch->ymax;
+            yMin = pageWidth - ch->xmax;
+            yMax = pageWidth - ch->xmin;
+            ch->xmin = xMin;
+            ch->xmax = xMax;
+            ch->ymin = yMin;
+            ch->ymax = yMax;
             ch->rot = (ch->rot + 3) & 3;
         }
         t = pageWidth;
@@ -1839,28 +1818,28 @@ int TextPage::rotateChars (GList* charsA) {
     case 2:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
-            xMin = pageWidth - ch->xMax;
-            xMax = pageWidth - ch->xMin;
-            yMin = pageHeight - ch->yMax;
-            yMax = pageHeight - ch->yMin;
-            ch->xMin = xMin;
-            ch->xMax = xMax;
-            ch->yMin = yMin;
-            ch->yMax = yMax;
+            xMin = pageWidth - ch->xmax;
+            xMax = pageWidth - ch->xmin;
+            yMin = pageHeight - ch->ymax;
+            yMax = pageHeight - ch->ymin;
+            ch->xmin = xMin;
+            ch->xmax = xMax;
+            ch->ymin = yMin;
+            ch->ymax = yMax;
             ch->rot = (ch->rot + 2) & 3;
         }
         break;
     case 3:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
-            xMin = pageHeight - ch->yMax;
-            xMax = pageHeight - ch->yMin;
-            yMin = ch->xMin;
-            yMax = ch->xMax;
-            ch->xMin = xMin;
-            ch->xMax = xMax;
-            ch->yMin = yMin;
-            ch->yMax = yMax;
+            xMin = pageHeight - ch->ymax;
+            xMax = pageHeight - ch->ymin;
+            yMin = ch->xmin;
+            yMax = ch->xmax;
+            ch->xmin = xMin;
+            ch->xmax = xMax;
+            ch->ymin = yMin;
+            ch->ymax = yMax;
             ch->rot = (ch->rot + 1) & 3;
         }
         t = pageWidth;
@@ -1977,28 +1956,28 @@ void TextPage::unrotateChars (GList* charsA, int rot) {
         pageHeight = t;
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
-            xMin = pageWidth - ch->yMax;
-            xMax = pageWidth - ch->yMin;
-            yMin = ch->xMin;
-            yMax = ch->xMax;
-            ch->xMin = xMin;
-            ch->xMax = xMax;
-            ch->yMin = yMin;
-            ch->yMax = yMax;
+            xMin = pageWidth - ch->ymax;
+            xMax = pageWidth - ch->ymin;
+            yMin = ch->xmin;
+            yMax = ch->xmax;
+            ch->xmin = xMin;
+            ch->xmax = xMax;
+            ch->ymin = yMin;
+            ch->ymax = yMax;
             ch->rot = (ch->rot + 1) & 3;
         }
         break;
     case 2:
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
-            xMin = pageWidth - ch->xMax;
-            xMax = pageWidth - ch->xMin;
-            yMin = pageHeight - ch->yMax;
-            yMax = pageHeight - ch->yMin;
-            ch->xMin = xMin;
-            ch->xMax = xMax;
-            ch->yMin = yMin;
-            ch->yMax = yMax;
+            xMin = pageWidth - ch->xmax;
+            xMax = pageWidth - ch->xmin;
+            yMin = pageHeight - ch->ymax;
+            yMax = pageHeight - ch->ymin;
+            ch->xmin = xMin;
+            ch->xmax = xMax;
+            ch->ymin = yMin;
+            ch->ymax = yMax;
             ch->rot = (ch->rot + 2) & 3;
         }
         break;
@@ -2008,14 +1987,14 @@ void TextPage::unrotateChars (GList* charsA, int rot) {
         pageHeight = t;
         for (i = 0; i < charsA->getLength (); ++i) {
             ch = (TextChar*)charsA->get (i);
-            xMin = ch->yMin;
-            xMax = ch->yMax;
-            yMin = pageHeight - ch->xMax;
-            yMax = pageHeight - ch->xMin;
-            ch->xMin = xMin;
-            ch->xMax = xMax;
-            ch->yMin = yMin;
-            ch->yMax = yMax;
+            xMin = ch->ymin;
+            xMax = ch->ymax;
+            yMin = pageHeight - ch->xmax;
+            yMax = pageHeight - ch->xmin;
+            ch->xmin = xMin;
+            ch->xmax = xMax;
+            ch->ymin = yMin;
+            ch->ymax = yMax;
             ch->rot = (ch->rot + 3) & 3;
         }
         break;
@@ -2299,10 +2278,10 @@ void TextPage::removeDuplicates (GList* charsA, int rot) {
             j = i + 1;
             while (j < charsA->getLength ()) {
                 ch2 = (TextChar*)charsA->get (j);
-                if (ch2->yMin - ch->yMin >= yDelta) { break; }
-                if (ch2->c == ch->c && fabs (ch2->xMin - ch->xMin) < xDelta &&
-                    fabs (ch2->xMax - ch->xMax) < xDelta &&
-                    fabs (ch2->yMax - ch->yMax) < yDelta) {
+                if (ch2->ymin - ch->ymin >= yDelta) { break; }
+                if (ch2->c == ch->c && fabs (ch2->xmin - ch->xmin) < xDelta &&
+                    fabs (ch2->xmax - ch->xmax) < xDelta &&
+                    fabs (ch2->ymax - ch->ymax) < yDelta) {
                     charsA->del (j);
                 }
                 else {
@@ -2319,10 +2298,10 @@ void TextPage::removeDuplicates (GList* charsA, int rot) {
             j = i + 1;
             while (j < charsA->getLength ()) {
                 ch2 = (TextChar*)charsA->get (j);
-                if (ch2->xMin - ch->xMin >= xDelta) { break; }
-                if (ch2->c == ch->c && fabs (ch2->xMax - ch->xMax) < xDelta &&
-                    fabs (ch2->yMin - ch->yMin) < yDelta &&
-                    fabs (ch2->yMax - ch->yMax) < yDelta) {
+                if (ch2->xmin - ch->xmin >= xDelta) { break; }
+                if (ch2->c == ch->c && fabs (ch2->xmax - ch->xmax) < xDelta &&
+                    fabs (ch2->ymin - ch->ymin) < yDelta &&
+                    fabs (ch2->ymax - ch->ymax) < yDelta) {
                     charsA->del (j);
                 }
                 else {
@@ -2434,10 +2413,10 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
     minFontSize = avgFontSize = 0;
     for (i = 0; i < charsA->getLength (); ++i) {
         ch = (TextChar*)charsA->get (i);
-        if (i == 0 || ch->xMin < xMin) { xMin = ch->xMin; }
-        if (i == 0 || ch->yMin < yMin) { yMin = ch->yMin; }
-        if (i == 0 || ch->xMax > xMax) { xMax = ch->xMax; }
-        if (i == 0 || ch->yMax > yMax) { yMax = ch->yMax; }
+        if (i == 0 || ch->xmin < xMin) { xMin = ch->xmin; }
+        if (i == 0 || ch->ymin < yMin) { yMin = ch->ymin; }
+        if (i == 0 || ch->xmax > xMax) { xMax = ch->xmax; }
+        if (i == 0 || ch->ymax > yMax) { yMax = ch->ymax; }
         avgFontSize += ch->fontSize;
         if (i == 0 || ch->fontSize < minFontSize) {
             minFontSize = ch->fontSize;
@@ -2467,36 +2446,36 @@ TextBlock* TextPage::split (GList* charsA, int rot) {
         switch (rot) {
         case 0:
         default:
-            xMinI2 = (int)floor (ch->xMin / splitPrecision);
-            xMaxI2 = (int)floor (ch->xMax / splitPrecision);
-            ascentAdjust = ascentAdjustFactor * (ch->yMax - ch->yMin);
-            yMinI2 = (int)floor ((ch->yMin + ascentAdjust) / splitPrecision);
-            descentAdjust = descentAdjustFactor * (ch->yMax - ch->yMin);
-            yMaxI2 = (int)floor ((ch->yMax - descentAdjust) / splitPrecision);
+            xMinI2 = (int)floor (ch->xmin / splitPrecision);
+            xMaxI2 = (int)floor (ch->xmax / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (ch->ymax - ch->ymin);
+            yMinI2 = (int)floor ((ch->ymin + ascentAdjust) / splitPrecision);
+            descentAdjust = descentAdjustFactor * (ch->ymax - ch->ymin);
+            yMaxI2 = (int)floor ((ch->ymax - descentAdjust) / splitPrecision);
             break;
         case 1:
-            descentAdjust = descentAdjustFactor * (ch->xMax - ch->xMin);
-            xMinI2 = (int)floor ((ch->xMin + descentAdjust) / splitPrecision);
-            ascentAdjust = ascentAdjustFactor * (ch->xMax - ch->xMin);
-            xMaxI2 = (int)floor ((ch->xMax - ascentAdjust) / splitPrecision);
-            yMinI2 = (int)floor (ch->yMin / splitPrecision);
-            yMaxI2 = (int)floor (ch->yMax / splitPrecision);
+            descentAdjust = descentAdjustFactor * (ch->xmax - ch->xmin);
+            xMinI2 = (int)floor ((ch->xmin + descentAdjust) / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (ch->xmax - ch->xmin);
+            xMaxI2 = (int)floor ((ch->xmax - ascentAdjust) / splitPrecision);
+            yMinI2 = (int)floor (ch->ymin / splitPrecision);
+            yMaxI2 = (int)floor (ch->ymax / splitPrecision);
             break;
         case 2:
-            xMinI2 = (int)floor (ch->xMin / splitPrecision);
-            xMaxI2 = (int)floor (ch->xMax / splitPrecision);
-            descentAdjust = descentAdjustFactor * (ch->yMax - ch->yMin);
-            yMinI2 = (int)floor ((ch->yMin + descentAdjust) / splitPrecision);
-            ascentAdjust = ascentAdjustFactor * (ch->yMax - ch->yMin);
-            yMaxI2 = (int)floor ((ch->yMax - ascentAdjust) / splitPrecision);
+            xMinI2 = (int)floor (ch->xmin / splitPrecision);
+            xMaxI2 = (int)floor (ch->xmax / splitPrecision);
+            descentAdjust = descentAdjustFactor * (ch->ymax - ch->ymin);
+            yMinI2 = (int)floor ((ch->ymin + descentAdjust) / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (ch->ymax - ch->ymin);
+            yMaxI2 = (int)floor ((ch->ymax - ascentAdjust) / splitPrecision);
             break;
         case 3:
-            ascentAdjust = ascentAdjustFactor * (ch->xMax - ch->xMin);
-            xMinI2 = (int)floor ((ch->xMin + ascentAdjust) / splitPrecision);
-            descentAdjust = descentAdjustFactor * (ch->xMax - ch->xMin);
-            xMaxI2 = (int)floor ((ch->xMax - descentAdjust) / splitPrecision);
-            yMinI2 = (int)floor (ch->yMin / splitPrecision);
-            yMaxI2 = (int)floor (ch->yMax / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (ch->xmax - ch->xmin);
+            xMinI2 = (int)floor ((ch->xmin + ascentAdjust) / splitPrecision);
+            descentAdjust = descentAdjustFactor * (ch->xmax - ch->xmin);
+            xMaxI2 = (int)floor ((ch->xmax - descentAdjust) / splitPrecision);
+            yMinI2 = (int)floor (ch->ymin / splitPrecision);
+            yMaxI2 = (int)floor (ch->ymax / splitPrecision);
             break;
         }
         for (y = yMinI2; y <= yMaxI2; ++y) { ++horizProfile[y - yMinI]; }
@@ -2766,8 +2745,8 @@ GList* TextPage::getChars (
         // because of {ascent,descent}AdjustFactor, the y coords (or x
         // coords for rot 1,3) for the gaps will be a little bit tight --
         // so we use the center of the character here
-        x = 0.5 * (ch->xMin + ch->xMax);
-        y = 0.5 * (ch->yMin + ch->yMax);
+        x = 0.5 * (ch->xmin + ch->xmax);
+        y = 0.5 * (ch->ymin + ch->ymax);
         if (x > xMin && x < xMax && y > yMin && y < yMax) { ret->append (ch); }
     }
     return ret;
@@ -2855,7 +2834,7 @@ void TextPage::insertLargeChars (GList* largeChars, TextBlock* blk) {
     // note: largeChars are already sorted by x
     for (i = 0; i < largeChars->getLength (); ++i) {
         ch2 = (TextChar*)largeChars->get (i);
-        if (ch2->xMax > xLimit || ch2->yMax > yLimit) {
+        if (ch2->xmax > xLimit || ch2->ymax > yLimit) {
             singleLine = false;
             break;
         }
@@ -2863,8 +2842,8 @@ void TextPage::insertLargeChars (GList* largeChars, TextBlock* blk) {
             ch = (TextChar*)largeChars->get (i - 1);
             minOverlap = 0.5 * (ch->fontSize < ch2->fontSize ? ch->fontSize
                                                              : ch2->fontSize);
-            if (ch->yMax - ch2->yMin < minOverlap ||
-                ch2->yMax - ch->yMin < minOverlap) {
+            if (ch->ymax - ch2->ymin < minOverlap ||
+                ch2->ymax - ch->ymin < minOverlap) {
                 singleLine = false;
                 break;
             }
@@ -2919,7 +2898,7 @@ void TextPage::insertLargeCharInLeaf (TextChar* ch, TextBlock* blk) {
     //~   -- it could be extended to do more
 
     // estimate the baseline of ch
-    y = ch->yMin + 0.75 * (ch->yMax - ch->yMin);
+    y = ch->ymin + 0.75 * (ch->ymax - ch->ymin);
 
     if (blk->type == blkLeaf) { blk->prependChild (ch); }
     else if (blk->type == blkHorizSplit) {
@@ -3028,10 +3007,10 @@ void TextPage::insertClippedChars (GList* clippedChars, TextBlock* tree) {
         i = 0;
         while (i < clippedChars->getLength ()) {
             ch2 = (TextChar*)clippedChars->get (i);
-            if (ch2->xMin > ch->xMax + clippedTextMaxWordSpace * ch->fontSize) {
+            if (ch2->xmin > ch->xmax + clippedTextMaxWordSpace * ch->fontSize) {
                 break;
             }
-            y = 0.5 * (ch2->yMin + ch2->yMax);
+            y = 0.5 * (ch2->ymin + ch2->ymax);
             if (y > leaf->yMin && y < leaf->yMax) {
                 ch2 = (TextChar*)clippedChars->del (i);
                 leaf->addChild (ch2);
@@ -3053,11 +3032,11 @@ TextBlock* TextPage::findClippedCharLeaf (TextChar* ch, TextBlock* tree) {
 
     //~ this currently works only for characters in the primary rotation
 
-    y = 0.5 * (ch->yMin + ch->yMax);
+    y = 0.5 * (ch->ymin + ch->ymax);
     if (tree->type == blkLeaf) {
         if (tree->rot == 0) {
             if (y > tree->yMin && y < tree->yMax &&
-                ch->xMin <=
+                ch->xmin <=
                     tree->xMax + clippedTextMaxWordSpace * ch->fontSize) {
                 return tree;
             }
@@ -3347,8 +3326,8 @@ TextPage::buildLine (TextBlock* blk) {
             ch = (TextChar*)charsA->get (j - 1);
             ch2 = (TextChar*)charsA->get (j);
 
-            sp = (blk->rot & 1) ? (ch2->yMin - ch->yMax)
-                                : (ch2->xMin - ch->xMax);
+            sp = (blk->rot & 1) ? (ch2->ymin - ch->ymax)
+                                : (ch2->xmin - ch->xmax);
 
             if (sp > wordSp || ch->font != ch2->font ||
                 fabs (ch->fontSize - ch2->fontSize) > 0.01 ||
@@ -3415,7 +3394,7 @@ double TextPage::computeWordSpacingThreshold (GList* charsA, int rot) {
         avgFontSize += ch->fontSize;
         if (i < charsA->getLength () - 1) {
             ch2 = (TextChar*)charsA->get (i + 1);
-            sp = (rot & 1) ? (ch2->yMin - ch->yMax) : (ch2->xMin - ch->xMax);
+            sp = (rot & 1) ? (ch2->ymin - ch->ymax) : (ch2->xmin - ch->xmax);
             if (i == 0 || sp < minSp) { minSp = sp; }
             if (sp > maxSp) { maxSp = sp; }
         }
@@ -3918,8 +3897,8 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     chars2 = new GList ();
     for (i = 0; i < chars->getLength (); ++i) {
         ch = (TextChar*)chars->get (i);
-        xx = 0.5 * (ch->xMin + ch->xMax);
-        yy = 0.5 * (ch->yMin + ch->yMax);
+        xx = 0.5 * (ch->xmin + ch->xmax);
+        yy = 0.5 * (ch->ymin + ch->ymax);
         if (xx > xMin && xx < xMax && yy > yMin && yy < yMax) {
             chars2->append (ch);
         }
@@ -4012,10 +3991,10 @@ bool TextPage::findCharRange (
     for (i = 0; i < chars->getLength (); ++i) {
         ch = (TextChar*)chars->get (i);
         if (ch->charPos >= pos && ch->charPos < pos + length) {
-            if (first || ch->xMin < xMin2) { xMin2 = ch->xMin; }
-            if (first || ch->yMin < yMin2) { yMin2 = ch->yMin; }
-            if (first || ch->xMax > xMax2) { xMax2 = ch->xMax; }
-            if (first || ch->yMax > yMax2) { yMax2 = ch->yMax; }
+            if (first || ch->xmin < xMin2) { xMin2 = ch->xmin; }
+            if (first || ch->ymin < yMin2) { yMin2 = ch->ymin; }
+            if (first || ch->xmax > xMax2) { xMax2 = ch->xmax; }
+            if (first || ch->ymax > yMax2) { yMax2 = ch->ymax; }
             first = false;
         }
     }
@@ -4101,7 +4080,7 @@ void TextPage::dumpChars(GList *charsA) {
     for (i = 0; i < charsA->getLength(); ++i) {
         ch = (TextChar *)charsA->get(i);
         printf("char: U+%04x '%c' xMin=%g yMin=%g xMax=%g yMax=%g fontSize=%g rot=%d\n",
-               ch->c, ch->c & 0xff, ch->xMin, ch->yMin, ch->xMax, ch->yMax,
+               ch->c, ch->c & 0xff, ch->xmin, ch->ymin, ch->xmax, ch->ymax,
                ch->fontSize, ch->rot);
     }
 }
@@ -4123,7 +4102,7 @@ void TextPage::dumpTree(TextBlock *tree, int indent) {
             ch = (TextChar *)tree->children->get(i);
             printf("%*schar: '%c' xMin=%g yMin=%g xMax=%g yMax=%g font=%d.%d\n",
                    indent + 2, "", ch->c & 0xff,
-                   ch->xMin, ch->yMin, ch->xMax, ch->yMax,
+                   ch->xmin, ch->ymin, ch->xmax, ch->ymax,
                    ch->font->fontID.num, ch->font->fontID.gen);
         }
     } else {
