@@ -529,15 +529,19 @@ TextWord::TextWord (
             break;
         }
     }
+
     ch = (TextChar*)chars->get (start);
+
     font = ch->font;
     fontSize = ch->fontSize;
+
     spaceAfter = spaceAfterA;
     underlined = false;
-    link = NULL;
+
     colorR = ch->colorR;
     colorG = ch->colorG;
     colorB = ch->colorB;
+
     invisible = ch->invisible;
 }
 
@@ -581,8 +585,6 @@ double TextWord::getBaseline () {
     case 3: return xMax + fontSize * font->descent;
     }
 }
-
-GString* TextWord::getLinkURI () { return link ? link->uri : (GString*)NULL; }
 
 //------------------------------------------------------------------------
 // TextLine
@@ -3447,7 +3449,6 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
                             word->xMax - hSlack < link->xMax &&
                             link->yMin < word->yMin + hSlack &&
                             word->yMax - hSlack < link->yMax) {
-                            word->link = link;
                         }
                     }
                 }

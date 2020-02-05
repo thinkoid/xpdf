@@ -128,18 +128,6 @@ struct TextWord {
 
     double getBaseline ();
 
-    GString* getLinkURI ();
-
-    //
-    // Rotation in multiple of 90°: 0, 1, 2, or 3.
-    //
-    int rot;
-
-    //
-    // Bounding box coordinates:
-    //
-    double xMin, xMax, yMin, yMax;
-
     //
     // The text:
     //
@@ -152,27 +140,24 @@ struct TextWord {
     std::vector< off_t > charPos;
 
     //
-    // "near" edge x or y coord of each char (plus one extra entry for the last
+    // "Near" edge x or y coord of each char (plus one extra entry for the last
     // char):
     //
     std::vector< double > edge;
 
-    TextFontInfo* font; // font information
+    //
+    // Bounding box, colors:
+    //
+    double xMin, xMax, yMin, yMax, colorR, colorG, colorB;
 
-    double fontSize;    // font size
-    bool spaceAfter;   // set if there is a space between this
-                        //   word and the next word on the line
+    double fontSize;
+    TextFontInfo* font;
 
-    bool underlined;
-    TextLink* link;
-
-    // word color
-    double colorR, colorG, colorB;
-    bool invisible; // set for invisible text (render mode 3)
-
-    friend class TextBlock;
-    friend class TextLine;
-    friend class TextPage;
+    unsigned char
+        rot        : 2, // multiple of 90°: 0, 1, 2, or 3
+        spaceAfter : 1, // set if ∃ separating space before next character
+        underlined : 1, // underlined ...?
+        invisible  : 1; // invisible, render mode 3
 };
 
 //------------------------------------------------------------------------
