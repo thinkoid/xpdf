@@ -816,18 +816,20 @@ static inline char getType (Unicode c) {
     int i;
     char type;
 
-    if (c > 0xffff) { type = 'X'; }
+    if (c > 0xffff) {
+        type = 'X';
+    }
     else {
         i = (c >> 8) & 0xff;
+
         if ((type = typeTable[i].type) == 'X') {
-            type = typeTable[i].vector[c & 0xff];
+            type = typeTable [i].vector [c & 0xff];
         }
     }
     return type;
 }
 
 bool unicodeTypeL (Unicode c) { return getType (c) == 'L'; }
-
 bool unicodeTypeR (Unicode c) { return getType (c) == 'R'; }
 
 bool unicodeTypeNum (Unicode c) {

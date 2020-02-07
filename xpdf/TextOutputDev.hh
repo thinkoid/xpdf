@@ -67,15 +67,23 @@ struct TextOutputControl {
 };
 
 struct TextFontInfo;
+struct TextChar;
 struct TextWord;
 struct TextLine;
 struct TextColumn;
+struct TextBlock;
+
+using TextCharPtr = std::shared_ptr< TextChar >;
+using TextChars = std::vector< TextCharPtr >;
 
 using TextWordPtr = std::shared_ptr< TextWord >;
 using TextWords = std::vector< TextWordPtr >;
 
 using TextLinePtr = std::shared_ptr< TextLine >;
 using TextLines = std::vector< TextLinePtr >;
+
+using TextBlockPtr = std::shared_ptr< TextBlock >;
+using TextBlocks = std::vector< TextBlockPtr >;
 
 //
 // TextPage
@@ -151,47 +159,69 @@ private:
         Unicode* text, int len, UnicodeMap* uMap, bool primaryLR, GString* s);
 
     // analysis
-    int rotateChars (GList* charsA);
+    int rotateChars (TextChars& charsA);
     void rotateUnderlinesAndLinks (int rot);
-    void unrotateChars (GList* charsA, int rot);
+    void unrotateChars (TextChars& charsA, int rot);
     void unrotateColumns (GList* columns, int rot);
     void unrotateWords (TextWords&, int);
-    bool checkPrimaryLR (GList* charsA);
-    void removeDuplicates (GList* charsA, int rot);
-    TextBlock* splitChars (GList* charsA);
-    TextBlock* split (GList* charsA, int rot);
-    GList* getChars (
-        GList* charsA, double xMin, double yMin, double xMax, double yMax);
-    void tagBlock (TextBlock* blk);
-    void insertLargeChars (GList* largeChars, TextBlock* blk);
-    void insertLargeCharsInFirstLeaf (GList* largeChars, TextBlock* blk);
-    void insertLargeCharInLeaf (TextChar* ch, TextBlock* blk);
-    void insertIntoTree (TextBlock* subtree, TextBlock* primaryTree);
-    void insertColumnIntoTree (TextBlock* column, TextBlock* tree);
-    void insertClippedChars (GList* clippedChars, TextBlock* tree);
-    TextBlock* findClippedCharLeaf (TextChar* ch, TextBlock* tree);
-    GList* buildColumns (TextBlock* tree);
-    void buildColumns2 (TextBlock* blk, GList* columns);
-    TextColumn* buildColumn (TextBlock* tree);
+    bool isPrevalentLeftToRight (TextChars& charsA);
+    void removeDuplicates (TextChars& charsA, int rot);
+
+    TextBlockPtr
+    splitChars (TextChars& charsA);
+
+    TextBlockPtr
+    split (TextChars& charsA, int rot);
+
+    TextChars
+    getChars (TextChars&, double, double, double, double);
+
+    void tagBlock (TextBlockPtr blk);
+
+    void
+    insertLargeChars (TextChars& largeChars, TextBlockPtr blk);
+
+    void
+    insertLargeCharsInFirstLeaf (TextChars& largeChars, TextBlockPtr blk);
+
+    void
+    insertLargeCharInLeaf (TextCharPtr ch, TextBlockPtr blk);
+
+    void
+    insertIntoTree (TextBlockPtr subtree, TextBlockPtr primaryTree);
+
+    void
+    insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree);
+
+    void
+    insertClippedChars (TextChars&, TextBlockPtr);
+
+    TextBlockPtr
+    findClippedCharLeaf (TextCharPtr ch, TextBlockPtr tree);
+
+    GList* buildColumns (TextBlockPtr tree);
+    void buildColumns2 (TextBlockPtr blk, GList* columns);
+    TextColumn* buildColumn (TextBlockPtr tree);
 
     double
-    getLineIndent (const TextLine&, TextBlock*) const;
+    getLineIndent (const TextLine&, TextBlockPtr) const;
 
     double
-    getAverageLineSpacing (
-        const TextLines&) const;
+    getAverageLineSpacing (const TextLines&) const;
 
     double
     getLineSpacing (const TextLine&, const TextLine&) const;
 
     void
-    makeLines (TextBlock*, TextLines&);
+    makeLines (TextBlockPtr, TextLines&);
 
     TextLinePtr
-    makeLine (TextBlock*);
+    makeLine (TextBlockPtr);
 
-    void getLineChars (TextBlock* blk, GList* charsA);
-    double computeWordSpacingThreshold (GList* charsA, int rot);
+    TextChars
+    getLineOfChars (TextBlockPtr);
+
+    double computeWordSpacingThreshold (TextChars& charsA, int rot);
     int assignPhysLayoutPositions (GList* columns);
     void assignLinePhysPositions (GList* columns);
     void computeLinePhysWidth (TextLine& line, UnicodeMap* uMap);
@@ -219,7 +249,7 @@ private:
     double actualTextX0, actualTextY0, actualTextX1, actualTextY1;
     int actualTextNBytes;
 
-    GList* chars; // [TextChar]
+    TextChars chars; // [TextChar]
 
     GList* fonts; // all font info objects used on this
                   //   page [TextFontInfo]
