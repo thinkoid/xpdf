@@ -408,6 +408,17 @@ struct TextBlock {
     void addChild (TextCharPtr);
 
     void prependChild (TextCharPtr);
+
+    template< typename Iterator >
+    void prependChildren (Iterator iter, Iterator last) {
+        auto& chars = as_chars ();
+
+        TextChars xs (iter, last);
+        xs.insert (xs.end (), chars.begin (), chars.end ());
+
+        chars = std::move (xs);
+    }
+
     void updateBounds (int childIdx);
 
     TextChars&       as_chars ()       { return std::get< TextChars > (xs); }
@@ -3083,9 +3094,7 @@ void TextPage::insertLargeChars (TextChars& largeChars, TextBlockPtr blk) {
 void
 TextPage::insertLargeCharsInFirstLeaf (TextChars& largeChars, TextBlockPtr blk) {
     if (blk->type == blkLeaf) {
-        for (auto& ch : largeChars | views::reverse) {
-            blk->prependChild (ch);
-        }
+        blk->prependChildren (largeChars.begin (), largeChars.end ());
     }
     else {
         insertLargeCharsInFirstLeaf (largeChars, blk->as_blocks ().front ());
