@@ -162,8 +162,8 @@ const auto lessPixels = [](const auto& lhs, const auto& rhs) {
 //
 const auto lessYX = [](auto& lhs, auto& rhs) {
     return
-        lhs->yMin  < rhs->yMin || (
-        lhs->yMin == rhs->yMin && lhs->xMin < rhs->xMin);
+        lhs->ymin  < rhs->ymin || (
+        lhs->ymin == rhs->ymin && lhs->xmin < rhs->xmin);
 };
 
 const auto lessCharPos = [](auto& lhs, auto& rhs) {
@@ -242,17 +242,17 @@ struct TextWord {
         *b = colorB;
     }
 
-    void getBBox (double* xMinA, double* yMinA,
-                  double* xMaxA, double* yMaxA) const {
-        *xMinA = xMin;
-        *yMinA = yMin;
-        *xMaxA = xMax;
-        *yMaxA = yMax;
+    void getBBox (double* xminA, double* yminA,
+                  double* xmaxA, double* ymaxA) const {
+        *xminA = xmin;
+        *yminA = ymin;
+        *xmaxA = xmax;
+        *ymaxA = ymax;
     }
 
     void getCharBBox (
-        int charIdx, double* xMinA, double* yMinA, double* xMaxA,
-        double* yMaxA);
+        int charIdx, double* xminA, double* yminA, double* xmaxA,
+        double* ymaxA);
 
     double getFontSize () const { return fontSize; }
     int getRotation () const { return rot; }
@@ -289,7 +289,7 @@ struct TextWord {
     //
     // Bounding box, colors:
     //
-    double xMin, xMax, yMin, yMax, colorR, colorG, colorB;
+    double xmin, xmax, ymin, ymax, colorR, colorG, colorB;
 
     unsigned char
         rot        : 2, // multiple of 90°: 0, 1, 2, or 3
@@ -627,35 +627,35 @@ TextWord::TextWord (
     case 0:
     default:
         ch = chars [start];
-        xMin = ch->xmin;
-        yMin = ch->ymin;
-        yMax = ch->ymax;
+        xmin = ch->xmin;
+        ymin = ch->ymin;
+        ymax = ch->ymax;
         ch = chars [start + len - 1];
-        xMax = ch->xmax;
+        xmax = ch->xmax;
         break;
     case 1:
         ch = chars [start];
-        xMin = ch->xmin;
-        xMax = ch->xmax;
-        yMin = ch->ymin;
+        xmin = ch->xmin;
+        xmax = ch->xmax;
+        ymin = ch->ymin;
         ch = chars [start + len - 1];
-        yMax = ch->ymax;
+        ymax = ch->ymax;
         break;
     case 2:
         ch = chars [start];
-        xMax = ch->xmax;
-        yMin = ch->ymin;
-        yMax = ch->ymax;
+        xmax = ch->xmax;
+        ymin = ch->ymin;
+        ymax = ch->ymax;
         ch = chars [start + len - 1];
-        xMin = ch->xmin;
+        xmin = ch->xmin;
         break;
     case 3:
         ch = chars [start];
-        xMin = ch->xmin;
-        xMax = ch->xmax;
-        yMax = ch->ymax;
+        xmin = ch->xmin;
+        xmax = ch->xmax;
+        ymax = ch->ymax;
         ch = chars [start + len - 1];
-        yMin = ch->ymin;
+        ymin = ch->ymin;
         break;
     }
 
@@ -705,32 +705,32 @@ GString* TextWord::getFontName () const {
 }
 
 void TextWord::getCharBBox (
-    int charIdx, double* xMinA, double* yMinA, double* xMaxA, double* yMaxA) {
+    int charIdx, double* xminA, double* yminA, double* xmaxA, double* ymaxA) {
     if (charIdx < 0 || charIdx >= text.size ()) { return; }
     switch (rot) {
     case 0:
-        *xMinA = edge[charIdx];
-        *xMaxA = edge[charIdx + 1];
-        *yMinA = yMin;
-        *yMaxA = yMax;
+        *xminA = edge[charIdx];
+        *xmaxA = edge[charIdx + 1];
+        *yminA = ymin;
+        *ymaxA = ymax;
         break;
     case 1:
-        *xMinA = xMin;
-        *xMaxA = xMax;
-        *yMinA = edge[charIdx];
-        *yMaxA = edge[charIdx + 1];
+        *xminA = xmin;
+        *xmaxA = xmax;
+        *yminA = edge[charIdx];
+        *ymaxA = edge[charIdx + 1];
         break;
     case 2:
-        *xMinA = edge[charIdx + 1];
-        *xMaxA = edge[charIdx];
-        *yMinA = yMin;
-        *yMaxA = yMax;
+        *xminA = edge[charIdx + 1];
+        *xmaxA = edge[charIdx];
+        *yminA = ymin;
+        *ymaxA = ymax;
         break;
     case 3:
-        *xMinA = xMin;
-        *xMaxA = xMax;
-        *yMinA = edge[charIdx + 1];
-        *yMaxA = edge[charIdx];
+        *xminA = xmin;
+        *xmaxA = xmax;
+        *yminA = edge[charIdx + 1];
+        *ymaxA = edge[charIdx];
         break;
     }
 }
@@ -738,10 +738,10 @@ void TextWord::getCharBBox (
 double TextWord::getBaseline () {
     switch (rot) {
     case 0:
-    default: return yMax + fontSize * font->descent;
-    case 1: return xMin - fontSize * font->descent;
-    case 2: return yMin - fontSize * font->descent;
-    case 3: return xMax + fontSize * font->descent;
+    default: return ymax + fontSize * font->descent;
+    case 1: return xmin - fontSize * font->descent;
+    case 2: return ymin - fontSize * font->descent;
+    case 3: return xmax + fontSize * font->descent;
     }
 }
 
@@ -1480,8 +1480,8 @@ vertical_overlapping (TextChar& lhs, TextChar& rhs) {
 }
 
 inline double
-pitch_of (TextChars& cs) {
-    ASSERT (!cs.empty ());
+pitch_of (TextChars& chars) {
+    ASSERT (!chars.empty ());
 
     //
     // Compute the (approximate) character pitch:
@@ -1491,15 +1491,15 @@ pitch_of (TextChars& cs) {
     //
     // An O(n²) algorithm:
     //
-    for (size_t i = 0; i < cs.size (); ++i) {
-        auto& a = *cs [i];
+    for (size_t i = 0; i < chars.size (); ++i) {
+        auto& a = *chars [i];
 
-        for (size_t j = i + 1; j < cs.size (); ++j) {
+        for (size_t j = i + 1; j < chars.size (); ++j) {
             //
             // Compute minimum pitch between any two characters that
             // slightly overlap on the vertical:
             //
-            auto& b = *cs [j];
+            auto& b = *chars [j];
 
             if (vertical_overlapping (a, b)) {
                 auto delta = fabs (b.xmin - a.xmin);
@@ -1516,14 +1516,14 @@ pitch_of (TextChars& cs) {
 }
 
 inline double
-linespacing_of (TextChars& cs) {
+linespacing_of (TextChars& chars) {
     //
     // Compute (approximate) line spacing
     //
     auto n = (std::numeric_limits< double >::max) ();
 
-    for (size_t i = 0; i < cs.size (); ) {
-        auto& a = *cs [i];
+    for (size_t i = 0; i < chars.size (); ) {
+        auto& a = *chars [i];
 
         //
         // Find the first (significantly) non-overlapping character and compute
@@ -1531,8 +1531,8 @@ linespacing_of (TextChars& cs) {
         //
         auto delta = 0.;
 
-        for (++i; delta && i < cs.size (); ++i) {
-            auto& b = *cs [i];
+        for (++i; delta && i < chars.size (); ++i) {
+            auto& b = *chars [i];
 
             if (b.ymin +  ascentAdjustFactor * (b.ymax - b.ymin) >
                 a.ymax - descentAdjustFactor * (a.ymax - a.ymin)) {
@@ -1598,7 +1598,7 @@ void TextPage::writeLinePrinter (
         // get the characters in this line
         TextChars line;
 
-        while (i < chars.size () && chars [i]->ymin < y + lineSpacing) {
+        for (i = 0; i < chars.size () && chars [i]->ymin < y + lineSpacing; ) {
             line.push_back (chars [i++]);
         }
 
@@ -1833,9 +1833,8 @@ inline int
 prevalent_rotation_amongst (TextChars& chars) {
     std::array< int, 4 > counters{ 0, 0, 0, 0 };
 
-    for (size_t i = 0; i < chars.size (); ++i) {
-        const auto& c = *chars [i];
-        ++counters [c.rot];
+    for (auto& ch : chars) {
+        ++counters [ch->rot];
     }
 
     return std::distance (counters.begin (), max_element (counters));
@@ -1847,25 +1846,25 @@ prevalent_rotation_amongst (TextChars& chars) {
 // Determine most prevalent rotation value.  Rotate all characters to that
 // primary rotation.
 //
-int TextPage::rotateChars (TextChars& cs) {
+int TextPage::rotateChars (TextChars& chars) {
     //
     // Count the numbers of characters for each rotation:
     //
-    const int rot = prevalent_rotation_amongst (cs);
+    const int rot = prevalent_rotation_amongst (chars);
 
     // rotate
     switch (rot) {
     case 1:
-        for (auto& c : cs) { rotate90 (*c, pageWidth, 0); }
+        for (auto& c : chars) { rotate90 (*c, pageWidth, 0); }
         std::swap (pageWidth, pageHeight);
         break;
 
     case 2:
-        for (auto& c : cs) { rotate180 (*c, pageWidth, pageHeight); }
+        for (auto& c : chars) { rotate180 (*c, pageWidth, pageHeight); }
         break;
 
     case 3:
-        for (auto& c : cs) { rotate270 (*c, 0, pageHeight); }
+        for (auto& c : chars) { rotate270 (*c, 0, pageHeight); }
         std::swap (pageWidth, pageHeight);
         break;
 
@@ -1964,45 +1963,52 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
     }
 }
 
+template< typename T >
 inline void
-do_unrotate (TextChar& c, double x0, double y0, double x1, double y1, int n) {
-    c.xmin = x0; c.xmax = x1; c.ymin = y0; c.ymax = y1;
-    c.rot = (c.rot + n) & 3;
+do_unrotate (T& t, double x0, double y0, double x1, double y1, int n) {
+    t.xmin = x0; t.xmax = x1; t.ymin = y0; t.ymax = y1;
+    t.rot = (t.rot + n) & 3;
 }
 
-inline void
-unrotate90 (TextChar& c, int w, int) {
-    do_unrotate (c, w - c.ymax, c.xmin, w - c.ymin, c.xmax, 1);
+template< typename T >
+inline void unrotate90 (T& t, int w, int) {
+    do_unrotate (t, w - t.ymax, t.xmin, w - t.ymin, t.xmax, 1);
 };
 
-inline void
-unrotate180 (TextChar& c, int w, int h) {
-    do_unrotate (c, w - c.xmax, h - c.ymax, w - c.xmin, h - c.ymin, 2);
+template< typename T >
+inline void unrotate180 (T& t, int w, int h) {
+    do_unrotate (t, w - t.xmax, h - t.ymax, w - t.xmin, h - t.ymin, 2);
 }
 
-inline void
-unrotate270 (TextChar& c, int, int h) {
-    do_unrotate (c, c.ymin, h - c.xmax, c.ymax, h - c.xmin, 3);
+template< typename T >
+inline void unrotate270 (T& t, int, int h) {
+    do_unrotate (t, t.ymin, h - t.xmax, t.ymax, h - t.xmin, 3);
 }
 
 //
 // Undo the coordinate transform performed by TextPage::rotateChars:
 //
 void
-TextPage::unrotateChars (TextChars& cs, int rot) {
+TextPage::unrotateChars (TextChars& chars, int rot) {
     switch (rot) {
     case 1:
         std::swap (pageWidth, pageHeight);
-        for (auto& c : cs) { unrotate90 (*c, pageWidth, pageHeight); }
+        for (auto& ch : chars) {
+            unrotate90 (*ch, pageWidth, pageHeight);
+        }
         break;
 
     case 2:
-        for (auto& c : cs) { unrotate180 (*c, pageWidth, pageHeight); }
+        for (auto& ch : chars) {
+            unrotate180 (*ch, pageWidth, pageHeight);
+        }
         break;
 
     case 3:
         std::swap (pageWidth, pageHeight);
-        for (auto& c : cs) { unrotate270 (*c, pageWidth, pageHeight); }
+        for (auto& ch : chars) {
+            unrotate270 (*ch, pageWidth, pageHeight);
+        }
         break;
 
     default:
@@ -2061,14 +2067,14 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                     for (wordIdx = 0; wordIdx < line->words.size ();
                          ++wordIdx) {
                         auto& word = line->words [wordIdx];
-                        xMin = pageWidth - word->yMax;
-                        xMax = pageWidth - word->yMin;
-                        yMin = word->xMin;
-                        yMax = word->xMax;
-                        word->xMin = xMin;
-                        word->xMax = xMax;
-                        word->yMin = yMin;
-                        word->yMax = yMax;
+                        xMin = pageWidth - word->ymax;
+                        xMax = pageWidth - word->ymin;
+                        yMin = word->xmin;
+                        yMax = word->xmax;
+                        word->xmin = xMin;
+                        word->xmax = xMax;
+                        word->ymin = yMin;
+                        word->ymax = yMax;
                         word->rot = (word->rot + 1) & 3;
                     }
                 }
@@ -2114,14 +2120,14 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                     for (wordIdx = 0; wordIdx < line->words.size ();
                          ++wordIdx) {
                         auto& word = line->words [wordIdx];
-                        xMin = pageWidth - word->xMax;
-                        xMax = pageWidth - word->xMin;
-                        yMin = pageHeight - word->yMax;
-                        yMax = pageHeight - word->yMin;
-                        word->xMin = xMin;
-                        word->xMax = xMax;
-                        word->yMin = yMin;
-                        word->yMax = yMax;
+                        xMin = pageWidth - word->xmax;
+                        xMax = pageWidth - word->xmin;
+                        yMin = pageHeight - word->ymax;
+                        yMax = pageHeight - word->ymin;
+                        word->xmin = xMin;
+                        word->xmax = xMax;
+                        word->ymin = yMin;
+                        word->ymax = yMax;
                         word->rot = (word->rot + 2) & 3;
                         for (i = 0; i <= word->size (); ++i) {
                             word->edge[i] = pageWidth - word->edge[i];
@@ -2173,14 +2179,14 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
                     for (wordIdx = 0; wordIdx < line->words.size ();
                          ++wordIdx) {
                         auto& word = line->words [wordIdx];
-                        xMin = word->yMin;
-                        xMax = word->yMax;
-                        yMin = pageHeight - word->xMax;
-                        yMax = pageHeight - word->xMin;
-                        word->xMin = xMin;
-                        word->xMax = xMax;
-                        word->yMin = yMin;
-                        word->yMax = yMax;
+                        xMin = word->ymin;
+                        xMax = word->ymax;
+                        yMin = pageHeight - word->xmax;
+                        yMax = pageHeight - word->xmin;
+                        word->xmin = xMin;
+                        word->xmax = xMax;
+                        word->ymin = yMin;
+                        word->ymax = yMax;
                         word->rot = (word->rot + 3) & 3;
                         for (i = 0; i <= word->size (); ++i) {
                             word->edge[i] = pageHeight - word->edge[i];
@@ -2193,63 +2199,30 @@ void TextPage::unrotateColumns (GList* columns, int rot) {
     }
 }
 
-void TextPage::unrotateWords (
-    TextWords& words, int rot) {
-
-    double xMin, yMin, xMax, yMax;
-    int i, j;
-
+void
+TextPage::unrotateWords (TextWords& words, int rot) {
     switch (rot) {
     case 0:
     default:
         // no transform
         break;
     case 1:
-        for (i = 0; i < words.size (); ++i) {
-            auto& word = words [i];
-            xMin = pageWidth - word->yMax;
-            xMax = pageWidth - word->yMin;
-            yMin = word->xMin;
-            yMax = word->xMax;
-            word->xMin = xMin;
-            word->xMax = xMax;
-            word->yMin = yMin;
-            word->yMax = yMax;
-            word->rot = (word->rot + 1) & 3;
+        for (auto& w : words) {
+            unrotate90 (*w, pageWidth, pageHeight);
         }
         break;
+
     case 2:
-        for (i = 0; i < words.size (); ++i) {
-            auto& word = words [i];
-            xMin = pageWidth - word->xMax;
-            xMax = pageWidth - word->xMin;
-            yMin = pageHeight - word->yMax;
-            yMax = pageHeight - word->yMin;
-            word->xMin = xMin;
-            word->xMax = xMax;
-            word->yMin = yMin;
-            word->yMax = yMax;
-            word->rot = (word->rot + 2) & 3;
-            for (j = 0; j <= word->size (); ++j) {
-                word->edge[j] = pageWidth - word->edge[j];
-            }
+        for (auto& w : words) {
+            unrotate180 (*w, pageWidth, pageHeight);
+            actions::transform (w->edge, [this](auto& x) { return pageWidth - x; });
         }
         break;
+
     case 3:
-        for (i = 0; i < words.size (); ++i) {
-            auto& word = words [i];
-            xMin = word->yMin;
-            xMax = word->yMax;
-            yMin = pageHeight - word->xMax;
-            yMax = pageHeight - word->xMin;
-            word->xMin = xMin;
-            word->xMax = xMax;
-            word->yMin = yMin;
-            word->yMax = yMax;
-            word->rot = (word->rot + 3) & 3;
-            for (j = 0; j <= word->size (); ++j) {
-                word->edge[j] = pageHeight - word->edge[j];
-            }
+        for (auto& w : words) {
+            unrotate270 (*w, pageWidth, pageHeight);
+            actions::transform (w->edge, [this](auto& x) { return pageHeight - x; });
         }
         break;
     }
@@ -2257,10 +2230,10 @@ void TextPage::unrotateWords (
 
 // Determine the primary text direction (LR vs RL).  Returns true for
 // LR, false for RL.
-bool TextPage::isPrevalentLeftToRight (TextChars& cs) {
+bool TextPage::isPrevalentLeftToRight (TextChars& chars) {
     long n = 0;
 
-    for (auto& c : cs) {
+    for (auto& c : chars) {
         const Unicode val = c->c;
         n += unicodeTypeL (val) ? 1 : unicodeTypeR (val) ? -1 : 0;
     }
@@ -2280,21 +2253,21 @@ duplicated (const TextChar& a, const TextChar& b, double x, double y) {
 // The list of characters has been sorted by X coordinate for rot ∈ { 0, 2 } and
 // by Y coordinate for rot ∈ { 1, 3 }:
 //
-void TextPage::removeDuplicates (TextChars& cs, int rot) {
+void TextPage::removeDuplicates (TextChars& chars, int rot) {
     if (rot & 1) {
         bool found = false;
-        std::vector< bool > mask (cs.size ());
+        std::vector< bool > mask (chars.size ());
 
         //
         // Another O(n²) algorithm:
         //
-        for (size_t i = 0; i < cs.size (); ++i) {
+        for (size_t i = 0; i < chars.size (); ++i) {
             auto& a = *chars [i];
 
             const double xdelta = dupMaxSecDelta * a.size;
             const double ydelta = dupMaxPriDelta * a.size;
 
-            for (size_t j = i + 1; j < cs.size (); ) {
+            for (size_t j = i + 1; j < chars.size (); ) {
                 auto& b = *chars [j];
 
                 if (b.ymin - a.ymin >= ydelta) {
@@ -2316,15 +2289,15 @@ void TextPage::removeDuplicates (TextChars& cs, int rot) {
 
         if (found) {
             TextChars other;
-            other.reserve (cs.size ());
+            other.reserve (chars.size ());
 
             for (size_t i = 0; i < mask.size (); ++i) {
                 if (!mask [i]) {
-                    other.push_back (cs [i]);
+                    other.push_back (chars [i]);
                 }
             }
 
-            std::swap (cs, other);
+            std::swap (chars, other);
         }
     }
     else {
@@ -2332,18 +2305,18 @@ void TextPage::removeDuplicates (TextChars& cs, int rot) {
         // YAOSA: Yet Another O-Squared Algorithm:
         //
         bool found = false;
-        std::vector< bool > mask (cs.size ());
+        std::vector< bool > mask (chars.size ());
 
         //
         // Another O(n²) algorithm:
         //
-        for (size_t i = 0; i < cs.size (); ++i) {
+        for (size_t i = 0; i < chars.size (); ++i) {
             auto& a = *chars [i];
 
             const double xdelta = dupMaxPriDelta * a.size;
             const double ydelta = dupMaxSecDelta * a.size;
 
-            for (size_t j = i + 1; j < cs.size (); ) {
+            for (size_t j = i + 1; j < chars.size (); ) {
                 auto& b = *chars [j];
 
                 if (b.xmin - a.xmin >= xdelta) {
@@ -2365,15 +2338,15 @@ void TextPage::removeDuplicates (TextChars& cs, int rot) {
 
         if (found) {
             TextChars other;
-            other.reserve (cs.size ());
+            other.reserve (chars.size ());
 
             for (size_t i = 0; i < mask.size (); ++i) {
                 if (!mask [i]) {
-                    other.push_back (cs [i]);
+                    other.push_back (chars [i]);
                 }
             }
 
-            std::swap (cs, other);
+            std::swap (chars, other);
         }
     }
 }
@@ -2956,25 +2929,23 @@ TextPage::getChars (
     TextChars& charsA,
     double xMin, double yMin, double xMax, double yMax) {
 
-    TextChars cs;
+    TextChars chars;
 
-    double x, y;
-    int i;
-
-    for (i = 0; i < charsA.size (); ++i) {
-        auto& ch = charsA [i];
-        // because of {ascent,descent}AdjustFactor, the y coords (or x
+    for (auto& ch : charsA) {
+        //
+        // Because of {ascent,descent}AdjustFactor, the y coords (or x
         // coords for rot 1,3) for the gaps will be a little bit tight --
-        // so we use the center of the character here
-        x = 0.5 * (ch->xmin + ch->xmax);
-        y = 0.5 * (ch->ymin + ch->ymax);
+        // so we use the center of the character here:
+        //
+        double x = 0.5 * (ch->xmin + ch->xmax);
+        double y = 0.5 * (ch->ymin + ch->ymax);
 
         if (x > xMin && x < xMax && y > yMin && y < yMax) {
-            cs.push_back (ch);
+            chars.push_back (ch);
         }
     }
 
-    return cs;
+    return chars;
 }
 
 // Decide whether this block is a line, column, or multiple columns:
@@ -3875,8 +3846,8 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
                         if (underline->horiz) {
                             if (word->rot == 0 || word->rot == 2) {
                                 if (fabs (underline->y0 - base) < ubSlack &&
-                                    underline->x0 < word->xMin + uSlack &&
-                                    word->xMax - uSlack < underline->x1) {
+                                    underline->x0 < word->xmin + uSlack &&
+                                    word->xmax - uSlack < underline->x1) {
                                     word->underlined = true;
                                 }
                             }
@@ -3884,8 +3855,8 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
                         else {
                             if (word->rot == 1 || word->rot == 3) {
                                 if (fabs (underline->x0 - base) < ubSlack &&
-                                    underline->y0 < word->yMin + uSlack &&
-                                    word->yMax - uSlack < underline->y1) {
+                                    underline->y0 < word->ymin + uSlack &&
+                                    word->ymax - uSlack < underline->y1) {
                                     word->underlined = true;
                                 }
                             }
@@ -3895,10 +3866,10 @@ void TextPage::generateUnderlinesAndLinks (GList* columns) {
                     // handle links
                     for (i = 0; i < links->getLength (); ++i) {
                         link = (TextLink*)links->get (i);
-                        if (link->xMin < word->xMin + hSlack &&
-                            word->xMax - hSlack < link->xMax &&
-                            link->yMin < word->yMin + hSlack &&
-                            word->yMax - hSlack < link->yMax) {
+                        if (link->xMin < word->xmin + hSlack &&
+                            word->xmax - hSlack < link->xMax &&
+                            link->yMin < word->ymin + hSlack &&
+                            word->ymax - hSlack < link->yMax) {
                         }
                     }
                 }
@@ -3916,7 +3887,6 @@ bool TextPage::findText (
     bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
     double* xMin, double* yMin, double* xMax, double* yMax) {
-
     TextColumn* column;
     TextParagraph* par;
 

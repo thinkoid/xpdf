@@ -748,23 +748,39 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
     int xDest, yDest, sliceW, sliceH;
     int i;
 
+    //
+    // Verify the tile cache for a matching tile:
+    //
     for (i = 0; i < page->tiles->getLength (); ++i) {
         tile = (PDFCoreTile*)page->tiles->get (i);
-        if (x == tile->xMin && y == tile->yMin) { return; }
+        if (x == tile->xMin && y == tile->yMin) {
+            return;
+        }
     }
 
     setBusyCursor (true);
 
     sliceW = page->tileW;
-    if (x + sliceW > page->w) { sliceW = page->w - x; }
+
+    if (x + sliceW > page->w) {
+        sliceW = page->w - x;
+    }
+
     sliceH = page->tileH;
-    if (y + sliceH > page->h) { sliceH = page->h - y; }
+
+    if (y + sliceH > page->h) {
+        sliceH = page->h - y;
+    }
 
     xDest = x - scrollX;
-    if (continuousMode) { yDest = y + pageY[page->page - 1] - scrollY; }
+
+    if (continuousMode) {
+        yDest = y + pageY [page->page - 1] - scrollY;
+    }
     else {
         yDest = y - scrollY;
     }
+
     if (continuousMode) {
         if (page->w < maxPageW) { xDest += (maxPageW - page->w) / 2; }
         if (maxPageW < drawAreaWidth) {
@@ -774,26 +790,41 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
     else if (page->w < drawAreaWidth) {
         xDest += (drawAreaWidth - page->w) / 2;
     }
+
     if (continuousMode && totalDocH < drawAreaHeight) {
         yDest += (drawAreaHeight - totalDocH) / 2;
     }
     else if (!continuousMode && page->h < drawAreaHeight) {
         yDest += (drawAreaHeight - page->h) / 2;
     }
+
     curTile = tile = newTile (xDest, yDest);
     curPage = page;
+
     tile->xMin = x;
     tile->yMin = y;
+
     tile->xMax = x + sliceW;
     tile->yMax = y + sliceH;
+
     tile->edges = 0;
-    if (tile->xMin == 0) { tile->edges |= pdfCoreTileLeftEdge; }
-    if (tile->xMax == page->w) { tile->edges |= pdfCoreTileRightEdge; }
+
+    if (tile->xMin == 0) {
+        tile->edges |= pdfCoreTileLeftEdge;
+    }
+
+    if (tile->xMax == page->w) {
+        tile->edges |= pdfCoreTileRightEdge;
+    }
+
     if (continuousMode) {
         if (tile->yMin == 0) {
             tile->edges |= pdfCoreTileTopSpace;
-            if (page->page == 1) { tile->edges |= pdfCoreTileTopEdge; }
+            if (page->page == 1) {
+                tile->edges |= pdfCoreTileTopEdge;
+            }
         }
+
         if (tile->yMax == page->h) {
             tile->edges |= pdfCoreTileBottomSpace;
             if (page->page == doc->getNumPages ()) {
@@ -805,15 +836,21 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
         if (tile->yMin == 0) { tile->edges |= pdfCoreTileTopEdge; }
         if (tile->yMax == page->h) { tile->edges |= pdfCoreTileBottomEdge; }
     }
+
     doc->displayPageSlice (
         out, page->page, dpi, dpi, rotate, false, true, false, x, y, sliceW,
         sliceH);
+
     tile->bitmap = out->takeBitmap ();
+
     memcpy (tile->ctm, out->getDefCTM (), 6 * sizeof (double));
     memcpy (tile->ictm, out->getDefICTM (), 6 * sizeof (double));
+
     if (!page->links) { page->links = doc->getLinks (page->page); }
+
     if (!page->text) {
         textOutCtrl.mode = textOutPhysLayout;
+
         if ((textOut = new TextOutputDev (NULL, &textOutCtrl, false))) {
             doc->displayPage (
                 textOut, page->page, dpi, dpi, rotate, false, true, false);
@@ -821,7 +858,9 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
             delete textOut;
         }
     }
+
     page->tiles->append (tile);
+
     curTile = NULL;
     curPage = NULL;
 
