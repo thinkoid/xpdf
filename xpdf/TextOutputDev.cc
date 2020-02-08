@@ -318,11 +318,14 @@ public:
 private:
     TextWords words;
 
-    int rot;           // rotation, multiple of 90 degrees
-                       //   (0, 1, 2, or 3)
-    double xMin, xMax; // bounding box x coordinates
-    double yMin, yMax; // bounding box y coordinates
-    double fontSize;   // main (max) font size for this line
+    // rotation, multiple of 90 degrees (0, 1, 2, or 3)
+    int rot;
+
+    // bounding box coordinates
+    double xMin, xMax, yMin, yMax;
+
+    // main (max) font size for this line
+    double fontSize;
 
     //
     // Unicode text of the line, including spaces between words:
@@ -407,6 +410,12 @@ struct TextBlock {
     void prependChild (TextCharPtr);
     void updateBounds (int childIdx);
 
+    TextChars&       as_chars ()       { return std::get< TextChars > (xs); }
+    TextChars const& as_chars () const { return std::get< TextChars > (xs); }
+
+    TextBlocks&       as_blocks ()       { return std::get< TextBlocks > (xs); }
+    TextBlocks const& as_blocks () const { return std::get< TextBlocks > (xs); }
+
     std::variant< TextChars, TextBlocks > xs;
 
     //
@@ -444,9 +453,9 @@ TextBlock::TextBlock (TextBlockType typeA, int rotA)
 { }
 
 void TextBlock::addChild (TextBlockPtr p) {
-    auto& x = std::get< TextBlocks > (xs);
+    auto& blocks = as_blocks ();
 
-    if (x.empty ()) {
+    if (blocks.empty ()) {
         xMin = p->xMin;
         yMin = p->yMin;
         xMax = p->xMax;
@@ -459,13 +468,13 @@ void TextBlock::addChild (TextBlockPtr p) {
         if (p->yMax > yMax) { yMax = p->yMax; }
     }
 
-    x.push_back (p);
+    blocks.push_back (p);
 }
 
 void TextBlock::addChild (TextCharPtr p) {
-    auto& x = std::get< TextChars > (xs);
+    auto& chars = as_chars ();
 
-    if (x.empty ()) {
+    if (chars.empty ()) {
         xMin = p->xmin;
         yMin = p->ymin;
         xMax = p->xmax;
@@ -478,13 +487,13 @@ void TextBlock::addChild (TextCharPtr p) {
         if (p->ymax > yMax) { yMax = p->ymax; }
     }
 
-    x.push_back (p);
+    chars.push_back (p);
 }
 
 void TextBlock::prependChild (TextCharPtr p) {
-    auto& x = std::get< TextChars > (xs);
+    auto& chars = as_chars ();
 
-    if (x.empty ()) {
+    if (chars.empty ()) {
         xMin = p->xmin;
         yMin = p->ymin;
         xMax = p->xmax;
@@ -497,16 +506,16 @@ void TextBlock::prependChild (TextCharPtr p) {
         if (p->ymax > yMax) { yMax = p->ymax; }
     }
 
-    x.insert (x.begin (), p);
+    chars.insert (chars.begin (), p);
 }
 
 void TextBlock::updateBounds (int n) {
-    auto& p = std::get< TextBlocks > (xs)[n];
+    auto& block = as_blocks ()[n];
 
-    if (p->xMin < xMin) { xMin = p->xMin; }
-    if (p->yMin < yMin) { yMin = p->yMin; }
-    if (p->xMax > xMax) { xMax = p->xMax; }
-    if (p->yMax > yMax) { yMax = p->yMax; }
+    if (block->xMin < xMin) { xMin = block->xMin; }
+    if (block->yMin < yMin) { yMin = block->yMin; }
+    if (block->xMax > xMax) { xMax = block->xMax; }
+    if (block->yMax > yMax) { yMax = block->yMax; }
 }
 
 //
@@ -2637,8 +2646,8 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
     }
 
     //
-    // horizGapSize2 is the largest gap size in __slices__, adjusted down with a
-    // slack amount (20% of the font size):
+    // {horiz,vert}GapSize2 is the largest gap size in __slices__, adjusted down
+    // with a slack amount (20% of the font size):
     //
     horizGapSize2 = horizGapSize - splitGapSlack * avgFontSize / splitPrecision;
 
@@ -2969,8 +2978,8 @@ void TextPage::tagBlock (TextBlockPtr blk) {
         else if (blk->type == ((blk->rot & 1) ? blkHorizSplit : blkVertSplit) && blk->smallSplit) {
             blk->tag = blkTagLine;
 
-            for (auto& child : std::get< TextBlocks >(blk->xs)) {
-                if (child->tag != blkTagLine) {
+            for (auto& block : blk->as_blocks ()) {
+                if (block->tag != blkTagLine) {
                     blk->tag = blkTagMulticolumn;
                     break;
                 }
@@ -2990,8 +2999,9 @@ void TextPage::tagBlock (TextBlockPtr blk) {
         if (blk->type == ((blk->rot & 1) ? blkVertSplit : blkHorizSplit)) {
             blk->tag = blkTagColumn;
 
-            for (auto& child : std::get< TextBlocks > (blk->xs)) {
-                if (child->tag != blkTagColumn && child->tag != blkTagLine) {
+            for (auto& block : blk->as_blocks ()) {
+                if (block->tag != blkTagColumn &&
+                    block->tag != blkTagLine) {
                     blk->tag = blkTagMulticolumn;
                     break;
                 }
@@ -3001,8 +3011,8 @@ void TextPage::tagBlock (TextBlockPtr blk) {
             if (blk->smallSplit) {
                 blk->tag = blkTagLine;
 
-                for (auto& child : std::get< TextBlocks > (blk->xs)) {
-                    if (child->tag != blkTagLine) {
+                for (auto& block : blk->as_blocks ()) {
+                    if (block->tag != blkTagLine) {
                         blk->tag = blkTagMulticolumn;
                         break;
                     }
@@ -3078,8 +3088,7 @@ TextPage::insertLargeCharsInFirstLeaf (TextChars& largeChars, TextBlockPtr blk) 
         }
     }
     else {
-        auto& x = std::get< TextBlocks > (blk->xs);
-        insertLargeCharsInFirstLeaf (largeChars, x [0]);
+        insertLargeCharsInFirstLeaf (largeChars, blk->as_blocks ().front ());
         blk->updateBounds (0);
     }
 }
@@ -3099,7 +3108,7 @@ TextPage::insertLargeCharInLeaf (TextCharPtr ch, TextBlockPtr blk) {
         blk->prependChild (ch);
     }
     else if (blk->type == blkHorizSplit) {
-        auto& children = std::get< TextBlocks > (blk->xs);
+        auto& children = blk->as_blocks ();
 
         for (size_t i = 0; i < children.size (); ++i) {
             auto& child = children [i];
@@ -3112,8 +3121,7 @@ TextPage::insertLargeCharInLeaf (TextCharPtr ch, TextBlockPtr blk) {
         }
     }
     else {
-        auto& children = std::get< TextBlocks > (blk->xs);
-        insertLargeCharInLeaf (ch, children [0]);
+        insertLargeCharInLeaf (ch, blk->as_blocks ().front ());
         blk->updateBounds (0);
     }
 }
@@ -3125,12 +3133,11 @@ TextPage::insertIntoTree (TextBlockPtr blk, TextBlockPtr primaryTree) {
     // We insert a whole column at a time - so call insertIntoTree
     // recursively until we get to a column (or line):
     //
-
     if (blk->tag == blkTagMulticolumn) {
-        auto& xs = std::get< TextBlocks > (blk->xs);
+        auto& blocks = blk->as_blocks ();
 
-        for (auto& x : xs) {
-            insertIntoTree (x, primaryTree);
+        for (auto& block : blocks) {
+            insertIntoTree (block, primaryTree);
         }
     }
     else {
@@ -3142,16 +3149,16 @@ TextPage::insertIntoTree (TextBlockPtr blk, TextBlockPtr primaryTree) {
 // Requirement: tree is not a leaf node.
 void
 TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
-    auto& xs = std::get< TextBlocks > (tree->xs);
+    auto& blocks = tree->as_blocks ();
 
-    for (auto& x : xs) {
-        if (x->tag == blkTagMulticolumn &&
-            column->xMin >= x->xMin &&
-            column->yMin >= x->yMin &&
-            column->xMax <= x->xMax &&
-            column->yMax <= x->yMax) {
+    for (auto& block : blocks) {
+        if (block->tag == blkTagMulticolumn &&
+            column->xMin >= block->xMin &&
+            column->yMin >= block->yMin &&
+            column->xMax <= block->xMax &&
+            column->yMax <= block->yMax) {
 
-            insertColumnIntoTree (column, x);
+            insertColumnIntoTree (column, block);
             tree->tag = blkTagMulticolumn;
 
             return;
@@ -3162,8 +3169,8 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
 
     if (tree->type == blkVertSplit) {
         if (tree->rot == 1 || tree->rot == 2) {
-            for (i = 0; i < xs.size (); ++i) {
-                auto& x = xs [i];
+            for (i = 0; i < blocks.size (); ++i) {
+                auto& x = blocks [i];
 
                 if (column->xMax > 0.5 * (x->xMin + x->xMax)) {
                     break;
@@ -3171,8 +3178,8 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
             }
         }
         else {
-            for (i = 0; i < xs.size (); ++i) {
-                auto& x = xs [i];
+            for (i = 0; i < blocks.size (); ++i) {
+                auto& x = blocks [i];
 
                 if (column->xMin < 0.5 * (x->xMin + x->xMax)) {
                     break;
@@ -3182,8 +3189,8 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
     }
     else if (tree->type == blkHorizSplit) {
         if (tree->rot >= 2) {
-            for (i = 0; i < xs.size (); ++i) {
-                auto& x = xs [i];
+            for (i = 0; i < blocks.size (); ++i) {
+                auto& x = blocks [i];
 
                 if (column->yMax > 0.5 * (x->yMin + x->yMax)) {
                     break;
@@ -3191,8 +3198,8 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
             }
         }
         else {
-            for (i = 0; i < xs.size (); ++i) {
-                auto& x = xs [i];
+            for (i = 0; i < blocks.size (); ++i) {
+                auto& x = blocks [i];
 
                 if (column->yMin < 0.5 * (x->yMin + x->yMax)) {
                     break;
@@ -3205,7 +3212,7 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
         return;
     }
 
-    xs.insert (xs.begin () + i, column);
+    blocks.insert (blocks.begin () + i, column);
     tree->tag = blkTagMulticolumn;
 }
 
@@ -3309,7 +3316,7 @@ void TextPage::buildColumns2 (TextBlockPtr blk, GList* columns) {
         break;
 
     case blkTagMulticolumn:
-        for (auto& x : std::get< TextBlocks > (blk->xs)) {
+        for (auto& x : blk->as_blocks ()) {
             buildColumns2 (x, columns);
         }
         break;
@@ -3537,7 +3544,7 @@ void TextPage::makeLines (TextBlockPtr blk, TextLines& lines) {
         //
         // Multi-column should never happen here:
         //
-        for (auto& x : std::get< TextBlocks > (blk->xs)) {
+        for (auto& x : blk->as_blocks ()) {
             makeLines (x, lines);
         }
 
@@ -3610,17 +3617,17 @@ TextPage::getLineOfChars (TextBlockPtr blk) {
         return std::get< TextChars > (blk->xs);
     }
     else {
-        TextChars xs;
+        TextChars chars;
 
-        for (auto& x : std::get< TextBlocks > (blk->xs)) {
-            auto ys = getLineOfChars (x);
-            xs.insert (
-                xs.end (),
-                std::make_move_iterator (ys.begin ()),
-                std::make_move_iterator (ys.end ()));
+        for (auto& block : blk->as_blocks ()) {
+            auto line = getLineOfChars (block);
+            chars.insert (
+                chars.end (),
+                std::make_move_iterator (line.begin ()),
+                std::make_move_iterator (line.end ()));
         }
 
-        return xs;
+        return chars;
     }
 }
 
