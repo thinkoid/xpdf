@@ -70,6 +70,7 @@ struct TextFontInfo;
 struct TextChar;
 struct TextWord;
 struct TextLine;
+struct TextParagraph;
 struct TextColumn;
 struct TextBlock;
 
@@ -81,6 +82,12 @@ using TextWords = std::vector< TextWordPtr >;
 
 using TextLinePtr = std::shared_ptr< TextLine >;
 using TextLines = std::vector< TextLinePtr >;
+
+using TextParagraphPtr = std::shared_ptr< TextParagraph >;
+using TextParagraphs = std::vector< TextParagraphPtr >;
+
+using TextColumnPtr = std::shared_ptr< TextColumn >;
+using TextColumns = std::vector< TextColumnPtr >;
 
 using TextBlockPtr = std::shared_ptr< TextBlock >;
 using TextBlocks = std::vector< TextBlockPtr >;
@@ -119,9 +126,6 @@ public:
         int pos, int length, double* xMin, double* yMin, double* xMax,
         double* yMax);
 
-    // Create and return a list of TextColumn objects.
-    GList* makeColumns ();
-
     // Get the list of all TextFontInfo objects used on this page.
     GList* getFonts () { return fonts; }
 
@@ -135,10 +139,14 @@ private:
     void addChar (
         GfxState* state, double x, double y, double dx, double dy, CharCode c,
         int nBytes, Unicode* u, int uLen);
+
     void incCharCount (int nChars);
+
     void beginActualText (GfxState* state, Unicode* u, int uLen);
     void endActualText (GfxState* state);
+
     void addUnderline (double x0, double y0, double x1, double y1);
+
     void
     addLink (double xMin, double yMin, double xMax, double yMax, Link* link);
 
@@ -161,11 +169,13 @@ private:
     // analysis
     int rotateChars (TextChars& charsA);
     void rotateUnderlinesAndLinks (int rot);
-    void unrotateChars (TextChars& charsA, int rot);
-    void unrotateColumns (GList* columns, int rot);
-    void unrotateWords (TextWords&, int);
-    bool isPrevalentLeftToRight (TextChars& charsA);
-    void removeDuplicates (TextChars& charsA, int rot);
+
+    void unrotateChars   (TextChars&, int rot);
+    void unrotateColumns (TextColumns&, int);
+    void unrotateWords   (TextWords&, int);
+
+    bool isPrevalentLeftToRight (TextChars&);
+    void removeDuplicates (TextChars&, int);
 
     TextBlockPtr
     splitChars (TextChars& charsA);
@@ -199,9 +209,11 @@ private:
     TextBlockPtr
     findClippedCharLeaf (TextCharPtr ch, TextBlockPtr tree);
 
-    GList* buildColumns (TextBlockPtr tree);
-    void buildColumns2 (TextBlockPtr blk, GList* columns);
-    TextColumn* buildColumn (TextBlockPtr tree);
+    TextColumns
+    buildColumns (TextBlockPtr tree);
+
+    TextColumnPtr
+    buildColumn (TextBlockPtr tree);
 
     double
     getLineIndent (const TextLine&, TextBlockPtr) const;
@@ -222,11 +234,11 @@ private:
     getLineOfChars (TextBlockPtr);
 
     double computeWordSpacingThreshold (TextChars& charsA, int rot);
-    int assignPhysLayoutPositions (GList* columns);
-    void assignLinePhysPositions (GList* columns);
+    int assignPhysLayoutPositions (TextColumns&);
+    void assignLinePhysPositions (TextColumns&);
     void computeLinePhysWidth (TextLine& line, UnicodeMap* uMap);
-    int assignColumnPhysPositions (GList* columns);
-    void generateUnderlinesAndLinks (GList* columns);
+    int assignColumnPhysPositions (TextColumns&);
+    void generateUnderlinesAndLinks (TextColumns&);
 
     // debug
 #if 0 //~debug
@@ -254,11 +266,11 @@ private:
     GList* fonts; // all font info objects used on this
                   //   page [TextFontInfo]
 
-    GList* underlines;   // [TextUnderline]
-    GList* links;        // [TextLink]
+    GList* underlines;     // [TextUnderline]
+    GList* links;          // [TextLink]
 
-    GList* findCols;     // text used by the findText function
-                         //   [TextColumn]
+    TextColumns findCols;  // text used by the findText function
+                           //   [TextColumn]
 
     bool findLR;         // primary text direction, used by the
                          //   findText function
