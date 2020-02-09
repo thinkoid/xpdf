@@ -31,8 +31,7 @@ typedef void (*TextOutputFunc) (void* stream, const char* text, int len);
 enum TextOutputMode {
     textOutReadingOrder, // format into reading order
     textOutPhysLayout,   // maintain original physical layout
-    textOutTableLayout,  // similar to PhysLayout, but optimized
-                         //   for tables
+    textOutTableLayout,  // similar to PhysLayout, but optimized for tables
     textOutLinePrinter,  // strict fixed-pitch/height layout
     textOutRawOrder      // keep text in content stream order
 };
@@ -73,6 +72,9 @@ struct TextLine;
 struct TextParagraph;
 struct TextColumn;
 struct TextBlock;
+
+using TextFontInfoPtr = std::shared_ptr< TextFontInfo >;
+using TextFontInfos = std::vector< TextFontInfoPtr >;
 
 using TextCharPtr = std::shared_ptr< TextChar >;
 using TextChars = std::vector< TextCharPtr >;
@@ -125,9 +127,6 @@ public:
     bool findCharRange (
         int pos, int length, double* xMin, double* yMin, double* xMax,
         double* yMax);
-
-    // Get the list of all TextFontInfo objects used on this page.
-    GList* getFonts () { return fonts; }
 
     // Build a flat word list, in the specified ordering.
     TextWords makeWordList ();
@@ -252,8 +251,13 @@ private:
     double pageWidth, pageHeight; // width and height of current page
     int charPos;                  // next character position (within content
                                   //   stream)
-    TextFontInfo* curFont;        // current font
+
+    TextFontInfos fonts;          // all font info objects used on this page
+                                  //   [TextFontInfo]
+
+    TextFontInfoPtr curFont;      // current font
     double curFontSize;           // current font size
+
     int curRot;                   // current rotation
     int nTinyChars;               // number of "tiny" chars seen so far
     Unicode* actualText;          // current "ActualText" span
@@ -262,9 +266,6 @@ private:
     int actualTextNBytes;
 
     TextChars chars; // [TextChar]
-
-    GList* fonts; // all font info objects used on this
-                  //   page [TextFontInfo]
 
     GList* underlines;     // [TextUnderline]
     GList* links;          // [TextLink]

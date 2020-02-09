@@ -203,7 +203,7 @@ struct TextFontInfo {
 };
 
 struct TextChar {
-    TextFontInfo* font;
+    TextFontInfoPtr font;
     double size;
 
     double xmin, ymin, xmax, ymax;
@@ -219,7 +219,7 @@ struct TextWord {
     TextWord (TextChars& chars, int start, int lenA, int rotA, bool spaceAfterA);
 
     // Get the TextFontInfo object associated with this word.
-    TextFontInfo* getFontInfo () const { return font; }
+    TextFontInfoPtr getFontInfo () const { return font; }
 
     size_t size () const { return text.size (); }
 
@@ -274,7 +274,7 @@ struct TextWord {
     //
     std::vector< double > edge;
 
-    TextFontInfo* font;
+    TextFontInfoPtr font;
     double fontSize;
 
     //
@@ -821,7 +821,7 @@ TextPage::TextPage (TextOutputControl* controlA) {
     control = *controlA;
     pageWidth = pageHeight = 0;
     charPos = 0;
-    curFont = NULL;
+    curFont = { };
     curFontSize = 0;
     curRot = 0;
     nTinyChars = 0;
@@ -833,8 +833,6 @@ TextPage::TextPage (TextOutputControl* controlA) {
     actualTextY1 = 0;
     actualTextNBytes = 0;
 
-    fonts = new GList ();
-
     underlines = new GList ();
     links = new GList ();
 
@@ -845,13 +843,13 @@ TextPage::TextPage (TextOutputControl* controlA) {
 
 TextPage::~TextPage () {
     clear ();
-    deleteGList (fonts, TextFontInfo);
     deleteGList (underlines, TextUnderline);
     deleteGList (links, TextLink);
 }
 
 void TextPage::startPage (GfxState* state) {
     clear ();
+
     if (state) {
         pageWidth = state->getPageWidth ();
         pageHeight = state->getPageHeight ();
@@ -864,7 +862,7 @@ void TextPage::startPage (GfxState* state) {
 void TextPage::clear () {
     pageWidth = pageHeight = 0;
     charPos = 0;
-    curFont = NULL;
+    curFont = { };
     curFontSize = 0;
     curRot = 0;
     nTinyChars = 0;
@@ -873,8 +871,7 @@ void TextPage::clear () {
     actualTextLen = 0;
     actualTextNBytes = 0;
     chars.clear ();
-    deleteGList (fonts, TextFontInfo);
-    fonts = new GList ();
+    fonts.clear ();
     deleteGList (underlines, TextUnderline);
     underlines = new GList ();
     deleteGList (links, TextLink);
@@ -889,31 +886,22 @@ void TextPage::updateFont (GfxState* state) {
     double* fm;
     char* name;
     int code, mCode, letterCode, anyCode;
-    double w;
-    double m[4], m2[4];
-    int i;
+    double w, m[4], m2[4];
 
-    // get the font info object
-    curFont = NULL;
+    auto iter = find_if (fonts, [&](auto& x) { return x->matches (state); });
 
-    for (i = 0; i < fonts->getLength (); ++i) {
-        curFont = (TextFontInfo*)fonts->get (i);
-
-        if (curFont->matches (state)) {
-            break;
-        }
-
-        curFont = NULL;
+    if (iter == fonts.end ()) {
+        curFont = std::make_shared< TextFontInfo > (state);
+        fonts.push_back (curFont);
     }
-
-    if (!curFont) {
-        curFont = new TextFontInfo (state);
-        fonts->append (curFont);
+    else {
+        curFont = *iter;
     }
 
     // adjust the font size
-    gfxFont = state->getFont ();
+    gfxFont     = state->getFont ();
     curFontSize = state->getTransformedFontSize ();
+
     if (gfxFont && gfxFont->getType () == fontType3) {
         // This is a hack which makes it possible to deal with some Type 3
         // fonts.  The problem is that it's impossible to know what the
@@ -1171,48 +1159,59 @@ void TextPage::addLink (
     }
 }
 
-void TextPage::write (void* outputStream, TextOutputFunc outputFunc) {
+void TextPage::write (void* pstr, TextOutputFunc pfun) {
     UnicodeMap* uMap;
-    char space[8], eol[16], eop[8];
+
+    char space [8], eol [16], eop [8];
     int spaceLen, eolLen, eopLen;
+
     bool pageBreaks;
 
     // get the output encoding
-    if (!(uMap = globalParams->getTextEncoding ())) { return; }
+    if (!(uMap = globalParams->getTextEncoding ())) {
+        return;
+    }
+
     spaceLen = uMap->mapUnicode (0x20, space, sizeof (space));
     eolLen = 0; // make gcc happy
+
     switch (globalParams->getTextEOL ()) {
-    case eolUnix: eolLen = uMap->mapUnicode (0x0a, eol, sizeof (eol)); break;
+    case eolUnix:
+        eolLen = uMap->mapUnicode (0x0a, eol, sizeof (eol));
+        break;
+
     case eolDOS:
-        eolLen = uMap->mapUnicode (0x0d, eol, sizeof (eol));
+        eolLen  = uMap->mapUnicode (0x0d, eol, sizeof (eol));
         eolLen += uMap->mapUnicode (0x0a, eol + eolLen, sizeof (eol) - eolLen);
         break;
-    case eolMac: eolLen = uMap->mapUnicode (0x0d, eol, sizeof (eol)); break;
+
+    case eolMac:
+        eolLen = uMap->mapUnicode (0x0d, eol, sizeof (eol));
+        break;
     }
+
     eopLen = uMap->mapUnicode (0x0c, eop, sizeof (eop));
     pageBreaks = globalParams->getTextPageBreaks ();
 
     switch (control.mode) {
     case textOutReadingOrder:
-        writeReadingOrder (
-            outputStream, outputFunc, uMap, space, spaceLen, eol, eolLen);
+        writeReadingOrder (pstr, pfun, uMap, space, spaceLen, eol, eolLen);
         break;
-    case textOutPhysLayout:
-    case textOutTableLayout:
-        writePhysLayout (
-            outputStream, outputFunc, uMap, space, spaceLen, eol, eolLen);
+    case textOutPhysLayout: case textOutTableLayout:
+        writePhysLayout (pstr, pfun, uMap, space, spaceLen, eol, eolLen);
         break;
     case textOutLinePrinter:
-        writeLinePrinter (
-            outputStream, outputFunc, uMap, space, spaceLen, eol, eolLen);
+        writeLinePrinter ( pstr, pfun, uMap, space, spaceLen, eol, eolLen);
         break;
     case textOutRawOrder:
-        writeRaw (outputStream, outputFunc, uMap, space, spaceLen, eol, eolLen);
+        writeRaw (pstr, pfun, uMap, space, spaceLen, eol, eolLen);
         break;
     }
 
     // end of page
-    if (pageBreaks) { (*outputFunc) (outputStream, eop, eopLen); }
+    if (pageBreaks) {
+        (*pfun) (pstr, eop, eopLen);
+    }
 
     uMap->decRefCnt ();
 }
