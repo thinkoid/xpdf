@@ -289,28 +289,18 @@ struct TextWord {
         invisible  : 1; // invisible, render mode 3
 };
 
-class TextLine {
-public:
+struct TextLine {
     TextLine (TextWords, double, double, double, double, double);
 
-    double getXMin () { return xMin; }
-    double getYMin () { return yMin; }
+    double getBaseline () const;
 
-    double getBaseline ();
-
-    int getRotation () { return rot; }
-
-    TextWords&       getWords ()       { return words; }
-    TextWords const& getWords () const { return words; }
-
-private:
     TextWords words;
 
     // rotation, multiple of 90 degrees (0, 1, 2, or 3)
     int rot;
 
     // bounding box coordinates
-    double xMin, xMax, yMin, yMax;
+    double xmin, xmax, ymin, ymax;
 
     // main (max) font size for this line
     double fontSize;
@@ -332,9 +322,6 @@ private:
                        //   containing column) in physical layout mode
     int pw;            // line width (in characters) in physical
                        //   layout mode
-
-    friend class TextPage;
-    friend class TextParagraph;
 };
 
 struct TextParagraph {
@@ -345,7 +332,7 @@ struct TextParagraph {
     //
     // Bounding box:
     //
-    double xMin, xMax, yMin, yMax;
+    double xmin, xmax, ymin, ymax;
 };
 
 using TextParagraphPtr = std::shared_ptr< TextParagraph >;
@@ -732,18 +719,16 @@ double TextWord::getBaseline () {
 //
 TextLine::TextLine (
     TextWords wordsA,
-    double xMinA, double yMinA,
-    double xMaxA, double yMaxA,
-    double fontSizeA)
+    double xMinA, double yMinA, double xMaxA, double yMaxA, double fontSizeA)
     : words (std::move (wordsA)) {
 
     rot = 0;
 
-    xMin = xMinA;
-    yMin = yMinA;
+    xmin = xMinA;
+    ymin = yMinA;
 
-    xMax = xMaxA;
-    yMax = yMaxA;
+    xmax = xMaxA;
+    ymax = yMaxA;
 
     fontSize = fontSizeA;
 
@@ -793,28 +778,28 @@ TextLine::TextLine (
     hyphenated = text [len - 1] == (Unicode)'-';
 }
 
-double TextLine::getBaseline () {
+double TextLine::getBaseline () const {
     auto& word = words.front ();
 
     switch (rot) {
-    case 1:  return xMin - fontSize * word->font->descent;
-    case 2:  return yMin - fontSize * word->font->descent;
-    case 3:  return xMax + fontSize * word->font->descent;
+    case 1:  return xmin - fontSize * word->font->descent;
+    case 2:  return ymin - fontSize * word->font->descent;
+    case 3:  return xmax + fontSize * word->font->descent;
     case 0:
-    default: return yMax + fontSize * word->font->descent;
+    default: return ymax + fontSize * word->font->descent;
     }
 }
 
 TextParagraph::TextParagraph (TextLines arg)
-    : lines (std::move (arg)), xMin{ }, xMax{ }, yMin{ }, yMax{ } {
+    : lines (std::move (arg)), xmin{ }, xmax{ }, ymin{ }, ymax{ } {
 
     bool first = true;
 
     for (auto& line : lines) {
-        if (first || line->xMin < xMin) { xMin = line->xMin; }
-        if (first || line->yMin < yMin) { yMin = line->yMin; }
-        if (first || line->xMax > xMax) { xMax = line->xMax; }
-        if (first || line->yMax > yMax) { yMax = line->yMax; }
+        if (first || line->xmin < xmin) { xmin = line->xmin; }
+        if (first || line->ymin < ymin) { ymin = line->ymin; }
+        if (first || line->xmax > xmax) { xmax = line->xmax; }
+        if (first || line->ymax > ymax) { ymax = line->ymax; }
 
         first = false;
     }
@@ -1872,6 +1857,18 @@ do_unrotate (T& t, double x0, double y0, double x1, double y1, int n) {
     t.rot = (t.rot + n) & 3;
 }
 
+template< >
+inline void do_unrotate< TextColumn > (
+    TextColumn& t, double x0, double y0, double x1, double y1, int) {
+    t.xmin = x0; t.xmax = x1; t.ymin = y0; t.ymax = y1;
+}
+
+template< >
+inline void do_unrotate< TextParagraph > (
+    TextParagraph& t, double x0, double y0, double x1, double y1, int) {
+    t.xmin = x0; t.xmax = x1; t.ymin = y0; t.ymax = y1;
+}
+
 template< typename T >
 inline void unrotate90 (T& t, int w, int) {
     do_unrotate (t, w - t.ymax, t.xmin, w - t.ymin, t.xmax, 1);
@@ -1920,7 +1917,7 @@ TextPage::unrotateChars (TextChars& chars, int rot) {
 
 // Undo the coordinate transform performed by rotateChars().
 void TextPage::unrotateColumns (TextColumns& columns, int rot) {
-    double xMin, yMin, xMax, yMax, t;
+    auto w = pageWidth, h = pageHeight;
 
     switch (rot) {
     case 0:
@@ -1928,50 +1925,19 @@ void TextPage::unrotateColumns (TextColumns& columns, int rot) {
         // no transform
         break;
     case 1:
-        t = pageWidth;
-        pageWidth = pageHeight;
-        pageHeight = t;
+        std::swap (pageWidth, pageHeight);
+
         for (auto& col : columns) {
-            xMin = pageWidth - col->ymax;
-            xMax = pageWidth - col->ymin;
-            yMin = col->xmin;
-            yMax = col->xmax;
-            col->xmin = xMin;
-            col->xmax = xMax;
-            col->ymin = yMin;
-            col->ymax = yMax;
+            unrotate90 (*col, w, h);
 
             for (auto& par : col->paragraphs) {
-                xMin = pageWidth - par->yMax;
-                xMax = pageWidth - par->yMin;
-                yMin = par->xMin;
-                yMax = par->xMax;
-                par->xMin = xMin;
-                par->xMax = xMax;
-                par->yMin = yMin;
-                par->yMax = yMax;
+                unrotate90 (*par, w, h);
 
                 for (auto& line : par->lines) {
-                    xMin = pageWidth - line->yMax;
-                    xMax = pageWidth - line->yMin;
-                    yMin = line->xMin;
-                    yMax = line->xMax;
-                    line->xMin = xMin;
-                    line->xMax = xMax;
-                    line->yMin = yMin;
-                    line->yMax = yMax;
-                    line->rot = (line->rot + 1) & 3;
+                    unrotate90 (*line, w, h);
 
                     for (auto& word : line->words) {
-                        xMin = pageWidth - word->ymax;
-                        xMax = pageWidth - word->ymin;
-                        yMin = word->xmin;
-                        yMax = word->xmax;
-                        word->xmin = xMin;
-                        word->xmax = xMax;
-                        word->ymin = yMin;
-                        word->ymax = yMax;
-                        word->rot = (word->rot + 1) & 3;
+                        unrotate90 (*word, w, h);
                     }
                 }
             }
@@ -1980,108 +1946,46 @@ void TextPage::unrotateColumns (TextColumns& columns, int rot) {
 
     case 2:
         for (auto& col : columns) {
-            xMin = pageWidth - col->xmax;
-            xMax = pageWidth - col->xmin;
-            yMin = pageHeight - col->ymax;
-            yMax = pageHeight - col->ymin;
-            col->xmin = xMin;
-            col->xmax = xMax;
-            col->ymin = yMin;
-            col->ymax = yMax;
+            unrotate180 (*col, w, h);
 
             for (auto& par : col->paragraphs) {
-                xMin = pageWidth - par->xMax;
-                xMax = pageWidth - par->xMin;
-                yMin = pageHeight - par->yMax;
-                yMax = pageHeight - par->yMin;
-                par->xMin = xMin;
-                par->xMax = xMax;
-                par->yMin = yMin;
-                par->yMax = yMax;
+                unrotate180 (*par, w, h);
 
                 for (auto& line : par->lines) {
-                    xMin = pageWidth - line->xMax;
-                    xMax = pageWidth - line->xMin;
-                    yMin = pageHeight - line->yMax;
-                    yMax = pageHeight - line->yMin;
-                    line->xMin = xMin;
-                    line->xMax = xMax;
-                    line->yMin = yMin;
-                    line->yMax = yMax;
-                    line->rot = (line->rot + 2) & 3;
-                    for (size_t i = 0; i <= line->len; ++i) {
-                        line->edge[i] = pageWidth - line->edge[i];
-                    }
+                    unrotate180 (*line, w, h);
+
+                    actions::transform (
+                        line->edge, [=](auto& x) { return w - x; });
 
                     for (auto& word : line->words) {
-                        xMin = pageWidth - word->xmax;
-                        xMax = pageWidth - word->xmin;
-                        yMin = pageHeight - word->ymax;
-                        yMax = pageHeight - word->ymin;
-                        word->xmin = xMin;
-                        word->xmax = xMax;
-                        word->ymin = yMin;
-                        word->ymax = yMax;
-                        word->rot = (word->rot + 2) & 3;
+                        unrotate180 (*word, w, h);
 
-                        for (size_t i = 0; i <= word->size (); ++i) {
-                            word->edge[i] = pageWidth - word->edge[i];
-                        }
+                        actions::transform (
+                            word->edge, [=](auto& x) { return w - x; });
                     }
                 }
             }
         }
         break;
+
     case 3:
-        t = pageWidth;
-        pageWidth = pageHeight;
-        pageHeight = t;
+        std::swap (pageWidth, pageHeight);
 
         for (auto& col : columns) {
-            xMin = col->ymin;
-            xMax = col->ymax;
-            yMin = pageHeight - col->xmax;
-            yMax = pageHeight - col->xmin;
-            col->xmin = xMin;
-            col->xmax = xMax;
-            col->ymin = yMin;
-            col->ymax = yMax;
+            unrotate90 (*col, w, h);
 
             for (auto& par : col->paragraphs) {
-                xMin = par->yMin;
-                xMax = par->yMax;
-                yMin = pageHeight - par->xMax;
-                yMax = pageHeight - par->xMin;
-                par->xMin = xMin;
-                par->xMax = xMax;
-                par->yMin = yMin;
-                par->yMax = yMax;
+                unrotate90 (*par, w, h);
 
                 for (auto& line : par->lines) {
-                    xMin = line->yMin;
-                    xMax = line->yMax;
-                    yMin = pageHeight - line->xMax;
-                    yMax = pageHeight - line->xMin;
-                    line->xMin = xMin;
-                    line->xMax = xMax;
-                    line->yMin = yMin;
-                    line->yMax = yMax;
-                    line->rot = (line->rot + 3) & 3;
+                    unrotate90 (*line, w, h);
 
-                    for (size_t i = 0; i <= line->len; ++i) {
-                        line->edge[i] = pageHeight - line->edge[i];
-                    }
+                    actions::transform (
+                        line->edge, [=](auto& x) { return w - x; });
 
                     for (auto& word : line->words) {
-                        xMin = word->ymin;
-                        xMax = word->ymax;
-                        yMin = pageHeight - word->xmax;
-                        yMax = pageHeight - word->xmin;
-                        word->xmin = xMin;
-                        word->xmax = xMax;
-                        word->ymin = yMin;
-                        word->ymax = yMax;
-                        word->rot = (word->rot + 3) & 3;
+                        unrotate90 (*word, w, h);
+
                         for (size_t i = 0; i <= word->size (); ++i) {
                             word->edge[i] = pageHeight - word->edge[i];
                         }
@@ -3358,10 +3262,10 @@ TextPage::getLineIndent (const TextLine& line, TextBlockPtr blk) const {
 
     switch (line.rot) {
     case 0:
-    default: indent = line.xMin - blk->xMin; break;
-    case 1:  indent = line.yMin - blk->yMin; break;
-    case 2:  indent = blk->xMax - line.xMax; break;
-    case 3:  indent = blk->yMax - line.yMax; break;
+    default: indent = line.xmin - blk->xMin; break;
+    case 1:  indent = line.ymin - blk->yMin; break;
+    case 2:  indent = blk->xMax - line.xmax; break;
+    case 3:  indent = blk->yMax - line.ymax; break;
     }
 
     return indent;
@@ -3397,10 +3301,10 @@ double TextPage::getLineSpacing (const TextLine& lhs, const TextLine& rhs) const
 
     switch (lhs.rot) {
     case 0:
-    default: sp = rhs.yMin - lhs.yMax; break;
-    case 1:  sp = lhs.xMin - rhs.xMax; break;
-    case 2:  sp = lhs.yMin - rhs.yMin; break;
-    case 3:  sp = rhs.xMin - rhs.xMax; break;
+    default: sp = rhs.ymin - lhs.ymax; break;
+    case 1:  sp = lhs.xmin - rhs.xmax; break;
+    case 2:  sp = lhs.ymin - rhs.ymin; break;
+    case 3:  sp = rhs.xmin - rhs.xmax; break;
     }
 
     return sp;
@@ -3592,14 +3496,14 @@ void TextPage::assignLinePhysPositions (TextColumns& columns) {
                 computeLinePhysWidth (*line, uMap);
 
                 if (control.fixedPitch > 0) {
-                    line->px = (line->xMin - col->xmin) / control.fixedPitch;
+                    line->px = (line->xmin - col->xmin) / control.fixedPitch;
                 }
                 else if (fabs (line->fontSize) < 0.001) {
                     line->px = 0;
                 }
                 else {
                     line->px =
-                        (line->xMin - col->xmin) /
+                        (line->xmin - col->xmin) /
                         (physLayoutSpaceWidth * line->fontSize);
                 }
 
@@ -3861,13 +3765,13 @@ bool TextPage::findText (
 
             // check: is the paragraph above the top limit?
             if (!startAtTop &&
-                (backward ? par->yMin > yStart : par->yMax < yStart)) {
+                (backward ? par->ymin > yStart : par->ymax < yStart)) {
                 continue;
             }
 
             // check: is the paragraph below the bottom limit?
             if (!stopAtBottom &&
-                (backward ? par->yMax < yStop : par->yMin > yStop)) {
+                (backward ? par->ymax < yStop : par->ymin > yStop)) {
                 continue;
             }
 
@@ -3878,13 +3782,13 @@ bool TextPage::findText (
 
                 // check: is the line above the top limit?
                 if (!startAtTop &&
-                    (backward ? line->yMin > yStart : line->yMax < yStart)) {
+                    (backward ? line->ymin > yStart : line->ymax < yStart)) {
                     continue;
                 }
 
                 // check: is the line below the bottom limit?
                 if (!stopAtBottom &&
-                    (backward ? line->yMax < yStop : line->yMin > yStop)) {
+                    (backward ? line->ymax < yStop : line->ymin > yStop)) {
                     continue;
                 }
 
@@ -3921,24 +3825,24 @@ bool TextPage::findText (
                             case 0:
                                 xMin1 = line->edge[j];
                                 xMax1 = line->edge[j + len];
-                                yMin1 = line->yMin;
-                                yMax1 = line->yMax;
+                                yMin1 = line->ymin;
+                                yMax1 = line->ymax;
                                 break;
                             case 1:
-                                xMin1 = line->xMin;
-                                xMax1 = line->xMax;
+                                xMin1 = line->xmin;
+                                xMax1 = line->xmax;
                                 yMin1 = line->edge[j];
                                 yMax1 = line->edge[j + len];
                                 break;
                             case 2:
                                 xMin1 = line->edge[j + len];
                                 xMax1 = line->edge[j];
-                                yMin1 = line->yMin;
-                                yMax1 = line->yMax;
+                                yMin1 = line->ymin;
+                                yMax1 = line->ymax;
                                 break;
                             case 3:
-                                xMin1 = line->xMin;
-                                xMax1 = line->xMax;
+                                xMin1 = line->xmin;
+                                xMax1 = line->xmax;
                                 yMin1 = line->edge[j + len];
                                 yMax1 = line->edge[j];
                                 break;
@@ -4204,11 +4108,11 @@ TextPage::makeWordList () {
     case textOutPhysLayout:
     case textOutTableLayout:
     case textOutLinePrinter:
-        actions::sort (words, lessYX);
+        sort (words, lessYX);
         break;
 
     case textOutRawOrder:
-        actions::sort (words, lessCharPos);
+        sort (words, lessCharPos);
         break;
     }
 
@@ -4280,7 +4184,7 @@ void TextPage::dumpColumns(GList *columns) {
             for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
                 line = (TextLine *)par->lines->get(lineIdx);
                 printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
-                       line->xMin, line->yMin, line->xMax, line->yMax,
+                       line->xmin, line->ymin, line->xmax, line->ymax,
                        line->px, line->pw, line->rot);
                 printf("          ");
                 for (i = 0; i < line->len; ++i) {
