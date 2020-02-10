@@ -10,8 +10,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/function.hh>
 
-#include <cnl/all.h>
-
 class GfxFont;
 class PDFRectangle;
 class GfxShading;

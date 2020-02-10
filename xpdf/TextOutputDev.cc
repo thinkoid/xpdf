@@ -491,8 +491,7 @@ void TextBlock::updateBounds (int n) {
     if (block->yMax > yMax) { yMax = block->yMax; }
 }
 
-class TextUnderline {
-public:
+struct TextUnderline {
     TextUnderline (double x0A, double y0A, double x1A, double y1A) {
         x0 = x0A;
         y0 = y0A;
@@ -832,10 +831,6 @@ TextPage::TextPage (TextOutputControl* controlA) {
     actualTextX1 = 0;
     actualTextY1 = 0;
     actualTextNBytes = 0;
-
-    underlines = new GList ();
-    links = new GList ();
-
     findLR = true;
     lastFindXMin = lastFindYMin = 0;
     haveLastFind = false;
@@ -843,8 +838,6 @@ TextPage::TextPage (TextOutputControl* controlA) {
 
 TextPage::~TextPage () {
     clear ();
-    deleteGList (underlines, TextUnderline);
-    deleteGList (links, TextLink);
 }
 
 void TextPage::startPage (GfxState* state) {
@@ -872,10 +865,8 @@ void TextPage::clear () {
     actualTextNBytes = 0;
     chars.clear ();
     fonts.clear ();
-    deleteGList (underlines, TextUnderline);
-    underlines = new GList ();
-    deleteGList (links, TextLink);
-    links = new GList ();
+    underlines.clear ();
+    links.clear ();
     findLR = true;
     lastFindXMin = lastFindYMin = 0;
     haveLastFind = false;
@@ -1145,17 +1136,16 @@ void TextPage::endActualText (GfxState* state) {
 }
 
 void TextPage::addUnderline (double x0, double y0, double x1, double y1) {
-    underlines->append (new TextUnderline (x0, y0, x1, y1));
+    underlines.push_back (std::make_shared< TextUnderline > (x0, y0, x1, y1));
 }
 
 void TextPage::addLink (
     double xMin, double yMin, double xMax, double yMax, Link* link) {
     GString* uri;
 
-    if (link && link->getAction () &&
-        link->getAction ()->getKind () == actionURI) {
+    if (link && link->getAction () && link->getAction ()->getKind () == actionURI) {
         uri = ((LinkURI*)link->getAction ())->getURI ()->copy ();
-        links->append (new TextLink (xMin, yMin, xMax, yMax, uri));
+        links.push_back (std::make_shared< TextLink > (xMin, yMin, xMax, yMax, uri));
     }
 }
 
@@ -1764,17 +1754,11 @@ int TextPage::rotateChars (TextChars& chars) {
 // Rotate the TextUnderlines and TextLinks to match the transform
 // performed by rotateChars().
 void TextPage::rotateUnderlinesAndLinks (int rot) {
-    TextUnderline* underline;
-    TextLink* link;
     double xMin, yMin, xMax, yMax;
-    int i;
 
     switch (rot) {
-    case 0:
-    default: break;
     case 1:
-        for (i = 0; i < underlines->getLength (); ++i) {
-            underline = (TextUnderline*)underlines->get (i);
+        for (auto& underline : underlines) {
             xMin = underline->y0;
             xMax = underline->y1;
             yMin = pageWidth - underline->x1;
@@ -1785,8 +1769,8 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             underline->y1 = yMax;
             underline->horiz = !underline->horiz;
         }
-        for (i = 0; i < links->getLength (); ++i) {
-            link = (TextLink*)links->get (i);
+
+        for (auto& link : links) {
             xMin = link->yMin;
             xMax = link->yMax;
             yMin = pageWidth - link->xMax;
@@ -1797,9 +1781,9 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             link->yMax = yMax;
         }
         break;
+        
     case 2:
-        for (i = 0; i < underlines->getLength (); ++i) {
-            underline = (TextUnderline*)underlines->get (i);
+        for (auto& underline : underlines) {
             xMin = pageWidth - underline->x1;
             xMax = pageWidth - underline->x0;
             yMin = pageHeight - underline->y1;
@@ -1809,8 +1793,8 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             underline->y0 = yMin;
             underline->y1 = yMax;
         }
-        for (i = 0; i < links->getLength (); ++i) {
-            link = (TextLink*)links->get (i);
+
+        for (auto& link : links) {
             xMin = pageWidth - link->xMax;
             xMax = pageWidth - link->xMin;
             yMin = pageHeight - link->yMax;
@@ -1821,9 +1805,9 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             link->yMax = yMax;
         }
         break;
+        
     case 3:
-        for (i = 0; i < underlines->getLength (); ++i) {
-            underline = (TextUnderline*)underlines->get (i);
+        for (auto& underline : underlines) {
             xMin = pageHeight - underline->y1;
             xMax = pageHeight - underline->y0;
             yMin = underline->x0;
@@ -1834,8 +1818,8 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             underline->y1 = yMax;
             underline->horiz = !underline->horiz;
         }
-        for (i = 0; i < links->getLength (); ++i) {
-            link = (TextLink*)links->get (i);
+
+        for (auto& link : links) {
             xMin = pageHeight - link->yMax;
             xMax = pageHeight - link->yMin;
             yMin = link->xMin;
@@ -1845,6 +1829,10 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             link->yMin = yMin;
             link->yMax = yMax;
         }
+        break;
+        
+    case 0:
+    default:
         break;
     }
 }
@@ -3621,10 +3609,7 @@ int TextPage::assignColumnPhysPositions (TextColumns& columns) {
 }
 
 void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
-    TextUnderline* underline;
-    TextLink* link;
     double base, uSlack, ubSlack, hSlack;
-    int i;
 
     for (auto& col : columns) {
         for (auto& par : col->paragraphs) {
@@ -3637,8 +3622,7 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
                     hSlack  = hyperlinkSlack * word->fontSize;
 
                     // handle underlining
-                    for (i = 0; i < underlines->getLength (); ++i) {
-                        underline = (TextUnderline*)underlines->get (i);
+                    for (auto& underline : underlines) {
                         if (underline->horiz) {
                             if (word->rot == 0 || word->rot == 2) {
                                 if (fabs (underline->y0 - base) < ubSlack &&
@@ -3660,8 +3644,7 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
                     }
 
                     // handle links
-                    for (i = 0; i < links->getLength (); ++i) {
-                        link = (TextLink*)links->get (i);
+                    for (auto& link : links) {
                         if (link->xMin < word->xmin + hSlack &&
                             word->xmax - hSlack < link->xMax &&
                             link->yMin < word->ymin + hSlack &&

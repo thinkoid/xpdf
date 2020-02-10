@@ -65,34 +65,22 @@ struct TextOutputControl {
     unsigned char clipText: 1 = 0;
 };
 
-struct TextFontInfo;
-struct TextChar;
-struct TextWord;
-struct TextLine;
-struct TextParagraph;
-struct TextColumn;
-struct TextBlock;
+#define XPDF_TYPEDEF(x)                                     \
+    struct x;                                               \
+    using XPDF_CAT(x, Ptr) = std::shared_ptr< x >;          \
+    using XPDF_CAT(x, s) = std::vector< XPDF_CAT(x, Ptr) >
 
-using TextFontInfoPtr = std::shared_ptr< TextFontInfo >;
-using TextFontInfos = std::vector< TextFontInfoPtr >;
+XPDF_TYPEDEF (TextFontInfo);
+XPDF_TYPEDEF (TextChar);
+XPDF_TYPEDEF (TextWord);
+XPDF_TYPEDEF (TextLine);
+XPDF_TYPEDEF (TextUnderline);
+XPDF_TYPEDEF (TextLink);
+XPDF_TYPEDEF (TextParagraph);
+XPDF_TYPEDEF (TextColumn);
+XPDF_TYPEDEF (TextBlock);
 
-using TextCharPtr = std::shared_ptr< TextChar >;
-using TextChars = std::vector< TextCharPtr >;
-
-using TextWordPtr = std::shared_ptr< TextWord >;
-using TextWords = std::vector< TextWordPtr >;
-
-using TextLinePtr = std::shared_ptr< TextLine >;
-using TextLines = std::vector< TextLinePtr >;
-
-using TextParagraphPtr = std::shared_ptr< TextParagraph >;
-using TextParagraphs = std::vector< TextParagraphPtr >;
-
-using TextColumnPtr = std::shared_ptr< TextColumn >;
-using TextColumns = std::vector< TextColumnPtr >;
-
-using TextBlockPtr = std::shared_ptr< TextBlock >;
-using TextBlocks = std::vector< TextBlockPtr >;
+#undef XPDF_TYPEDEF
 
 //
 // TextPage
@@ -267,8 +255,8 @@ private:
 
     TextChars chars; // [TextChar]
 
-    GList* underlines;     // [TextUnderline]
-    GList* links;          // [TextLink]
+    TextUnderlines underlines;   // [TextUnderline]
+    TextLinks links;             // [TextLink]
 
     TextColumns findCols;  // text used by the findText function
                            //   [TextColumn]
