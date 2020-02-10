@@ -1218,10 +1218,6 @@ void TextPage::writeReadingOrder (
     primaryLR = isPrevalentLeftToRight (chars);
     tree = splitChars (chars);
 
-#if 0 //~debug
-    dumpTree(tree);
-#endif
-
     if (!tree) {
         // no text
         unrotateChars (chars, rot);
@@ -1230,10 +1226,6 @@ void TextPage::writeReadingOrder (
 
     auto columns = buildColumns (tree);
     unrotateChars (chars, rot);
-
-#if 0 //~debug
-    dumpColumns(columns);
-#endif
 
     for (auto& col : columns) {
         for (auto& par : col->paragraphs) {
@@ -1272,18 +1264,10 @@ void TextPage::writePhysLayout (
     bool primaryLR;
     int ph, parIdx, rot, y, i;
 
-#if 0 //~debug
-    dumpChars(chars);
-#endif
-
     rot = rotateChars (chars);
     primaryLR = isPrevalentLeftToRight (chars);
 
     TextBlockPtr tree = splitChars (chars);
-
-#if 0 //~debug
-    dumpTree(tree);
-#endif
 
     if (!tree) {
         // no text
@@ -1295,10 +1279,6 @@ void TextPage::writePhysLayout (
     unrotateChars (chars, rot);
 
     ph = assignPhysLayoutPositions (columns);
-
-#if 0 //~debug
-    dumpColumns(columns);
-#endif
 
     out = (GString**)calloc (ph, sizeof (GString*));
     outLen = (int*)calloc (ph, sizeof (int));
@@ -2225,10 +2205,6 @@ TextPage::splitChars (TextChars& charsA) {
     if (!clippedChars.empty ()) {
         insertClippedChars (clippedChars, tree [0]);
     }
-
-#if 0 //~debug
-    dumpTree(tree[0]);
-#endif
 
     return tree [0];
 }
@@ -3931,10 +3907,6 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
         }
     }
 
-#if 0 //~debug
-    dumpChars (chars2);
-#endif
-
     rot = rotateChars (chars2);
     primaryLR = isPrevalentLeftToRight (chars2);
 
@@ -3948,18 +3920,10 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
             return new GString ();
         }
 
-#if 0 //~debug
-        dumpTree(tree);
-#endif
-
         columns = buildColumns (tree);
     }
 
     ph = assignPhysLayoutPositions (columns);
-
-#if 0 //~debug
-    dumpColumns(columns);
-#endif
 
     unrotateChars (chars2, rot);
 
@@ -4104,81 +4068,6 @@ TextPage::makeWordList () {
 
     return words;
 }
-
-//
-// TextPage: debug
-//
-#if 0 //~debug
-
-void TextPage::dumpChars(GList *charsA) {
-    TextChar *ch;
-    int i;
-
-    for (i = 0; i < charsA.size (); ++i) {
-        ch = (TextChar *)charsA->get(i);
-        printf("char: U+%04x '%c' xMin=%g yMin=%g xMax=%g yMax=%g fontSize=%g rot=%d\n",
-               ch->c, ch->c & 0xff, ch->xmin, ch->ymin, ch->xmax, ch->ymax,
-               ch->size, ch->rot);
-    }
-}
-
-void TextPage::dumpTree(TextBlock *tree, int indent) {
-    TextChar *ch;
-    int i;
-
-    printf("%*sblock: type=%s tag=%s small=%d rot=%d xMin=%g yMin=%g xMax=%g yMax=%g\n",
-           indent, "",
-           tree->type == blkLeaf ? "leaf" :
-           tree->type == blkHorizSplit ? "horiz" : "vert",
-           tree->tag == blkTagMulticolumn ? "multicolumn" :
-           tree->tag == blkTagColumn ? "column" : "line",
-           tree->smallSplit,
-           tree->rot, tree->xMin, tree->yMin, tree->xMax, tree->yMax);
-    if (tree->type == blkLeaf) {
-        for (i = 0; i < tree->children->getLength(); ++i) {
-            ch = (TextChar *)tree->children->get(i);
-            printf("%*schar: '%c' xMin=%g yMin=%g xMax=%g yMax=%g font=%d.%d\n",
-                   indent + 2, "", ch->c & 0xff,
-                   ch->xmin, ch->ymin, ch->xmax, ch->ymax,
-                   ch->font->fontID.num, ch->font->fontID.gen);
-        }
-    } else {
-        for (i = 0; i < tree->children->getLength(); ++i) {
-            dumpTree((TextBlock *)tree->children->get(i), indent + 2);
-        }
-    }
-}
-
-void TextPage::dumpColumns(GList *columns) {
-    TextColumn *col;
-    TextParagraph *par;
-    TextLine *line;
-    int colIdx, parIdx, lineIdx, i;
-
-    for (colIdx = 0; colIdx < columns.size(); ++colIdx) {
-        col = (TextColumn*)columns->get(colIdx);
-        printf("column: xMin=%g yMin=%g xMax=%g yMax=%g px=%d py=%d pw=%d ph=%d\n",
-               col->xmin, col->ymin, col->xmax, col->ymax,
-               col->px, col->py, col->pw, col->ph);
-        for (parIdx = 0; parIdx < col->paragraphs.size(); ++parIdx) {
-            par = (TextParagraph *)col->paragraphs->get(parIdx);
-            printf("  paragraph:\n");
-            for (lineIdx = 0; lineIdx < par->lines.size (); ++lineIdx) {
-                line = (TextLine *)par->lines->get(lineIdx);
-                printf("    line: xMin=%g yMin=%g xMax=%g yMax=%g px=%d pw=%d rot=%d\n",
-                       line->xmin, line->ymin, line->xmax, line->ymax,
-                       line->px, line->pw, line->rot);
-                printf("          ");
-                for (i = 0; i < line->len; ++i) {
-                    printf("%c", line->text[i] & 0xff);
-                }
-                printf("\n");
-            }
-        }
-    }
-}
-
-#endif //~debug
 
 //
 // TextOutputDev

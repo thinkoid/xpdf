@@ -227,13 +227,6 @@ private:
     int assignColumnPhysPositions (TextColumns&);
     void generateUnderlinesAndLinks (TextColumns&);
 
-    // debug
-#if 0 //~debug
-  void dumpChars(GList *charsA);
-  void dumpTree(TextBlock *tree, int indent = 0);
-  void dumpColumns(GList *columns);
-#endif
-
     TextOutputControl control; // formatting parameters
 
     double pageWidth, pageHeight; // width and height of current page
