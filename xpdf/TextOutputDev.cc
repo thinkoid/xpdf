@@ -4101,7 +4101,7 @@ TextOutputDev::TextOutputDev (
     }
 
     // set up text object
-    text = new TextPage (&control);
+    text = std::make_shared< TextPage > (&control);
 }
 
 TextOutputDev::TextOutputDev (
@@ -4110,13 +4110,14 @@ TextOutputDev::TextOutputDev (
     outputStream = stream;
     needClose = false;
     control = *controlA;
-    text = new TextPage (&control);
+    text = std::make_shared< TextPage > (&control);
     ok = true;
 }
 
 TextOutputDev::~TextOutputDev () {
-    if (needClose) { fclose ((FILE*)outputStream); }
-    if (text) { delete text; }
+    if (needClose) {
+        fclose ((FILE*)outputStream);
+    }
 }
 
 void TextOutputDev::startPage (int pageNum, GfxState* state) {
@@ -4176,10 +4177,7 @@ TextOutputDev::makeWordList () {
     return text->makeWordList ();
 }
 
-TextPage* TextOutputDev::takeText () {
-    TextPage* ret;
-
-    ret = text;
-    text = new TextPage (&control);
-    return ret;
+TextPagePtr TextOutputDev::takeText () {
+    auto other = std::make_shared< TextPage > (&control);
+    return std::swap (other, text), other;
 }

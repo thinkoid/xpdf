@@ -8,7 +8,9 @@
 
 #include <cstdlib>
 #include <splash/SplashTypes.hh>
+
 #include <xpdf/CharTypes.hh>
+#include <xpdf/TextOutputDevFwd.hh>
 
 class GList;
 class SplashBitmap;
@@ -54,7 +56,7 @@ public:
     int w, h;         // size of whole page bitmap
     int tileW, tileH; // size of tiles
     Links* links;     // hyperlinks for this page
-    TextPage* text;   // extracted text
+    TextPagePtr text;   // extracted text
 };
 
 //------------------------------------------------------------------------

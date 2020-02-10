@@ -41,7 +41,6 @@ PDFCorePage::PDFCorePage (int pageA, int wA, int hA, int tileWA, int tileHA) {
 PDFCorePage::~PDFCorePage () {
     deleteGList (tiles, PDFCoreTile);
     if (links) { delete links; }
-    if (text) { delete text; }
 }
 
 //------------------------------------------------------------------------
@@ -743,8 +742,6 @@ void PDFCore::addPage (int pg, int rot) {
 
 void PDFCore::needTile (PDFCorePage* page, int x, int y) {
     PDFCoreTile* tile;
-    TextOutputControl textOutCtrl;
-    TextOutputDev* textOut;
     int xDest, yDest, sliceW, sliceH;
     int i;
 
@@ -849,14 +846,15 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
     if (!page->links) { page->links = doc->getLinks (page->page); }
 
     if (!page->text) {
-        textOutCtrl.mode = textOutPhysLayout;
+        TextOutputControl ctrl;
+        ctrl.mode = textOutPhysLayout;
 
-        if ((textOut = new TextOutputDev (NULL, &textOutCtrl, false))) {
-            doc->displayPage (
-                textOut, page->page, dpi, dpi, rotate, false, true, false);
-            page->text = textOut->takeText ();
-            delete textOut;
-        }
+        auto pdev = std::make_unique< TextOutputDev > (nullptr, &ctrl, false);
+
+        doc->displayPage (
+            pdev.get (), page->page, dpi, dpi, rotate, false, true, false);
+
+        page->text = pdev->takeText ();
     }
 
     page->tiles->append (tile);

@@ -13,6 +13,7 @@
 
 #include <xpdf/GfxFont.hh>
 #include <xpdf/OutputDev.hh>
+#include <xpdf/TextOutputDevFwd.hh>
 
 class GList;
 class TextBlock;
@@ -64,23 +65,6 @@ struct TextOutputControl {
     //
     unsigned char clipText: 1 = 0;
 };
-
-#define XPDF_TYPEDEF(x)                                     \
-    struct x;                                               \
-    using XPDF_CAT(x, Ptr) = std::shared_ptr< x >;          \
-    using XPDF_CAT(x, s) = std::vector< XPDF_CAT(x, Ptr) >
-
-XPDF_TYPEDEF (TextFontInfo);
-XPDF_TYPEDEF (TextChar);
-XPDF_TYPEDEF (TextWord);
-XPDF_TYPEDEF (TextLine);
-XPDF_TYPEDEF (TextUnderline);
-XPDF_TYPEDEF (TextLink);
-XPDF_TYPEDEF (TextParagraph);
-XPDF_TYPEDEF (TextColumn);
-XPDF_TYPEDEF (TextBlock);
-
-#undef XPDF_TYPEDEF
 
 //
 // TextPage
@@ -365,14 +349,14 @@ public:
 
     // Returns the TextPage object for the last rasterized page,
     // transferring ownership to the caller.
-    TextPage* takeText ();
+    TextPagePtr takeText ();
 
 private:
     TextOutputFunc outputFunc; // output function
     void* outputStream;        // output stream
     bool needClose;           // need to close the output file?
                                //   (only if outputStream is a FILE*)
-    TextPage* text;            // text for the current page
+    TextPagePtr text;          // text for the current page
     TextOutputControl control; // formatting parameters
     bool ok;                  // set up ok?
 };
