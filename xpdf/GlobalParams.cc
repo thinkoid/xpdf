@@ -46,33 +46,21 @@ static struct {
     const char* obliqueFont; // name of font to oblique
     double obliqueFactor;    // oblique sheer factor
 } displayFontTab[] = {
-    { "Courier", "n022003l.pfb", "cour.ttf", "Courier", "Courier", NULL, 0 },
-    { "Courier-Bold", "n022004l.pfb", "courbd.ttf", "Courier", "Courier Bold",
-      NULL, 0 },
-    { "Courier-BoldOblique", "n022024l.pfb", "courbi.ttf", "Courier",
-      "Courier Bold Oblique", "Courier-Bold", 0.212557 },
-    { "Courier-Oblique", "n022023l.pfb", "couri.ttf", "Courier",
-      "Courier Oblique", "Courier", 0.212557 },
-    { "Helvetica", "n019003l.pfb", "arial.ttf", "Helvetica", "Helvetica", NULL,
-      0 },
-    { "Helvetica-Bold", "n019004l.pfb", "arialbd.ttf", "Helvetica",
-      "Helvetica-Bold", NULL, 0 },
-    { "Helvetica-BoldOblique", "n019024l.pfb", "arialbi.ttf", "Helvetica",
-      "Helvetica Bold Oblique", "Helvetica-Bold", 0.212557 },
-    { "Helvetica-Oblique", "n019023l.pfb", "ariali.ttf", "Helvetica",
-      "Helvetica Oblique", "Helvetica", 0.212557 },
-    { "Symbol", "s050000l.pfb", NULL, "Symbol", "Symbol", NULL, 0 },
-    { "Times-Bold", "n021004l.pfb", "timesbd.ttf", "Times", "Times-Bold", NULL,
-      0 },
-    { "Times-BoldItalic", "n021024l.pfb", "timesbi.ttf", "Times",
-      "Times-BoldItalic", NULL, 0 },
-    { "Times-Italic", "n021023l.pfb", "timesi.ttf", "Times", "Times-Italic",
-      NULL, 0 },
-    { "Times-Roman", "n021003l.pfb", "times.ttf", "Times", "Times-Roman", NULL,
-      0 },
-    { "ZapfDingbats", "d050000l.pfb", NULL, "ZapfDingbats", "Zapf Dingbats",
-      NULL, 0 },
-    { }
+    { "Courier",               "n022003l.pfb",     "cour.ttf",      "Courier", "Courier",                NULL,             0 },
+    { "Courier-Bold",          "n022004l.pfb",   "courbd.ttf",      "Courier", "Courier Bold",           NULL,             0 },
+    { "Courier-BoldOblique",   "n022024l.pfb",   "courbi.ttf",      "Courier", "Courier Bold Oblique",   "Courier-Bold",   0.212557 },
+    { "Courier-Oblique",       "n022023l.pfb",    "couri.ttf",      "Courier", "Courier Oblique",        "Courier",        0.212557 },
+    { "Helvetica",             "n019003l.pfb",    "arial.ttf",    "Helvetica", "Helvetica",              NULL,             0 },
+    { "Helvetica-Bold",        "n019004l.pfb",  "arialbd.ttf",    "Helvetica", "Helvetica-Bold",         NULL,             0 },
+    { "Helvetica-BoldOblique", "n019024l.pfb",  "arialbi.ttf",    "Helvetica", "Helvetica Bold Oblique", "Helvetica-Bold", 0.212557 },
+    { "Helvetica-Oblique",     "n019023l.pfb",   "ariali.ttf",    "Helvetica", "Helvetica Oblique",      "Helvetica",      0.212557 },
+    { "Symbol",                "s050000l.pfb",           NULL,       "Symbol", "Symbol",                 NULL,             0 },
+    { "Times-Bold",            "n021004l.pfb",  "timesbd.ttf",        "Times", "Times-Bold",             NULL,             0 },
+    { "Times-BoldItalic",      "n021024l.pfb",  "timesbi.ttf",        "Times", "Times-BoldItalic",       NULL,             0 },
+    { "Times-Italic",          "n021023l.pfb",   "timesi.ttf",        "Times", "Times-Italic",           NULL,             0 },
+    { "Times-Roman",           "n021003l.pfb",    "times.ttf",        "Times", "Times-Roman",            NULL,             0 },
+    { "ZapfDingbats",          "d050000l.pfb",           NULL, "ZapfDingbats", "Zapf Dingbats",          NULL,             0 },
+    { 0, 0, 0, 0, 0, 0, 0. }
 };
 
 static const char* displayFontDirs[] = {
@@ -478,124 +466,71 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
 void GlobalParams::createDefaultKeyBindings () {
     keyBindings = new GList ();
 
+#define XPDF_BIND_DEF(a, b, c, ...)                                     \
+    keyBindings->append (                                               \
+        new KeyBinding (                                                \
+            a, XPDF_CAT (xpdfKeyMod, b), XPDF_CAT (xpdfKeyContext, c),  \
+            __VA_ARGS__))
+
     //----- mouse buttons
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress1, xpdfKeyModNone, xpdfKeyContextAny,
-        "startSelection"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMouseRelease1, xpdfKeyModNone, xpdfKeyContextAny,
-        "endSelection", "followLinkNoSel"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress2, xpdfKeyModNone, xpdfKeyContextAny, "startPan"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMouseRelease2, xpdfKeyModNone, xpdfKeyContextAny, "endPan"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress3, xpdfKeyModNone, xpdfKeyContextAny,
-        "postPopupMenu"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress4, xpdfKeyModNone, xpdfKeyContextAny,
-        "scrollUpPrevPage(16)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress5, xpdfKeyModNone, xpdfKeyContextAny,
-        "scrollDownNextPage(16)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress6, xpdfKeyModNone, xpdfKeyContextAny,
-        "scrollLeft(16)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeMousePress7, xpdfKeyModNone, xpdfKeyContextAny,
-        "scrollRight(16)"));
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress1,   None, Any, "startSelection");
+    XPDF_BIND_DEF (xpdfKeyCodeMouseRelease1, None, Any, "endSelection", "followLinkNoSel");
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress2,   None, Any, "startPan");
+    XPDF_BIND_DEF (xpdfKeyCodeMouseRelease2, None, Any, "endPan");
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress3,   None, Any, "postPopupMenu");
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress4,   None, Any, "scrollUpPrevPage(16)");
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress5,   None, Any, "scrollDownNextPage(16)");
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress6,   None, Any, "scrollLeft(16)");
+    XPDF_BIND_DEF (xpdfKeyCodeMousePress7,   None, Any, "scrollRight(16)");
 
     //----- keys
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeHome, xpdfKeyModCtrl, xpdfKeyContextAny, "gotoPage(1)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeHome, xpdfKeyModNone, xpdfKeyContextAny, "scrollToTopLeft"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeEnd, xpdfKeyModCtrl, xpdfKeyContextAny, "gotoLastPage"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeEnd, xpdfKeyModNone, xpdfKeyContextAny,
-        "scrollToBottomRight"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodePgUp, xpdfKeyModNone, xpdfKeyContextAny, "pageUp"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeBackspace, xpdfKeyModNone, xpdfKeyContextAny, "pageUp"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeDelete, xpdfKeyModNone, xpdfKeyContextAny, "pageUp"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodePgDn, xpdfKeyModNone, xpdfKeyContextAny, "pageDown"));
-    keyBindings->append (
-        new KeyBinding (' ', xpdfKeyModNone, xpdfKeyContextAny, "pageDown"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeLeft, xpdfKeyModNone, xpdfKeyContextAny, "scrollLeft(16)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeRight, xpdfKeyModNone, xpdfKeyContextAny,
-        "scrollRight(16)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeUp, xpdfKeyModNone, xpdfKeyContextAny, "scrollUp(16)"));
-    keyBindings->append (new KeyBinding (
-        xpdfKeyCodeDown, xpdfKeyModNone, xpdfKeyContextAny, "scrollDown(16)"));
-    keyBindings->append (
-        new KeyBinding ('o', xpdfKeyModNone, xpdfKeyContextAny, "open"));
-    keyBindings->append (
-        new KeyBinding ('O', xpdfKeyModNone, xpdfKeyContextAny, "open"));
-    keyBindings->append (
-        new KeyBinding ('r', xpdfKeyModNone, xpdfKeyContextAny, "reload"));
-    keyBindings->append (
-        new KeyBinding ('R', xpdfKeyModNone, xpdfKeyContextAny, "reload"));
-    keyBindings->append (
-        new KeyBinding ('f', xpdfKeyModNone, xpdfKeyContextAny, "find"));
-    keyBindings->append (
-        new KeyBinding ('F', xpdfKeyModNone, xpdfKeyContextAny, "find"));
-    keyBindings->append (
-        new KeyBinding ('f', xpdfKeyModCtrl, xpdfKeyContextAny, "find"));
-    keyBindings->append (
-        new KeyBinding ('g', xpdfKeyModCtrl, xpdfKeyContextAny, "findNext"));
-    keyBindings->append (
-        new KeyBinding ('p', xpdfKeyModCtrl, xpdfKeyContextAny, "print"));
-    keyBindings->append (new KeyBinding (
-        'n', xpdfKeyModNone, xpdfKeyContextScrLockOff, "nextPage"));
-    keyBindings->append (new KeyBinding (
-        'N', xpdfKeyModNone, xpdfKeyContextScrLockOff, "nextPage"));
-    keyBindings->append (new KeyBinding (
-        'n', xpdfKeyModNone, xpdfKeyContextScrLockOn, "nextPageNoScroll"));
-    keyBindings->append (new KeyBinding (
-        'N', xpdfKeyModNone, xpdfKeyContextScrLockOn, "nextPageNoScroll"));
-    keyBindings->append (new KeyBinding (
-        'p', xpdfKeyModNone, xpdfKeyContextScrLockOff, "prevPage"));
-    keyBindings->append (new KeyBinding (
-        'P', xpdfKeyModNone, xpdfKeyContextScrLockOff, "prevPage"));
-    keyBindings->append (new KeyBinding (
-        'p', xpdfKeyModNone, xpdfKeyContextScrLockOn, "prevPageNoScroll"));
-    keyBindings->append (new KeyBinding (
-        'P', xpdfKeyModNone, xpdfKeyContextScrLockOn, "prevPageNoScroll"));
-    keyBindings->append (
-        new KeyBinding ('v', xpdfKeyModNone, xpdfKeyContextAny, "goForward"));
-    keyBindings->append (
-        new KeyBinding ('b', xpdfKeyModNone, xpdfKeyContextAny, "goBackward"));
-    keyBindings->append (new KeyBinding (
-        'g', xpdfKeyModNone, xpdfKeyContextAny, "focusToPageNum"));
-    keyBindings->append (new KeyBinding (
-        '0', xpdfKeyModNone, xpdfKeyContextAny, "zoomPercent(125)"));
-    keyBindings->append (
-        new KeyBinding ('+', xpdfKeyModNone, xpdfKeyContextAny, "zoomIn"));
-    keyBindings->append (
-        new KeyBinding ('-', xpdfKeyModNone, xpdfKeyContextAny, "zoomOut"));
-    keyBindings->append (
-        new KeyBinding ('z', xpdfKeyModNone, xpdfKeyContextAny, "zoomFitPage"));
-    keyBindings->append (new KeyBinding (
-        'w', xpdfKeyModNone, xpdfKeyContextAny, "zoomFitWidth"));
-    keyBindings->append (new KeyBinding (
-        'f', xpdfKeyModAlt, xpdfKeyContextAny, "toggleFullScreenMode"));
-    keyBindings->append (
-        new KeyBinding ('l', xpdfKeyModCtrl, xpdfKeyContextAny, "redraw"));
-    keyBindings->append (new KeyBinding (
-        'w', xpdfKeyModCtrl, xpdfKeyContextAny, "closeWindowOrQuit"));
-    keyBindings->append (
-        new KeyBinding ('?', xpdfKeyModNone, xpdfKeyContextAny, "about"));
-    keyBindings->append (
-        new KeyBinding ('q', xpdfKeyModNone, xpdfKeyContextAny, "quit"));
-    keyBindings->append (
-        new KeyBinding ('Q', xpdfKeyModNone, xpdfKeyContextAny, "quit"));
+    XPDF_BIND_DEF (xpdfKeyCodeHome,      Ctrl, Any, "gotoPage(1)");
+    XPDF_BIND_DEF (xpdfKeyCodeHome,      None, Any, "scrollToTopLeft");
+    XPDF_BIND_DEF (xpdfKeyCodeEnd,       Ctrl, Any, "gotoLastPage");
+    XPDF_BIND_DEF (xpdfKeyCodeEnd,       None, Any, "scrollToBottomRight");
+    XPDF_BIND_DEF (xpdfKeyCodePgUp,      None, Any, "pageUp");
+    XPDF_BIND_DEF (xpdfKeyCodeBackspace, None, Any, "pageUp");
+    XPDF_BIND_DEF (xpdfKeyCodeDelete,    None, Any, "pageUp");
+    XPDF_BIND_DEF (xpdfKeyCodePgDn,      None, Any, "pageDown");
+    XPDF_BIND_DEF (' ',                  None, Any, "pageDown");
+    XPDF_BIND_DEF (xpdfKeyCodeLeft,      None, Any, "scrollLeft(16)");
+    XPDF_BIND_DEF (xpdfKeyCodeRight,     None, Any, "scrollRight(16)");
+    XPDF_BIND_DEF (xpdfKeyCodeUp,        None, Any, "scrollUp(16)");
+    XPDF_BIND_DEF (xpdfKeyCodeDown,      None, Any, "scrollDown(16)");
+
+    XPDF_BIND_DEF ('o', None, Any,        "open");
+    XPDF_BIND_DEF ('O', None, Any,        "open");
+    XPDF_BIND_DEF ('r', None, Any,        "reload");
+    XPDF_BIND_DEF ('R', None, Any,        "reload");
+    XPDF_BIND_DEF ('f', None, Any,        "find");
+    XPDF_BIND_DEF ('F', None, Any,        "find");
+    XPDF_BIND_DEF ('f', Ctrl, Any,        "find");
+    XPDF_BIND_DEF ('g', Ctrl, Any,        "findNext");
+    XPDF_BIND_DEF ('p', Ctrl, Any,        "print");
+    XPDF_BIND_DEF ('n', None, ScrLockOff, "nextPage");
+    XPDF_BIND_DEF ('N', None, ScrLockOff, "nextPage");
+    XPDF_BIND_DEF ('n', None, ScrLockOn,  "nextPageNoScroll");
+    XPDF_BIND_DEF ('N', None, ScrLockOn,  "nextPageNoScroll");
+    XPDF_BIND_DEF ('p', None, ScrLockOff, "prevPage");
+    XPDF_BIND_DEF ('P', None, ScrLockOff, "prevPage");
+    XPDF_BIND_DEF ('p', None, ScrLockOn,  "prevPageNoScroll");
+    XPDF_BIND_DEF ('P', None, ScrLockOn,  "prevPageNoScroll");
+    XPDF_BIND_DEF ('v', None, Any,        "goForward");
+    XPDF_BIND_DEF ('b', None, Any,        "goBackward");
+    XPDF_BIND_DEF ('g', None, Any,        "focusToPageNum");
+    XPDF_BIND_DEF ('0', None, Any,        "zoomPercent(125)");
+    XPDF_BIND_DEF ('+', None, Any,        "zoomIn");
+    XPDF_BIND_DEF ('-', None, Any,        "zoomOut");
+    XPDF_BIND_DEF ('z', None, Any,        "zoomFitPage");
+    XPDF_BIND_DEF ('w', None, Any,        "zoomFitWidth");
+    XPDF_BIND_DEF ('f', Alt,  Any,        "toggleFullScreenMode");
+    XPDF_BIND_DEF ('l', Ctrl, Any,        "redraw");
+    XPDF_BIND_DEF ('w', Ctrl, Any,        "closeWindowOrQuit");
+    XPDF_BIND_DEF ('?', None, Any,        "about");
+    XPDF_BIND_DEF ('q', None, Any,        "quit");
+    XPDF_BIND_DEF ('Q', None, Any,        "quit");
+
+#undef XPDF_BIND_DEF
 }
 
 void GlobalParams::parseFile (GString* fileName, FILE* f) {
