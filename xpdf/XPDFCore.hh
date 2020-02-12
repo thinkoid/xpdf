@@ -50,6 +50,8 @@ public:
 
     ~XPDFCore ();
 
+    void segment ();
+
     //----- loadFile / displayPage / displayDest
 
     // Load a new file.  Returns pdfOk or error code.

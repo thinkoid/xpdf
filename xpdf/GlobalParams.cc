@@ -502,6 +502,7 @@ void GlobalParams::createDefaultKeyBindings () {
     XPDF_BIND_DEF ('O', None, Any,        "open");
     XPDF_BIND_DEF ('r', None, Any,        "reload");
     XPDF_BIND_DEF ('R', None, Any,        "reload");
+    XPDF_BIND_DEF ('s', None, Any,        "segment");
     XPDF_BIND_DEF ('f', None, Any,        "find");
     XPDF_BIND_DEF ('F', None, Any,        "find");
     XPDF_BIND_DEF ('f', Ctrl, Any,        "find");

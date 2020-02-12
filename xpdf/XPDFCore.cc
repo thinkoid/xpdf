@@ -147,6 +147,9 @@ XPDFCore::~XPDFCore () {
     if (selectCursor) { XFreeCursor (display, selectCursor); }
 }
 
+void XPDFCore::segment () {
+    PDFCore::segment ();
+}
 //------------------------------------------------------------------------
 // loadFile / displayPage / displayDest
 //------------------------------------------------------------------------

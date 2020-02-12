@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+#include <xpdf/bbox.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/OutputDev.hh>
 #include <xpdf/TextOutputDevFwd.hh>
@@ -76,6 +77,8 @@ public:
 
     // Write contents of page to a stream.
     void write (void* outputStream, TextOutputFunc outputFunc);
+
+    std::vector< xpdf::bbox_t > segment () const;
 
     // Find a string.  If <startAtTop> is true, starts looking at the
     // top of the page; else if <startAtLast> is true, starts looking

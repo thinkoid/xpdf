@@ -134,6 +134,7 @@ private:
     void cmdRotateCCW (GString* args[], int nArgs, XEvent* event);
     void cmdRotateCW (GString* args[], int nArgs, XEvent* event);
     void cmdRun (GString* args[], int nArgs, XEvent* event);
+    void cmdSegment (GString* args[], int nArgs, XEvent* event);
     void cmdScrollDown (GString* args[], int nArgs, XEvent* event);
     void cmdScrollDownNextPage (GString* args[], int nArgs, XEvent* event);
     void cmdScrollLeft (GString* args[], int nArgs, XEvent* event);

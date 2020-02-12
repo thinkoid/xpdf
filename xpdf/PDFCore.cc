@@ -4,6 +4,7 @@
 #include <defs.hh>
 
 #include <cmath>
+#include <iostream>
 
 #include <utils/memory.hh>
 #include <utils/string.hh>
@@ -22,6 +23,9 @@
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/CoreOutputDev.hh>
 #include <xpdf/PDFCore.hh>
+
+#include <range/v3/all.hpp>
+using namespace ranges;
 
 //------------------------------------------------------------------------
 // PDFCorePage
@@ -957,6 +961,200 @@ bool PDFCore::goBackward () {
     return true;
 }
 
+inline double
+width_of (const xpdf::bbox_t& x) {
+    return x.arr [2] - x.arr [0];
+}
+
+inline double
+height_of (const xpdf::bbox_t& x) {
+    return x.arr [3] - x.arr [1];
+}
+
+inline double
+hdistance_between (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return rhs.arr [0] - lhs.arr [2];
+}
+
+inline double
+vdistance_between (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return fabs (lhs.arr [1] - rhs.arr [1]);
+}
+
+inline double
+min_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::min) (width_of (lhs), width_of (rhs));
+}
+
+inline double
+max_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::max) (width_of (lhs), width_of (rhs));
+}
+
+inline double
+avg_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (width_of (lhs) + width_of (rhs)) / 2;
+}
+
+inline double
+min_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::min) (height_of (lhs), height_of (rhs));
+}
+
+inline double
+max_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::max) (height_of (lhs), height_of (rhs));
+}
+
+inline bool
+alongside (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return lhs.arr [0] < rhs.arr [0] &&
+        vdistance_between (lhs, rhs) < .2 * max_height_of (lhs, rhs) &&
+        hdistance_between (lhs, rhs) < .2 * avg_width_of  (lhs, rhs);
+}
+
+inline xpdf::bbox_t
+coalesce_left (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return xpdf::bbox_t{
+        (std::min) (lhs.arr [0], rhs.arr [0]),
+        (std::min) (lhs.arr [1], rhs.arr [1]),
+        (std::max) (lhs.arr [2], rhs.arr [2]),
+        (std::max) (lhs.arr [3], rhs.arr [3])
+    };
+}
+
+inline xpdf::bbox_t
+normalize (xpdf::bbox_t x) {
+    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
+    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
+    return x;
+}
+
+inline std::vector< xpdf::bbox_t >
+word_boxes_from (const std::vector< xpdf::bbox_t >& letters) {
+    if (letters.size () < 2) {
+        return letters;
+    }
+
+    std::vector< xpdf::bbox_t > words;
+
+    auto iter = letters.begin (), prev = iter, last = letters.end ();
+    words.push_back (*iter++);
+
+    for (; iter != last; ++iter) {
+        if (alongside (*prev, *iter)) {
+            prev = iter;
+            words.back () = normalize (coalesce_left (words.back (), *iter));
+        }
+        else {
+            words.push_back (*iter);
+            prev = iter;
+        }
+    }
+
+    return words;
+}
+
+inline std::vector< xpdf::bbox_t >
+line_boxes_from (const std::vector< xpdf::bbox_t >& words) {
+    if (words.size () < 2) {
+        return words;
+    }
+
+    std::vector< xpdf::bbox_t > lines;
+
+    auto iter = words.begin (), prev = iter, last = words.end ();
+    lines.push_back (*iter++);
+
+    for (; iter != last; ++iter) {
+        if (alongside (*prev, *iter)) {
+            prev = iter;
+            lines.back () = normalize (coalesce_left (lines.back (), *iter));
+        }
+        else {
+            lines.push_back (*iter);
+            prev = iter;
+        }
+    }
+
+    return lines;
+}
+
+void PDFCore::segment () {
+    setBusyCursor (true);
+
+    auto page = findPage (topPage);
+
+    if (!page) {
+        displayPage (topPage, zoom, rotate, true, false);
+
+        page = findPage (topPage);
+
+        if (!page) {
+            return;
+        }
+    }
+
+    auto letters = page->text->segment ();
+
+    if (!letters.empty ()) {
+        std::cout << "  --> drawing:\n";
+        std::cout << "  --> letters: " << letters.size () << "\n";
+
+        for (auto& letter : letters) {
+#if 0
+            xorRectangle (
+                page->page,
+                letter.arr [0],
+                letter.arr [1],
+                letter.arr [2],
+                letter.arr [3],
+                0);
+#endif // 0
+        }
+
+        auto words = word_boxes_from (letters);
+        std::cout << "  --> words: " << words.size () << "\n";
+
+        sort (words, [](auto& lhs, auto& rhs) {
+            return
+                lhs.arr [1]  < rhs.arr [1] ||
+               (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
+        });
+
+        for (auto& word : words) {
+#if 0
+            xorRectangle (
+                page->page,
+                word.arr [0],
+                word.arr [1],
+                word.arr [2],
+                word.arr [3],
+                0);
+#endif // 0
+        }
+
+        auto lines = line_boxes_from (words);
+        std::cout << "  --> lines: " << lines.size () << "\n";
+
+        for (auto& line : lines) {
+#if 1
+            xorRectangle (
+                page->page,
+                line.arr [0],
+                line.arr [1],
+                line.arr [2],
+                line.arr [3],
+                0);
+#endif // 0
+        }
+
+        redrawWindow (0, 0, page->w, page->h, false);
+    }
+
+    setBusyCursor (false);
+}
+
 void PDFCore::scrollLeft (int nCols) { scrollTo (scrollX - nCols, scrollY); }
 
 void PDFCore::scrollRight (int nCols) { scrollTo (scrollX + nCols, scrollY); }
@@ -1506,33 +1704,44 @@ void PDFCore::moveSelection (int pg, int x, int y) {
 void PDFCore::xorRectangle (
     int pg, int x0, int y0, int x1, int y1, SplashPattern* pattern,
     PDFCoreTile* oneTile) {
-    Splash* splash;
-    SplashPath* path;
+
+    // TODO: retarded interface
     PDFCorePage* page;
     PDFCoreTile* tile;
+
     SplashCoord xx0, yy0, xx1, yy1;
-    int xi, yi, wi, hi;
-    int i;
+    int xi, yi, wi, hi, i;
 
     if ((page = findPage (pg))) {
         for (i = 0; i < page->tiles->getLength (); ++i) {
             tile = (PDFCoreTile*)page->tiles->get (i);
             if (!oneTile || tile == oneTile) {
-                splash = new Splash (tile->bitmap, false);
-                splash->setFillPattern (pattern->copy ());
+                Splash splash (tile->bitmap, false);
+
+                if (pattern) {
+                    splash.setFillPattern (pattern->copy ());
+                }
+
                 xx0 = (SplashCoord) (x0 - tile->xMin);
                 yy0 = (SplashCoord) (y0 - tile->yMin);
                 xx1 = (SplashCoord) (x1 - tile->xMin);
                 yy1 = (SplashCoord) (y1 - tile->yMin);
-                path = new SplashPath ();
-                path->moveTo (xx0, yy0);
-                path->lineTo (xx1, yy0);
-                path->lineTo (xx1, yy1);
-                path->lineTo (xx0, yy1);
-                path->close ();
-                splash->xorFill (path, true);
-                delete path;
-                delete splash;
+
+                SplashPath path;
+
+                path.moveTo (xx0, yy0);
+                path.lineTo (xx1, yy0);
+                path.lineTo (xx1, yy1);
+                path.lineTo (xx0, yy1);
+                path.close ();
+
+                if (pattern) {
+                    splash.xorFill (&path, true);
+                }
+                else {
+                    splash.stroke (&path);
+                }
+
                 xi = x0 - tile->xMin;
                 wi = x1 - x0;
                 if (xi < 0) {
@@ -1555,7 +1764,10 @@ void PDFCore::xorRectangle (
             }
         }
     }
-    delete pattern;
+
+    if (pattern) {
+        delete pattern;
+    }
 }
 
 bool PDFCore::getSelection (

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <splash/SplashTypes.hh>
 
+#include <xpdf/bbox.hh>
 #include <xpdf/CharTypes.hh>
 #include <xpdf/TextOutputDevFwd.hh>
 
@@ -153,6 +154,7 @@ public:
     virtual bool gotoNamedDestination (GString* dest);
     virtual bool goForward ();
     virtual bool goBackward ();
+    virtual void segment ();
     virtual void scrollLeft (int nCols = 16);
     virtual void scrollRight (int nCols = 16);
     virtual void scrollUp (int nLines = 16);
@@ -168,8 +170,7 @@ public:
     virtual void scrollToBottomEdge ();
     virtual void scrollToTopLeft ();
     virtual void scrollToBottomRight ();
-    virtual void
-    zoomToRect (int pg, double ulx, double uly, double lrx, double lry);
+    virtual void zoomToRect (int pg, double ulx, double uly, double lrx, double lry);
     virtual void zoomCentered (double zoomA);
     virtual void zoomToCurrentWidth ();
     virtual void setContinuousMode (bool cm);
@@ -177,13 +178,18 @@ public:
     //----- selection
 
     // Selection color.
-    void setSelectionColor (SplashColor color);
+    void
+    setSelectionColor (SplashColor color);
 
     // Current selected region.
-    void setSelection (
+    void
+    setSelection (
         int newSelectPage, int newSelectULX, int newSelectULY, int newSelectLRX,
         int newSelectLRY);
-    void moveSelection (int pg, int x, int y);
+
+    void
+    moveSelection (int pg, int x, int y);
+
     bool
     getSelection (int* pg, double* ulx, double* uly, double* lrx, double* lry);
 
@@ -289,6 +295,9 @@ protected:
         selectULY,  //   in device space -- (ULX==LRX || ULY==LRY)
         selectLRX,  //   means there is no selection
         selectLRY;
+
+    std::vector< xpdf::bbox_t > boxes;
+
     bool dragging;             // set while selection is being dragged
     bool lastDragLeft;         // last dragged selection edge was left/right
     bool lastDragTop;          // last dragged selection edge was top/bottom

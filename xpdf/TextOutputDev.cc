@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cctype>
 
+#include <iostream>
 #include <memory>
 #include <variant>
 #include <vector>
@@ -838,6 +839,31 @@ TextPage::TextPage (TextOutputControl* controlA) {
 
 TextPage::~TextPage () {
     clear ();
+}
+
+std::vector< xpdf::bbox_t >
+TextPage::segment () const {
+    std::cout << " --> TextPage::segment\n";
+
+    auto all = chars
+        | views::transform ([](auto& x) { return std::cref (*x); })
+        | to< std::vector > ();
+
+    auto cs = all
+        | views::filter ([](auto& x) { return 0 == x.get ().rot; })
+        | views::transform ([](auto& x) {
+            auto& c = x.get ();
+            return xpdf::bbox_t{ c.xmin, c.ymin, c.xmax, c.ymax  };
+        })
+        | to< std::vector > ();
+
+    sort (cs, [](auto& lhs, auto& rhs) {
+        return
+             lhs.arr [1]  < rhs.arr [1] ||
+            (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
+    });
+
+    return cs;
 }
 
 void TextPage::startPage (GfxState* state) {
