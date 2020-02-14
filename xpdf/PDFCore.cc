@@ -27,6 +27,219 @@
 #include <range/v3/all.hpp>
 using namespace ranges;
 
+namespace xpdf {
+
+inline xpdf::bbox_t
+normalize (xpdf::bbox_t x) {
+    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
+    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
+    return x;
+}
+
+inline double  width_of (const xpdf::bbox_t& x) { return x.arr [2] - x.arr [0]; }
+inline double height_of (const xpdf::bbox_t& x) { return x.arr [3] - x.arr [1]; }
+
+inline double
+horizontal_overlap (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    auto dist =
+        (std::min) (lhs.arr [2], rhs.arr [2]) -
+        (std::max) (lhs.arr [0], rhs.arr [0]);
+    return dist > 0 ? dist : 0;
+}
+
+inline double
+horizontal_distance (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    auto x = rhs.arr [0] - lhs.arr [2];
+    return x > 0 ? x : 0;
+}
+
+inline double
+vertical_distance (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    auto x = rhs.arr [1] - lhs.arr [3];
+    return x > 0 ? x : 0;
+}
+
+inline double
+min_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::min) (width_of (lhs), width_of (rhs));
+}
+
+inline double
+max_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::max) (width_of (lhs), width_of (rhs));
+}
+
+inline double
+avg_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (width_of (lhs) + width_of (rhs)) / 2;
+}
+
+inline double
+min_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::min) (height_of (lhs), height_of (rhs));
+}
+
+inline double
+max_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (std::max) (height_of (lhs), height_of (rhs));
+}
+
+inline double
+avg_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return (height_of (lhs), height_of (rhs)) / 2;
+}
+
+inline xpdf::bbox_t
+coalesce_left (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return xpdf::bbox_t{
+        (std::min) (lhs.arr [0], rhs.arr [0]),
+        (std::min) (lhs.arr [1], rhs.arr [1]),
+        (std::max) (lhs.arr [2], rhs.arr [2]),
+        (std::max) (lhs.arr [3], rhs.arr [3])
+    };
+}
+
+inline double
+vertical_overlap (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    auto dist =
+        (std::min) (lhs.arr [3], rhs.arr [3]) -
+        (std::max) (lhs.arr [1], rhs.arr [1]);
+    return dist > 0 ? dist : 0;
+}
+
+inline bool
+left_to_right (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+    return lhs.arr [0] < rhs.arr [0];
+}
+
+inline bool
+horizontally_close (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs, double factor = .5) {
+    // Dilate horizontally and test for overlap:
+    return
+        lhs.arr [2] + factor * height_of (lhs) >
+        rhs.arr [0] - factor * height_of (rhs);
+}
+
+inline bool
+same_level (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs, double factor = .35) {
+    return vertical_overlap (lhs, rhs) > factor * min_height_of (lhs, rhs);
+}
+
+inline bool
+consecutive (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs, double factor = .25) {
+    return same_level (lhs, rhs) && left_to_right (lhs, rhs) &&
+        horizontally_close (lhs, rhs, factor);
+}
+
+std::vector< xpdf::bbox_t >
+aggregate_horizontally (const std::vector< xpdf::bbox_t >& boxes, double factor) {
+    if (boxes.size () < 2) {
+        return boxes;
+    }
+
+    std::vector< xpdf::bbox_t > superboxes;
+
+    auto iter = boxes.begin (), prev = iter, last = boxes.end ();
+    superboxes.push_back (*iter++);
+
+    for (; iter != last; prev = iter++) {
+        if (consecutive (normalize (*prev), normalize (*iter), factor)) {
+            superboxes.back () = normalize (
+                coalesce_left (
+                    normalize (superboxes.back ()),
+                    normalize (*iter)));
+        }
+        else {
+            superboxes.push_back (normalize (*iter));
+        }
+    }
+
+    return superboxes;
+}
+
+} // namespace xpdfcore
+
+void PDFCore::segment () {
+    setBusyCursor (true);
+
+    auto page = findPage (topPage);
+
+    if (!page) {
+        displayPage (topPage, zoom, rotate, true, false);
+
+        page = findPage (topPage);
+
+        if (!page) {
+            return;
+        }
+    }
+
+    auto letters = page->text->segment ();
+
+    if (!letters.empty ()) {
+        std::cout << "  --> drawing:\n";
+        std::cout << "  --> letters: " << letters.size () << "\n";
+
+        sort (letters, [](auto& lhs, auto& rhs) {
+            return
+                lhs.arr [1]  < rhs.arr [1] ||
+               (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
+        });
+
+#if 0
+        for (auto& letter : letters) {
+            xorRectangle (
+                page->page,
+                letter.arr [0],
+                letter.arr [1],
+                letter.arr [2],
+                letter.arr [3],
+                0);
+        }
+#endif // 0
+
+        auto words = aggregate_horizontally (letters, .2);
+        std::cout << "  --> words: " << words.size () << "\n";
+
+        sort (words, [](auto& lhs, auto& rhs) {
+            return
+                lhs.arr [1]  < rhs.arr [1] ||
+               (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
+        });
+
+#if 1
+        for (auto& word : words) {
+            xorRectangle (
+                page->page,
+                word.arr [0],
+                word.arr [1],
+                word.arr [2],
+                word.arr [3],
+                0);
+        }
+#endif // 0
+
+        auto lines = aggregate_horizontally (words, .5);
+        std::cout << "  --> lines: " << lines.size () << "\n";
+
+#if 0
+        for (auto& line : lines) {
+            xorRectangle (
+                page->page,
+                line.arr [0],
+                line.arr [1],
+                line.arr [2],
+                line.arr [3],
+                0);
+        }
+#endif // 0
+
+        redrawWindow (0, 0, page->w, page->h, false);
+    }
+
+    setBusyCursor (false);
+}
+
 //------------------------------------------------------------------------
 // PDFCorePage
 //------------------------------------------------------------------------
@@ -959,200 +1172,6 @@ bool PDFCore::goBackward () {
         pg, scrollX, continuousMode ? -1 : scrollY, zoom, rotate, false,
         false, true);
     return true;
-}
-
-inline double
-width_of (const xpdf::bbox_t& x) {
-    return x.arr [2] - x.arr [0];
-}
-
-inline double
-height_of (const xpdf::bbox_t& x) {
-    return x.arr [3] - x.arr [1];
-}
-
-inline double
-hdistance_between (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return rhs.arr [0] - lhs.arr [2];
-}
-
-inline double
-vdistance_between (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return fabs (lhs.arr [1] - rhs.arr [1]);
-}
-
-inline double
-min_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return (std::min) (width_of (lhs), width_of (rhs));
-}
-
-inline double
-max_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return (std::max) (width_of (lhs), width_of (rhs));
-}
-
-inline double
-avg_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return (width_of (lhs) + width_of (rhs)) / 2;
-}
-
-inline double
-min_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return (std::min) (height_of (lhs), height_of (rhs));
-}
-
-inline double
-max_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return (std::max) (height_of (lhs), height_of (rhs));
-}
-
-inline bool
-alongside (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return lhs.arr [0] < rhs.arr [0] &&
-        vdistance_between (lhs, rhs) < .2 * max_height_of (lhs, rhs) &&
-        hdistance_between (lhs, rhs) < .2 * avg_width_of  (lhs, rhs);
-}
-
-inline xpdf::bbox_t
-coalesce_left (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return xpdf::bbox_t{
-        (std::min) (lhs.arr [0], rhs.arr [0]),
-        (std::min) (lhs.arr [1], rhs.arr [1]),
-        (std::max) (lhs.arr [2], rhs.arr [2]),
-        (std::max) (lhs.arr [3], rhs.arr [3])
-    };
-}
-
-inline xpdf::bbox_t
-normalize (xpdf::bbox_t x) {
-    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
-    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
-    return x;
-}
-
-inline std::vector< xpdf::bbox_t >
-word_boxes_from (const std::vector< xpdf::bbox_t >& letters) {
-    if (letters.size () < 2) {
-        return letters;
-    }
-
-    std::vector< xpdf::bbox_t > words;
-
-    auto iter = letters.begin (), prev = iter, last = letters.end ();
-    words.push_back (*iter++);
-
-    for (; iter != last; ++iter) {
-        if (alongside (*prev, *iter)) {
-            prev = iter;
-            words.back () = normalize (coalesce_left (words.back (), *iter));
-        }
-        else {
-            words.push_back (*iter);
-            prev = iter;
-        }
-    }
-
-    return words;
-}
-
-inline std::vector< xpdf::bbox_t >
-line_boxes_from (const std::vector< xpdf::bbox_t >& words) {
-    if (words.size () < 2) {
-        return words;
-    }
-
-    std::vector< xpdf::bbox_t > lines;
-
-    auto iter = words.begin (), prev = iter, last = words.end ();
-    lines.push_back (*iter++);
-
-    for (; iter != last; ++iter) {
-        if (alongside (*prev, *iter)) {
-            prev = iter;
-            lines.back () = normalize (coalesce_left (lines.back (), *iter));
-        }
-        else {
-            lines.push_back (*iter);
-            prev = iter;
-        }
-    }
-
-    return lines;
-}
-
-void PDFCore::segment () {
-    setBusyCursor (true);
-
-    auto page = findPage (topPage);
-
-    if (!page) {
-        displayPage (topPage, zoom, rotate, true, false);
-
-        page = findPage (topPage);
-
-        if (!page) {
-            return;
-        }
-    }
-
-    auto letters = page->text->segment ();
-
-    if (!letters.empty ()) {
-        std::cout << "  --> drawing:\n";
-        std::cout << "  --> letters: " << letters.size () << "\n";
-
-        for (auto& letter : letters) {
-#if 0
-            xorRectangle (
-                page->page,
-                letter.arr [0],
-                letter.arr [1],
-                letter.arr [2],
-                letter.arr [3],
-                0);
-#endif // 0
-        }
-
-        auto words = word_boxes_from (letters);
-        std::cout << "  --> words: " << words.size () << "\n";
-
-        sort (words, [](auto& lhs, auto& rhs) {
-            return
-                lhs.arr [1]  < rhs.arr [1] ||
-               (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
-        });
-
-        for (auto& word : words) {
-#if 0
-            xorRectangle (
-                page->page,
-                word.arr [0],
-                word.arr [1],
-                word.arr [2],
-                word.arr [3],
-                0);
-#endif // 0
-        }
-
-        auto lines = line_boxes_from (words);
-        std::cout << "  --> lines: " << lines.size () << "\n";
-
-        for (auto& line : lines) {
-#if 1
-            xorRectangle (
-                page->page,
-                line.arr [0],
-                line.arr [1],
-                line.arr [2],
-                line.arr [3],
-                0);
-#endif // 0
-        }
-
-        redrawWindow (0, 0, page->w, page->h, false);
-    }
-
-    setBusyCursor (false);
 }
 
 void PDFCore::scrollLeft (int nCols) { scrollTo (scrollX - nCols, scrollY); }
