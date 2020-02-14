@@ -40,6 +40,10 @@ class SplashSolidColor : public SplashPattern {
 public:
     SplashSolidColor (SplashColorPtr colorA);
 
+    SplashSolidColor (unsigned char r, unsigned char g, unsigned char b)
+        : color{ r, g, b }
+        { }
+
     virtual SplashPattern* copy () { return new SplashSolidColor (color); }
 
     virtual ~SplashSolidColor ();
