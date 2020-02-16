@@ -29,61 +29,55 @@ using namespace ranges;
 
 namespace xpdf {
 
-inline xpdf::bbox_t
-normalize (xpdf::bbox_t x) {
+inline bbox_t
+normalize (bbox_t x) {
     if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
     if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
     return x;
 }
 
-inline double  width_of (const xpdf::bbox_t& x) { return x.arr [2] - x.arr [0]; }
-inline double height_of (const xpdf::bbox_t& x) { return x.arr [3] - x.arr [1]; }
+inline double  width_of (const bbox_t& x) { return x.arr [2] - x.arr [0]; }
+inline double height_of (const bbox_t& x) { return x.arr [3] - x.arr [1]; }
 
 inline double
-horizontal_overlap (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    auto dist =
+horizontal_overlap (const bbox_t& lhs, const bbox_t& rhs) {
+    const auto dist =
         (std::min) (lhs.arr [2], rhs.arr [2]) -
         (std::max) (lhs.arr [0], rhs.arr [0]);
     return dist > 0 ? dist : 0;
 }
 
 inline double
-vertical_overlap (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    auto dist =
+vertical_overlap (const bbox_t& lhs, const bbox_t& rhs) {
+    const auto dist =
         (std::min) (lhs.arr [3], rhs.arr [3]) -
         (std::max) (lhs.arr [1], rhs.arr [1]);
     return dist > 0 ? dist : 0;
 }
 
-inline xpdf::bbox_t
-dilate_horizontally (const xpdf::bbox_t& box, double factor = .05) {
-    auto w = factor * width_of (box);
-    return {
-        box.arr [0] - w, box.arr [1],
-        box.arr [2] + w, box.arr [3]
-    };
-}
-
 inline bool
-overlap (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return horizontal_overlap (lhs, rhs) &&
-        vertical_overlap (lhs, rhs);
+overlapping (const bbox_t& lhs, const bbox_t& rhs) {
+    return horizontal_overlap (lhs, rhs) && vertical_overlap (lhs, rhs);
 }
 
 inline double
-horizontal_distance (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    auto x = rhs.arr [0] - lhs.arr [2];
-    return x > 0 ? x : 0;
+horizontal_distance (const bbox_t& lhs, const bbox_t& rhs) {
+    return lhs.arr [2] < rhs.arr [0]
+        ? rhs.arr [0] - lhs.arr [2]
+        : rhs.arr [2] < lhs.arr [0]
+            ? lhs.arr [0] - rhs.arr [2] : 0;
 }
 
 inline double
-vertical_distance (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    auto x = rhs.arr [1] - lhs.arr [3];
-    return x > 0 ? x : 0;
+vertical_distance (const bbox_t& lhs, const bbox_t& rhs) {
+    return lhs.arr [3] < rhs.arr [1]
+        ? rhs.arr [1] - lhs.arr [3]
+        : rhs.arr [3] < lhs.arr [1]
+            ? lhs.arr [1] - rhs.arr [3] : 0;
 }
 
 inline std::tuple< double, double >
-center_of (const xpdf::bbox_t& box) {
+center_of (const bbox_t& box) {
     ASSERT (box.arr [0] < box.arr [2]);
     ASSERT (box.arr [1] < box.arr [3]);
     return {
@@ -93,38 +87,38 @@ center_of (const xpdf::bbox_t& box) {
 }
 
 inline double
-min_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+min_width_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (std::min) (width_of (lhs), width_of (rhs));
 }
 
 inline double
-max_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+max_width_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (std::max) (width_of (lhs), width_of (rhs));
 }
 
 inline double
-avg_width_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+avg_width_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (width_of (lhs) + width_of (rhs)) / 2;
 }
 
 inline double
-min_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+min_height_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (std::min) (height_of (lhs), height_of (rhs));
 }
 
 inline double
-max_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+max_height_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (std::max) (height_of (lhs), height_of (rhs));
 }
 
 inline double
-avg_height_of (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
+avg_height_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (height_of (lhs), height_of (rhs)) / 2;
 }
 
-inline xpdf::bbox_t
-coalesce (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
-    return xpdf::bbox_t{
+inline bbox_t
+coalesce (const bbox_t& lhs, const bbox_t& rhs) {
+    return bbox_t{
         (std::min) (lhs.arr [0], rhs.arr [0]),
         (std::min) (lhs.arr [1], rhs.arr [1]),
         (std::max) (lhs.arr [2], rhs.arr [2]),
@@ -132,36 +126,66 @@ coalesce (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs) {
     };
 }
 
+//
+// Vertical overlap is more than half the height of the smallest of
+// neighbors:
+//
 inline bool
-horizontally_close (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs, double factor = .05) {
-    return overlap (lhs, dilate_horizontally (rhs, factor));
+horizontally_aligned (const bbox_t& lhs, const bbox_t& rhs) {
+    return vertical_overlap (lhs, rhs) > .4 * min_height_of (lhs, rhs);
 }
 
-std::vector< xpdf::bbox_t >
-aggregate_horizontally (const std::vector< xpdf::bbox_t >& boxes, double factor = .05) {
+//
+// Characters are stacked when side-by-side, of same height and close together:
+//
+inline bool
+horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs) {
+    return vertical_overlap (lhs, rhs) >= .95 * height_of (coalesce (lhs, rhs)) &&
+        horizontal_distance (lhs, rhs) <  .10 * width_of (rhs);
+}
+
+inline bool
+horizontally_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .10) {
+    return
+        horizontally_aligned (lhs, rhs) &&
+        horizontal_distance  (lhs, rhs) < factor * height_of (rhs);
+}
+
+template< typename T >
+std::vector< bbox_t >
+aggregate (std::vector< bbox_t > boxes, T test) {
     if (boxes.size () < 2) {
         return boxes;
     }
 
-    std::vector< xpdf::bbox_t > superboxes;
+    std::vector< bbox_t > superboxes;
+    auto src = std::ref (boxes), dst = std::ref (superboxes);
 
-    auto iter = boxes.begin (), prev = iter, last = boxes.end ();
-    superboxes.push_back (*iter++);
+    for (;;) {
+        auto iter = src.get ().begin (), last = src.get ().end ();
+        dst.get ().push_back (*iter++);
 
-    for (; iter != last; prev = iter++) {
-        bool coalesced = false;
+        for (; iter != last; ++iter) {
+            bool coalesced = false;
 
-        for (auto& superbox : superboxes | views::reverse) {
-            if (horizontally_close (superbox, *iter, factor)) {
-                superbox = coalesce (superbox, *iter);
-                coalesced = true;
-                break;
+            for (auto& x : dst.get () | views::reverse) {
+                if (test (x, *iter)) {
+                    x = coalesce (x, *iter);
+                    coalesced = true;
+                    break;
+                }
+            }
+
+            if (!coalesced) {
+                dst.get ().push_back (*iter);
             }
         }
 
-        if (!coalesced) {
-            superboxes.push_back (*iter);
+        if (src.get ().size () == dst.get ().size ()) {
+            break;
         }
+
+        src.get () = std::move (dst.get ());
     }
 
     return superboxes;
@@ -177,9 +201,7 @@ void PDFCore::segment () {
     if (!page) {
         displayPage (topPage, zoom, rotate, true, false);
 
-        page = findPage (topPage);
-
-        if (!page) {
+        if (!(page = findPage (topPage))) {
             return;
         }
     }
@@ -190,7 +212,7 @@ void PDFCore::segment () {
         std::cout << "  --> drawing:\n";
         std::cout << "  --> letters: " << letters.size () << "\n";
 
-        const auto boxless = [](auto& lhs, auto& rhs) {
+        auto boxless = [](auto& lhs, auto& rhs) {
             return
                 lhs.arr [1]  < rhs.arr [1] ||
                (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
@@ -210,7 +232,13 @@ void PDFCore::segment () {
         }
 #endif // 0
 
-        auto words = aggregate_horizontally (letters);
+        auto wordtest = [](auto& lhs, auto& rhs) {
+            return
+                 horizontally_stacked (lhs, rhs) || overlapping (lhs, rhs) ||
+                 horizontally_close   (lhs, rhs);
+        };
+
+        auto words = aggregate (letters, wordtest);
         sort (words, boxless);
 
 #if 0
@@ -226,11 +254,11 @@ void PDFCore::segment () {
         }
 #endif // 0
 
-        auto lines = aggregate_horizontally (words, .2);
-        sort (lines, boxless);
+        auto linetest = [](auto& lhs, auto& rhs) {
+            return overlapping (lhs, rhs) || horizontally_close (lhs, rhs, 1.);
+        };
 
-        lines = aggregate_horizontally (lines, .2);
-        lines = aggregate_horizontally (lines, .2);
+        auto lines = aggregate (words, linetest);
         sort (lines, boxless);
 
         std::cout << "  --> lines: " << lines.size () << "\n";
