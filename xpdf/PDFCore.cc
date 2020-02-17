@@ -64,16 +64,14 @@ inline double
 horizontal_distance (const bbox_t& lhs, const bbox_t& rhs) {
     return lhs.arr [2] < rhs.arr [0]
         ? rhs.arr [0] - lhs.arr [2]
-        : rhs.arr [2] < lhs.arr [0]
-            ? lhs.arr [0] - rhs.arr [2] : 0;
+        : rhs.arr [2] < lhs.arr [0] ? lhs.arr [0] - rhs.arr [2] : 0;
 }
 
 inline double
 vertical_distance (const bbox_t& lhs, const bbox_t& rhs) {
     return lhs.arr [3] < rhs.arr [1]
         ? rhs.arr [1] - lhs.arr [3]
-        : rhs.arr [3] < lhs.arr [1]
-            ? lhs.arr [1] - rhs.arr [3] : 0;
+        : rhs.arr [3] < lhs.arr [1] ? lhs.arr [1] - rhs.arr [3] : 0;
 }
 
 inline std::tuple< double, double >
@@ -131,8 +129,13 @@ coalesce (const bbox_t& lhs, const bbox_t& rhs) {
 // neighbors:
 //
 inline bool
-horizontally_aligned (const bbox_t& lhs, const bbox_t& rhs) {
-    return vertical_overlap (lhs, rhs) > .4 * min_height_of (lhs, rhs);
+horizontally_aligned (const bbox_t& lhs, const bbox_t& rhs, double factor = .4) {
+    return vertical_overlap (lhs, rhs) > factor * min_height_of (lhs, rhs);
+}
+
+inline bool
+left_aligned (const bbox_t& lhs, const bbox_t& rhs, double margin = .10) {
+    return margin > fabs (lhs.arr [0] - rhs.arr [0]);
 }
 
 //
@@ -145,47 +148,69 @@ horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs) {
 }
 
 inline bool
-horizontally_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .10) {
+horizontally_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .15) {
     return
         horizontally_aligned (lhs, rhs) &&
         horizontal_distance  (lhs, rhs) < factor * height_of (rhs);
 }
 
+inline bool
+vertically_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .25) {
+    return vertical_distance (lhs, rhs) < factor * height_of (rhs);
+}
+
 template< typename T >
 std::vector< bbox_t >
-aggregate (std::vector< bbox_t > boxes, T test) {
+simple_aggregate (const std::vector< bbox_t >& boxes, T test) {
     if (boxes.size () < 2) {
         return boxes;
     }
 
     std::vector< bbox_t > superboxes;
-    auto src = std::ref (boxes), dst = std::ref (superboxes);
 
-    for (;;) {
-        auto iter = src.get ().begin (), last = src.get ().end ();
-        dst.get ().push_back (*iter++);
+    auto iter = boxes.begin (), last = boxes.end ();
+    superboxes.push_back (*iter++);
 
-        for (; iter != last; ++iter) {
-            bool coalesced = false;
+    for (; iter != last; ++iter) {
+        bool coalesced = false;
 
-            for (auto& x : dst.get () | views::reverse) {
-                if (test (x, *iter)) {
-                    x = coalesce (x, *iter);
-                    coalesced = true;
-                    break;
-                }
-            }
-
-            if (!coalesced) {
-                dst.get ().push_back (*iter);
+        for (auto& superbox : superboxes | views::reverse) {
+            if (test (superbox, *iter)) {
+                superbox = coalesce (superbox, *iter);
+                coalesced = true;
+                break;
             }
         }
+
+        if (!coalesced) {
+            superboxes.push_back (*iter);
+        }
+    }
+
+    return superboxes;
+}
+
+template< typename T >
+std::vector< bbox_t >
+aggregate (const std::vector< bbox_t >& boxes, T test) {
+    if (boxes.size () < 2) {
+        return boxes;
+    }
+
+    std::vector< bbox_t > other, superboxes;
+
+    auto src = std::cref (boxes);
+    auto dst = std::ref (superboxes);
+
+    for (;;) {
+        dst.get () = simple_aggregate (src.get (), test);
 
         if (src.get ().size () == dst.get ().size ()) {
             break;
         }
 
-        src.get () = std::move (dst.get ());
+        other = std::move (superboxes);
+        src = std::cref (other);
     }
 
     return superboxes;
@@ -222,13 +247,7 @@ void PDFCore::segment () {
 
 #if 0
         for (auto& letter : letters) {
-            xorRectangle (
-                page->page,
-                letter.arr [0],
-                letter.arr [1],
-                letter.arr [2],
-                letter.arr [3],
-                0);
+            xorRectangle (page->page, letter);
         }
 #endif // 0
 
@@ -244,13 +263,7 @@ void PDFCore::segment () {
 #if 0
         std::cout << "  --> words: " << words.size () << "\n";
         for (auto& word : words) {
-            xorRectangle (
-                page->page,
-                word.arr [0],
-                word.arr [1],
-                word.arr [2],
-                word.arr [3],
-                0);
+            xorRectangle (page->page, word);
         }
 #endif // 0
 
@@ -263,15 +276,25 @@ void PDFCore::segment () {
 
         std::cout << "  --> lines: " << lines.size () << "\n";
 
-#if 1
+#if 0
         for (auto& line : lines) {
-            xorRectangle (
-                page->page,
-                line.arr [0],
-                line.arr [1],
-                line.arr [2],
-                line.arr [3],
-                0);
+            xorRectangle (page->page, line);
+        }
+#endif // 0
+
+        auto paratest = [](auto& lhs, auto& rhs) {
+            return overlapping (lhs, rhs) ||
+                left_aligned (lhs, rhs) && vertically_close (lhs, rhs);
+        };
+
+        auto paragraphs = simple_aggregate (lines, paratest);
+        sort (paragraphs, boxless);
+
+        std::cout << "  --> paragraphs: " << paragraphs.size () << "\n";
+
+#if 1
+        for (auto& paragraph : paragraphs) {
+            xorRectangle (page->page, paragraph);
         }
 #endif // 0
 

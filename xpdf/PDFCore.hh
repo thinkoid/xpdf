@@ -245,9 +245,22 @@ protected:
     int loadFile2 (PDFDoc* newDoc);
     void addPage (int pg, int rot);
     void needTile (PDFCorePage* page, int x, int y);
-    void xorRectangle (
-        int pg, int x0, int y0, int x1, int y1, SplashPattern* pattern,
-        PDFCoreTile* oneTile = NULL);
+
+    void
+    xorRectangle (
+        int pg, int x0, int y0, int x1, int y1, SplashPattern* pattern = 0,
+        PDFCoreTile* oneTile = 0);
+
+    inline void xorRectangle (
+        int pg, const xpdf::bbox_t& box,
+        SplashPattern* pattern = 0,
+        PDFCoreTile* oneTile = 0) {
+        xorRectangle (
+            pg,
+            box.arr [0], box.arr [1], box.arr [2], box.arr [3],
+            pattern, oneTile);
+    }
+
     int loadHighlightFile (
         HighlightFile* hf, SplashColorPtr color, SplashColorPtr selectColor,
         bool selectable);
