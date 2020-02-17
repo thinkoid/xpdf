@@ -19,10 +19,10 @@
 //------------------------------------------------------------------------
 
 // number of components in each color mode
-int splashColorModeNComps[] = { 1, 1, 3, 3
+int splashColorModeNComps[] = {
+    1, 1, 3, 3
 #if SPLASH_CMYK
-                                ,
-                                4
+    ,4
 #endif
 };
 

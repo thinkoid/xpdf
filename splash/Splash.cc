@@ -2193,8 +2193,6 @@ SplashError Splash::fillWithPattern (
     SplashPath* path, bool eo, SplashPattern* pattern, SplashCoord alpha) {
     SplashPipe pipe;
     SplashPath* path2;
-    SplashXPath* xPath;
-    SplashXPathScanner* scanner;
     int xMin, yMin, xMax, yMax, x, y, t;
     SplashClipResult clipRes;
 
@@ -2206,37 +2204,43 @@ SplashError Splash::fillWithPattern (
 
     path2 = tweakFillPath (path);
 
-    xPath = new SplashXPath (path2, state->matrix, state->flatness, true);
-    if (path2 != path) { delete path2; }
-    xMin = xPath->getXMin ();
-    yMin = xPath->getYMin ();
-    xMax = xPath->getXMax ();
-    yMax = xPath->getYMax ();
+    SplashXPath xPath (path2, state->matrix, state->flatness, true);
+
+    if (path2 != path) {
+        delete path2;
+    }
+
+    xMin = xPath.getXMin ();
+    yMin = xPath.getYMin ();
+    xMax = xPath.getXMax ();
+    yMax = xPath.getYMax ();
+
     if (xMin > xMax || yMin > yMax) {
-        delete xPath;
         return splashOk;
     }
-    scanner = new SplashXPathScanner (xPath, eo, yMin, yMax);
+
+    SplashXPathScanner scanner (&xPath, eo, yMin, yMax);
 
     // check clipping
-    if ((clipRes = state->clip->testRect (
-             xMin, yMin, xMax, yMax, state->strokeAdjust)) !=
-        splashClipAllOutside) {
+    if (splashClipAllOutside != (clipRes = state->clip->testRect (
+             xMin, yMin, xMax, yMax, state->strokeAdjust))) {
         if ((t = state->clip->getXMinI (state->strokeAdjust)) > xMin) {
             xMin = t;
         }
+
         if ((t = state->clip->getXMaxI (state->strokeAdjust)) < xMax) {
             xMax = t;
         }
+
         if ((t = state->clip->getYMinI (state->strokeAdjust)) > yMin) {
             yMin = t;
         }
+
         if ((t = state->clip->getYMaxI (state->strokeAdjust)) < yMax) {
             yMax = t;
         }
+
         if (xMin > xMax || yMin > yMax) {
-            delete scanner;
-            delete xPath;
             return splashOk;
         }
 
@@ -2246,7 +2250,7 @@ SplashError Splash::fillWithPattern (
         // draw the spans
         if (vectorAntialias && !inShading) {
             for (y = yMin; y <= yMax; ++y) {
-                scanner->getSpan (scanBuf, y, xMin, xMax);
+                scanner.getSpan (scanBuf, y, xMin, xMax);
                 if (clipRes != splashClipAllInside) {
                     state->clip->clipSpan (
                         scanBuf, y, xMin, xMax, state->strokeAdjust);
@@ -2259,7 +2263,7 @@ SplashError Splash::fillWithPattern (
         }
         else {
             for (y = yMin; y <= yMax; ++y) {
-                scanner->getSpanBinary (scanBuf, y, xMin, xMax);
+                scanner.getSpanBinary (scanBuf, y, xMin, xMax);
                 if (clipRes != splashClipAllInside) {
                     state->clip->clipSpanBinary (
                         scanBuf, y, xMin, xMax, state->strokeAdjust);
@@ -2268,10 +2272,9 @@ SplashError Splash::fillWithPattern (
             }
         }
     }
+
     opClipRes = clipRes;
 
-    delete scanner;
-    delete xPath;
     return splashOk;
 }
 
@@ -2432,8 +2435,6 @@ bool Splash::pathAllOutside (SplashPath* path) {
 
 SplashError Splash::xorFill (SplashPath* path, bool eo) {
     SplashPipe pipe;
-    SplashXPath* xPath;
-    SplashXPathScanner* scanner;
     int xMin, yMin, xMax, yMax, y, t;
     SplashClipResult clipRes;
     SplashBlendFunc origBlendFunc;
@@ -2443,17 +2444,15 @@ SplashError Splash::xorFill (SplashPath* path, bool eo) {
         opClipRes = splashClipAllOutside;
         return splashOk;
     }
-    xPath = new SplashXPath (path, state->matrix, state->flatness, true);
-    xMin = xPath->getXMin ();
-    yMin = xPath->getYMin ();
-    xMax = xPath->getXMax ();
-    yMax = xPath->getYMax ();
+    SplashXPath xPath (path, state->matrix, state->flatness, true);
+    xMin = xPath.getXMin ();
+    yMin = xPath.getYMin ();
+    xMax = xPath.getXMax ();
+    yMax = xPath.getYMax ();
     if (xMin > xMax || yMin > yMax) {
-        delete xPath;
         return splashOk;
     }
-    scanner = new SplashXPathScanner (xPath, eo, yMin, yMax);
-
+    SplashXPathScanner scanner (&xPath, eo, yMin, yMax);
     // check clipping
     if ((clipRes = state->clip->testRect (
              xMin, yMin, xMax, yMax, state->strokeAdjust)) !=
@@ -2471,8 +2470,6 @@ SplashError Splash::xorFill (SplashPath* path, bool eo) {
             yMax = t;
         }
         if (xMin > xMax || yMin > yMax) {
-            delete scanner;
-            delete xPath;
             return splashOk;
         }
 
@@ -2482,7 +2479,7 @@ SplashError Splash::xorFill (SplashPath* path, bool eo) {
 
         // draw the spans
         for (y = yMin; y <= yMax; ++y) {
-            scanner->getSpanBinary (scanBuf, y, xMin, xMax);
+            scanner.getSpanBinary (scanBuf, y, xMin, xMax);
             if (clipRes != splashClipAllInside) {
                 state->clip->clipSpanBinary (
                     scanBuf, y, xMin, xMax, state->strokeAdjust);
@@ -2493,8 +2490,6 @@ SplashError Splash::xorFill (SplashPath* path, bool eo) {
     }
     opClipRes = clipRes;
 
-    delete scanner;
-    delete xPath;
     return splashOk;
 }
 
