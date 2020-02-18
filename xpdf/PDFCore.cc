@@ -216,7 +216,7 @@ aggregate (const std::vector< bbox_t >& boxes, T test) {
     return superboxes;
 }
 
-} // namespace xpdfcore
+} // namespace xpdf
 
 void PDFCore::segment () {
     setBusyCursor (true);
@@ -1879,12 +1879,14 @@ GString* PDFCore::extractText (
             x0 = x1;
             x1 = t;
         }
+
         if (y0 > y1) {
             t = y0;
             y0 = y1;
             y1 = t;
         }
-        s = page->text->getText (x0, y0, x1, y1);
+        s = page->text->getText (xpdf::bbox_t{
+                double (x0), double (y0), double (x1), double (y1) });
     }
     else {
         textOutCtrl.mode = textOutPhysLayout;
@@ -1904,7 +1906,8 @@ GString* PDFCore::extractText (
                 y0 = y1;
                 y1 = t;
             }
-            s = textOut->getText (x0, y0, x1, y1);
+            s = textOut->getText (xpdf::bbox_t{
+                double (x0), double (y0), double (x1), double (y1) });
         }
         else {
             s = new GString ();
@@ -1936,8 +1939,6 @@ bool PDFCore::findU (
     Unicode* u, int len, bool caseSensitive, bool next, bool backward,
     bool wholeWord, bool onePageOnly) {
     TextOutputControl textOutCtrl;
-    TextOutputDev* textOut;
-    double xMin, yMin, xMax, yMax;
     PDFCorePage* page;
     int pg;
     bool startAtTop, startAtLast, stopAtLast;
@@ -1950,18 +1951,18 @@ bool PDFCore::findU (
     // search current page starting at previous result, current
     // selection, or top/bottom of page
     startAtTop = startAtLast = false;
-    xMin = yMin = xMax = yMax = 0;
+    xpdf::bbox_t box{ };
     pg = topPage;
     if (next) { startAtLast = true; }
     else if (selectULX != selectLRX && selectULY != selectLRY) {
         pg = selectPage;
         if (backward) {
-            xMin = selectULX - 1;
-            yMin = selectULY - 1;
+            box.arr [0] = selectULX - 1;
+            box.arr [1] = selectULY - 1;
         }
         else {
-            xMin = selectULX + 1;
-            yMin = selectULY + 1;
+            box.arr [0] = selectULX + 1;
+            box.arr [1] = selectULY + 1;
         }
     }
     else {
@@ -1972,27 +1973,30 @@ bool PDFCore::findU (
         page = findPage (pg);
     }
     if (page->text->findText (
-            u, len, startAtTop, true, startAtLast, false, caseSensitive,
-            backward, wholeWord, &xMin, &yMin, &xMax, &yMax)) {
+            u, len, startAtTop, true, startAtLast, false,
+            caseSensitive, backward, wholeWord,
+            box)) {
         goto found;
     }
 
     if (!onePageOnly) {
         // search following/previous pages
         textOutCtrl.mode = textOutPhysLayout;
-        textOut = new TextOutputDev (NULL, &textOutCtrl, false);
-        if (!textOut->isOk ()) {
-            delete textOut;
+        TextOutputDev textOut (NULL, &textOutCtrl, false);
+
+        if (!textOut.isOk ()) {
             goto notFound;
         }
+
         for (pg = backward ? pg - 1 : pg + 1;
              backward ? pg >= 1 : pg <= doc->getNumPages ();
              pg += backward ? -1 : 1) {
-            doc->displayPage (textOut, pg, 72, 72, 0, false, true, false);
-            if (textOut->findText (
-                    u, len, true, true, false, false, caseSensitive,
-                    backward, wholeWord, &xMin, &yMin, &xMax, &yMax)) {
-                delete textOut;
+            doc->displayPage (&textOut, pg, 72, 72, 0, false, true, false);
+
+            if (textOut.findText (
+                    u, len, true, true, false, false,
+                    caseSensitive, backward, wholeWord,
+                    box)) {
                 goto foundPage;
             }
         }
@@ -2000,30 +2004,33 @@ bool PDFCore::findU (
         // search previous/following pages
         for (pg = backward ? doc->getNumPages () : 1;
              backward ? pg > topPage : pg < topPage; pg += backward ? -1 : 1) {
-            doc->displayPage (textOut, pg, 72, 72, 0, false, true, false);
-            if (textOut->findText (
-                    u, len, true, true, false, false, caseSensitive,
-                    backward, wholeWord, &xMin, &yMin, &xMax, &yMax)) {
-                delete textOut;
+            doc->displayPage (&textOut, pg, 72, 72, 0, false, true, false);
+            if (textOut.findText (
+                    u, len, true, true, false, false,
+                    caseSensitive, backward, wholeWord,
+                    box)) {
                 goto foundPage;
             }
         }
-        delete textOut;
     }
 
     // search current page ending at previous result, current selection,
     // or bottom/top of page
     if (!startAtTop) {
-        xMin = yMin = xMax = yMax = 0;
-        if (next) { stopAtLast = true; }
+        box = { };
+
+        if (next) {
+            stopAtLast = true;
+        }
         else {
             stopAtLast = false;
-            xMax = selectLRX;
-            yMax = selectLRY;
+            box.arr [2] = selectLRX;
+            box.arr [3] = selectLRY;
         }
+
         if (page->text->findText (
                 u, len, true, false, false, stopAtLast, caseSensitive,
-                backward, wholeWord, &xMin, &yMin, &xMax, &yMax)) {
+                backward, wholeWord, box)) {
             goto found;
         }
     }
@@ -2038,10 +2045,13 @@ foundPage:
     update (
         pg, scrollX, continuousMode ? -1 : 0, zoom, rotate, false, true,
         true);
+
     page = findPage (pg);
+
     if (!page->text->findText (
-            u, len, true, true, false, false, caseSensitive, backward,
-            wholeWord, &xMin, &yMin, &xMax, &yMax)) {
+            u, len, true, true, false, false,
+            caseSensitive, backward, wholeWord,
+            box)) {
         // this can happen if coalescing is bad
         goto notFound;
     }
@@ -2049,10 +2059,14 @@ foundPage:
     // found: change the selection
 found:
     setSelection (
-        pg, (int)floor (xMin), (int)floor (yMin), (int)ceil (xMax),
-        (int)ceil (yMax));
+        pg,
+        (int)floor (box.arr [0]),
+        (int)floor (box.arr [1]),
+        (int)ceil  (box.arr [2]),
+        (int)ceil  (box.arr [3]));
 
     setBusyCursor (false);
+
     return true;
 }
 

@@ -23,13 +23,10 @@ class TextLink;
 class TextPage;
 class UnicodeMap;
 
-//------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////
 
 typedef void (*TextOutputFunc) (void* stream, const char* text, int len);
 
-//
-// TextOutputControl
-//
 enum TextOutputMode {
     textOutReadingOrder, // format into reading order
     textOutPhysLayout,   // maintain original physical layout
@@ -67,11 +64,9 @@ struct TextOutputControl {
     unsigned char clipText: 1 = 0;
 };
 
-//
-// TextPage
-//
-class TextPage {
-public:
+////////////////////////////////////////////////////////////////////////
+
+struct TextPage {
     TextPage (TextOutputControl* controlA);
     ~TextPage ();
 
@@ -80,28 +75,33 @@ public:
 
     std::vector< xpdf::bbox_t > segment () const;
 
-    // Find a string.  If <startAtTop> is true, starts looking at the
-    // top of the page; else if <startAtLast> is true, starts looking
-    // immediately after the last find result; else starts looking at
-    // <xMin>,<yMin>.  If <stopAtBottom> is true, stops looking at the
-    // bottom of the page; else if <stopAtLast> is true, stops looking
-    // just before the last find result; else stops looking at
-    // <xMax>,<yMax>.
+    //
+    // Find a matching string:
+    // - startAtTop  : if true, search starts at the top of the page,
+    // - startAtLast : if true, search starts after the last match,
+    //     otherwise, starts looking at { xMin, yMin }.
+    //
+    // - stopAtBottom : if true, stops looking at the bottom of page,
+    // - stopAtLast   : if true, stops looking before the last match,
+    //     otherwise, stops looking at { xMax, yMax }
+    //
     bool findText (
-        Unicode* s, int len, bool startAtTop, bool stopAtBottom,
-        bool startAtLast, bool stopAtLast, bool caseSensitive,
-        bool backward, bool wholeWord, double* xMin, double* yMin,
-        double* xMax, double* yMax);
+        Unicode* s, int len,
+        bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
+        bool caseSensitive, bool backward, bool wholeWord,
+        xpdf::bbox_t&);
 
     // Get the text which is inside the specified rectangle.
-    GString* getText (double xMin, double yMin, double xMax, double yMax);
+    GString*
+    getText (const xpdf::bbox_t&);
 
+    //
     // Find a string by character position and length.  If found, sets
     // the text bounding rectangle and returns true; otherwise returns
     // false.
-    bool findCharRange (
-        int pos, int length, double* xMin, double* yMin, double* xMax,
-        double* yMax);
+    //
+    bool
+    findCharRange (int pos, int length, xpdf::bbox_t&);
 
     // Build a flat word list, in the specified ordering.
     TextWords makeWordList ();
@@ -250,9 +250,8 @@ private:
     friend class TextOutputDev;
 };
 
-//
-// TextOutputDev
-//
+////////////////////////////////////////////////////////////////////////
+
 class TextOutputDev : public OutputDev {
 public:
     // Open a text output file.  If <fileName> is NULL, no file is
@@ -329,20 +328,20 @@ public:
     // just before the last find result; else stops looking at
     // <xMax>,<yMax>.
     bool findText (
-        Unicode* s, int len, bool startAtTop, bool stopAtBottom,
-        bool startAtLast, bool stopAtLast, bool caseSensitive,
-        bool backward, bool wholeWord, double* xMin, double* yMin,
-        double* xMax, double* yMax);
+        Unicode* s, int len,
+        bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
+        bool caseSensitive, bool backward, bool wholeWord,
+        xpdf::bbox_t&);
 
     // Get the text which is inside the specified rectangle.
-    GString* getText (double xMin, double yMin, double xMax, double yMax);
+    GString*
+    getText (const xpdf::bbox_t&);
 
     // Find a string by character position and length.  If found, sets
     // the text bounding rectangle and returns true; otherwise returns
     // false.
-    bool findCharRange (
-        int pos, int length, double* xMin, double* yMin, double* xMax,
-        double* yMax);
+    bool
+    findCharRange (int pos, int length, xpdf::bbox_t&);
 
     // Build a flat word list, in content stream order (if
     // this->rawOrder is true), physical layout order (if

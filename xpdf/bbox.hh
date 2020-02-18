@@ -9,14 +9,15 @@
 namespace xpdf {
 
 //
-// Bounding box, described by 4 floating-point coordinates of two points, a
-// `bottom-left' and a `top-right' (if (0,0) is at bottom-left), or `top-left'
-// and `bottom-right' (when (0,0) is at top-left):
+// Bounding box, described by 4 coordinates of two points, a `bottom-left' and a
+// `top-right' (if (0,0) is at bottom-left), or `top-left' and `bottom-right'
+// (when (0,0) is at top-left):
 //
 struct bbox_t {
+    using value_type = double;
     union {
-        double arr [4];
-        struct { double x, y; } point [2];
+        value_type arr [4];
+        struct { value_type x, y; } point [2];
     };
 };
 

@@ -138,8 +138,6 @@ const double hyperlinkSlack = 0.2;
 
 ////////////////////////////////////////////////////////////////////////
 
-namespace {
-
 //
 // Character/column comparison objects:
 //
@@ -170,8 +168,6 @@ const auto lessYX = [](auto& lhs, auto& rhs) {
 const auto lessCharPos = [](auto& lhs, auto& rhs) {
     return lhs->charPos [0] < rhs->charPos [0];
 };
-
-} // anonymous namespace
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -3664,10 +3660,9 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
 //
 bool TextPage::findText (
     Unicode* s, int len,
-    bool startAtTop,  bool stopAtBottom,
-    bool startAtLast, bool stopAtLast,
+    bool startAtTop,  bool stopAtBottom, bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
-    double* xMin, double* yMin, double* xMax, double* yMax) {
+    xpdf::bbox_t& box) {
 
     Unicode *s2, *txt, *p;
     double xStart, yStart, xStop, yStop;
@@ -3704,24 +3699,27 @@ bool TextPage::findText (
     txtSize = 0;
 
     xStart = yStart = xStop = yStop = 0;
+
     if (startAtLast && haveLastFind) {
         xStart = lastFindXMin;
         yStart = lastFindYMin;
     }
     else if (!startAtTop) {
-        xStart = *xMin;
-        yStart = *yMin;
+        xStart = box.arr [0];
+        yStart = box.arr [1];
     }
+
     if (stopAtLast && haveLastFind) {
         xStop = lastFindXMin;
         yStop = lastFindYMin;
     }
     else if (!stopAtBottom) {
-        xStop = *xMax;
-        yStop = *yMax;
+        xStop = box.arr [2];
+        yStop = box.arr [3];
     }
 
     found = false;
+
     xMin0 = xMax0 = yMin0 = yMax0 = 0; // make gcc happy
     xMin1 = xMax1 = yMin1 = yMax1 = 0; // make gcc happy
 
@@ -3882,10 +3880,7 @@ bool TextPage::findText (
     }
 
     if (found) {
-        *xMin = xMin0;
-        *xMax = xMax0;
-        *yMin = yMin0;
-        *yMax = yMax0;
+        box = { xMin0, yMin0, xMax0, yMax0 };
         lastFindXMin = xMin0;
         lastFindYMin = yMin0;
         haveLastFind = true;
@@ -3896,7 +3891,7 @@ bool TextPage::findText (
 }
 
 GString*
-TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
+TextPage::getText (const xpdf::bbox_t& box) {
     UnicodeMap* uMap;
     char space[8], eol[16];
     int spaceLen, eolLen;
@@ -3928,7 +3923,8 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
         xx = 0.5 * (ch->xmin + ch->xmax);
         yy = 0.5 * (ch->ymin + ch->ymax);
 
-        if (xx > xMin && xx < xMax && yy > yMin && yy < yMax) {
+        if (box.arr [0] < xx && xx < box.arr [2] &&
+            box.arr [1] < yy && yy < box.arr [3]) {
             chars2.push_back (ch);
         }
     }
@@ -4012,9 +4008,7 @@ TextPage::getText (double xMin, double yMin, double xMax, double yMax) {
     return ret;
 }
 
-bool TextPage::findCharRange (
-    int pos, int length, double* xMin, double* yMin, double* xMax,
-    double* yMax) {
+bool TextPage::findCharRange (int pos, int length, xpdf::bbox_t& box) {
     double xMin2, yMin2, xMax2, yMax2;
     bool first;
 
@@ -4035,12 +4029,11 @@ bool TextPage::findCharRange (
         }
     }
 
-    if (first) { return false; }
+    if (first) {
+        return false;
+    }
 
-    *xMin = xMin2;
-    *yMin = yMin2;
-    *xMax = xMax2;
-    *yMax = yMax2;
+    box = { xMin2, yMin2, xMax2, yMax2 };
 
     return true;
 }
@@ -4179,23 +4172,24 @@ void TextOutputDev::endActualText (GfxState* state) {
 }
 
 bool TextOutputDev::findText (
-    Unicode* s, int len, bool startAtTop, bool stopAtBottom,
-    bool startAtLast, bool stopAtLast, bool caseSensitive, bool backward,
-    bool wholeWord, double* xMin, double* yMin, double* xMax, double* yMax) {
+    Unicode* s, int len,
+    bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
+    bool caseSensitive, bool backward, bool wholeWord,
+    xpdf::bbox_t& box) {
     return text->findText (
-        s, len, startAtTop, stopAtBottom, startAtLast, stopAtLast,
-        caseSensitive, backward, wholeWord, xMin, yMin, xMax, yMax);
+        s, len,
+        startAtTop, stopAtBottom, startAtLast, stopAtLast,
+        caseSensitive, backward, wholeWord,
+        box);
 }
 
 GString*
-TextOutputDev::getText (double xMin, double yMin, double xMax, double yMax) {
-    return text->getText (xMin, yMin, xMax, yMax);
+TextOutputDev::getText (const xpdf::bbox_t& box) {
+    return text->getText (box);
 }
 
-bool TextOutputDev::findCharRange (
-    int pos, int length, double* xMin, double* yMin, double* xMax,
-    double* yMax) {
-    return text->findCharRange (pos, length, xMin, yMin, xMax, yMax);
+bool TextOutputDev::findCharRange (int pos, int length, xpdf::bbox_t& box) {
+    return text->findCharRange (pos, length, box);
 }
 
 TextWords
