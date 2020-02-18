@@ -27,6 +27,8 @@
 #include <range/v3/all.hpp>
 using namespace ranges;
 
+#include <boost/scope_exit.hpp>
+
 namespace xpdf {
 
 inline bbox_t
@@ -219,7 +221,13 @@ aggregate (const std::vector< bbox_t >& boxes, T test) {
 } // namespace xpdf
 
 void PDFCore::segment () {
+    using namespace xpdf;
+
     setBusyCursor (true);
+
+    BOOST_SCOPE_EXIT(this_) {
+        this_->setBusyCursor (false);
+    } BOOST_SCOPE_EXIT_END
 
     auto page = findPage (topPage);
 
@@ -300,8 +308,6 @@ void PDFCore::segment () {
 
         redrawWindow (0, 0, page->w, page->h, false);
     }
-
-    setBusyCursor (false);
 }
 
 //------------------------------------------------------------------------
