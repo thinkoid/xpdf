@@ -234,7 +234,7 @@ public:
     bool getMapExtTrueTypeFontsViaUnicode ();
     bool getEnableXFA ();
     GList* getKeyBinding (int code, int mods, int context);
-    bool getPrintCommands ();
+    bool getPrintCommands () const { return printCommands; }
     bool getErrQuiet ();
 
     CharCodeToUnicode* getCIDToUnicode (GString* collection);

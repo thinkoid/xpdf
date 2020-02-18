@@ -403,9 +403,9 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
     printCommands = false;
     errQuiet = false;
 
-    cidToUnicodeCache = new CharCodeToUnicodeCache (cidToUnicodeCacheSize);
-    unicodeToUnicodeCache =
-        new CharCodeToUnicodeCache (unicodeToUnicodeCacheSize);
+    cidToUnicodeCache     = new CharCodeToUnicodeCache (cidToUnicodeCacheSize);
+    unicodeToUnicodeCache = new CharCodeToUnicodeCache (unicodeToUnicodeCacheSize);
+
     unicodeMapCache = new UnicodeMapCache ();
     cMapCache = new CMapCache ();
 
@@ -2300,13 +2300,6 @@ GList* GlobalParams::getKeyBinding (int code, int mods, int context) {
     return cmds;
 }
 
-bool GlobalParams::getPrintCommands () {
-    bool p;
-
-    p = printCommands;
-    return p;
-}
-
 bool GlobalParams::getErrQuiet () {
     // no locking -- this function may get called from inside a locked
     // section
@@ -2319,8 +2312,7 @@ CharCodeToUnicode* GlobalParams::getCIDToUnicode (GString* collection) {
 
     if (!(ctu = cidToUnicodeCache->getCharCodeToUnicode (collection))) {
         if ((fileName = (GString*)cidToUnicodes->lookup (collection)) &&
-            (ctu =
-                 CharCodeToUnicode::parseCIDToUnicode (fileName, collection))) {
+            (ctu = CharCodeToUnicode::parseCIDToUnicode (fileName, collection))) {
             cidToUnicodeCache->add (ctu);
         }
     }
