@@ -10,7 +10,8 @@ namespace xpdf {
 
 //
 // Bounding box, described by 4 floating-point coordinates of two points, a
-// bottom-left and a top-right:
+// `bottom-left' and a `top-right' (if (0,0) is at bottom-left), or `top-left'
+// and `bottom-right' (when (0,0) is at top-left):
 //
 struct bbox_t {
     union {
