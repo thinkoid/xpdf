@@ -1496,8 +1496,10 @@ GfxCIDFont::GfxCIDFont (
             "Missing CIDSystemInfo dictionary in Type 0 descendant font");
         goto err2;
     }
-    *&obj2 = resolve (obj1.as_dict ()["Registry"]);
-    *&obj3 = resolve (obj1.as_dict ()["Ordering"]);
+
+    obj2 = resolve (obj1.as_dict ()["Registry"]);
+    obj3 = resolve (obj1.as_dict ()["Ordering"]);
+
     if (!obj2.is_string () || !obj3.is_string ()) {
         error (
             errSyntaxError, -1,
