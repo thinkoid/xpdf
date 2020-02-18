@@ -113,29 +113,6 @@ struct GString : std::string {
     int cmpN (GString* str, int n) const { return compare (0, n, *str); }
     int cmp (const char* sA) const { return compare (sA); }
     int cmpN (const char* sA, int n) const { return compare (0, n, sA); }
-
-    // Return true if strings starts with prefix
-    bool startsWith (const char* prefix) const;
-    // Return true if string ends with suffix
-    bool endsWith (const char* suffix) const;
-
-    bool hasUnicodeMarker () const {
-        return size () >= 2 && (*this)[0] == '\xfe' && (*this)[1] == '\xff';
-    }
-    bool hasUnicodeMarkerLE () const {
-        return size () >= 2 && (*this)[0] == '\xff' && (*this)[1] == '\xfe';
-    }
-    bool hasJustUnicodeMarker () const {
-        return size () == 2 && hasUnicodeMarker ();
-    }
-
-    void prependUnicodeMarker ();
-
-    // Sanitizes the string so that it does
-    // not contain any ( ) < > [ ] { } / %
-    // The postscript mode also has some more strict checks
-    // The caller owns the return value
-    GString* sanitizedName (bool psmode) const;
 };
 
 #endif // XPDF_UTILS_GSTRING_HH
