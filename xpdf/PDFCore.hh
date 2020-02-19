@@ -182,6 +182,13 @@ public:
     setSelectionColor (SplashColor color);
 
     // Current selected region.
+    inline void
+    setSelection (int newSelectPage, const xpdf::bboxi_t& box) {
+        setSelection (
+            newSelectPage,
+            box.arr [0], box.arr [1], box.arr [2], box.arr [3]);
+    }
+
     void
     setSelection (
         int newSelectPage, int newSelectULX, int newSelectULY, int newSelectLRX,
@@ -202,6 +209,7 @@ public:
     virtual bool find (
         char* s, bool caseSensitive, bool next, bool backward,
         bool wholeWord, bool onePageOnly);
+
     virtual bool findU (
         Unicode* u, int len, bool caseSensitive, bool next, bool backward,
         bool wholeWord, bool onePageOnly);

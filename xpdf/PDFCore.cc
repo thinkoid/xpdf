@@ -15,14 +15,15 @@
 #include <splash/SplashPattern.hh>
 #include <splash/SplashPath.hh>
 
-#include <xpdf/GlobalParams.hh>
+#include <xpdf/CoreOutputDev.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/ErrorCodes.hh>
-#include <xpdf/PDFDoc.hh>
+#include <xpdf/GlobalParams.hh>
 #include <xpdf/Link.hh>
-#include <xpdf/TextOutputDev.hh>
-#include <xpdf/CoreOutputDev.hh>
 #include <xpdf/PDFCore.hh>
+#include <xpdf/PDFDoc.hh>
+#include <xpdf/TextOutputDev.hh>
+#include <xpdf/xpdf.hh>
 
 #include <range/v3/all.hpp>
 using namespace ranges;
@@ -1580,8 +1581,8 @@ void PDFCore::setSelectionColor (SplashColor color) {
 }
 
 void PDFCore::setSelection (
-    int newSelectPage, int newSelectULX, int newSelectULY, int newSelectLRX,
-    int newSelectLRY) {
+    int newSelectPage,
+    int newSelectULX, int newSelectULY, int newSelectLRX, int newSelectLRY) {
     int x0, y0, x1, y1, py;
     bool haveSel, newHaveSel;
     bool needRedraw, needScroll;
@@ -2064,13 +2065,7 @@ foundPage:
 
     // found: change the selection
 found:
-    setSelection (
-        pg,
-        (int)floor (box.arr [0]),
-        (int)floor (box.arr [1]),
-        (int)ceil  (box.arr [2]),
-        (int)ceil  (box.arr [3]));
-
+    setSelection (pg, xpdf::to< int > (xpdf::ceil (box)));
     setBusyCursor (false);
 
     return true;

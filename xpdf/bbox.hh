@@ -5,6 +5,7 @@
 #define XPDF_XPDF_BBOX_HH
 
 #include <defs.hh>
+#include <cmath>
 
 namespace xpdf {
 namespace detail {
@@ -25,8 +26,54 @@ struct bbox_t {
 
 } // namespace detail
 
+template<
+    typename T, typename U,
+    typename std::enable_if_t< std::is_constructible_v< T, U > >* = nullptr
+    >
+inline detail::bbox_t< T >
+to (const detail::bbox_t< U >& x) {
+    return detail::bbox_t< T >{
+        T (x.arr [0]), T (x.arr [1]), T (x.arr [2]), T (x.arr [3])
+    };
+}
+
+template<
+    typename T,
+    typename std::enable_if_t< std::is_floating_point_v< T > >* = nullptr
+    >
+inline detail::bbox_t< T >
+ceil (const detail::bbox_t< T >& x) {
+    //
+    // Stretches the box to the nearest integer margins:
+    //
+    return detail::bbox_t< T >{
+        std::floor (x.arr [0]),
+        std::floor (x.arr [1]),
+        std::ceil  (x.arr [2]),
+        std::ceil  (x.arr [3])
+    };
+}
+
+template<
+    typename T,
+    typename std::enable_if_t< std::is_floating_point_v< T > >* = nullptr
+    >
+inline detail::bbox_t< T >
+floor (const detail::bbox_t< T >& x) {
+    //
+    // Shrinks the box to the nearest integer margins:
+    //
+    return detail::bbox_t< T >{
+        std::ceil  (x.arr [0]),
+        std::ceil  (x.arr [1]),
+        std::floor (x.arr [2]),
+        std::floor (x.arr [3])
+    };
+}
+
 //
-// The default bounding box is the floating point specialization:
+// The default bounding box type is the floating point specialization for
+// double:
 //
 using bbox_t  = detail::bbox_t< double >;
 
