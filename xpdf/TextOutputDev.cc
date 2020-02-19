@@ -892,6 +892,7 @@ void TextPage::clear () {
     findLR = true;
     lastFindXMin = lastFindYMin = 0;
     haveLastFind = false;
+    findCols.clear ();
 }
 
 void TextPage::updateFont (GfxState* state) {
