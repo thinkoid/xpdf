@@ -25,6 +25,20 @@ class UnicodeMap;
 
 ////////////////////////////////////////////////////////////////////////
 
+namespace xpdf {
+
+struct char_t {
+    using value_type = wchar_t;
+    value_type value;
+
+    bbox_t box;
+    rotation_t rotation;
+};
+
+} // namespace xpdf
+
+////////////////////////////////////////////////////////////////////////
+
 typedef void (*TextOutputFunc) (void* stream, const char* text, int len);
 
 enum TextOutputMode {
@@ -158,7 +172,7 @@ private:
     split (TextChars& charsA, int rot);
 
     TextChars
-    getChars (TextChars&, double, double, double, double);
+    charsIn (TextChars&, const xpdf::bbox_t&) const;
 
     void tagBlock (TextBlockPtr blk);
 

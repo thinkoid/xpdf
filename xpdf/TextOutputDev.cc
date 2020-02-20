@@ -2618,10 +2618,12 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
             }
             else if (!vprofile [x - xMinI] && vprofile [x + 1 - xMinI]) {
                 if (x - start > vertGapSize2) {
-                    auto chars2 = getChars (
+                    auto chars2 = charsIn (
                         charsA,
-                        ( prev + 0.5) * splitPrecision, yMin - 1,
-                        (start + 1.5) * splitPrecision, yMax + 1);
+                        xpdf::bbox_t{
+                            ( prev + 0.5) * splitPrecision, yMin - 1,
+                            (start + 1.5) * splitPrecision, yMax + 1
+                        });
 
                     blk->addChild (split (chars2, rot));
 
@@ -2630,10 +2632,10 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
             }
         }
 
-        auto chars2 = getChars (
-            charsA,
-            (prev + 0.5) * splitPrecision, yMin - 1,
-            xMax + 1, yMax + 1);
+        auto chars2 = charsIn (
+            charsA, xpdf::bbox_t{
+                (prev + 0.5) * splitPrecision, yMin - 1, xMax + 1, yMax + 1
+            });
 
         blk->addChild (split (chars2, rot));
     }
@@ -2653,10 +2655,11 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
             }
             else if (!hprofile[y - yMinI] && hprofile[y + 1 - yMinI]) {
                 if (y - start > horizGapSize2) {
-                    auto chars2 = getChars (
-                        charsA,
-                        xMin - 1, ( prev + 0.5) * splitPrecision,
-                        xMax + 1, (start + 1.5) * splitPrecision);
+                    auto chars2 = charsIn (
+                        charsA, xpdf::bbox_t{
+                            xMin - 1, ( prev + 0.5) * splitPrecision,
+                            xMax + 1, (start + 1.5) * splitPrecision
+                        });
 
                     blk->addChild (split (chars2, rot));
 
@@ -2665,9 +2668,10 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
             }
         }
 
-        auto chars2 = getChars (
-            charsA, xMin - 1, (prev + 0.5) * splitPrecision, xMax + 1,
-            yMax + 1);
+        auto chars2 = charsIn (
+            charsA, xpdf::bbox_t{
+                xMin - 1, (prev + 0.5) * splitPrecision, xMax + 1, yMax + 1
+            });
 
         blk->addChild (split (chars2, rot));
     }
@@ -2709,11 +2713,10 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
 
 // Return the subset of chars inside a rectangle.
 TextChars
-TextPage::getChars (
-    TextChars& charsA,
-    double xMin, double yMin, double xMax, double yMax) {
-
+TextPage::charsIn (TextChars& charsA, const xpdf::bbox_t& box) const {
     TextChars chars;
+
+    const auto& [ x0, y0, x1, y1 ] = box.arr;
 
     for (auto& ch : charsA) {
         //
@@ -2724,7 +2727,7 @@ TextPage::getChars (
         double x = 0.5 * (ch->xmin + ch->xmax);
         double y = 0.5 * (ch->ymin + ch->ymax);
 
-        if (x > xMin && x < xMax && y > yMin && y < yMax) {
+        if (x0 < x && x < x1 && y0 < y && y < y1) {
             chars.push_back (ch);
         }
     }
@@ -3665,6 +3668,9 @@ bool TextPage::findText (
     bool caseSensitive, bool backward, bool wholeWord,
     xpdf::bbox_t& box) {
 
+#if 0
+
+#else
     Unicode *s2, *txt, *p;
     double xStart, yStart, xStop, yStop;
 
@@ -3887,6 +3893,7 @@ bool TextPage::findText (
         haveLastFind = true;
         return true;
     }
+#endif // 1
 
     return false;
 }

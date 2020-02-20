@@ -16,7 +16,6 @@
 #include <xpdf/Stream.hh>
 
 #include <range/v3/all.hpp>
-using namespace ranges;
 
 #include <fmt/format.h>
 using fmt::format;
@@ -60,6 +59,8 @@ inline auto as_array< size_t > (Object& src) {
 
 template< >
 inline auto as_array< std::tuple< double, double > > (Object& src) {
+    using namespace ranges;
+
     std::vector< std::tuple< double, double > > xs;
 
     if (!src.is_array ()) {
