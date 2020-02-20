@@ -62,6 +62,12 @@ struct rotate_t< xpdf::rotation_t::none, T > {
     box_type operator() (box_type x, const box_type&) const { return x; }
 };
 
+//
+// In the definition of the specialization `x' stands for the box that is
+// rotated, and `X' stands for the `superbox', i.e., the page or sheet that
+// hosts the box. E.g., under a 90° rotation the new x_min is the former y_min,
+// but y_min is the width of the page less the former y_max, etc.:
+//
 #define XPDF_ROTATE_DEF(type, a, b, c, d)                       \
 template< typename T >                                          \
 struct rotate_t< xpdf::rotation_t::type, T > {                  \
