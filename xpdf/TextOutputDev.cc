@@ -138,6 +138,56 @@ const double hyperlinkSlack = 0.2;
 
 ////////////////////////////////////////////////////////////////////////
 
+namespace xpdf {
+
+struct char_t {
+    wchar_t value;
+    xpdf::bbox_t box;
+};
+
+} // namespace xpdf
+
+struct TextChar {
+    TextFontInfoPtr font;
+    double size;
+
+    double xmin, ymin, xmax, ymax;
+    double r, g, b;
+
+    Unicode c;
+    int charPos;
+
+    unsigned char charLen : 4, rot : 2, clipped : 1, invisible : 1;
+};
+
+////////////////////////////////////////////////////////////////////////
+
+template< typename T > xpdf::bbox_t box_from (const T&);
+
+template< >
+inline xpdf::bbox_t
+box_from< TextChar > (const TextChar& ch) {
+    return xpdf::bbox_t{ ch.xmin, ch.ymin, ch.xmax, ch.ymax };
+}
+
+template< >
+inline xpdf::bbox_t
+box_from< TextCharPtr > (const TextCharPtr& p) {
+    return box_from (*p);
+}
+
+template< >
+inline xpdf::bbox_t
+box_from< xpdf::char_t > (const xpdf::char_t& ch) {
+    return ch.box;
+}
+
+template< >
+inline xpdf::bbox_t
+box_from< xpdf::bbox_t > (const xpdf::bbox_t& arg) {
+    return arg;
+}
+
 //
 // Character/column comparison objects:
 //
@@ -147,6 +197,15 @@ const auto lessX = [](const auto& lhs, const auto& rhs) {
 
 const auto lessY = [](const auto & lhs, const auto& rhs) {
     return lhs->ymin < rhs->ymin;
+};
+
+const auto charLessYX = [](auto& lhs, auto& rhs) {
+    auto a = box_from (lhs);
+    auto b = box_from (rhs);
+
+    return
+        a.point [0].y  < b.point [0].y ||
+       (a.point [0].y == b.point [0].y && a.point [0].x < b.point [0].x);
 };
 
 //
@@ -164,6 +223,7 @@ const auto lessYX = [](auto& lhs, auto& rhs) {
         lhs->ymin  < rhs->ymin || (
         lhs->ymin == rhs->ymin && lhs->xmin < rhs->xmin);
 };
+
 
 const auto lessCharPos = [](auto& lhs, auto& rhs) {
     return lhs->charPos [0] < rhs->charPos [0];
@@ -197,19 +257,6 @@ struct TextFontInfo {
 
     double width, ascent, descent;
     unsigned flags;
-};
-
-struct TextChar {
-    TextFontInfoPtr font;
-    double size;
-
-    double xmin, ymin, xmax, ymax;
-    double r, g, b;
-
-    Unicode c;
-    int charPos;
-
-    unsigned char charLen : 4, rot : 2, clipped : 1, invisible : 1;
 };
 
 struct TextWord {
@@ -1784,7 +1831,7 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             link->yMax = yMax;
         }
         break;
-        
+
     case 2:
         for (auto& underline : underlines) {
             xMin = pageWidth - underline->x1;
@@ -1808,7 +1855,7 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             link->yMax = yMax;
         }
         break;
-        
+
     case 3:
         for (auto& underline : underlines) {
             xMin = pageHeight - underline->y1;
@@ -1833,7 +1880,7 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
             link->yMax = yMax;
         }
         break;
-        
+
     case 0:
     default:
         break;
@@ -3668,9 +3715,95 @@ bool TextPage::findText (
     bool caseSensitive, bool backward, bool wholeWord,
     xpdf::bbox_t& box) {
 
-#if 0
+#if 1
+
+    std::vector< xpdf::char_t > cs;
+
+    transform (
+        chars | views::filter ([](auto& c) { return 0 == c->rot; }),
+        back_inserter (cs), [](auto& c) {
+            return xpdf::char_t{
+                wchar_t (c->c),
+                xpdf::bbox_t{ c->xmin, c->ymin, c->xmax, c->ymax }
+            };
+        });
+
+    sort (cs, charLessYX);
+
+    std::wstring str;
+    transform (cs, back_inserter (str), [](auto& c) { return c.value; });
+
+    std::wstring tmp;
+    transform (s, s + len, back_inserter (tmp), [](auto& c) { return wchar_t (c); });
+
+    std::wregex pattern (tmp);
+
+    auto iter = std::wsregex_iterator (str.begin (), str.end (), pattern);
+    auto last = std::wsregex_iterator ();
+
+    std::vector< xpdf::bbox_t > boxes;
+
+    for (; iter != last; ++iter) {
+        auto match = (*iter) [0];
+
+        auto pos = std::distance (str.cbegin (), match.first);
+        auto len = match.length ();
+
+        boxes.push_back (
+            accumulate (
+                cs.begin () + pos, cs.begin () + pos + len,
+                cs [pos].box, std::plus< xpdf::bbox_t > { },
+                &xpdf::char_t::box));
+    }
+
+    sort (boxes, charLessYX);
+
+    double xStart, yStart, xStop, yStop;
+
+    if (startAtTop) {
+        xStart = yStart = 0;
+    }
+    else {
+        if (startAtLast && haveLastFind) {
+            xStart = lastFindXMin;
+            yStart = lastFindYMin;
+        }
+        else {
+            xStart = box.point [0].x;
+            yStart = box.point [0].y;
+        }
+    }
+
+    if (stopAtBottom) {
+        xStop = yStop = (std::numeric_limits< double >::max) ();
+    }
+    else {
+        if (stopAtLast && haveLastFind) {
+            xStop = lastFindXMin;
+            yStop = lastFindYMin;
+        }
+        else {
+            xStop = box.point [1].x;
+            yStop = box.point [1].y;
+        }
+    }
+
+    auto area = xpdf::bbox_t{ xStart, yStart, xStop, yStop };
+    auto iter2 = find_if (boxes, [&](auto& box) { return box.point [0].in (area); });
+
+    if (iter2 != boxes.end ()) {
+        box = *iter2;
+
+        auto& corner = box.point [0];
+
+        lastFindXMin = corner.x;
+        lastFindYMin = corner.y;
+
+        return haveLastFind = true;
+    }
 
 #else
+
     Unicode *s2, *txt, *p;
     double xStart, yStart, xStop, yStop;
 

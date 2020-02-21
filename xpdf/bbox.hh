@@ -17,6 +17,17 @@ enum struct rotation_t {
 
 namespace detail {
 
+template< typename > struct bbox_t;
+
+template< typename T >
+struct point_t {
+    using value_t = T;
+    value_t x, y;
+
+    template< typename U >
+    bool in (const bbox_t< U >&) const;
+};
+
 //
 // Bounding box, described by 4 coordinates of two points, a `bottom-left' and a
 // `top-right' (if (0,0) is at bottom-left), or `top-left' and `bottom-right'
@@ -25,9 +36,11 @@ namespace detail {
 template< typename T >
 struct bbox_t {
     using value_type = T;
+    using point_type = point_t< T >;
+
     union {
         value_type arr [4];
-        struct { value_type x, y; } point [2];
+        point_type point [2];
     };
 };
 
@@ -75,6 +88,14 @@ operator<< (std::ostream& ss, const bbox_t< T >& box) {
         << box.arr [1] << ","
         << box.arr [2] << ","
         << box.arr [3];
+}
+
+template< typename T >
+template< typename U >
+bool point_t< T >::in (const bbox_t< U >& box) const {
+    return
+        box.arr [0] <= x && x < box.arr [2] &&
+        box.arr [1] <= y && y < box.arr [3];
 }
 
 template< xpdf::rotation_t, typename > struct rotate_t;
