@@ -17,25 +17,7 @@
 #include <xpdf/TextOutputDevFwd.hh>
 
 class GList;
-class TextBlock;
-class TextChar;
-class TextLink;
-class TextPage;
 class UnicodeMap;
-
-////////////////////////////////////////////////////////////////////////
-
-namespace xpdf {
-
-struct char_t {
-    using value_type = wchar_t;
-    value_type value;
-
-    bbox_t box;
-    rotation_t rotation;
-};
-
-} // namespace xpdf
 
 ////////////////////////////////////////////////////////////////////////
 
