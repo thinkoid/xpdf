@@ -45,6 +45,29 @@ operator!= (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
 }
 
 template< typename T >
+inline bbox_t< T >
+operator+ (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return {
+        (std::min) (lhs.arr [0], rhs.arr [0]),
+        (std::min) (lhs.arr [1], rhs.arr [1]),
+        (std::max) (lhs.arr [2], rhs.arr [2]),
+        (std::max) (lhs.arr [3], rhs.arr [3])
+    };
+}
+
+template< typename T >
+inline bbox_t< T >&
+operator+= (bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return (
+        lhs = {
+            (std::min) (lhs.arr [0], rhs.arr [0]),
+            (std::min) (lhs.arr [1], rhs.arr [1]),
+            (std::max) (lhs.arr [2], rhs.arr [2]),
+            (std::max) (lhs.arr [3], rhs.arr [3])
+        });
+}
+
+template< typename T >
 inline std::ostream&
 operator<< (std::ostream& ss, const bbox_t< T >& box) {
     return ss
