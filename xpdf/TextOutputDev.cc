@@ -138,15 +138,6 @@ const double hyperlinkSlack = 0.2;
 
 ////////////////////////////////////////////////////////////////////////
 
-namespace xpdf {
-
-struct char_t {
-    wchar_t value;
-    xpdf::bbox_t box;
-};
-
-} // namespace xpdf
-
 struct TextChar {
     TextFontInfoPtr font;
     double size;
@@ -159,6 +150,19 @@ struct TextChar {
 
     unsigned char charLen : 4, rot : 2, clipped : 1, invisible : 1;
 };
+
+namespace xpdf {
+
+struct char_t {
+    wchar_t value;
+    xpdf::bbox_t box;
+};
+
+inline char_t make_char (const TextChar& ch) {
+    return { wchar_t (ch.c), { ch.xmin, ch.ymin, ch.xmax, ch.ymax } };
+}
+
+} // namespace xpdf
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -199,15 +203,6 @@ const auto lessY = [](const auto & lhs, const auto& rhs) {
     return lhs->ymin < rhs->ymin;
 };
 
-const auto charLessYX = [](auto& lhs, auto& rhs) {
-    auto a = box_from (lhs);
-    auto b = box_from (rhs);
-
-    return
-        a.point [0].y  < b.point [0].y ||
-       (a.point [0].y == b.point [0].y && a.point [0].x < b.point [0].x);
-};
-
 //
 // X-coordinate column position comparison object:
 //
@@ -223,7 +218,6 @@ const auto lessYX = [](auto& lhs, auto& rhs) {
         lhs->ymin  < rhs->ymin || (
         lhs->ymin == rhs->ymin && lhs->xmin < rhs->xmin);
 };
-
 
 const auto lessCharPos = [](auto& lhs, auto& rhs) {
     return lhs->charPos [0] < rhs->charPos [0];
@@ -3706,92 +3700,145 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
     }
 }
 
-//
-// TextPage: access
-//
-bool TextPage::findText (
-    Unicode* s, int len,
-    bool startAtTop,  bool stopAtBottom, bool startAtLast, bool stopAtLast,
-    bool caseSensitive, bool backward, bool wholeWord,
-    xpdf::bbox_t& box) {
+////////////////////////////////////////////////////////////////////////
 
-#if 1
+template< xpdf::rotation_t >
+bool do_reading_order (double, double, double, double);
 
-    std::vector< xpdf::char_t > cs;
+#define XPDF_READING_ORDER_DEF(rot, a, b, c, d)                     \
+template< > inline bool do_reading_order< xpdf::rotation_t::rot > ( \
+    double a_x0, double a_y0, double b_x0, double b_y0) {           \
+    return a < b || (a == b && c < d);                              \
+}
 
-    transform (
-        chars | views::filter ([](auto& c) { return 0 == c->rot; }),
-        back_inserter (cs), [](auto& c) {
-            return xpdf::char_t{
-                wchar_t (c->c),
-                xpdf::bbox_t{ c->xmin, c->ymin, c->xmax, c->ymax }
-            };
-        });
+XPDF_READING_ORDER_DEF (               none, a_y0, b_y0, a_x0, b_x0)
+XPDF_READING_ORDER_DEF (       quarter_turn, b_x0, a_x0, a_y0, b_y0)
+XPDF_READING_ORDER_DEF (          half_turn, b_y0, a_y0, b_x0, a_x0)
+XPDF_READING_ORDER_DEF (three_quarters_turn, a_x0, b_x0, b_y0, a_y0)
 
-    sort (cs, charLessYX);
+#undef XPDF_READING_ORDER_DEF
 
-    std::wstring str;
-    transform (cs, back_inserter (str), [](auto& c) { return c.value; });
+template< xpdf::rotation_t R, typename T >
+inline bool reading_order (const T& lhs, const T& rhs) {
+    const auto& a = box_from (lhs).arr;
+    const auto& b = box_from (rhs).arr;
+    return do_reading_order< R > (a [0], a[1], b [0], b [1]);
+}
 
-    std::wstring tmp;
-    transform (s, s + len, back_inserter (tmp), [](auto& c) { return wchar_t (c); });
+inline std::wstring to_wstring (Unicode* p, size_t n) {
+    std::wstring w;
+    transform (p, p + n, back_inserter (w), [](auto c) { return wchar_t (c); });
+    return w;
+}
 
-    std::wregex pattern (tmp);
+std::vector< xpdf::bbox_t >
+do_search_all (const std::vector< xpdf::char_t >& cs, std::wregex& regex) {
+    std::wstring wstr;
+    transform (cs, back_inserter (wstr), &xpdf::char_t::value);
 
-    auto iter = std::wsregex_iterator (str.begin (), str.end (), pattern);
+    auto iter = std::wsregex_iterator (wstr.begin (), wstr.end (), regex);
     auto last = std::wsregex_iterator ();
 
-    std::vector< xpdf::bbox_t > boxes;
+    std::vector< xpdf::bbox_t > xs;
 
     for (; iter != last; ++iter) {
         auto match = (*iter) [0];
 
-        auto pos = std::distance (str.cbegin (), match.first);
+        auto pos = std::distance (wstr.cbegin (), match.first);
         auto len = match.length ();
 
-        boxes.push_back (
+        xs.push_back (
             accumulate (
                 cs.begin () + pos, cs.begin () + pos + len,
                 cs [pos].box, std::plus< xpdf::bbox_t > { },
                 &xpdf::char_t::box));
     }
 
-    sort (boxes, charLessYX);
+    return xs;
+}
 
-    double xStart, yStart, xStop, yStop;
+inline auto reading_order_of (int rotation) {
+    using namespace xpdf;
 
-    if (startAtTop) {
-        xStart = yStart = 0;
+    switch (rotation) {
+    default:
+    case 0: return reading_order< rotation_t::none, char_t >;
+    case 1: return reading_order< rotation_t::quarter_turn, char_t >;
+    case 2: return reading_order< rotation_t::quarter_turn, char_t >;
+    case 3: return reading_order< rotation_t::three_quarters_turn, char_t >;
     }
-    else {
-        if (startAtLast && haveLastFind) {
-            xStart = lastFindXMin;
-            yStart = lastFindYMin;
+};
+
+std::vector< xpdf::bbox_t >
+search_all (const TextChars& chars, int rotation, std::wregex& regex) {
+    std::vector< xpdf::char_t > cs;
+
+    transform (
+        chars | views::filter ([&](auto& ch) { return rotation == ch->rot; }),
+        back_inserter (cs), [](auto& ch) { return xpdf::make_char (*ch); });
+
+    sort (cs, reading_order_of (rotation));
+
+    return do_search_all (cs, regex);
+}
+
+bool TextPage::findText (
+    Unicode* p, int len,
+    bool startAtTop,  bool stopAtBottom, bool startAtLast, bool stopAtLast,
+    bool caseSensitive, bool backward, bool wholeWord,
+    xpdf::bbox_t& box) {
+
+#if 1
+    std::wregex regex (to_wstring (p, len));
+
+    std::vector< xpdf::bbox_t > xs;
+
+    for (int rot : { 0, 1, 2, 3 }) {
+        auto cs = search_all (chars, rot, regex);
+        xs.insert (xs.end (), cs.begin (), cs.end ());
+    }
+
+    sort (xs, reading_order< xpdf::rotation_t::none, xpdf::bbox_t >);
+
+    xpdf::bbox_t search_area;
+
+    {
+        double x0, y0, x1, y1;
+
+        if (startAtTop) {
+            x0 = y0 = 0;
         }
         else {
-            xStart = box.point [0].x;
-            yStart = box.point [0].y;
+            if (startAtLast && haveLastFind) {
+                x0 = lastFindXMin;
+                y0 = lastFindYMin;
+            }
+            else {
+                x0 = box.point [0].x;
+                y0 = box.point [0].y;
+            }
         }
-    }
 
-    if (stopAtBottom) {
-        xStop = yStop = (std::numeric_limits< double >::max) ();
-    }
-    else {
-        if (stopAtLast && haveLastFind) {
-            xStop = lastFindXMin;
-            yStop = lastFindYMin;
+        if (stopAtBottom) {
+            x1 = y1 = (std::numeric_limits< double >::max) ();
         }
         else {
-            xStop = box.point [1].x;
-            yStop = box.point [1].y;
+            if (stopAtLast && haveLastFind) {
+                x1 = lastFindXMin;
+                y1 = lastFindYMin;
+            }
+            else {
+                x1 = box.point [1].x;
+                y1 = box.point [1].y;
+            }
         }
+
+        search_area = xpdf::bbox_t{ x0, y0, x1, y1 };
     }
 
-    auto area = xpdf::bbox_t{ xStart, yStart, xStop, yStop };
-    auto iter2 = find_if (boxes, [&](auto& box) { return box.point [0].in (area); });
+    auto iter2 = find_if (xs, [&](auto& x) { return x.point [0].in (search_area); });
 
-    if (iter2 != boxes.end ()) {
+    if (iter2 != xs.end ()) {
         box = *iter2;
 
         auto& corner = box.point [0];
