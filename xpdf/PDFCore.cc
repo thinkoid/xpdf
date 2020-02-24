@@ -1694,11 +1694,17 @@ bool PDFCore::findU (
     // search current page starting at previous result, current
     // selection, or top/bottom of page
     startAtTop = startAtLast = false;
+
     xpdf::bbox_t box{ };
+
     pg = topPage;
-    if (next) { startAtLast = true; }
+
+    if (next) {
+        startAtLast = true;
+    }
     else if (selectULX != selectLRX && selectULY != selectLRY) {
         pg = selectPage;
+
         if (backward) {
             box.arr [0] = selectULX - 1;
             box.arr [1] = selectULY - 1;
@@ -1711,10 +1717,12 @@ bool PDFCore::findU (
     else {
         startAtTop = true;
     }
+
     if (!(page = findPage (pg))) {
         displayPage (pg, zoom, rotate, true, false);
         page = findPage (pg);
     }
+
     if (page->text->findText (
             u, len, startAtTop, true, startAtLast, false,
             caseSensitive, backward, wholeWord,
