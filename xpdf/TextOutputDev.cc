@@ -164,6 +164,12 @@ inline char_t make_char (const TextChar& ch) {
 
 } // namespace xpdf
 
+const auto rotated_by (int n) {
+    return [=](auto& chars) {
+        return chars | views::filter ([=](auto& ch) { return n == ch->rot; });
+    };
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 template< typename T > xpdf::bbox_t box_from (const T&);
@@ -878,30 +884,302 @@ TextPage::~TextPage () {
     clear ();
 }
 
+////////////////////////////////////////////////////////////////////////
+
+#include <boost/scope_exit.hpp>
+
+namespace xpdf {
+
+inline bbox_t
+normalize (bbox_t x) {
+    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
+    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
+    return x;
+}
+
+inline double  width_of (const bbox_t& x) { return x.arr [2] - x.arr [0]; }
+inline double height_of (const bbox_t& x) { return x.arr [3] - x.arr [1]; }
+
+inline double
+horizontal_overlap (const bbox_t& lhs, const bbox_t& rhs) {
+    const auto dist =
+        (std::min) (lhs.arr [2], rhs.arr [2]) -
+        (std::max) (lhs.arr [0], rhs.arr [0]);
+    return dist > 0 ? dist : 0;
+}
+
+inline double
+vertical_overlap (const bbox_t& lhs, const bbox_t& rhs) {
+    const auto dist =
+        (std::min) (lhs.arr [3], rhs.arr [3]) -
+        (std::max) (lhs.arr [1], rhs.arr [1]);
+    return dist > 0 ? dist : 0;
+}
+
+inline bool
+overlapping (const bbox_t& lhs, const bbox_t& rhs) {
+    return horizontal_overlap (lhs, rhs) && vertical_overlap (lhs, rhs);
+}
+
+inline double
+horizontal_distance (const bbox_t& lhs, const bbox_t& rhs) {
+    return lhs.arr [2] < rhs.arr [0]
+        ? rhs.arr [0] - lhs.arr [2]
+        : rhs.arr [2] < lhs.arr [0] ? lhs.arr [0] - rhs.arr [2] : 0;
+}
+
+inline double
+vertical_distance (const bbox_t& lhs, const bbox_t& rhs) {
+    return lhs.arr [3] < rhs.arr [1]
+        ? rhs.arr [1] - lhs.arr [3]
+        : rhs.arr [3] < lhs.arr [1] ? lhs.arr [1] - rhs.arr [3] : 0;
+}
+
+inline std::tuple< double, double >
+center_of (const bbox_t& box) {
+    ASSERT (box.arr [0] < box.arr [2]);
+    ASSERT (box.arr [1] < box.arr [3]);
+    return {
+        (box.arr [0] + box.arr [2]) / 2,
+        (box.arr [1] + box.arr [3]) / 2
+    };
+}
+
+inline double
+min_width_of (const bbox_t& lhs, const bbox_t& rhs) {
+    return (std::min) (width_of (lhs), width_of (rhs));
+}
+
+inline double
+max_width_of (const bbox_t& lhs, const bbox_t& rhs) {
+    return (std::max) (width_of (lhs), width_of (rhs));
+}
+
+inline double
+avg_width_of (const bbox_t& lhs, const bbox_t& rhs) {
+    return (width_of (lhs) + width_of (rhs)) / 2;
+}
+
+inline double
+min_height_of (const bbox_t& lhs, const bbox_t& rhs) {
+    return (std::min) (height_of (lhs), height_of (rhs));
+}
+
+inline double
+max_height_of (const bbox_t& lhs, const bbox_t& rhs) {
+    return (std::max) (height_of (lhs), height_of (rhs));
+}
+
+inline double
+avg_height_of (const bbox_t& lhs, const bbox_t& rhs) {
+    return (height_of (lhs), height_of (rhs)) / 2;
+}
+
+inline bbox_t
+coalesce (const bbox_t& lhs, const bbox_t& rhs) {
+    return bbox_t{
+        (std::min) (lhs.arr [0], rhs.arr [0]),
+        (std::min) (lhs.arr [1], rhs.arr [1]),
+        (std::max) (lhs.arr [2], rhs.arr [2]),
+        (std::max) (lhs.arr [3], rhs.arr [3])
+    };
+}
+
+//
+// Vertical overlap is more than half the height of the smallest of
+// neighbors:
+//
+inline bool
+horizontally_aligned (const bbox_t& lhs, const bbox_t& rhs, double factor = .4) {
+    return vertical_overlap (lhs, rhs) > factor * min_height_of (lhs, rhs);
+}
+
+inline bool
+left_aligned (const bbox_t& lhs, const bbox_t& rhs, double margin = .10) {
+    return margin > fabs (lhs.arr [0] - rhs.arr [0]);
+}
+
+//
+// Characters are stacked when side-by-side, of same height and close together:
+//
+inline bool
+horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs) {
+    return vertical_overlap (lhs, rhs) >= .95 * height_of (coalesce (lhs, rhs)) &&
+        horizontal_distance (lhs, rhs) <  .10 * width_of (rhs);
+}
+
+inline bool
+horizontally_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .15) {
+    return
+        horizontally_aligned (lhs, rhs) &&
+        horizontal_distance  (lhs, rhs) < factor * height_of (rhs);
+}
+
+inline bool
+vertically_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .25) {
+    return vertical_distance (lhs, rhs) < factor * height_of (rhs);
+}
+
+template< xpdf::rotation_t >
+bool do_reading_order (double, double, double, double);
+
+#define XPDF_READING_ORDER_DEF(rot, a, b, c, d)                     \
+template< > inline bool do_reading_order< xpdf::rotation_t::rot > ( \
+    double a_x0, double a_y0, double b_x0, double b_y0) {           \
+    return a < b || (a == b && c < d);                              \
+}
+
+XPDF_READING_ORDER_DEF (               none, a_y0, b_y0, a_x0, b_x0)
+XPDF_READING_ORDER_DEF (       quarter_turn, b_x0, a_x0, a_y0, b_y0)
+XPDF_READING_ORDER_DEF (          half_turn, b_y0, a_y0, b_x0, a_x0)
+XPDF_READING_ORDER_DEF (three_quarters_turn, a_x0, b_x0, b_y0, a_y0)
+
+#undef XPDF_READING_ORDER_DEF
+
+template< xpdf::rotation_t R, typename T >
+inline bool reading_order (const T& lhs, const T& rhs) {
+    const auto& a = box_from (lhs).arr;
+    const auto& b = box_from (rhs).arr;
+    return do_reading_order< R > (a [0], a[1], b [0], b [1]);
+}
+
+template< typename T >
+std::vector< bbox_t >
+simple_aggregate (const std::vector< bbox_t >& boxes, T test) {
+    if (boxes.size () < 2) {
+        return boxes;
+    }
+
+    std::vector< bbox_t > superboxes;
+
+    auto iter = boxes.begin (), last = boxes.end ();
+    superboxes.push_back (*iter++);
+
+    for (; iter != last; ++iter) {
+        bool coalesced = false;
+
+        for (auto& superbox : superboxes | views::reverse) {
+            if (test (superbox, *iter)) {
+                superbox = coalesce (superbox, *iter);
+                coalesced = true;
+                break;
+            }
+        }
+
+        if (!coalesced) {
+            superboxes.push_back (*iter);
+        }
+    }
+
+    return superboxes;
+}
+
+template< typename T >
+std::vector< bbox_t >
+aggregate (const std::vector< bbox_t >& boxes, T test) {
+    if (boxes.size () < 2) {
+        return boxes;
+    }
+
+    std::vector< bbox_t > other, superboxes;
+
+    auto src = std::cref (boxes);
+    auto dst = std::ref (superboxes);
+
+    for (;;) {
+        dst.get () = simple_aggregate (src.get (), test);
+
+        if (src.get ().size () == dst.get ().size ()) {
+            break;
+        }
+
+        other = std::move (superboxes);
+        src = std::cref (other);
+    }
+
+    return superboxes;
+}
+
+std::vector< bbox_t >
+aggregate (const std::vector< bbox_t >& letters) {
+    if (letters.size () < 2) {
+        return letters;
+    }
+
+    auto wordtest = [](auto& lhs, auto& rhs) {
+        return horizontally_stacked (lhs, rhs) || overlapping (lhs, rhs) ||
+            horizontally_close (lhs, rhs);
+    };
+
+    auto cmp = reading_order< rotation_t::none, xpdf::bbox_t >;
+
+    auto words = simple_aggregate (letters, wordtest);
+    sort (words, cmp);
+
+    auto linetest = [](auto& lhs, auto& rhs) {
+        return overlapping (lhs, rhs) || horizontally_close (lhs, rhs, 1.);
+    };
+
+    auto lines = aggregate (words, linetest);
+    sort (lines, cmp);
+
+    auto paratest = [](auto& lhs, auto& rhs) {
+        return overlapping (lhs, rhs) || // left_aligned (lhs, rhs) &&
+            vertically_close (lhs, rhs);
+    };
+
+    auto paragraphs = simple_aggregate (lines, paratest);
+    sort (paragraphs, cmp);
+
+    return paragraphs;
+}
+
+inline void
+upright (std::vector< bbox_t >& boxes, const bbox_t& superbox, int rotation) {
+#define XPDF_ROTATE(turn)                               \
+    for_each (boxes, [&](auto& x) {                     \
+        x = rotate< rotation_t::turn > (x, superbox);   \
+    })
+
+    switch (rotation) {
+    case 1: XPDF_ROTATE (       quarter_turn); break;
+    case 2: XPDF_ROTATE (          half_turn); break;
+    case 3: XPDF_ROTATE (three_quarters_turn); break;
+    default:
+        break;
+
+    }
+
+#undef XPDF_ROTATE
+}
+
+} // namespace xpdf
+
 std::vector< xpdf::bbox_t >
 TextPage::segment () const {
-    std::cout << " --> TextPage::segment\n";
+    const xpdf::bbox_t superbox{ 0, 0, pageWidth, pageHeight };
+    std::vector< xpdf::bbox_t > boxes;
 
-    auto all = chars
-        | views::transform ([](auto& x) { return std::cref (*x); })
-        | to< std::vector > ();
+    for (int rotation : { 0, 1, 2, 3 }) {
+        std::vector< xpdf::bbox_t > cs;
 
-    auto cs = all
-        | views::filter ([](auto& x) { return 0 == x.get ().rot; })
-        | views::transform ([](auto& x) {
-            auto& c = x.get ();
-            return xpdf::bbox_t{ c.xmin, c.ymin, c.xmax, c.ymax  };
-        })
-        | to< std::vector > ();
+        transform (
+            rotated_by (rotation)(chars), back_inserter (cs), [](auto& ch) {
+                return xpdf::bbox_t{ ch->xmin, ch->ymin, ch->xmax, ch->ymax };
+            });
 
-    sort (cs, [](auto& lhs, auto& rhs) {
-        return
-             lhs.arr [1]  < rhs.arr [1] ||
-            (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
-    });
+        xpdf::upright (cs, superbox, (4 - rotation) % 4);
 
-    return cs;
+        auto other = xpdf::aggregate (cs);
+        xpdf::upright (other, superbox, rotation);
+
+        boxes.insert (boxes.end (), other.begin (), other.end ());
+    }
+
+    return boxes;
 }
+
+////////////////////////////////////////////////////////////////////////
 
 void TextPage::startPage (GfxState* state) {
     clear ();
@@ -3702,33 +3980,16 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
 
 ////////////////////////////////////////////////////////////////////////
 
-template< xpdf::rotation_t >
-bool do_reading_order (double, double, double, double);
-
-#define XPDF_READING_ORDER_DEF(rot, a, b, c, d)                     \
-template< > inline bool do_reading_order< xpdf::rotation_t::rot > ( \
-    double a_x0, double a_y0, double b_x0, double b_y0) {           \
-    return a < b || (a == b && c < d);                              \
-}
-
-XPDF_READING_ORDER_DEF (               none, a_y0, b_y0, a_x0, b_x0)
-XPDF_READING_ORDER_DEF (       quarter_turn, b_x0, a_x0, a_y0, b_y0)
-XPDF_READING_ORDER_DEF (          half_turn, b_y0, a_y0, b_x0, a_x0)
-XPDF_READING_ORDER_DEF (three_quarters_turn, a_x0, b_x0, b_y0, a_y0)
-
-#undef XPDF_READING_ORDER_DEF
-
-template< xpdf::rotation_t R, typename T >
-inline bool reading_order (const T& lhs, const T& rhs) {
-    const auto& a = box_from (lhs).arr;
-    const auto& b = box_from (rhs).arr;
-    return do_reading_order< R > (a [0], a[1], b [0], b [1]);
-}
-
 inline std::wstring to_wstring (Unicode* p, size_t n) {
     std::wstring w;
     transform (p, p + n, back_inserter (w), [](auto c) { return wchar_t (c); });
     return w;
+}
+
+inline std::string to_string (const std::wstring& wstr) {
+    std::string s;
+    transform (wstr, back_inserter (s), [](auto c) { return char (c); });
+    return s;
 }
 
 std::vector< xpdf::bbox_t >
@@ -3791,14 +4052,14 @@ bool TextPage::findText (
 #if 1
     std::wregex regex (to_wstring (p, len));
 
-    std::vector< xpdf::bbox_t > xs;
+    std::vector< xpdf::bbox_t > boxes;
 
     for (int rot : { 0, 1, 2, 3 }) {
-        auto cs = search_all (chars, rot, regex);
-        xs.insert (xs.end (), cs.begin (), cs.end ());
+        auto matches = search_all (chars, rot, regex);
+        boxes.insert (boxes.end (), matches.begin (), matches.end ());
     }
 
-    sort (xs, reading_order< xpdf::rotation_t::none, xpdf::bbox_t >);
+    sort (boxes, xpdf::reading_order< xpdf::rotation_t::none, xpdf::bbox_t >);
 
     xpdf::bbox_t search_area;
 
@@ -3836,9 +4097,11 @@ bool TextPage::findText (
         search_area = xpdf::bbox_t{ x0, y0, x1, y1 };
     }
 
-    auto iter2 = find_if (xs, [&](auto& x) { return x.point [0].in (search_area); });
+    auto iter2 = find_if (boxes, [&](auto& box) {
+        return box.point [0].in (search_area);
+    });
 
-    if (iter2 != xs.end ()) {
+    if (iter2 != boxes.end ()) {
         box = *iter2;
 
         auto& corner = box.point [0];

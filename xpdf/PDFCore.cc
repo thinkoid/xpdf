@@ -30,200 +30,23 @@ using namespace ranges;
 
 #include <boost/scope_exit.hpp>
 
-namespace xpdf {
-
-inline bbox_t
-normalize (bbox_t x) {
-    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
-    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
-    return x;
+PDFCorePage::PDFCorePage (int pageA, int wA, int hA, int tileWA, int tileHA) {
+    page = pageA;
+    tiles = new GList ();
+    w = wA;
+    h = hA;
+    tileW = tileWA;
+    tileH = tileHA;
+    links = NULL;
+    text = NULL;
 }
 
-inline double  width_of (const bbox_t& x) { return x.arr [2] - x.arr [0]; }
-inline double height_of (const bbox_t& x) { return x.arr [3] - x.arr [1]; }
-
-inline double
-horizontal_overlap (const bbox_t& lhs, const bbox_t& rhs) {
-    const auto dist =
-        (std::min) (lhs.arr [2], rhs.arr [2]) -
-        (std::max) (lhs.arr [0], rhs.arr [0]);
-    return dist > 0 ? dist : 0;
+PDFCorePage::~PDFCorePage () {
+    deleteGList (tiles, PDFCoreTile);
+    if (links) { delete links; }
 }
-
-inline double
-vertical_overlap (const bbox_t& lhs, const bbox_t& rhs) {
-    const auto dist =
-        (std::min) (lhs.arr [3], rhs.arr [3]) -
-        (std::max) (lhs.arr [1], rhs.arr [1]);
-    return dist > 0 ? dist : 0;
-}
-
-inline bool
-overlapping (const bbox_t& lhs, const bbox_t& rhs) {
-    return horizontal_overlap (lhs, rhs) && vertical_overlap (lhs, rhs);
-}
-
-inline double
-horizontal_distance (const bbox_t& lhs, const bbox_t& rhs) {
-    return lhs.arr [2] < rhs.arr [0]
-        ? rhs.arr [0] - lhs.arr [2]
-        : rhs.arr [2] < lhs.arr [0] ? lhs.arr [0] - rhs.arr [2] : 0;
-}
-
-inline double
-vertical_distance (const bbox_t& lhs, const bbox_t& rhs) {
-    return lhs.arr [3] < rhs.arr [1]
-        ? rhs.arr [1] - lhs.arr [3]
-        : rhs.arr [3] < lhs.arr [1] ? lhs.arr [1] - rhs.arr [3] : 0;
-}
-
-inline std::tuple< double, double >
-center_of (const bbox_t& box) {
-    ASSERT (box.arr [0] < box.arr [2]);
-    ASSERT (box.arr [1] < box.arr [3]);
-    return {
-        (box.arr [0] + box.arr [2]) / 2,
-        (box.arr [1] + box.arr [3]) / 2
-    };
-}
-
-inline double
-min_width_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::min) (width_of (lhs), width_of (rhs));
-}
-
-inline double
-max_width_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::max) (width_of (lhs), width_of (rhs));
-}
-
-inline double
-avg_width_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (width_of (lhs) + width_of (rhs)) / 2;
-}
-
-inline double
-min_height_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::min) (height_of (lhs), height_of (rhs));
-}
-
-inline double
-max_height_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::max) (height_of (lhs), height_of (rhs));
-}
-
-inline double
-avg_height_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (height_of (lhs), height_of (rhs)) / 2;
-}
-
-inline bbox_t
-coalesce (const bbox_t& lhs, const bbox_t& rhs) {
-    return bbox_t{
-        (std::min) (lhs.arr [0], rhs.arr [0]),
-        (std::min) (lhs.arr [1], rhs.arr [1]),
-        (std::max) (lhs.arr [2], rhs.arr [2]),
-        (std::max) (lhs.arr [3], rhs.arr [3])
-    };
-}
-
-//
-// Vertical overlap is more than half the height of the smallest of
-// neighbors:
-//
-inline bool
-horizontally_aligned (const bbox_t& lhs, const bbox_t& rhs, double factor = .4) {
-    return vertical_overlap (lhs, rhs) > factor * min_height_of (lhs, rhs);
-}
-
-inline bool
-left_aligned (const bbox_t& lhs, const bbox_t& rhs, double margin = .10) {
-    return margin > fabs (lhs.arr [0] - rhs.arr [0]);
-}
-
-//
-// Characters are stacked when side-by-side, of same height and close together:
-//
-inline bool
-horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs) {
-    return vertical_overlap (lhs, rhs) >= .95 * height_of (coalesce (lhs, rhs)) &&
-        horizontal_distance (lhs, rhs) <  .10 * width_of (rhs);
-}
-
-inline bool
-horizontally_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .15) {
-    return
-        horizontally_aligned (lhs, rhs) &&
-        horizontal_distance  (lhs, rhs) < factor * height_of (rhs);
-}
-
-inline bool
-vertically_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .25) {
-    return vertical_distance (lhs, rhs) < factor * height_of (rhs);
-}
-
-template< typename T >
-std::vector< bbox_t >
-simple_aggregate (const std::vector< bbox_t >& boxes, T test) {
-    if (boxes.size () < 2) {
-        return boxes;
-    }
-
-    std::vector< bbox_t > superboxes;
-
-    auto iter = boxes.begin (), last = boxes.end ();
-    superboxes.push_back (*iter++);
-
-    for (; iter != last; ++iter) {
-        bool coalesced = false;
-
-        for (auto& superbox : superboxes | views::reverse) {
-            if (test (superbox, *iter)) {
-                superbox = coalesce (superbox, *iter);
-                coalesced = true;
-                break;
-            }
-        }
-
-        if (!coalesced) {
-            superboxes.push_back (*iter);
-        }
-    }
-
-    return superboxes;
-}
-
-template< typename T >
-std::vector< bbox_t >
-aggregate (const std::vector< bbox_t >& boxes, T test) {
-    if (boxes.size () < 2) {
-        return boxes;
-    }
-
-    std::vector< bbox_t > other, superboxes;
-
-    auto src = std::cref (boxes);
-    auto dst = std::ref (superboxes);
-
-    for (;;) {
-        dst.get () = simple_aggregate (src.get (), test);
-
-        if (src.get ().size () == dst.get ().size ()) {
-            break;
-        }
-
-        other = std::move (superboxes);
-        src = std::cref (other);
-    }
-
-    return superboxes;
-}
-
-} // namespace xpdf
 
 void PDFCore::segment () {
-    using namespace xpdf;
-
     setBusyCursor (true);
 
     BOOST_SCOPE_EXIT(this_) {
@@ -240,95 +63,11 @@ void PDFCore::segment () {
         }
     }
 
-    auto letters = page->text->segment ();
-
-    if (!letters.empty ()) {
-        std::cout << "  --> drawing:\n";
-        std::cout << "  --> letters: " << letters.size () << "\n";
-
-        auto boxless = [](auto& lhs, auto& rhs) {
-            return
-                lhs.arr [1]  < rhs.arr [1] ||
-               (lhs.arr [1] == rhs.arr [1] && lhs.arr [0] < rhs.arr [0]);
-        };
-
-        sort (letters, boxless);
-
-#if 0
-        for (auto& letter : letters) {
-            xorRectangle (page->page, letter);
-        }
-#endif // 0
-
-        auto wordtest = [](auto& lhs, auto& rhs) {
-            return
-                 horizontally_stacked (lhs, rhs) || overlapping (lhs, rhs) ||
-                 horizontally_close   (lhs, rhs);
-        };
-
-        auto words = aggregate (letters, wordtest);
-        sort (words, boxless);
-
-#if 0
-        std::cout << "  --> words: " << words.size () << "\n";
-        for (auto& word : words) {
-            xorRectangle (page->page, word);
-        }
-#endif // 0
-
-        auto linetest = [](auto& lhs, auto& rhs) {
-            return overlapping (lhs, rhs) || horizontally_close (lhs, rhs, 1.);
-        };
-
-        auto lines = aggregate (words, linetest);
-        sort (lines, boxless);
-
-        std::cout << "  --> lines: " << lines.size () << "\n";
-
-#if 0
-        for (auto& line : lines) {
-            xorRectangle (page->page, line);
-        }
-#endif // 0
-
-        auto paratest = [](auto& lhs, auto& rhs) {
-            return overlapping (lhs, rhs) ||
-                left_aligned (lhs, rhs) && vertically_close (lhs, rhs);
-        };
-
-        auto paragraphs = simple_aggregate (lines, paratest);
-        sort (paragraphs, boxless);
-
-        std::cout << "  --> paragraphs: " << paragraphs.size () << "\n";
-
-#if 1
-        for (auto& paragraph : paragraphs) {
-            xorRectangle (page->page, paragraph);
-        }
-#endif // 0
-
-        redrawWindow (0, 0, page->w, page->h, false);
+    for (auto& box : page->text->segment ()) {
+        xorRectangle (page->page, box);
     }
-}
 
-//------------------------------------------------------------------------
-// PDFCorePage
-//------------------------------------------------------------------------
-
-PDFCorePage::PDFCorePage (int pageA, int wA, int hA, int tileWA, int tileHA) {
-    page = pageA;
-    tiles = new GList ();
-    w = wA;
-    h = hA;
-    tileW = tileWA;
-    tileH = tileHA;
-    links = NULL;
-    text = NULL;
-}
-
-PDFCorePage::~PDFCorePage () {
-    deleteGList (tiles, PDFCoreTile);
-    if (links) { delete links; }
+    redrawWindow (0, 0, page->w, page->h, false);
 }
 
 //------------------------------------------------------------------------
