@@ -1134,25 +1134,6 @@ aggregate (const std::vector< bbox_t >& letters) {
     return paragraphs;
 }
 
-inline void
-upright (std::vector< bbox_t >& boxes, const bbox_t& superbox, int rotation) {
-#define XPDF_ROTATE(turn)                               \
-    for_each (boxes, [&](auto& x) {                     \
-        x = rotate< rotation_t::turn > (x, superbox);   \
-    })
-
-    switch (rotation) {
-    case 1: XPDF_ROTATE (       quarter_turn); break;
-    case 2: XPDF_ROTATE (          half_turn); break;
-    case 3: XPDF_ROTATE (three_quarters_turn); break;
-    default:
-        break;
-
-    }
-
-#undef XPDF_ROTATE
-}
-
 } // namespace xpdf
 
 std::vector< xpdf::bbox_t >

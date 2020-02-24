@@ -5,9 +5,8 @@
 #define XPDF_XPDF_BBOX_HH
 
 #include <defs.hh>
-
 #include <cmath>
-#include <algorithm>
+#include <vector>
 
 namespace xpdf {
 
@@ -144,6 +143,12 @@ using bboxu_t = detail::bbox_t< int unsigned >;
 
 ////////////////////////////////////////////////////////////////////////
 
+template< typename T >
+using enable_if_floating_point = std::enable_if< std::is_floating_point_v< T > >;
+
+template< typename T >
+using enable_if_floating_point_t = typename enable_if_floating_point< T >::type;
+
 template<
     typename T, typename U,
     typename std::enable_if_t< std::is_constructible_v< T, U > >* = nullptr
@@ -155,37 +160,21 @@ to (const detail::bbox_t< U >& x) {
     };
 }
 
-template<
-    typename T,
-    typename std::enable_if_t< std::is_floating_point_v< T > >* = nullptr
-    >
+template< typename T, enable_if_floating_point_t< T >* = nullptr >
 inline detail::bbox_t< T >
 ceil (const detail::bbox_t< T >& x) {
-    //
-    // Stretches the box to the nearest integer margins:
-    //
+    const auto& [ a, b, c, d ] = x.arr;
     return detail::bbox_t< T >{
-        std::floor (x.arr [0]),
-        std::floor (x.arr [1]),
-        std::ceil  (x.arr [2]),
-        std::ceil  (x.arr [3])
+        std::floor (a), std::floor (1), std::ceil (2), std::ceil (3)
     };
 }
 
-template<
-    typename T,
-    typename std::enable_if_t< std::is_floating_point_v< T > >* = nullptr
-    >
+template< typename T, enable_if_floating_point_t< T >* = nullptr >
 inline detail::bbox_t< T >
 floor (const detail::bbox_t< T >& x) {
-    //
-    // Shrinks the box to the nearest integer margins:
-    //
+    const auto& [ a, b, c, d ] = x.arr;
     return detail::bbox_t< T >{
-        std::ceil  (x.arr [0]),
-        std::ceil  (x.arr [1]),
-        std::floor (x.arr [2]),
-        std::floor (x.arr [3])
+        std::ceil (a), std::ceil (b), std::floor (c), std::floor (d)
     };
 }
 
@@ -199,6 +188,29 @@ rotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
     // `upright':
     //
     return detail::rotate_t< rotation, T > ()(box, superbox);
+}
+
+template< typename T >
+inline void
+upright (std::vector< detail::bbox_t< T > >& boxes,
+         const detail::bbox_t< T >& superbox,
+         int rotation) {
+
+#define XPDF_ROTATE_ALL_BY(turn)                            \
+    for (auto& box : boxes) {                               \
+        box = rotate< rotation_t::turn > (box, superbox);   \
+    }
+
+    switch (rotation) {
+    case 1: XPDF_ROTATE_ALL_BY (       quarter_turn); break;
+    case 2: XPDF_ROTATE_ALL_BY (          half_turn); break;
+    case 3: XPDF_ROTATE_ALL_BY (three_quarters_turn); break;
+    default:
+        break;
+
+    }
+
+#undef XPDF_ROTATE_ALL
 }
 
 } // namespace xpdf
