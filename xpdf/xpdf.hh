@@ -15,8 +15,6 @@
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>
 
-#include <range/v3/all.hpp>
-
 #include <fmt/format.h>
 using fmt::format;
 
@@ -36,44 +34,57 @@ inline T array_get (Object& arr, size_t i) {
 }
 
 template< typename T >
-inline auto as_array (Object& src) {
+inline auto as_array (Object& obj) {
+    auto& src = obj.as_array ();
+
     std::vector< T > xs;
 
-    for (size_t i = 0, n = src.as_array ().size (); i < n; ++i) {
-        xs.emplace_back (array_get< T > (src, i));
+    for (size_t i = 0, n = src.size (); i < n; ++i) {
+        xs.emplace_back (src [i].cast< T > ());
     }
 
     return xs;
 }
 
 template< >
-inline auto as_array< size_t > (Object& src) {
+inline auto as_array< size_t > (Object& obj) {
+    auto& src = obj.as_array ();
+
     std::vector< size_t > xs;
+    xs.reserve (src.size ());
 
-    for (size_t i = 0, n = src.as_array ().size (); i < n; ++i) {
-        xs.emplace_back (array_get< int > (src, i));
+    for (size_t i = 0, n = src.size (); i < n; ++i) {
+        xs.emplace_back (src [i].cast< int > ());
     }
 
     return xs;
 }
 
 template< >
-inline auto as_array< std::tuple< double, double > > (Object& src) {
-    using namespace ranges;
+inline auto as_array< std::tuple< double, double > > (Object& obj) {
+    using tuple_type = std::tuple< double, double >;
 
-    std::vector< std::tuple< double, double > > xs;
-
-    if (!src.is_array ()) {
+    if (!obj.is_array ()) {
         throw std::runtime_error ("not an array");
     }
 
-    auto& rng = src.as_array ();
+    auto& src = obj.as_array ();
 
-    transform (rng | views::chunk (2), back_inserter (xs), [](auto arg) {
-        return std::make_tuple (
-            arg [0].template cast< double > (),
-            arg [1].template cast< double > ());
-    });
+    if (src.empty ()) {
+        return std::vector< tuple_type >{ };
+    }
+
+    std::vector< tuple_type > xs;
+
+    auto iter = src.begin (), next = iter, last = src.end ();
+
+    for (++next; iter != last && next != last; iter += 2, next += 2) {
+        xs.emplace_back (iter->cast< double > (), next->cast< double > ());
+    }
+
+    if (iter != last) {
+        xs.emplace_back (iter->cast< double > (), double{ });
+    }
 
     return xs;
 }
