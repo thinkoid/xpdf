@@ -4015,9 +4015,11 @@ std::vector< xpdf::bbox_t >
 search_all (const TextChars& chars, int rotation, std::wregex& regex) {
     std::vector< xpdf::char_t > cs;
 
-    transform (
-        chars | views::filter ([&](auto& ch) { return rotation == ch->rot; }),
-        back_inserter (cs), [](auto& ch) { return xpdf::make_char (*ch); });
+    for (auto& ch : chars) {
+        if (rotation == ch->rot) {
+            cs.push_back (xpdf::make_char (*ch));
+        }
+    }
 
     sort (cs, reading_order_of (rotation));
 
@@ -4031,6 +4033,12 @@ bool TextPage::findText (
     xpdf::bbox_t& box) {
 
 #if 1
+    // TODO: rip this shit out and implement a better search:
+    if (0 == box.point [1].x || 0 == box.point [1].y) {
+        box.point [0].x = 0;
+        box.point [1] = { pageWidth, pageHeight };
+    }
+
     std::wregex regex (to_wstring (p, len));
 
     std::vector< xpdf::bbox_t > boxes;
