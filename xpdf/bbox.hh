@@ -165,7 +165,7 @@ inline detail::bbox_t< T >
 ceil (const detail::bbox_t< T >& x) {
     const auto& [ a, b, c, d ] = x.arr;
     return detail::bbox_t< T >{
-        std::floor (a), std::floor (1), std::ceil (2), std::ceil (3)
+        std::floor (a), std::floor (b), std::ceil (c), std::ceil (d)
     };
 }
 
