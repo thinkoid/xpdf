@@ -14,7 +14,8 @@
 #include <splash/SplashXPath.hh>
 #include <splash/SplashXPathScanner.hh>
 
-#include <range/v3/all.hpp>
+#include <range/v3/algorithm/sort.hpp>
+#include <range/v3/action/remove_if.hpp>
 using namespace ranges;
 
 //------------------------------------------------------------------------

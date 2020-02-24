@@ -29,7 +29,9 @@
 #include <xpdf/TextString.hh>
 #include <xpdf/Gfx.hh>
 
-#include <range/v3/all.hpp>
+#include <range/v3/algorithm/fill.hpp>
+#include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/algorithm/for_each.hpp>
 using namespace ranges;
 
 // the MSVC math.h doesn't define this

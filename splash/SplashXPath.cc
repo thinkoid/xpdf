@@ -14,7 +14,7 @@
 #include <splash/SplashPath.hh>
 #include <splash/SplashXPath.hh>
 
-#include <range/v3/all.hpp>
+#include <range/v3/algorithm/sort.hpp>
 using namespace ranges;
 
 //------------------------------------------------------------------------

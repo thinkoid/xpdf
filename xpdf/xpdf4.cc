@@ -16,9 +16,6 @@ namespace io = boost::iostreams;
 #include <xpdf/parser.hh>
 namespace ast = xpdf::parser::ast;
 
-#include <range/v3/all.hpp>
-using namespace ranges;
-
 template< typename... Ts> struct overload_ : Ts... { using Ts::operator()...; };
 template< typename... Ts> overload_(Ts...) -> overload_< Ts... >;
 

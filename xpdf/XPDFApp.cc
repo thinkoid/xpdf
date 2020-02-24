@@ -6,8 +6,9 @@
 //
 // Include early, conflicts with Motif:
 //
-#include <range/v3/all.hpp>
 #include <range/v3/action/remove.hpp>
+#include <range/v3/algorithm/for_each.hpp>
+#include <range/v3/view/filter.hpp>
 using namespace ranges;
 
 #include <utils/string.hh>

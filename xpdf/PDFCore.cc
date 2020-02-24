@@ -25,9 +25,6 @@
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/xpdf.hh>
 
-#include <range/v3/all.hpp>
-using namespace ranges;
-
 #include <boost/scope_exit.hpp>
 
 PDFCorePage::PDFCorePage (int pageA, int wA, int hA, int tileWA, int tileHA) {

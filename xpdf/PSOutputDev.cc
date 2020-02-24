@@ -43,7 +43,7 @@
 #include <xpdf/UnicodeMap.hh>
 #include <xpdf/XRef.hh>
 
-#include <range/v3/all.hpp>
+#include <range/v3/algorithm/find_if.hpp>
 using namespace ranges;
 
 //------------------------------------------------------------------------

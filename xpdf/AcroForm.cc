@@ -22,7 +22,7 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/TextString.hh>
 
-#include <range/v3/all.hpp>
+#include <range/v3/algorithm/find_if.hpp>
 using namespace ranges;
 
 #include <fmt/format.h>

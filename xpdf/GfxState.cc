@@ -17,7 +17,8 @@
 #include <xpdf/XRef.hh>
 #include <xpdf/GfxState.hh>
 
-#include <range/v3/all.hpp>
+#include <range/v3/algorithm/copy.hpp>
+#include <range/v3/algorithm/fill.hpp>
 using namespace ranges;
 
 //------------------------------------------------------------------------
