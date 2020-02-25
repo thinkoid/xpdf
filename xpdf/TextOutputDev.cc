@@ -903,8 +903,8 @@ inline double height_of (const bbox_t& x) { return x.arr [3] - x.arr [1]; }
 inline double
 horizontal_overlap (const bbox_t& lhs, const bbox_t& rhs) {
     const auto dist =
-        (std::min) (lhs.arr [2], rhs.arr [2]) -
-        (std::max) (lhs.arr [0], rhs.arr [0]);
+        (std::max) (lhs.arr [0], rhs.arr [0]) -
+        (std::min) (lhs.arr [2], rhs.arr [2]);
     return dist > 0 ? dist : 0;
 }
 
@@ -935,44 +935,9 @@ vertical_distance (const bbox_t& lhs, const bbox_t& rhs) {
         : rhs.arr [3] < lhs.arr [1] ? lhs.arr [1] - rhs.arr [3] : 0;
 }
 
-inline std::tuple< double, double >
-center_of (const bbox_t& box) {
-    ASSERT (box.arr [0] < box.arr [2]);
-    ASSERT (box.arr [1] < box.arr [3]);
-    return {
-        (box.arr [0] + box.arr [2]) / 2,
-        (box.arr [1] + box.arr [3]) / 2
-    };
-}
-
-inline double
-min_width_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::min) (width_of (lhs), width_of (rhs));
-}
-
-inline double
-max_width_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::max) (width_of (lhs), width_of (rhs));
-}
-
-inline double
-avg_width_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (width_of (lhs) + width_of (rhs)) / 2;
-}
-
 inline double
 min_height_of (const bbox_t& lhs, const bbox_t& rhs) {
     return (std::min) (height_of (lhs), height_of (rhs));
-}
-
-inline double
-max_height_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::max) (height_of (lhs), height_of (rhs));
-}
-
-inline double
-avg_height_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (height_of (lhs), height_of (rhs)) / 2;
 }
 
 inline bbox_t
@@ -986,33 +951,12 @@ coalesce (const bbox_t& lhs, const bbox_t& rhs) {
 }
 
 //
-// Vertical overlap is more than half the height of the smallest of
-// neighbors:
-//
-inline bool
-horizontally_aligned (const bbox_t& lhs, const bbox_t& rhs, double factor = .4) {
-    return vertical_overlap (lhs, rhs) > factor * min_height_of (lhs, rhs);
-}
-
-inline bool
-left_aligned (const bbox_t& lhs, const bbox_t& rhs, double margin = .10) {
-    return margin > fabs (lhs.arr [0] - rhs.arr [0]);
-}
-
-//
 // Characters are stacked when side-by-side, of same height and close together:
 //
 inline bool
-horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs) {
-    return vertical_overlap (lhs, rhs) >= .95 * height_of (coalesce (lhs, rhs)) &&
-        horizontal_distance (lhs, rhs) <  .10 * width_of (rhs);
-}
-
-inline bool
-horizontally_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .15) {
-    return
-        horizontally_aligned (lhs, rhs) &&
-        horizontal_distance  (lhs, rhs) < factor * height_of (rhs);
+horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs, double factor = .10) {
+    return vertical_overlap (lhs, rhs) >= .55 * height_of (coalesce (lhs, rhs)) &&
+        horizontal_distance (lhs, rhs) < factor * height_of (rhs);
 }
 
 inline bool
@@ -1107,8 +1051,7 @@ aggregate (const std::vector< bbox_t >& letters) {
     }
 
     auto wordtest = [](auto& lhs, auto& rhs) {
-        return horizontally_stacked (lhs, rhs) || overlapping (lhs, rhs) ||
-            horizontally_close (lhs, rhs);
+        return overlapping (lhs, rhs) || horizontally_stacked (lhs, rhs, .10);
     };
 
     auto cmp = reading_order< rotation_t::none, xpdf::bbox_t >;
@@ -1117,15 +1060,15 @@ aggregate (const std::vector< bbox_t >& letters) {
     sort (words, cmp);
 
     auto linetest = [](auto& lhs, auto& rhs) {
-        return overlapping (lhs, rhs) || horizontally_close (lhs, rhs, 1.);
+        return overlapping (lhs, rhs) || horizontally_stacked (lhs, rhs, 1.);
     };
 
-    auto lines = aggregate (words, linetest);
+    auto lines = simple_aggregate (words, linetest);
     sort (lines, cmp);
 
     auto paratest = [](auto& lhs, auto& rhs) {
-        return overlapping (lhs, rhs) || // left_aligned (lhs, rhs) &&
-            vertically_close (lhs, rhs);
+        return overlapping (lhs, rhs) ||
+            (horizontal_overlap (lhs, rhs) && vertically_close (lhs, rhs));
     };
 
     auto paragraphs = simple_aggregate (lines, paratest);
