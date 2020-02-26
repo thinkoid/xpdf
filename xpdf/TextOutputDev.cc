@@ -19,8 +19,6 @@
 #include <utils/GList.hh>
 
 #include <xpdf/bbox.hh>
-using bbox_t = xpdf::bbox_t;
-
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/UnicodeMap.hh>
@@ -156,40 +154,34 @@ struct TextChar {
 
 struct char_t {
     wchar_t value;
-    bbox_t box;
+    xpdf::bbox_t box;
 };
-
-const auto rotated_by (int n) {
-    return [=](auto& chars) {
-        return chars | views::filter ([=](auto& ch) { return n == ch->rot; });
-    };
-}
 
 ////////////////////////////////////////////////////////////////////////
 
-template< typename T > bbox_t box_from (const T&);
+template< typename T > xpdf::bbox_t bbox_from (const T&);
 
 template< >
-inline bbox_t
-box_from< TextChar > (const TextChar& ch) {
-    return bbox_t{ ch.xmin, ch.ymin, ch.xmax, ch.ymax };
+inline xpdf::bbox_t
+bbox_from< TextChar > (const TextChar& ch) {
+    return xpdf::bbox_t{ ch.xmin, ch.ymin, ch.xmax, ch.ymax };
 }
 
 template< >
-inline bbox_t
-box_from< TextCharPtr > (const TextCharPtr& p) {
-    return box_from (*p);
+inline xpdf::bbox_t
+bbox_from< TextCharPtr > (const TextCharPtr& p) {
+    return bbox_from (*p);
 }
 
 template< >
-inline bbox_t
-box_from< char_t > (const char_t& ch) {
+inline xpdf::bbox_t
+bbox_from< char_t > (const char_t& ch) {
     return ch.box;
 }
 
 template< >
-inline bbox_t
-box_from< bbox_t > (const bbox_t& arg) {
+inline xpdf::bbox_t
+bbox_from< xpdf::bbox_t > (const xpdf::bbox_t& arg) {
     return arg;
 }
 
@@ -883,19 +875,17 @@ TextPage::~TextPage () {
 
 #include <boost/scope_exit.hpp>
 
-using bbox_t = bbox_t;
-
 //
 // Characters are stacked when side-by-side, of same height and close together:
 //
 inline bool
-horizontally_stacked (const bbox_t& lhs, const bbox_t& rhs, double factor = .10) {
+horizontally_stacked (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs, double factor = .10) {
     return vertical_overlap (lhs, rhs) >= .55 * height_of (coalesce (lhs, rhs)) &&
         horizontal_distance (lhs, rhs) < factor * height_of (rhs);
 }
 
 inline bool
-vertically_close (const bbox_t& lhs, const bbox_t& rhs, double factor = .25) {
+vertically_close (const xpdf::bbox_t& lhs, const xpdf::bbox_t& rhs, double factor = .25) {
     return vertical_distance (lhs, rhs) < factor * height_of (rhs);
 }
 
@@ -917,19 +907,19 @@ XPDF_READING_ORDER_DEF (three_quarters_turn, a_x0, b_x0, b_y0, a_y0)
 
 template< xpdf::rotation_t R, typename T >
 inline bool reading_order (const T& lhs, const T& rhs) {
-    const auto& a = box_from (lhs).arr;
-    const auto& b = box_from (rhs).arr;
+    const auto& a = bbox_from (lhs).arr;
+    const auto& b = bbox_from (rhs).arr;
     return do_reading_order< R > (a [0], a[1], b [0], b [1]);
 }
 
 template< typename T >
-std::vector< bbox_t >
-simple_aggregate (const std::vector< bbox_t >& boxes, T test) {
+std::vector< xpdf::bbox_t >
+simple_aggregate (const std::vector< xpdf::bbox_t >& boxes, T test) {
     if (boxes.size () < 2) {
         return boxes;
     }
 
-    std::vector< bbox_t > superboxes;
+    std::vector< xpdf::bbox_t > superboxes;
 
     auto iter = boxes.begin (), last = boxes.end ();
     superboxes.push_back (*iter++);
@@ -954,13 +944,13 @@ simple_aggregate (const std::vector< bbox_t >& boxes, T test) {
 }
 
 template< typename T >
-std::vector< bbox_t >
-aggregate (const std::vector< bbox_t >& boxes, T test) {
+std::vector< xpdf::bbox_t >
+aggregate (const std::vector< xpdf::bbox_t >& boxes, T test) {
     if (boxes.size () < 2) {
         return boxes;
     }
 
-    std::vector< bbox_t > other, superboxes;
+    std::vector< xpdf::bbox_t > other, superboxes;
 
     auto src = std::cref (boxes);
     auto dst = std::ref (superboxes);
@@ -979,8 +969,8 @@ aggregate (const std::vector< bbox_t >& boxes, T test) {
     return superboxes;
 }
 
-std::vector< bbox_t >
-aggregate (const std::vector< bbox_t >& letters) {
+std::vector< xpdf::bbox_t >
+aggregate (const std::vector< xpdf::bbox_t >& letters) {
     if (letters.size () < 2) {
         return letters;
     }
@@ -989,7 +979,7 @@ aggregate (const std::vector< bbox_t >& letters) {
         return overlapping (lhs, rhs) || horizontally_stacked (lhs, rhs, .10);
     };
 
-    auto cmp = reading_order< xpdf::rotation_t::none, bbox_t >;
+    auto cmp = reading_order< xpdf::rotation_t::none, xpdf::bbox_t >;
 
     auto words = simple_aggregate (letters, wordtest);
     sort (words, cmp);
@@ -1012,23 +1002,56 @@ aggregate (const std::vector< bbox_t >& letters) {
     return paragraphs;
 }
 
-std::vector< bbox_t >
+inline auto
+rotate_by (int rotation) {
+    using namespace xpdf;
+    switch (rotation) {
+    default:
+    case 0: return xpdf::rotate< rotation_t::none, double >;
+    case 1: return xpdf::rotate< rotation_t::quarter_turn, double >;
+    case 2: return xpdf::rotate< rotation_t::half_turn, double >;
+    case 3: return xpdf::rotate< rotation_t::three_quarters_turn, double >;
+    }
+}
+
+inline auto
+undo_rotate_by (int rotation) {
+    using namespace xpdf;
+    switch (rotation) {
+    default:
+    case 0: return unrotate< rotation_t::none, double >;
+    case 1: return unrotate< rotation_t::quarter_turn, double >;
+    case 2: return unrotate< rotation_t::half_turn, double >;
+    case 3: return unrotate< rotation_t::three_quarters_turn, double >;
+    }
+}
+
+std::vector< xpdf::bbox_t >
 TextPage::segment () const {
-    const bbox_t superbox{ 0, 0, pageWidth, pageHeight };
-    std::vector< bbox_t > boxes;
+    using namespace xpdf;
+
+    auto upright = [](auto& boxes, const auto& superbox, auto fn) {
+        for_each (boxes, [&](auto& box) { box = fn (box, superbox); });
+    };
+
+    const xpdf::bbox_t superbox{ 0, 0, pageWidth, pageHeight };
+    std::vector< xpdf::bbox_t > boxes;
 
     for (int rotation : { 0, 1, 2, 3 }) {
-        std::vector< bbox_t > cs;
+        std::vector< xpdf::bbox_t > cs;
 
-        transform (
-            rotated_by (rotation)(chars), back_inserter (cs), [](auto& ch) {
-                return bbox_t{ ch->xmin, ch->ymin, ch->xmax, ch->ymax };
-            });
+        auto rng = chars | views::filter ([=](auto& ch) {
+            return rotation == ch->rot;
+        });
 
-        xpdf::upright (cs, superbox, (4 - rotation) % 4);
+        transform (rng, back_inserter (cs), [](auto& ch) {
+            return bbox_from (ch);
+        });
+
+        upright (cs, superbox, rotate_by (rotation));
 
         auto other = aggregate (cs);
-        xpdf::upright (other, superbox, rotation);
+        upright (cs, superbox, undo_rotate_by (rotation));
 
         boxes.insert (boxes.end (), other.begin (), other.end ());
     }
@@ -2796,7 +2819,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
                 if (x - start > vertGapSize2) {
                     auto chars2 = charsIn (
                         charsA,
-                        bbox_t{
+                        xpdf::bbox_t{
                             ( prev + 0.5) * splitPrecision, yMin - 1,
                             (start + 1.5) * splitPrecision, yMax + 1
                         });
@@ -2809,7 +2832,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
         }
 
         auto chars2 = charsIn (
-            charsA, bbox_t{
+            charsA, xpdf::bbox_t{
                 (prev + 0.5) * splitPrecision, yMin - 1, xMax + 1, yMax + 1
             });
 
@@ -2832,7 +2855,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
             else if (!hprofile[y - yMinI] && hprofile[y + 1 - yMinI]) {
                 if (y - start > horizGapSize2) {
                     auto chars2 = charsIn (
-                        charsA, bbox_t{
+                        charsA, xpdf::bbox_t{
                             xMin - 1, ( prev + 0.5) * splitPrecision,
                             xMax + 1, (start + 1.5) * splitPrecision
                         });
@@ -2845,7 +2868,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
         }
 
         auto chars2 = charsIn (
-            charsA, bbox_t{
+            charsA, xpdf::bbox_t{
                 xMin - 1, (prev + 0.5) * splitPrecision, xMax + 1, yMax + 1
             });
 
@@ -2889,7 +2912,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
 
 // Return the subset of chars inside a rectangle.
 TextChars
-TextPage::charsIn (TextChars& charsA, const bbox_t& box) const {
+TextPage::charsIn (TextChars& charsA, const xpdf::bbox_t& box) const {
     TextChars chars;
 
     const auto& [ x0, y0, x1, y1 ] = box.arr;
@@ -3849,7 +3872,7 @@ inline std::string to_string (const std::wstring& wstr) {
     return s;
 }
 
-std::vector< bbox_t >
+std::vector< xpdf::bbox_t >
 do_search_all (const std::vector< char_t >& cs, std::wregex& regex) {
     std::wstring wstr;
     transform (cs, back_inserter (wstr), &char_t::value);
@@ -3857,7 +3880,7 @@ do_search_all (const std::vector< char_t >& cs, std::wregex& regex) {
     auto iter = std::wsregex_iterator (wstr.begin (), wstr.end (), regex);
     auto last = std::wsregex_iterator ();
 
-    std::vector< bbox_t > xs;
+    std::vector< xpdf::bbox_t > xs;
 
     for (; iter != last; ++iter) {
         auto match = (*iter) [0];
@@ -3868,7 +3891,7 @@ do_search_all (const std::vector< char_t >& cs, std::wregex& regex) {
         xs.push_back (
             accumulate (
                 cs.begin () + pos, cs.begin () + pos + len,
-                cs [pos].box, std::plus< bbox_t > { },
+                cs [pos].box, std::plus< xpdf::bbox_t > { },
                 &char_t::box));
     }
 
@@ -3887,7 +3910,7 @@ inline auto reading_order_of (int rotation) {
     }
 };
 
-std::vector< bbox_t >
+std::vector< xpdf::bbox_t >
 search_all (const TextChars& chars, int rotation, std::wregex& regex) {
     std::vector< char_t > cs;
 
@@ -3910,7 +3933,7 @@ bool TextPage::findText (
     Unicode* p, int len,
     bool startAtTop,  bool stopAtBottom, bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
-    bbox_t& box) {
+    xpdf::bbox_t& box) {
 
 #if 1
     // TODO: rip this shit out and implement a better search:
@@ -3921,16 +3944,16 @@ bool TextPage::findText (
 
     std::wregex regex (to_wstring (p, len));
 
-    std::vector< bbox_t > boxes;
+    std::vector< xpdf::bbox_t > boxes;
 
     for (int rot : { 0, 1, 2, 3 }) {
         auto matches = search_all (chars, rot, regex);
         boxes.insert (boxes.end (), matches.begin (), matches.end ());
     }
 
-    sort (boxes, reading_order< xpdf::rotation_t::none, bbox_t >);
+    sort (boxes, reading_order< xpdf::rotation_t::none, xpdf::bbox_t >);
 
-    bbox_t search_area;
+    xpdf::bbox_t search_area;
 
     {
         double x0, y0, x1, y1;
@@ -3963,7 +3986,7 @@ bool TextPage::findText (
             }
         }
 
-        search_area = bbox_t{ x0, y0, x1, y1 };
+        search_area = xpdf::bbox_t{ x0, y0, x1, y1 };
     }
 
     auto iter2 = find_if (boxes, [&](auto& box) {
@@ -4211,7 +4234,7 @@ bool TextPage::findText (
 }
 
 GString*
-TextPage::getText (const bbox_t& box) {
+TextPage::getText (const xpdf::bbox_t& box) {
     UnicodeMap* uMap;
     char space[8], eol[16];
     int spaceLen, eolLen;
@@ -4328,7 +4351,7 @@ TextPage::getText (const bbox_t& box) {
     return ret;
 }
 
-bool TextPage::findCharRange (int pos, int length, bbox_t& box) {
+bool TextPage::findCharRange (int pos, int length, xpdf::bbox_t& box) {
     double xMin2, yMin2, xMax2, yMax2;
     bool first;
 
@@ -4495,7 +4518,7 @@ bool TextOutputDev::findText (
     Unicode* s, int len,
     bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
-    bbox_t& box) {
+    xpdf::bbox_t& box) {
     return text->findText (
         s, len,
         startAtTop, stopAtBottom, startAtLast, stopAtLast,
@@ -4504,11 +4527,11 @@ bool TextOutputDev::findText (
 }
 
 GString*
-TextOutputDev::getText (const bbox_t& box) {
+TextOutputDev::getText (const xpdf::bbox_t& box) {
     return text->getText (box);
 }
 
-bool TextOutputDev::findCharRange (int pos, int length, bbox_t& box) {
+bool TextOutputDev::findCharRange (int pos, int length, xpdf::bbox_t& box) {
     return text->findCharRange (pos, length, box);
 }
 

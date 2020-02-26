@@ -300,29 +300,6 @@ unrotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
     return detail::unrotate_t< rotation, T > ()(box, superbox);
 }
 
-template< typename T >
-inline void
-upright (std::vector< detail::bbox_t< T > >& boxes,
-         const detail::bbox_t< T >& superbox,
-         int rotation) {
-
-#define XPDF_ROTATE_ALL_BY(turn)                            \
-    for (auto& box : boxes) {                               \
-        box = rotate< rotation_t::turn > (box, superbox);   \
-    }
-
-    switch (rotation) {
-    case 1: XPDF_ROTATE_ALL_BY (       quarter_turn); break;
-    case 2: XPDF_ROTATE_ALL_BY (          half_turn); break;
-    case 3: XPDF_ROTATE_ALL_BY (three_quarters_turn); break;
-    default:
-        break;
-
-    }
-
-#undef XPDF_ROTATE_ALL
-}
-
 } // namespace xpdf
 
 #endif // XPDF_XPDF_BBOX_HH
