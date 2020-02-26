@@ -3936,12 +3936,6 @@ bool TextPage::findText (
     xpdf::bbox_t& box) {
 
 #if 1
-    // TODO: rip this shit out and implement a better search:
-    if (0 == box.point [1].x || 0 == box.point [1].y) {
-        box.point [0].x = 0;
-        box.point [1] = { pageWidth, pageHeight };
-    }
-
     std::wregex regex (to_wstring (p, len));
 
     std::vector< xpdf::bbox_t > boxes;
@@ -3990,7 +3984,10 @@ bool TextPage::findText (
     }
 
     auto iter2 = find_if (boxes, [&](auto& box) {
-        return box.point [0].in (search_area);
+        return
+            box.point [0].y  > search_area.point [0].y ||
+            box.point [0].y == search_area.point [0].y &&
+            box.point [0].x  > search_area.point [0].x;
     });
 
     if (iter2 != boxes.end ()) {
