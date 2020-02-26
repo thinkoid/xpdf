@@ -89,6 +89,79 @@ operator<< (std::ostream& ss, const bbox_t< T >& box) {
         << box.arr [3];
 }
 
+////////////////////////////////////////////////////////////////////////
+
+template< typename T >
+inline bbox_t< T >
+normalize (bbox_t< T > x) {
+    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
+    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
+    return x;
+}
+
+template< typename T >
+inline T width_of (const bbox_t< T >& x) { return x.arr [2] - x.arr [0]; }
+
+template< typename T >
+inline T height_of (const bbox_t< T >& x) { return x.arr [3] - x.arr [1]; }
+
+template< typename T >
+inline T
+horizontal_overlap (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    const auto dist =
+        (std::min) (lhs.arr [2], rhs.arr [2]) -
+        (std::max) (lhs.arr [0], rhs.arr [0]);
+    return dist > 0 ? dist : 0;
+}
+
+template< typename T >
+inline double
+vertical_overlap (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    const auto dist =
+        (std::min) (lhs.arr [3], rhs.arr [3]) -
+        (std::max) (lhs.arr [1], rhs.arr [1]);
+    return dist > 0 ? dist : 0;
+}
+
+template< typename T >
+inline bool
+overlapping (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return horizontal_overlap (lhs, rhs) && vertical_overlap (lhs, rhs);
+}
+
+template< typename T >
+inline T
+horizontal_distance (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return lhs.arr [2] < rhs.arr [0]
+        ? rhs.arr [0] - lhs.arr [2]
+        : rhs.arr [2] < lhs.arr [0] ? lhs.arr [0] - rhs.arr [2] : 0;
+}
+
+template< typename T >
+inline T
+vertical_distance (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return lhs.arr [3] < rhs.arr [1]
+        ? rhs.arr [1] - lhs.arr [3]
+        : rhs.arr [3] < lhs.arr [1] ? lhs.arr [1] - rhs.arr [3] : 0;
+}
+
+template< typename T >
+inline T
+min_height_of (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return (std::min) (height_of (lhs), height_of (rhs));
+}
+
+template< typename T >
+inline bbox_t< T >
+coalesce (const bbox_t< T >& lhs, const bbox_t< T >& rhs) {
+    return bbox_t< T >{
+        (std::min) (lhs.arr [0], rhs.arr [0]),
+        (std::min) (lhs.arr [1], rhs.arr [1]),
+        (std::max) (lhs.arr [2], rhs.arr [2]),
+        (std::max) (lhs.arr [3], rhs.arr [3])
+    };
+}
+
 template< typename T >
 template< typename U >
 bool point_t< T >::in (const bbox_t< U >& box) const {
@@ -97,7 +170,8 @@ bool point_t< T >::in (const bbox_t< U >& box) const {
         box.arr [1] <= y && y < box.arr [3];
 }
 
-template< xpdf::rotation_t, typename > struct rotate_t;
+template< xpdf::rotation_t, typename >
+struct rotate_t;
 
 template< typename T >
 struct rotate_t< xpdf::rotation_t::none, T > {
@@ -127,6 +201,32 @@ XPDF_ROTATE_DEF (          half_turn, X1 - x1, Y1 - y1, X1 - x0, Y1 - y0);
 XPDF_ROTATE_DEF (three_quarters_turn, Y1 - y1,      x0, Y1 - y0,      x1);
 
 #undef XPDF_ROTATE_DEF
+
+template< xpdf::rotation_t, typename >
+struct unrotate_t;
+
+template< typename T >
+struct unrotate_t< xpdf::rotation_t::none, T > {
+    using box_type = bbox_t< T >;
+    box_type operator() (box_type x, const box_type&) const { return x; }
+};
+
+#define XPDF_UNROTATE_DEF(type, a, b, c, d)                     \
+template< typename T >                                          \
+struct unrotate_t< xpdf::rotation_t::type, T > {                \
+    using box_type = bbox_t< T >;                               \
+    box_type operator() (box_type x, const box_type& X) const { \
+        auto& [ x0, y0, x1, y1 ] = x.arr;                       \
+        auto& [ X0, Y0, X1, Y1 ] = X.arr;                       \
+        return { a, b, c, d };                                  \
+    }                                                           \
+}
+
+XPDF_UNROTATE_DEF (       quarter_turn, X1 - y1,      x0, X1 - y0,      x1);
+XPDF_UNROTATE_DEF (          half_turn, X1 - x1, Y1 - y1, X1 - x0, Y1 - y0);
+XPDF_UNROTATE_DEF (three_quarters_turn,      y0, Y1 - x1,      y1, Y1 - x0);
+
+#undef XPDF_UNROTATE_DEF
 
 } // namespace detail
 
@@ -188,6 +288,16 @@ rotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
     // `upright':
     //
     return detail::rotate_t< rotation, T > ()(box, superbox);
+}
+
+template< rotation_t rotation, typename T >
+inline detail::bbox_t< T >
+unrotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
+    //
+    // Rotation around origin followed by a translation, brings the box
+    // `upright':
+    //
+    return detail::unrotate_t< rotation, T > ()(box, superbox);
 }
 
 template< typename T >

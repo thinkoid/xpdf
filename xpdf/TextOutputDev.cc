@@ -18,6 +18,9 @@
 #include <utils/string.hh>
 #include <utils/GList.hh>
 
+#include <xpdf/bbox.hh>
+using bbox_t = xpdf::bbox_t;
+
 #include <xpdf/Error.hh>
 #include <xpdf/GlobalParams.hh>
 #include <xpdf/UnicodeMap.hh>
@@ -151,18 +154,10 @@ struct TextChar {
     unsigned char charLen : 4, rot : 2, clipped : 1, invisible : 1;
 };
 
-namespace xpdf {
-
 struct char_t {
     wchar_t value;
-    xpdf::bbox_t box;
+    bbox_t box;
 };
-
-inline char_t make_char (const TextChar& ch) {
-    return { wchar_t (ch.c), { ch.xmin, ch.ymin, ch.xmax, ch.ymax } };
-}
-
-} // namespace xpdf
 
 const auto rotated_by (int n) {
     return [=](auto& chars) {
@@ -172,29 +167,29 @@ const auto rotated_by (int n) {
 
 ////////////////////////////////////////////////////////////////////////
 
-template< typename T > xpdf::bbox_t box_from (const T&);
+template< typename T > bbox_t box_from (const T&);
 
 template< >
-inline xpdf::bbox_t
+inline bbox_t
 box_from< TextChar > (const TextChar& ch) {
-    return xpdf::bbox_t{ ch.xmin, ch.ymin, ch.xmax, ch.ymax };
+    return bbox_t{ ch.xmin, ch.ymin, ch.xmax, ch.ymax };
 }
 
 template< >
-inline xpdf::bbox_t
+inline bbox_t
 box_from< TextCharPtr > (const TextCharPtr& p) {
     return box_from (*p);
 }
 
 template< >
-inline xpdf::bbox_t
-box_from< xpdf::char_t > (const xpdf::char_t& ch) {
+inline bbox_t
+box_from< char_t > (const char_t& ch) {
     return ch.box;
 }
 
 template< >
-inline xpdf::bbox_t
-box_from< xpdf::bbox_t > (const xpdf::bbox_t& arg) {
+inline bbox_t
+box_from< bbox_t > (const bbox_t& arg) {
     return arg;
 }
 
@@ -888,67 +883,7 @@ TextPage::~TextPage () {
 
 #include <boost/scope_exit.hpp>
 
-namespace xpdf {
-
-inline bbox_t
-normalize (bbox_t x) {
-    if (x.arr [0] > x.arr [2]) { std::swap (x.arr [0], x.arr [2]); }
-    if (x.arr [1] > x.arr [3]) { std::swap (x.arr [1], x.arr [3]); }
-    return x;
-}
-
-inline double  width_of (const bbox_t& x) { return x.arr [2] - x.arr [0]; }
-inline double height_of (const bbox_t& x) { return x.arr [3] - x.arr [1]; }
-
-inline double
-horizontal_overlap (const bbox_t& lhs, const bbox_t& rhs) {
-    const auto dist =
-        (std::max) (lhs.arr [0], rhs.arr [0]) -
-        (std::min) (lhs.arr [2], rhs.arr [2]);
-    return dist > 0 ? dist : 0;
-}
-
-inline double
-vertical_overlap (const bbox_t& lhs, const bbox_t& rhs) {
-    const auto dist =
-        (std::min) (lhs.arr [3], rhs.arr [3]) -
-        (std::max) (lhs.arr [1], rhs.arr [1]);
-    return dist > 0 ? dist : 0;
-}
-
-inline bool
-overlapping (const bbox_t& lhs, const bbox_t& rhs) {
-    return horizontal_overlap (lhs, rhs) && vertical_overlap (lhs, rhs);
-}
-
-inline double
-horizontal_distance (const bbox_t& lhs, const bbox_t& rhs) {
-    return lhs.arr [2] < rhs.arr [0]
-        ? rhs.arr [0] - lhs.arr [2]
-        : rhs.arr [2] < lhs.arr [0] ? lhs.arr [0] - rhs.arr [2] : 0;
-}
-
-inline double
-vertical_distance (const bbox_t& lhs, const bbox_t& rhs) {
-    return lhs.arr [3] < rhs.arr [1]
-        ? rhs.arr [1] - lhs.arr [3]
-        : rhs.arr [3] < lhs.arr [1] ? lhs.arr [1] - rhs.arr [3] : 0;
-}
-
-inline double
-min_height_of (const bbox_t& lhs, const bbox_t& rhs) {
-    return (std::min) (height_of (lhs), height_of (rhs));
-}
-
-inline bbox_t
-coalesce (const bbox_t& lhs, const bbox_t& rhs) {
-    return bbox_t{
-        (std::min) (lhs.arr [0], rhs.arr [0]),
-        (std::min) (lhs.arr [1], rhs.arr [1]),
-        (std::max) (lhs.arr [2], rhs.arr [2]),
-        (std::max) (lhs.arr [3], rhs.arr [3])
-    };
-}
+using bbox_t = bbox_t;
 
 //
 // Characters are stacked when side-by-side, of same height and close together:
@@ -1054,7 +989,7 @@ aggregate (const std::vector< bbox_t >& letters) {
         return overlapping (lhs, rhs) || horizontally_stacked (lhs, rhs, .10);
     };
 
-    auto cmp = reading_order< rotation_t::none, xpdf::bbox_t >;
+    auto cmp = reading_order< xpdf::rotation_t::none, bbox_t >;
 
     auto words = simple_aggregate (letters, wordtest);
     sort (words, cmp);
@@ -1077,24 +1012,22 @@ aggregate (const std::vector< bbox_t >& letters) {
     return paragraphs;
 }
 
-} // namespace xpdf
-
-std::vector< xpdf::bbox_t >
+std::vector< bbox_t >
 TextPage::segment () const {
-    const xpdf::bbox_t superbox{ 0, 0, pageWidth, pageHeight };
-    std::vector< xpdf::bbox_t > boxes;
+    const bbox_t superbox{ 0, 0, pageWidth, pageHeight };
+    std::vector< bbox_t > boxes;
 
     for (int rotation : { 0, 1, 2, 3 }) {
-        std::vector< xpdf::bbox_t > cs;
+        std::vector< bbox_t > cs;
 
         transform (
             rotated_by (rotation)(chars), back_inserter (cs), [](auto& ch) {
-                return xpdf::bbox_t{ ch->xmin, ch->ymin, ch->xmax, ch->ymax };
+                return bbox_t{ ch->xmin, ch->ymin, ch->xmax, ch->ymax };
             });
 
         xpdf::upright (cs, superbox, (4 - rotation) % 4);
 
-        auto other = xpdf::aggregate (cs);
+        auto other = aggregate (cs);
         xpdf::upright (other, superbox, rotation);
 
         boxes.insert (boxes.end (), other.begin (), other.end ());
@@ -2863,7 +2796,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
                 if (x - start > vertGapSize2) {
                     auto chars2 = charsIn (
                         charsA,
-                        xpdf::bbox_t{
+                        bbox_t{
                             ( prev + 0.5) * splitPrecision, yMin - 1,
                             (start + 1.5) * splitPrecision, yMax + 1
                         });
@@ -2876,7 +2809,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
         }
 
         auto chars2 = charsIn (
-            charsA, xpdf::bbox_t{
+            charsA, bbox_t{
                 (prev + 0.5) * splitPrecision, yMin - 1, xMax + 1, yMax + 1
             });
 
@@ -2899,7 +2832,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
             else if (!hprofile[y - yMinI] && hprofile[y + 1 - yMinI]) {
                 if (y - start > horizGapSize2) {
                     auto chars2 = charsIn (
-                        charsA, xpdf::bbox_t{
+                        charsA, bbox_t{
                             xMin - 1, ( prev + 0.5) * splitPrecision,
                             xMax + 1, (start + 1.5) * splitPrecision
                         });
@@ -2912,7 +2845,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
         }
 
         auto chars2 = charsIn (
-            charsA, xpdf::bbox_t{
+            charsA, bbox_t{
                 xMin - 1, (prev + 0.5) * splitPrecision, xMax + 1, yMax + 1
             });
 
@@ -2956,7 +2889,7 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
 
 // Return the subset of chars inside a rectangle.
 TextChars
-TextPage::charsIn (TextChars& charsA, const xpdf::bbox_t& box) const {
+TextPage::charsIn (TextChars& charsA, const bbox_t& box) const {
     TextChars chars;
 
     const auto& [ x0, y0, x1, y1 ] = box.arr;
@@ -3916,15 +3849,15 @@ inline std::string to_string (const std::wstring& wstr) {
     return s;
 }
 
-std::vector< xpdf::bbox_t >
-do_search_all (const std::vector< xpdf::char_t >& cs, std::wregex& regex) {
+std::vector< bbox_t >
+do_search_all (const std::vector< char_t >& cs, std::wregex& regex) {
     std::wstring wstr;
-    transform (cs, back_inserter (wstr), &xpdf::char_t::value);
+    transform (cs, back_inserter (wstr), &char_t::value);
 
     auto iter = std::wsregex_iterator (wstr.begin (), wstr.end (), regex);
     auto last = std::wsregex_iterator ();
 
-    std::vector< xpdf::bbox_t > xs;
+    std::vector< bbox_t > xs;
 
     for (; iter != last; ++iter) {
         auto match = (*iter) [0];
@@ -3935,8 +3868,8 @@ do_search_all (const std::vector< xpdf::char_t >& cs, std::wregex& regex) {
         xs.push_back (
             accumulate (
                 cs.begin () + pos, cs.begin () + pos + len,
-                cs [pos].box, std::plus< xpdf::bbox_t > { },
-                &xpdf::char_t::box));
+                cs [pos].box, std::plus< bbox_t > { },
+                &char_t::box));
     }
 
     return xs;
@@ -3954,13 +3887,17 @@ inline auto reading_order_of (int rotation) {
     }
 };
 
-std::vector< xpdf::bbox_t >
+std::vector< bbox_t >
 search_all (const TextChars& chars, int rotation, std::wregex& regex) {
-    std::vector< xpdf::char_t > cs;
+    std::vector< char_t > cs;
 
     for (auto& ch : chars) {
         if (rotation == ch->rot) {
-            cs.push_back (xpdf::make_char (*ch));
+            cs.push_back (
+                char_t{
+                    wchar_t (ch->c),
+                    { ch->xmin, ch->ymin, ch->xmax, ch->ymax }
+                });
         }
     }
 
@@ -3973,7 +3910,7 @@ bool TextPage::findText (
     Unicode* p, int len,
     bool startAtTop,  bool stopAtBottom, bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
-    xpdf::bbox_t& box) {
+    bbox_t& box) {
 
 #if 1
     // TODO: rip this shit out and implement a better search:
@@ -3984,16 +3921,16 @@ bool TextPage::findText (
 
     std::wregex regex (to_wstring (p, len));
 
-    std::vector< xpdf::bbox_t > boxes;
+    std::vector< bbox_t > boxes;
 
     for (int rot : { 0, 1, 2, 3 }) {
         auto matches = search_all (chars, rot, regex);
         boxes.insert (boxes.end (), matches.begin (), matches.end ());
     }
 
-    sort (boxes, xpdf::reading_order< xpdf::rotation_t::none, xpdf::bbox_t >);
+    sort (boxes, reading_order< xpdf::rotation_t::none, bbox_t >);
 
-    xpdf::bbox_t search_area;
+    bbox_t search_area;
 
     {
         double x0, y0, x1, y1;
@@ -4026,7 +3963,7 @@ bool TextPage::findText (
             }
         }
 
-        search_area = xpdf::bbox_t{ x0, y0, x1, y1 };
+        search_area = bbox_t{ x0, y0, x1, y1 };
     }
 
     auto iter2 = find_if (boxes, [&](auto& box) {
@@ -4274,7 +4211,7 @@ bool TextPage::findText (
 }
 
 GString*
-TextPage::getText (const xpdf::bbox_t& box) {
+TextPage::getText (const bbox_t& box) {
     UnicodeMap* uMap;
     char space[8], eol[16];
     int spaceLen, eolLen;
@@ -4391,7 +4328,7 @@ TextPage::getText (const xpdf::bbox_t& box) {
     return ret;
 }
 
-bool TextPage::findCharRange (int pos, int length, xpdf::bbox_t& box) {
+bool TextPage::findCharRange (int pos, int length, bbox_t& box) {
     double xMin2, yMin2, xMax2, yMax2;
     bool first;
 
@@ -4558,7 +4495,7 @@ bool TextOutputDev::findText (
     Unicode* s, int len,
     bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
-    xpdf::bbox_t& box) {
+    bbox_t& box) {
     return text->findText (
         s, len,
         startAtTop, stopAtBottom, startAtLast, stopAtLast,
@@ -4567,11 +4504,11 @@ bool TextOutputDev::findText (
 }
 
 GString*
-TextOutputDev::getText (const xpdf::bbox_t& box) {
+TextOutputDev::getText (const bbox_t& box) {
     return text->getText (box);
 }
 
-bool TextOutputDev::findCharRange (int pos, int length, xpdf::bbox_t& box) {
+bool TextOutputDev::findCharRange (int pos, int length, bbox_t& box) {
     return text->findCharRange (pos, length, box);
 }
 
