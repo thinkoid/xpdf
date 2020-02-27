@@ -176,7 +176,9 @@ struct rotate_t;
 template< typename T >
 struct rotate_t< xpdf::rotation_t::none, T > {
     using box_type = bbox_t< T >;
-    box_type operator() (box_type x, const box_type&) const { return x; }
+    box_type operator() (const box_type& x, const box_type&) const {
+        return x;
+    }
 };
 
 //
@@ -185,15 +187,15 @@ struct rotate_t< xpdf::rotation_t::none, T > {
 // hosts the box. E.g., under a 90° rotation the new x_min is the former y_min,
 // but y_min is the width of the page less the former y_max, etc.:
 //
-#define XPDF_ROTATE_DEF(type, a, b, c, d)                       \
-template< typename T >                                          \
-struct rotate_t< xpdf::rotation_t::type, T > {                  \
-    using box_type = bbox_t< T >;                               \
-    box_type operator() (box_type x, const box_type& X) const { \
-        auto& [ x0, y0, x1, y1 ] = x.arr;                       \
-        auto& [ X0, Y0, X1, Y1 ] = X.arr;                       \
-        return { a, b, c, d };                                  \
-    }                                                           \
+#define XPDF_ROTATE_DEF(type, a, b, c, d)                               \
+template< typename T >                                                  \
+struct rotate_t< xpdf::rotation_t::type, T > {                          \
+    using box_type = bbox_t< T >;                                       \
+    box_type operator() (const box_type& x, const box_type& X) const {  \
+        const auto& [ x0, y0, x1, y1 ] = x.arr;                         \
+        const auto& [ X0, Y0, X1, Y1 ] = X.arr;                         \
+        return { a, b, c, d };                                          \
+    }                                                                   \
 }
 
 XPDF_ROTATE_DEF (       quarter_turn,      y0, X1 - x1,      y1, X1 - x0);
@@ -208,18 +210,20 @@ struct unrotate_t;
 template< typename T >
 struct unrotate_t< xpdf::rotation_t::none, T > {
     using box_type = bbox_t< T >;
-    box_type operator() (box_type x, const box_type&) const { return x; }
+    box_type operator() (const box_type& x, const box_type&) const {
+        return x;
+    }
 };
 
-#define XPDF_UNROTATE_DEF(type, a, b, c, d)                     \
-template< typename T >                                          \
-struct unrotate_t< xpdf::rotation_t::type, T > {                \
-    using box_type = bbox_t< T >;                               \
-    box_type operator() (box_type x, const box_type& X) const { \
-        auto& [ x0, y0, x1, y1 ] = x.arr;                       \
-        auto& [ X0, Y0, X1, Y1 ] = X.arr;                       \
-        return { a, b, c, d };                                  \
-    }                                                           \
+#define XPDF_UNROTATE_DEF(type, a, b, c, d)                             \
+template< typename T >                                                  \
+struct unrotate_t< xpdf::rotation_t::type, T > {                        \
+    using box_type = bbox_t< T >;                                       \
+    box_type operator() (const box_type& x, const box_type& X) const {  \
+        const auto& [ x0, y0, x1, y1 ] = x.arr;                         \
+        const auto& [ X0, Y0, X1, Y1 ] = X.arr;                         \
+        return { a, b, c, d };                                          \
+    }                                                                   \
 }
 
 XPDF_UNROTATE_DEF (       quarter_turn, X1 - y1,      x0, X1 - y0,      x1);
@@ -282,7 +286,7 @@ floor (const detail::bbox_t< T >& x) {
 
 template< rotation_t rotation, typename T >
 inline detail::bbox_t< T >
-rotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
+rotate (const detail::bbox_t< T >& box, const detail::bbox_t< T >& superbox) {
     //
     // Rotation around origin followed by a translation, brings the box
     // `upright':
@@ -292,7 +296,7 @@ rotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
 
 template< rotation_t rotation, typename T >
 inline detail::bbox_t< T >
-unrotate (detail::bbox_t< T > box, const detail::bbox_t< T >& superbox) {
+unrotate (const detail::bbox_t< T >& box, const detail::bbox_t< T >& superbox) {
     //
     // Rotation around origin followed by a translation, brings the box
     // `upright':
