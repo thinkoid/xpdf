@@ -157,8 +157,6 @@ struct char_t {
     xpdf::bbox_t box;
 };
 
-////////////////////////////////////////////////////////////////////////
-
 template< typename T > xpdf::bbox_t bbox_from (const T&);
 
 template< >
@@ -184,6 +182,12 @@ inline xpdf::bbox_t
 bbox_from< xpdf::bbox_t > (const xpdf::bbox_t& arg) {
     return arg;
 }
+
+inline char_t make_char (TextChar& ch) {
+    return { wchar_t (ch.c), bbox_from (ch) };
+}
+
+////////////////////////////////////////////////////////////////////////
 
 //
 // Character/column comparison objects:
@@ -3868,8 +3872,20 @@ inline std::string to_string (const std::wstring& wstr) {
     return s;
 }
 
+inline auto reading_order_of (int rotation) {
+    using namespace xpdf;
+
+    switch (rotation) {
+    default:
+    case 0: return reading_order< rotation_t::none, char_t >;
+    case 1: return reading_order< rotation_t::quarter_turn, char_t >;
+    case 2: return reading_order< rotation_t::quarter_turn, char_t >;
+    case 3: return reading_order< rotation_t::three_quarters_turn, char_t >;
+    }
+};
+
 std::vector< xpdf::bbox_t >
-do_search_all (const std::vector< char_t >& cs, std::wregex& regex) {
+search_all (const std::vector< char_t >& cs, std::wregex& regex) {
     std::wstring wstr;
     transform (cs, back_inserter (wstr), &char_t::value);
 
@@ -3894,50 +3910,30 @@ do_search_all (const std::vector< char_t >& cs, std::wregex& regex) {
     return xs;
 }
 
-inline auto reading_order_of (int rotation) {
-    using namespace xpdf;
-
-    switch (rotation) {
-    default:
-    case 0: return reading_order< rotation_t::none, char_t >;
-    case 1: return reading_order< rotation_t::quarter_turn, char_t >;
-    case 2: return reading_order< rotation_t::quarter_turn, char_t >;
-    case 3: return reading_order< rotation_t::three_quarters_turn, char_t >;
-    }
-};
-
-std::vector< xpdf::bbox_t >
-search_all (const TextChars& chars, int rotation, std::wregex& regex) {
-    std::vector< char_t > cs;
-
-    for (auto& ch : chars) {
-        if (rotation == ch->rot) {
-            cs.push_back (
-                char_t{
-                    wchar_t (ch->c),
-                    { ch->xmin, ch->ymin, ch->xmax, ch->ymax }
-                });
-        }
-    }
-
-    sort (cs, reading_order_of (rotation));
-
-    return do_search_all (cs, regex);
-}
-
 bool TextPage::findText (
     Unicode* p, int len,
     bool startAtTop,  bool stopAtBottom, bool startAtLast, bool stopAtLast,
     bool caseSensitive, bool backward, bool wholeWord,
     xpdf::bbox_t& box) {
 
-#if 1
     std::wregex regex (to_wstring (p, len));
+
+    auto rotated_by = [](int rot) {
+        return views::filter ([=](auto& ch) { return ch->rot == rot; });
+    };
 
     std::vector< xpdf::bbox_t > boxes;
 
     for (int rot : { 0, 1, 2, 3 }) {
-        auto matches = search_all (chars, rot, regex);
+        std::vector< char_t > cs;
+
+        transform (chars | rotated_by (rot), back_inserter (cs), [](auto& ch) {
+            return make_char (*ch);
+        });
+
+        sort (cs, reading_order_of (rot));
+
+        auto matches = search_all (cs, regex);
         boxes.insert (boxes.end (), matches.begin (), matches.end ());
     }
 
@@ -3996,232 +3992,6 @@ bool TextPage::findText (
 
         return haveLastFind = true;
     }
-
-#else
-
-    Unicode *s2, *txt, *p;
-    double xStart, yStart, xStop, yStop;
-
-    double xMin0, yMin0, xMax0, yMax0;
-    double xMin1, yMin1, xMax1, yMax1;
-
-    bool found;
-
-    int txtSize, m, rot, colIdx, parIdx, lineIdx, i, j, k;
-
-    //~ need to handle right-to-left text
-    if (findCols.empty ()) {
-        rot = rotateChars (chars);
-
-        if (TextBlockPtr tree = splitChars (chars)) {
-            findCols = buildColumns (tree);
-        }
-
-        unrotateChars (chars, rot);
-        unrotateColumns (findCols, rot);
-    }
-
-    // convert the search string to uppercase
-    if (!caseSensitive) {
-        s2 = (Unicode*)calloc (len, sizeof (Unicode));
-        for (i = 0; i < len; ++i) { s2[i] = unicodeToUpper (s[i]); }
-    }
-    else {
-        s2 = s;
-    }
-
-    txt = NULL;
-    txtSize = 0;
-
-    xStart = yStart = xStop = yStop = 0;
-
-    if (startAtLast && haveLastFind) {
-        xStart = lastFindXMin;
-        yStart = lastFindYMin;
-    }
-    else if (!startAtTop) {
-        xStart = box.arr [0];
-        yStart = box.arr [1];
-    }
-
-    if (stopAtLast && haveLastFind) {
-        xStop = lastFindXMin;
-        yStop = lastFindYMin;
-    }
-    else if (!stopAtBottom) {
-        xStop = box.arr [2];
-        yStop = box.arr [3];
-    }
-
-    found = false;
-
-    xMin0 = xMax0 = yMin0 = yMax0 = 0; // make gcc happy
-    xMin1 = xMax1 = yMin1 = yMax1 = 0; // make gcc happy
-
-    for (colIdx = backward ? findCols.size () - 1 : 0;
-         backward ? colIdx >= 0 : colIdx < findCols.size ();
-         colIdx += backward ? -1 : 1) {
-        auto& column = findCols [colIdx];
-
-        // check: is the column above the top limit?
-        if (!startAtTop &&
-            (backward ? column->ymin > yStart : column->ymax < yStart)) {
-            continue;
-        }
-
-        // check: is the column below the bottom limit?
-        if (!stopAtBottom &&
-            (backward ? column->ymax < yStop : column->ymin > yStop)) {
-            continue;
-        }
-
-        for (parIdx = backward ? column->paragraphs.size () - 1 : 0;
-             backward ? parIdx >= 0 : parIdx < column->paragraphs.size ();
-             parIdx += backward ? -1 : 1) {
-            auto& par = column->paragraphs [parIdx];
-
-            // check: is the paragraph above the top limit?
-            if (!startAtTop &&
-                (backward ? par->ymin > yStart : par->ymax < yStart)) {
-                continue;
-            }
-
-            // check: is the paragraph below the bottom limit?
-            if (!stopAtBottom &&
-                (backward ? par->ymax < yStop : par->ymin > yStop)) {
-                continue;
-            }
-
-            for (lineIdx = backward ? par->lines.size () - 1 : 0;
-                 backward ? lineIdx >= 0 : lineIdx < par->lines.size ();
-                 lineIdx += backward ? -1 : 1) {
-                auto& line = par->lines [lineIdx];
-
-                // check: is the line above the top limit?
-                if (!startAtTop &&
-                    (backward ? line->ymin > yStart : line->ymax < yStart)) {
-                    continue;
-                }
-
-                // check: is the line below the bottom limit?
-                if (!stopAtBottom &&
-                    (backward ? line->ymax < yStop : line->ymin > yStop)) {
-                    continue;
-                }
-
-                // convert the line to uppercase
-                m = line->len;
-                if (!caseSensitive) {
-                    if (m > txtSize) {
-                        txt = (Unicode*)reallocarray (txt, m, sizeof (Unicode));
-                        txtSize = m;
-                    }
-                    for (k = 0; k < m; ++k) {
-                        txt[k] = unicodeToUpper (line->text[k]);
-                    }
-                }
-                else {
-                    txt = line->text.data ();
-                }
-
-                // search each position in this line
-                j = backward ? m - len : 0;
-                p = txt + j;
-                while (backward ? j >= 0 : j <= m - len) {
-                    if (!wholeWord ||
-                        ((j == 0 || !unicodeTypeWord (txt[j - 1])) &&
-                         (j + len == m || !unicodeTypeWord (txt[j + len])))) {
-                        // compare the strings
-                        for (k = 0; k < len; ++k) {
-                            if (p[k] != s2[k]) { break; }
-                        }
-
-                        // found it
-                        if (k == len) {
-                            switch (line->rot) {
-                            case 0:
-                                xMin1 = line->edge[j];
-                                xMax1 = line->edge[j + len];
-                                yMin1 = line->ymin;
-                                yMax1 = line->ymax;
-                                break;
-                            case 1:
-                                xMin1 = line->xmin;
-                                xMax1 = line->xmax;
-                                yMin1 = line->edge[j];
-                                yMax1 = line->edge[j + len];
-                                break;
-                            case 2:
-                                xMin1 = line->edge[j + len];
-                                xMax1 = line->edge[j];
-                                yMin1 = line->ymin;
-                                yMax1 = line->ymax;
-                                break;
-                            case 3:
-                                xMin1 = line->xmin;
-                                xMax1 = line->xmax;
-                                yMin1 = line->edge[j + len];
-                                yMax1 = line->edge[j];
-                                break;
-                            }
-                            if (backward) {
-                                if ((startAtTop || yMin1 < yStart ||
-                                     (yMin1 == yStart && xMin1 < xStart)) &&
-                                    (stopAtBottom || yMin1 > yStop ||
-                                     (yMin1 == yStop && xMin1 > xStop))) {
-                                    if (!found || yMin1 > yMin0 ||
-                                        (yMin1 == yMin0 && xMin1 > xMin0)) {
-                                        xMin0 = xMin1;
-                                        xMax0 = xMax1;
-                                        yMin0 = yMin1;
-                                        yMax0 = yMax1;
-                                        found = true;
-                                    }
-                                }
-                            }
-                            else {
-                                if ((startAtTop || yMin1 > yStart ||
-                                     (yMin1 == yStart && xMin1 > xStart)) &&
-                                    (stopAtBottom || yMin1 < yStop ||
-                                     (yMin1 == yStop && xMin1 < xStop))) {
-                                    if (!found || yMin1 < yMin0 ||
-                                        (yMin1 == yMin0 && xMin1 < xMin0)) {
-                                        xMin0 = xMin1;
-                                        xMax0 = xMax1;
-                                        yMin0 = yMin1;
-                                        yMax0 = yMax1;
-                                        found = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (backward) {
-                        --j;
-                        --p;
-                    }
-                    else {
-                        ++j;
-                        ++p;
-                    }
-                }
-            }
-        }
-    }
-
-    if (!caseSensitive) {
-        free (s2);
-        free (txt); // TODO: memory management
-    }
-
-    if (found) {
-        box = { xMin0, yMin0, xMax0, yMax0 };
-        lastFindXMin = xMin0;
-        lastFindYMin = yMin0;
-        haveLastFind = true;
-        return true;
-    }
-#endif // 1
 
     return false;
 }
