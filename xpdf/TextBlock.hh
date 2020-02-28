@@ -8,7 +8,7 @@
 
 #include <variant>
 
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 
 struct TextColumn {
     TextColumn (TextParagraphs, double, double, double, double);

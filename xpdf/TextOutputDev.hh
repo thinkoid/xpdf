@@ -8,7 +8,7 @@
 
 #include <xpdf/bbox.hh>
 #include <xpdf/OutputDev.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 #include <xpdf/TextOutputFunc.hh>
 #include <xpdf/TextOutputControl.hh>
 

@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2020 Thinkoid, LLC
 
-#ifndef XPDF_XPDF_TEXTOUTPUTDEV_FWD_HH
-#define XPDF_XPDF_TEXTOUTPUTDEV_FWD_HH
+#ifndef XPDF_XPDF_TEXTOUTPUT_HH
+#define XPDF_XPDF_TEXTOUTPUT_HH
 
 #include <defs.hh>
 
@@ -134,4 +134,4 @@ XPDF_TYPEDEF (TextPage);
 
 #undef XPDF_TYPEDEF
 
-#endif // XPDF_XPDF_TEXTOUTPUTDEV_FWD_HH
+#endif // XPDF_XPDF_TEXTOUTPUT_HH

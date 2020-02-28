@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 
 struct TextChar {
     TextFontInfoPtr font;

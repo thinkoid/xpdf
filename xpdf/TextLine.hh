@@ -7,7 +7,7 @@
 #include <defs.hh>
 
 #include <xpdf/CharTypes.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 
 struct TextLine {
     TextLine (TextWords, double, double, double, double, double);

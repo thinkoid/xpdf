@@ -9,7 +9,7 @@
 #include <utils/GString.hh>
 
 #include <xpdf/CharTypes.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 
 struct TextWord {
     TextWord (TextChars& chars, int start, int lenA, int rotA, bool spaceAfterA);

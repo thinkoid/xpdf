@@ -10,7 +10,7 @@
 #include <xpdf/GfxState.hh>
 #include <xpdf/Link.hh>
 #include <xpdf/TextFontInfo.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 #include <xpdf/TextOutputFunc.hh>
 #include <xpdf/TextOutputControl.hh>
 #include <xpdf/UnicodeMap.hh>

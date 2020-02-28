@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 #include <xpdf/TextLine.hh>
 
 struct TextParagraph {

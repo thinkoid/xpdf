@@ -11,7 +11,7 @@
 
 #include <xpdf/bbox.hh>
 #include <xpdf/CharTypes.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 
 class GList;
 class SplashBitmap;

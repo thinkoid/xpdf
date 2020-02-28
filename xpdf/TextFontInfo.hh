@@ -8,7 +8,7 @@
 
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>
-#include <xpdf/TextOutputDevFwd.hh>
+#include <xpdf/TextOutput.hh>
 
 struct TextFontInfo {
     explicit TextFontInfo (GfxState*);
