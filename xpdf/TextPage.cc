@@ -3395,36 +3395,6 @@ TextPage::getText (const xpdf::bbox_t& box) {
     return ret;
 }
 
-bool TextPage::findCharRange (int pos, int length, xpdf::bbox_t& box) {
-    double xMin2, yMin2, xMax2, yMax2;
-    bool first;
-
-    //~ this doesn't correctly handle ranges split across multiple lines
-    //~ (the highlighted region is the bounding box of all the parts of
-    //~ the range)
-
-    xMin2 = yMin2 = xMax2 = yMax2 = 0;
-    first = true;
-
-    for (auto& ch : chars) {
-        if (ch->charPos >= pos && ch->charPos < pos + length) {
-            if (first || ch->xmin < xMin2) { xMin2 = ch->xmin; }
-            if (first || ch->ymin < yMin2) { yMin2 = ch->ymin; }
-            if (first || ch->xmax > xMax2) { xMax2 = ch->xmax; }
-            if (first || ch->ymax > yMax2) { yMax2 = ch->ymax; }
-            first = false;
-        }
-    }
-
-    if (first) {
-        return false;
-    }
-
-    box = { xMin2, yMin2, xMax2, yMax2 };
-
-    return true;
-}
-
 TextWords
 TextPage::makeWordList () {
     int rot = rotateChars (chars);

@@ -44,14 +44,6 @@ struct TextPage {
     GString*
     getText (const xpdf::bbox_t&);
 
-    //
-    // Find a string by character position and length.  If found, sets
-    // the text bounding rectangle and returns true; otherwise returns
-    // false.
-    //
-    bool
-    findCharRange (int pos, int length, xpdf::bbox_t&);
-
     // Build a flat word list, in the specified ordering.
     TextWords makeWordList ();
 

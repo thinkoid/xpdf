@@ -132,10 +132,6 @@ TextOutputDev::getText (const xpdf::bbox_t& box) {
     return text->getText (box);
 }
 
-bool TextOutputDev::findCharRange (int pos, int length, xpdf::bbox_t& box) {
-    return text->findCharRange (pos, length, box);
-}
-
 TextWords
 TextOutputDev::makeWordList () {
     return text->makeWordList ();
