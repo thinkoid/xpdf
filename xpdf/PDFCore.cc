@@ -22,6 +22,7 @@
 #include <xpdf/Link.hh>
 #include <xpdf/PDFCore.hh>
 #include <xpdf/PDFDoc.hh>
+#include <xpdf/TextPage.hh>
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/xpdf.hh>
 

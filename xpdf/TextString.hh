@@ -8,9 +8,6 @@
 
 #include <xpdf/CharTypes.hh>
 
-
-//------------------------------------------------------------------------
-
 class TextString {
 public:
     // Create an empty TextString.
