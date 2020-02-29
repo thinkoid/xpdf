@@ -458,6 +458,9 @@ void TextPage::updateFont (GfxState* state) {
     }
 }
 
+//
+// Add a character to the TextPage text. Process `ActualText' spans separately:
+//
 void TextPage::addChar (
     GfxState* state, double x, double y, double dx, double dy, CharCode c,
     int nBytes, Unicode* u, int uLen) {
@@ -468,16 +471,21 @@ void TextPage::addChar (
     bool clipped, rtl;
     int i, j;
 
-    // if we're in an ActualText span, save the position info (the
-    // ActualText chars will be added by TextPage::endActualText()).
     if (actualText) {
+        //
+        // If we're in an ActualText span, save the position info (the
+        // ActualText chars will be added by TextPage::endActualText):
+        //
         if (!actualTextNBytes) {
             actualTextX0 = x;
             actualTextY0 = y;
         }
+
         actualTextX1 = x + dx;
         actualTextY1 = y + dy;
+
         actualTextNBytes += nBytes;
+
         return;
     }
 
@@ -612,29 +620,49 @@ void TextPage::addChar (
 void TextPage::incCharCount (int nChars) { charPos += nChars; }
 
 void TextPage::beginActualText (GfxState* state, Unicode* u, int uLen) {
-    if (actualText) { free (actualText); }
+    if (actualText) {
+        //
+        // ActualText cannot be nested:
+        //
+        free (actualText);
+    }
+
     actualText = (Unicode*)calloc (uLen, sizeof (Unicode));
     memcpy (actualText, u, uLen * sizeof (Unicode));
+
     actualTextLen = uLen;
     actualTextNBytes = 0;
 }
 
 void TextPage::endActualText (GfxState* state) {
-    Unicode* u;
+    Unicode* u = actualText;
 
-    u = actualText;
-    actualText = NULL; // so we can call TextPage::addChar()
+    //
+    // Zero, such that calling TextPage::addChar will not add to ActualText
+    // text:
+    //
+    actualText = 0;
+
     if (actualTextNBytes) {
-        // now that we have the position info for all of the text inside
-        // the marked content span, we feed the "ActualText" back through
-        // addChar()
+        //
+        // We have the position info for all of the text inside the marked
+        // content span, we feed the `ActualText' back through TextPage::addChar:
+        //
         addChar (
-            state, actualTextX0, actualTextY0, actualTextX1 - actualTextX0,
-            actualTextY1 - actualTextY0, 0, actualTextNBytes, u, actualTextLen);
+            state,
+            actualTextX0, actualTextY0,
+            actualTextX1 - actualTextX0,
+            actualTextY1 - actualTextY0,
+            0, actualTextNBytes,
+            u, actualTextLen);
+
     }
+
     free (u);
-    actualText = NULL;
+
+    actualText = 0;
     actualTextLen = 0;
+
     actualTextNBytes = false;
 }
 

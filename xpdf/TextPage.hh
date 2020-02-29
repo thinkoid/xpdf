@@ -169,9 +169,21 @@ private:
 
     int curRot;                   // current rotation
     int nTinyChars;               // number of "tiny" chars seen so far
+
+    //
+    // `ActualText' characters and length in characters:
+    //
     Unicode* actualText;          // current "ActualText" span
     int actualTextLen;
+
+    //
+    // The bounding box for the `ActualText':
+    //
     double actualTextX0, actualTextY0, actualTextX1, actualTextY1;
+
+    //
+    // Number of bytes:
+    //
     int actualTextNBytes;
 
     TextChars chars; // [TextChar]

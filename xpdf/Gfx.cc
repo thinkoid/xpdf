@@ -4240,7 +4240,6 @@ void Gfx::opBeginMarkedContent (Object args[], int numArgs) {
     GfxMarkedContent* mc;
     Object obj;
     bool ocStateNew;
-    TextString* s;
     GfxMarkedContentKind mcKind;
 
     if (printCommands) {
@@ -4259,9 +4258,8 @@ void Gfx::opBeginMarkedContent (Object args[], int numArgs) {
     }
     else if (args[0].is_name ("Span") && numArgs == 2 && args[1].is_dict ()) {
         if ((obj = args[1].as_dict ()["ActualText"]).is_string ()) {
-            s = new TextString (obj.as_string ());
-            out->beginActualText (state, s->getUnicode (), s->getLength ());
-            delete s;
+            TextString s (obj.as_string ());
+            out->beginActualText (state, s.getUnicode (), s.getLength ());
             mcKind = gfxMCActualText;
         }
     }
