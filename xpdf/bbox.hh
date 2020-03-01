@@ -6,6 +6,8 @@
 
 #include <defs.hh>
 #include <cmath>
+
+#include <iostream>
 #include <vector>
 
 namespace xpdf {

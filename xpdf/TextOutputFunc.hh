@@ -1,5 +1,5 @@
 // -*- mode: c++; -*-
-// Copyright 1997-2012 Glyph & Cog, LLC
+// Copyright 1997-2014 Glyph & Cog, LLC
 
 #ifndef XPDF_XPDF_TEXTOUTPUTFUNC_HH
 #define XPDF_XPDF_TEXTOUTPUTFUNC_HH

@@ -1,4 +1,5 @@
 // -*- mode: c++; -*-
+// Copyright 1997-2014 Glyph & Cog, LLC
 // Copyright 2020 Thinkoid, LLC
 
 #include <defs.hh>
