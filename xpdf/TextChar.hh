@@ -14,10 +14,9 @@
 
 struct TextChar {
     TextFontInfoPtr font;
-    double size;
 
+    double size;
     double xmin, ymin, xmax, ymax;
-    double r, g, b;
 
     Unicode c;
     int charPos;

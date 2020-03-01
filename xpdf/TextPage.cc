@@ -388,9 +388,6 @@ void TextPage::addChar (
                     TextChar {
                         curFont, curFontSize,
                         xMin, yMin, xMax, yMax,
-                        xpdf::to_double (rgb.r),
-                        xpdf::to_double (rgb.g),
-                        xpdf::to_double (rgb.b),
                         u [j], charPos,
                         uint8_t (nBytes), uint8_t (curRot), clipped,
                         state->getRender () == 3

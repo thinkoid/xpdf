@@ -24,12 +24,6 @@ struct TextWord {
 
     GString* getFontName () const;
 
-    void getColor (double* r, double* g, double* b) const {
-        *r = colorR;
-        *g = colorG;
-        *b = colorB;
-    }
-
     void getBBox (double* xminA, double* yminA,
                   double* xmaxA, double* ymaxA) const {
         *xminA = xmin;
@@ -77,7 +71,7 @@ struct TextWord {
     //
     // Bounding box, colors:
     //
-    double xmin, xmax, ymin, ymax, colorR, colorG, colorB;
+    double xmin, xmax, ymin, ymax;
 
     unsigned char
         rot        : 2, // multiple of 90°: 0, 1, 2, or 3

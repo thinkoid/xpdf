@@ -95,10 +95,6 @@ TextWord::TextWord (
     spaceAfter = spaceAfterA;
     underlined = false;
 
-    colorR = ch->r;
-    colorG = ch->g;
-    colorB = ch->b;
-
     invisible = ch->invisible;
 }
 
