@@ -1707,12 +1707,12 @@ bool PDFCore::findU (
         pg = selectPage;
 
         if (backward) {
-            box.arr [0] = selectULX - 1;
-            box.arr [1] = selectULY - 1;
+            box.xmin = selectULX - 1;
+            box.ymin = selectULY - 1;
         }
         else {
-            box.arr [0] = selectULX + 1;
-            box.arr [1] = selectULY + 1;
+            box.xmin = selectULX + 1;
+            box.ymin = selectULY + 1;
         }
     }
     else {
@@ -1776,8 +1776,8 @@ bool PDFCore::findU (
         }
         else {
             stopAtLast = false;
-            box.arr [2] = selectLRX;
-            box.arr [3] = selectLRY;
+            box.xmax = selectLRX;
+            box.ymax = selectLRY;
         }
 
         if (page->text->findText (

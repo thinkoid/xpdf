@@ -9,6 +9,7 @@
 
 #include <variant>
 
+#include <xpdf/bbox.hh>
 #include <xpdf/TextOutput.hh>
 
 struct TextColumn {
@@ -16,10 +17,7 @@ struct TextColumn {
 
     TextParagraphs paragraphs;
 
-    //
-    // Bounding box:
-    //
-    double xmin, xmax, ymin, ymax;
+    xpdf::bbox_t box;
 
     //
     // x, y position (in characters) in physical layout mode, and
@@ -67,7 +65,7 @@ struct TextBlock {
     //
     // Cached bounding box coordinates for the block:
     //
-    double xMin, yMin, xMax, yMax;
+    xpdf::bbox_t box;
 
     //
     // For leaf blocks children are sequences of TextChar; for others,

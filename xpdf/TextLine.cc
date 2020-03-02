@@ -10,21 +10,13 @@
 
 TextLine::TextLine (
     TextWords wordsA,
-    double xMinA, double yMinA, double xMaxA, double yMaxA, double fontSizeA)
-    : words (std::move (wordsA)) {
+    double xMinA, double yMinA, double xMaxA, double yMaxA,
+    double fontSizeA)
+    : words (std::move (wordsA)), box{ xMinA, yMinA, xMaxA, yMaxA },
+      fontSize{ fontSizeA } {
 
     rot = 0;
-
-    xmin = xMinA;
-    ymin = yMinA;
-
-    xmax = xMaxA;
-    ymax = yMaxA;
-
-    fontSize = fontSizeA;
-
-    px = 0;
-    pw = 0;
+    px = pw = 0;
 
     //
     // Build the text:
@@ -70,14 +62,14 @@ TextLine::TextLine (
 }
 
 double TextLine::getBaseline () const {
-    auto& word = words.front ();
+    const auto& word = words.front ();
 
     switch (rot) {
-    case 1:  return xmin - fontSize * word->font->descent;
-    case 2:  return ymin - fontSize * word->font->descent;
-    case 3:  return xmax + fontSize * word->font->descent;
-    case 0:
-    default: return ymax + fontSize * word->font->descent;
+    default:
+    case 0: return box.ymax + fontSize * word->font->descent;
+    case 1: return box.xmin - fontSize * word->font->descent;
+    case 2: return box.ymin - fontSize * word->font->descent;
+    case 3: return box.xmax + fontSize * word->font->descent;
     }
 }
 

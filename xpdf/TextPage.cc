@@ -37,11 +37,11 @@ using namespace ranges;
 // Character/column comparison objects:
 //
 const auto lessX = [](const auto& lhs, const auto& rhs) {
-    return lhs->xmin < rhs->xmin;
+    return lhs->box.xmin < rhs->box.xmin;
 };
 
 const auto lessY = [](const auto & lhs, const auto& rhs) {
-    return lhs->ymin < rhs->ymin;
+    return lhs->box.ymin < rhs->box.ymin;
 };
 
 //
@@ -56,8 +56,8 @@ const auto lessPosX = [](const auto& lhs, const auto& rhs) {
 //
 const auto lessYX = [](auto& lhs, auto& rhs) {
     return
-        lhs->ymin  < rhs->ymin || (
-        lhs->ymin == rhs->ymin && lhs->xmin < rhs->xmin);
+        lhs->box.ymin  < rhs->box.ymin || (
+        lhs->box.ymin == rhs->box.ymin && lhs->box.xmin < rhs->box.xmin);
 };
 
 const auto lessCharPos = [](auto& lhs, auto& rhs) {
@@ -81,20 +81,15 @@ struct TextUnderline {
 
 class TextLink {
 public:
-    TextLink (
-        double xMinA, double yMinA, double xMaxA, double yMaxA, GString* uriA) {
-        xMin = xMinA;
-        yMin = yMinA;
-        xMax = xMaxA;
-        yMax = yMaxA;
-        uri = uriA;
-    }
+    TextLink (double x0, double y0, double x1, double y1, GString* uriA)
+        : box { x0, y0, x1, y1 }, uri (uriA)
+        { }
 
     ~TextLink () {
         if (uri) { delete uri; }
     }
 
-    double xMin, yMin, xMax, yMax;
+    xpdf::bbox_t box;
     GString* uri;
 };
 
@@ -643,10 +638,13 @@ void TextPage::writePhysLayout (
 
 inline bool
 vertical_overlapping (TextChar& lhs, TextChar& rhs) {
+    const auto& a = lhs.box;
+    const auto& b = rhs.box;
+
     const auto &af = ascentAdjustFactor, &df = descentAdjustFactor;
 
-    return lhs.ymax - df * (lhs.ymax - lhs.ymin) > rhs.ymin + af * (rhs.ymax - rhs.ymin)
-        && lhs.ymin + af * (lhs.ymax - lhs.ymin) < rhs.ymax - df * (rhs.ymax - rhs.ymin);
+    return a.ymax - df * height_of (a) > b.ymin + af * height_of (b)
+        && a.ymin + af * height_of (a) < b.ymax - df * height_of (b);
 }
 
 inline double
@@ -672,7 +670,7 @@ pitch_of (TextChars& chars) {
             auto& b = *chars [j];
 
             if (vertical_overlapping (a, b)) {
-                auto delta = fabs (b.xmin - a.xmin);
+                auto delta = fabs (b.box.point [0].x - a.box.point [0].x);
 
                 if (n > delta) {
                     n = delta;
@@ -693,24 +691,24 @@ linespacing_of (TextChars& chars) {
     auto n = (std::numeric_limits< double >::max) ();
 
     for (size_t i = 0; i < chars.size (); ) {
-        auto& a = *chars [i];
+        auto& a = chars [i]->box;
 
         //
         // Find the first (significantly) non-overlapping character and compute
         // the vertical spacing between the two:
         //
-        auto delta = 0.;
+        double delta = 0.;
 
-        for (++i; delta && i < chars.size (); ++i) {
-            auto& b = *chars [i];
+        for (++i; delta == 0 && i < chars.size (); ++i) {
+            auto& b = chars [i]->box;
 
-            if (b.ymin +  ascentAdjustFactor * (b.ymax - b.ymin) >
-                a.ymax - descentAdjustFactor * (a.ymax - a.ymin)) {
+            if (b.ymin +  ascentAdjustFactor * height_of (b) >
+                a.ymax - descentAdjustFactor * height_of (a)) {
                 delta = b.ymin - a.ymin;
             }
         }
 
-        if (delta > 0 && delta < n) {
+        if (0 < delta && delta < n) {
             n = delta;
         }
     }
@@ -756,9 +754,10 @@ void TextPage::writeLinePrinter (
     // lines:
     //
     if (!chars.empty ()) {
-        yMin0 = (chars [0])->ymin;
+        yMin0 = chars [0]->box.ymin;
+
         yShift = yMin0 - (int)(yMin0 / lineSpacing + 0.5) * lineSpacing -
-                 0.5 * lineSpacing;
+            0.5 * lineSpacing;
     }
     else {
         yShift = 0;
@@ -768,7 +767,9 @@ void TextPage::writeLinePrinter (
         // get the characters in this line
         TextChars line;
 
-        for (i = 0; i < chars.size () && chars [i]->ymin < y + lineSpacing; ) {
+        for (i = 0;
+             i < chars.size () && chars [i]->box.ymin < y + lineSpacing;
+             ++i) {
             line.push_back (chars [i++]);
         }
 
@@ -780,7 +781,7 @@ void TextPage::writeLinePrinter (
             // fixed char spacing, this avoids problems with dropping/inserting
             // space:
             //
-            xMin0 = line [0]->xmin;
+            xMin0 = line [0]->box.xmin;
             xShift = xMin0 - (int)(xMin0 / pitch + 0.5) * pitch - 0.5 * pitch;
         }
         else {
@@ -796,7 +797,7 @@ void TextPage::writeLinePrinter (
         while (k < line.size ()) {
             auto& ch = line [k];
 
-            if (ch->xmin < x + pitch) {
+            if (ch->box.xmin < x + pitch) {
                 n = uMap->mapUnicode (ch->c, buf, sizeof (buf));
                 s.append (buf, n);
                 ++k;
@@ -826,11 +827,14 @@ inline bool linebreak_between (const TextChar& a, const TextChar& b) {
     const auto size = a.size, delta = rawModeLineDelta * size,
         overlap = rawModeCharOverlap * size;
 
+    const auto& [ a_x0, a_y0, a_x1, a_y1 ] = a.box.arr;
+    const auto& [ b_x0, b_y0, b_x1, b_y1 ] = b.box.arr;
+
     switch (a.rot) {
-    case 0: return fabs (b.ymin - a.ymin) > delta || b.xmin - a.xmax < -overlap;
-    case 1: return fabs (a.xmax - b.xmax) > delta || b.ymin - a.ymax < -overlap;
-    case 2: return fabs (a.ymax - b.ymax) > delta || a.xmin - b.xmax < -overlap;
-    case 3: return fabs (b.xmin - a.xmin) > delta || a.ymin - b.ymax < -overlap;
+    case 0: return fabs (b_y0 - a_y0) > delta || b_x0 - a_x1 < -overlap;
+    case 1: return fabs (a_x1 - b_x1) > delta || b_y0 - a_y1 < -overlap;
+    case 2: return fabs (a_y1 - b_y1) > delta || a_x0 - b_x1 < -overlap;
+    case 3: return fabs (b_x0 - a_x0) > delta || a_y0 - b_y1 < -overlap;
 
     default:
         ASSERT (0);
@@ -843,11 +847,14 @@ inline bool space_between (const TextChar& a, const TextChar& b) {
 
     const auto size = a.size, spacing = rawModeWordSpacing * size;
 
+    const auto& [ a_x0, a_y0, a_x1, a_y1 ] = a.box.arr;
+    const auto& [ b_x0, b_y0, b_x1, b_y1 ] = b.box.arr;
+
     switch (a.rot) {
-    case 0: return b.xmin - a.xmax > spacing;
-    case 1: return b.ymin - a.ymax > spacing;
-    case 2: return a.xmin - b.xmax > spacing;
-    case 3: return a.ymin - b.ymax > spacing;
+    case 0: return b_x0 - a_x1 > spacing;
+    case 1: return b_y0 - a_y1 > spacing;
+    case 2: return a_x0 - b_x1 > spacing;
+    case 3: return a_y0 - b_y1 > spacing;
     default:
         ASSERT (0);
         break;
@@ -980,23 +987,26 @@ void TextPage::encodeFragment (
 
 inline void
 do_rotate (TextChar& c, double x0, double y0, double x1, double y1, int n) {
-    c.xmin = x0; c.xmax = x1; c.ymin = y0; c.ymax = y1;
+    c.box = { x0, y0, x1, y1 };
     c.rot = (c.rot + n) & 3;
 }
 
 inline void
 rotate90 (TextChar& c, int w, int) {
-    do_rotate (c, c.ymin, w - c.xmax, c.ymax, w - c.xmin, 3);
+    const auto& [ x0, y0, x1, y1 ] = c.box.arr;
+    do_rotate (c, y0, w - x1, y1, w - x0, 3);
 };
 
 inline void
 rotate180 (TextChar& c, int w, int h) {
-    do_rotate (c, w - c.xmax, h - c.ymax, w - c.xmin, h - c.ymin, 2);
+    const auto& [ x0, y0, x1, y1 ] = c.box.arr;
+    do_rotate (c, w - x1, h - y1, w - x0, h - y0, 2);
 }
 
 inline void
 rotate270 (TextChar& c, int, int h) {
-    do_rotate (c, h - c.ymax, c.xmin, h - c.ymin, c.xmax, 1);
+    const auto& [ x0, y0, x1, y1 ] = c.box.arr;
+    do_rotate (c, h - y1, x0, h - y0, x1, 1);
 }
 
 inline int
@@ -1063,14 +1073,14 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
         }
 
         for (auto& link : links) {
-            xMin = link->yMin;
-            xMax = link->yMax;
-            yMin = pageWidth - link->xMax;
-            yMax = pageWidth - link->xMin;
-            link->xMin = xMin;
-            link->xMax = xMax;
-            link->yMin = yMin;
-            link->yMax = yMax;
+            xMin = link->box.ymin;
+            xMax = link->box.ymax;
+            yMin = pageWidth - link->box.xmax;
+            yMax = pageWidth - link->box.xmin;
+            link->box.xmin = xMin;
+            link->box.xmax = xMax;
+            link->box.ymin = yMin;
+            link->box.ymax = yMax;
         }
         break;
 
@@ -1087,14 +1097,14 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
         }
 
         for (auto& link : links) {
-            xMin = pageWidth - link->xMax;
-            xMax = pageWidth - link->xMin;
-            yMin = pageHeight - link->yMax;
-            yMax = pageHeight - link->yMin;
-            link->xMin = xMin;
-            link->xMax = xMax;
-            link->yMin = yMin;
-            link->yMax = yMax;
+            xMin = pageWidth - link->box.xmax;
+            xMax = pageWidth - link->box.xmin;
+            yMin = pageHeight - link->box.ymax;
+            yMax = pageHeight - link->box.ymin;
+            link->box.xmin = xMin;
+            link->box.xmax = xMax;
+            link->box.ymin = yMin;
+            link->box.ymax = yMax;
         }
         break;
 
@@ -1112,14 +1122,14 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
         }
 
         for (auto& link : links) {
-            xMin = pageHeight - link->yMax;
-            xMax = pageHeight - link->yMin;
-            yMin = link->xMin;
-            yMax = link->xMax;
-            link->xMin = xMin;
-            link->xMax = xMax;
-            link->yMin = yMin;
-            link->yMax = yMax;
+            xMin = pageHeight - link->box.ymax;
+            xMax = pageHeight - link->box.ymin;
+            yMin = link->box.xmin;
+            yMax = link->box.xmax;
+            link->box.xmin = xMin;
+            link->box.xmax = xMax;
+            link->box.ymin = yMin;
+            link->box.ymax = yMax;
         }
         break;
 
@@ -1132,35 +1142,38 @@ void TextPage::rotateUnderlinesAndLinks (int rot) {
 template< typename T >
 inline void
 do_unrotate (T& t, double x0, double y0, double x1, double y1, int n) {
-    t.xmin = x0; t.xmax = x1; t.ymin = y0; t.ymax = y1;
+    t.box = { x0, y0, x1, y1 };
     t.rot = (t.rot + n) & 3;
 }
 
 template< >
 inline void do_unrotate< TextColumn > (
     TextColumn& t, double x0, double y0, double x1, double y1, int) {
-    t.xmin = x0; t.xmax = x1; t.ymin = y0; t.ymax = y1;
+    t.box = { x0, y0, x1, y1 };
 }
 
 template< >
 inline void do_unrotate< TextParagraph > (
     TextParagraph& t, double x0, double y0, double x1, double y1, int) {
-    t.xmin = x0; t.xmax = x1; t.ymin = y0; t.ymax = y1;
+    t.box = { x0, y0, x1, y1 };
 }
 
 template< typename T >
 inline void unrotate90 (T& t, int w, int) {
-    do_unrotate (t, w - t.ymax, t.xmin, w - t.ymin, t.xmax, 1);
+    const auto& [ x0, y0, x1, y1 ] = t.box.arr;
+    do_unrotate (t, w - y1, x0, w - y0, x1, 1);
 };
 
 template< typename T >
 inline void unrotate180 (T& t, int w, int h) {
-    do_unrotate (t, w - t.xmax, h - t.ymax, w - t.xmin, h - t.ymin, 2);
+    const auto& [ x0, y0, x1, y1 ] = t.box.arr;
+    do_unrotate (t, w - x1, h - y1, w - x0, h - y0, 2);
 }
 
 template< typename T >
 inline void unrotate270 (T& t, int, int h) {
-    do_unrotate (t, t.ymin, h - t.xmax, t.ymax, h - t.xmin, 3);
+    const auto& [ x0, y0, x1, y1 ] = t.box.arr;
+    do_unrotate (t, y0, h - x1, y1, h - x0, 3);
 }
 
 //
@@ -1320,9 +1333,9 @@ bool TextPage::isPrevalentLeftToRight (TextChars& chars) {
 
 inline bool
 duplicated (const TextChar& a, const TextChar& b, double x, double y) {
-    return a.c == b.c &&
-        fabs (a.xmin - b.xmin) < x &&
-        fabs (a.ymax - b.ymax) < y;
+    return a.c == b.c
+        && fabs (a.box.xmin - b.box.xmin) < x
+        && fabs (a.box.ymax - b.box.ymax) < y;
 }
 
 //
@@ -1347,7 +1360,7 @@ void TextPage::removeDuplicates (TextChars& chars, int rot) {
             for (size_t j = i + 1; j < chars.size (); ) {
                 auto& b = *chars [j];
 
-                if (b.ymin - a.ymin >= ydelta) {
+                if (b.box.ymin - a.box.ymin >= ydelta) {
                     //
                     // Stop if characters are sufficiently apart, vertically:
                     //
@@ -1396,7 +1409,7 @@ void TextPage::removeDuplicates (TextChars& chars, int rot) {
             for (size_t j = i + 1; j < chars.size (); ) {
                 auto& b = *chars [j];
 
-                if (b.xmin - a.xmin >= xdelta) {
+                if (b.box.xmin - a.box.xmin >= xdelta) {
                     //
                     // Stop if characters are sufficiently apart, horizontally:
                     //
@@ -1540,16 +1553,12 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
     //
     // Compute minimum and maximum bbox, minimum and average font size:
     //
-    double xMin = 0, yMin = 0, xMax = 0, yMax = 0;
+    xpdf::bbox_t box = charsA [0]->box;
     double minFontSize = 0, avgFontSize = 0;
 
     for (size_t i = 0; i < charsA.size (); ++i) {
         const auto& ch = charsA [i];
-
-        if (i == 0 || ch->xmin < xMin) { xMin = ch->xmin; }
-        if (i == 0 || ch->ymin < yMin) { yMin = ch->ymin; }
-        if (i == 0 || ch->xmax > xMax) { xMax = ch->xmax; }
-        if (i == 0 || ch->ymax > yMax) { yMax = ch->ymax; }
+        box = coalesce (box, ch->box);
 
         avgFontSize += ch->size;
 
@@ -1580,16 +1589,16 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
     // Add some slack to the array bounds to avoid floating point precision
     // `problems':
     //
-    xMinI = (int)floor (xMin / splitPrecision) - 1;
-    yMinI = (int)floor (yMin / splitPrecision) - 1;
-    xMaxI = (int)floor (xMax / splitPrecision) + 1;
-    yMaxI = (int)floor (yMax / splitPrecision) + 1;
+    xMinI = (int)floor (box.xmin / splitPrecision) - 1;
+    yMinI = (int)floor (box.ymin / splitPrecision) - 1;
+    xMaxI = (int)floor (box.xmax / splitPrecision) + 1;
+    yMaxI = (int)floor (box.ymax / splitPrecision) + 1;
 
     std::vector< int > hprofile (yMaxI - yMinI + 1);
     std::vector< int > vprofile (xMaxI - xMinI + 1);
 
-    for (auto& p : charsA) {
-        const auto& c = *p;
+    for (auto& ch : charsA) {
+        const auto& [x0, y0, x1, y1] = ch->box.arr;
 
         //
         // yMinI2 and yMaxI2 are adjusted to allow for slightly overlapping
@@ -1598,47 +1607,47 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
         switch (rot) {
         case 0:
         default:
-            xMinI2 = (int)floor (c.xmin / splitPrecision);
-            xMaxI2 = (int)floor (c.xmax / splitPrecision);
+            xMinI2 = (int)floor (x0 / splitPrecision);
+            xMaxI2 = (int)floor (x1 / splitPrecision);
 
-            ascentAdjust = ascentAdjustFactor * (c.ymax - c.ymin);
-            yMinI2 = (int)floor ((c.ymin + ascentAdjust) / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (y1 - y0);
+            yMinI2 = (int)floor ((y0 + ascentAdjust) / splitPrecision);
 
-            descentAdjust = descentAdjustFactor * (c.ymax - c.ymin);
-            yMaxI2 = (int)floor ((c.ymax - descentAdjust) / splitPrecision);
+            descentAdjust = descentAdjustFactor * (y1 - y0);
+            yMaxI2 = (int)floor ((y1 - descentAdjust) / splitPrecision);
             break;
 
         case 1:
-            descentAdjust = descentAdjustFactor * (c.xmax - c.xmin);
-            xMinI2 = (int)floor ((c.xmin + descentAdjust) / splitPrecision);
+            descentAdjust = descentAdjustFactor * (x1 - x0);
+            xMinI2 = (int)floor ((x0 + descentAdjust) / splitPrecision);
 
-            ascentAdjust = ascentAdjustFactor * (c.xmax - c.xmin);
-            xMaxI2 = (int)floor ((c.xmax - ascentAdjust) / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (x1 - x0);
+            xMaxI2 = (int)floor ((x1 - ascentAdjust) / splitPrecision);
 
-            yMinI2 = (int)floor (c.ymin / splitPrecision);
-            yMaxI2 = (int)floor (c.ymax / splitPrecision);
+            yMinI2 = (int)floor (y0 / splitPrecision);
+            yMaxI2 = (int)floor (y1 / splitPrecision);
             break;
 
         case 2:
-            xMinI2 = (int)floor (c.xmin / splitPrecision);
-            xMaxI2 = (int)floor (c.xmax / splitPrecision);
+            xMinI2 = (int)floor (x0 / splitPrecision);
+            xMaxI2 = (int)floor (x1 / splitPrecision);
 
-            descentAdjust = descentAdjustFactor * (c.ymax - c.ymin);
-            yMinI2 = (int)floor ((c.ymin + descentAdjust) / splitPrecision);
+            descentAdjust = descentAdjustFactor * (y1 - y0);
+            yMinI2 = (int)floor ((y0 + descentAdjust) / splitPrecision);
 
-            ascentAdjust = ascentAdjustFactor * (c.ymax - c.ymin);
-            yMaxI2 = (int)floor ((c.ymax - ascentAdjust) / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (y1 - y0);
+            yMaxI2 = (int)floor ((y1 - ascentAdjust) / splitPrecision);
             break;
 
         case 3:
-            ascentAdjust = ascentAdjustFactor * (c.xmax - c.xmin);
-            xMinI2 = (int)floor ((c.xmin + ascentAdjust) / splitPrecision);
+            ascentAdjust = ascentAdjustFactor * (x1 - x0);
+            xMinI2 = (int)floor ((x0 + ascentAdjust) / splitPrecision);
 
-            descentAdjust = descentAdjustFactor * (c.xmax - c.xmin);
-            xMaxI2 = (int)floor ((c.xmax - descentAdjust) / splitPrecision);
+            descentAdjust = descentAdjustFactor * (x1 - x0);
+            xMaxI2 = (int)floor ((x1 - descentAdjust) / splitPrecision);
 
-            yMinI2 = (int)floor (c.ymin / splitPrecision);
-            yMaxI2 = (int)floor (c.ymax / splitPrecision);
+            yMinI2 = (int)floor (y0 / splitPrecision);
+            yMaxI2 = (int)floor (y1 / splitPrecision);
             break;
         }
 
@@ -1798,10 +1807,10 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
         nLines = 1;
     }
     else if (rot & 1) {
-        nLines = (xMax - xMin) / avgFontSize;
+        nLines = width_of (box) / avgFontSize;
     }
     else {
-        nLines = (yMax - yMin) / avgFontSize;
+        nLines = height_of (box) / avgFontSize;
     }
 
     //
@@ -1910,8 +1919,8 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
                     auto chars2 = charsIn (
                         charsA,
                         xpdf::bbox_t{
-                            ( prev + 0.5) * splitPrecision, yMin - 1,
-                            (start + 1.5) * splitPrecision, yMax + 1
+                            ( prev + 0.5) * splitPrecision, box.ymin - 1,
+                            (start + 1.5) * splitPrecision, box.ymax + 1
                         });
 
                     blk->addChild (split (chars2, rot));
@@ -1923,7 +1932,10 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
 
         auto chars2 = charsIn (
             charsA, xpdf::bbox_t{
-                (prev + 0.5) * splitPrecision, yMin - 1, xMax + 1, yMax + 1
+                (prev + 0.5) * splitPrecision,
+                    box.ymin - 1,
+                    box.xmax + 1,
+                    box.ymax + 1
             });
 
         blk->addChild (split (chars2, rot));
@@ -1946,8 +1958,8 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
                 if (y - start > horizGapSize2) {
                     auto chars2 = charsIn (
                         charsA, xpdf::bbox_t{
-                            xMin - 1, ( prev + 0.5) * splitPrecision,
-                            xMax + 1, (start + 1.5) * splitPrecision
+                            box.xmin - 1, ( prev + 0.5) * splitPrecision,
+                            box.xmax + 1, (start + 1.5) * splitPrecision
                         });
 
                     blk->addChild (split (chars2, rot));
@@ -1959,7 +1971,8 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
 
         auto chars2 = charsIn (
             charsA, xpdf::bbox_t{
-                xMin - 1, (prev + 0.5) * splitPrecision, xMax + 1, yMax + 1
+                box.xmin - 1, (prev + 0.5) * splitPrecision,
+                box.xmax + 1, box.ymax + 1
             });
 
         blk->addChild (split (chars2, rot));
@@ -2003,20 +2016,23 @@ TextBlockPtr TextPage::split (TextChars& charsA, int rot) {
 // Return the subset of chars inside a rectangle.
 TextChars
 TextPage::charsIn (TextChars& charsA, const xpdf::bbox_t& box) const {
+    const auto& a = box;
+
     TextChars chars;
 
-    const auto& [ x0, y0, x1, y1 ] = box.arr;
-
     for (auto& ch : charsA) {
+        const auto& b = ch->box;
+
         //
         // Because of {ascent,descent}AdjustFactor, the y coords (or x
         // coords for rot 1,3) for the gaps will be a little bit tight --
         // so we use the center of the character here:
         //
-        double x = 0.5 * (ch->xmin + ch->xmax);
-        double y = 0.5 * (ch->ymin + ch->ymax);
 
-        if (x0 < x && x < x1 && y0 < y && y < y1) {
+        double x = (b.xmin + b.xmax) / 2;
+        double y = (b.ymin + b.ymax) / 2;
+
+        if (a.xmin < x && x < a.xmax && a.ymin < y && y < a.ymax) {
             chars.push_back (ch);
         }
     }
@@ -2092,36 +2108,42 @@ void TextPage::tagBlock (TextBlockPtr blk) {
     }
 }
 
-// Insert a list of large characters into a tree.
-void TextPage::insertLargeChars (TextChars& largeChars, TextBlockPtr blk) {
-    bool singleLine;
-    double xLimit, yLimit, minOverlap;
-    int i;
-
+void
+TextPage::doInsertLargeChars (TextChars& chars, TextBlockPtr pblock) {
     //~ this currently works only for characters in the primary rotation
 
-    // check to see if the large chars are a single line, in the
-    // upper-left corner of blk (this is just a rough estimate)
-    xLimit = blk->xMin + 0.5 * (blk->xMin + blk->xMax);
-    yLimit = blk->yMin + 0.5 * (blk->yMin + blk->yMax);
+    //
+    // Check to see if the large chars are a single line, in the
+    // upper-left corner of block (this is just a rough estimate):
+    //
+    const auto [ xLimit, yLimit ] = center_of (pblock->box);
 
-    singleLine = true;
+    bool singleLine = true;
 
-    // note: largeChars are already sorted by x
-    for (i = 0; i < largeChars.size (); ++i) {
-        auto& ch2 = largeChars [i];
+    for (auto iter = chars.begin (); iter != chars.end (); ++iter) {
+        auto& lhs = (*iter)->box;
 
-        if (ch2->xmax > xLimit || ch2->ymax > yLimit) {
+        if (lhs.point [1].x > xLimit || lhs.point [1].y > yLimit) {
+            //
+            // This heuristic fails if the bottom right corner of the large
+            // character is past the center of the block:
+            //
             singleLine = false;
             break;
         }
 
-        if (i > 0) {
-            auto& ch = largeChars [i - 1];
+        auto next = iter;
+        std::advance (next, 1);
 
-            minOverlap = 0.5 * (ch->size < ch2->size ? ch->size : ch2->size);
+        if (next != chars.end ()) {
+            auto& rhs = (*next)->box;
 
-            if (ch->ymax - ch2->ymin < minOverlap || ch2->ymax - ch->ymin < minOverlap) {
+            if (vertical_overlap (lhs, rhs) < min_height_of (lhs, rhs) / 2) {
+                //
+                // This heuristic fails if the overlap between the two adjacent
+                // characters in the large chars array is less than half the
+                // smalest of the two:
+                //
                 singleLine = false;
                 break;
             }
@@ -2129,17 +2151,31 @@ void TextPage::insertLargeChars (TextChars& largeChars, TextBlockPtr blk) {
     }
 
     if (singleLine) {
-        // if the large chars are a single line, prepend them to the first
-        // leaf node in blk
-        insertLargeCharsInFirstLeaf (largeChars, blk);
+        insertLargeCharsInFirstLeaf (chars, pblock);
     }
     else {
-        // if the large chars are not a single line, prepend each one to
-        // the appropriate leaf node -- this handles cases like bullets
-        // drawn in a large font, on the left edge of a column
-        for (auto& ch : largeChars | views::reverse) {
-            insertLargeCharInLeaf (ch, blk);
+        for (auto& ch : chars | views::reverse) {
+            insertLargeCharInLeaf (ch, pblock);
         }
+    }
+}
+
+//
+// Insert a list of large characters (like large drop caps) into a tree:
+//
+void
+TextPage::insertLargeChars (TextChars& chars, TextBlockPtr pblock) {
+    switch (chars.size ()) {
+    case 0:
+        break;
+
+    case 1:
+        insertLargeCharsInFirstLeaf (chars, pblock);
+        break;
+
+    default:
+        doInsertLargeChars (chars, pblock);
+        break;
     }
 }
 
@@ -2167,7 +2203,7 @@ TextPage::insertLargeCharInLeaf (TextCharPtr ch, TextBlockPtr blk) {
     //~   -- it could be extended to do more
 
     // estimate the baseline of ch
-    auto y = ch->ymin + 0.75 * (ch->ymax - ch->ymin);
+    const auto ylimit = ch->box.xmin + 0.75 * height_of (ch->box);
 
     if (blk->type == blkLeaf) {
         blk->prependChild (ch);
@@ -2178,7 +2214,7 @@ TextPage::insertLargeCharInLeaf (TextCharPtr ch, TextBlockPtr blk) {
         for (size_t i = 0; i < children.size (); ++i) {
             auto& child = children [i];
 
-            if (y < child->yMax || i == children.size () - 1) {
+            if (ylimit < child->box.ymax || i == children.size () - 1) {
                 insertLargeCharInLeaf (ch, child);
                 blk->updateBounds (i);
                 break;
@@ -2218,10 +2254,10 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
 
     for (auto& block : blocks) {
         if (block->tag == blkTagMulticolumn &&
-            column->xMin >= block->xMin &&
-            column->yMin >= block->yMin &&
-            column->xMax <= block->xMax &&
-            column->yMax <= block->yMax) {
+            column->box.xmin >= block->box.xmin &&
+            column->box.ymin >= block->box.ymin &&
+            column->box.xmax <= block->box.xmax &&
+            column->box.ymax <= block->box.ymax) {
 
             insertColumnIntoTree (column, block);
             tree->tag = blkTagMulticolumn;
@@ -2237,7 +2273,7 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
             for (i = 0; i < blocks.size (); ++i) {
                 auto& x = blocks [i];
 
-                if (column->xMax > 0.5 * (x->xMin + x->xMax)) {
+                if (column->box.xmax > 0.5 * (x->box.xmin + x->box.xmax)) {
                     break;
                 }
             }
@@ -2246,7 +2282,7 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
             for (i = 0; i < blocks.size (); ++i) {
                 auto& x = blocks [i];
 
-                if (column->xMin < 0.5 * (x->xMin + x->xMax)) {
+                if (column->box.xmin < 0.5 * (x->box.xmin + x->box.xmax)) {
                     break;
                 }
             }
@@ -2257,7 +2293,7 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
             for (i = 0; i < blocks.size (); ++i) {
                 auto& x = blocks [i];
 
-                if (column->yMax > 0.5 * (x->yMin + x->yMax)) {
+                if (column->box.ymax > 0.5 * (x->box.ymin + x->box.ymax)) {
                     break;
                 }
             }
@@ -2266,7 +2302,7 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
             for (i = 0; i < blocks.size (); ++i) {
                 auto& x = blocks [i];
 
-                if (column->yMin < 0.5 * (x->yMin + x->yMax)) {
+                if (column->box.ymin < 0.5 * (x->box.ymin + x->box.ymax)) {
                     break;
                 }
             }
@@ -2308,13 +2344,13 @@ TextPage::insertClippedChars (TextChars& clippedChars, TextBlockPtr tree) {
         for (size_t i = 0; i < clippedChars.size (); ) {
             auto& ch2 = clippedChars [i];
 
-            if (ch2->xmin > ch->xmax + clippedTextMaxWordSpace * ch->size) {
+            if (ch2->box.xmin > ch->box.xmax + clippedTextMaxWordSpace * ch->size) {
                 break;
             }
 
-            double y = 0.5 * (ch2->ymin + ch2->ymax);
+            double y = 0.5 * (ch2->box.ymin + ch2->box.ymax);
 
-            if (y > leaf->yMin && y < leaf->yMax) {
+            if (y > leaf->box.ymin && y < leaf->box.ymax) {
                 auto& ch2 = clippedChars [i];
 
                 // TODO: O(N)
@@ -2336,12 +2372,12 @@ TextBlockPtr
 TextPage::findClippedCharLeaf (TextCharPtr ch, TextBlockPtr tree) {
     //~ this currently works only for characters in the primary rotation
 
-    double y = 0.5 * (ch->ymin + ch->ymax);
+    double y = 0.5 * (ch->box.ymin + ch->box.ymax);
 
     if (tree->type == blkLeaf) {
         if (tree->rot == 0) {
-            if (y > tree->yMin && y < tree->yMax &&
-                ch->xmin <= tree->xMax + clippedTextMaxWordSpace * ch->size) {
+            if (y > tree->box.ymin && y < tree->box.ymax &&
+                ch->box.xmin <= tree->box.xmax + clippedTextMaxWordSpace * ch->size) {
                 return tree;
             }
         }
@@ -2498,7 +2534,7 @@ TextColumnPtr TextPage::buildColumn (TextBlockPtr blk) {
 
     return std::make_shared< TextColumn > (
         std::move (paragraphs),
-        blk->xMin, blk->yMin, blk->xMax, blk->yMax);
+        blk->box.xmin, blk->box.ymin, blk->box.xmax, blk->box.ymax);
 }
 
 //
@@ -2540,10 +2576,10 @@ TextPage::getLineIndent (const TextLine& line, TextBlockPtr blk) const {
 
     switch (line.rot) {
     case 0:
-    default: indent = line.xmin - blk->xMin; break;
-    case 1:  indent = line.ymin - blk->yMin; break;
-    case 2:  indent = blk->xMax - line.xmax; break;
-    case 3:  indent = blk->yMax - line.ymax; break;
+    default: indent = line.box.xmin - blk->box.xmin; break;
+    case 1:  indent = line.box.ymin - blk->box.ymin; break;
+    case 2:  indent = blk->box.xmax - line.box.xmax; break;
+    case 3:  indent = blk->box.ymax - line.box.ymax; break;
     }
 
     return indent;
@@ -2579,10 +2615,10 @@ double TextPage::getLineSpacing (const TextLine& lhs, const TextLine& rhs) const
 
     switch (lhs.rot) {
     case 0:
-    default: sp = rhs.ymin - lhs.ymax; break;
-    case 1:  sp = lhs.xmin - rhs.xmax; break;
-    case 2:  sp = lhs.ymin - rhs.ymin; break;
-    case 3:  sp = rhs.xmin - rhs.xmax; break;
+    default: sp = rhs.box.ymin - lhs.box.ymax; break;
+    case 1:  sp = lhs.box.xmin - rhs.box.xmax; break;
+    case 2:  sp = lhs.box.ymin - rhs.box.ymin; break;
+    case 3:  sp = rhs.box.xmin - rhs.box.xmax; break;
     }
 
     return sp;
@@ -2638,12 +2674,12 @@ TextPage::makeLine (TextBlockPtr blk) {
             auto& ch  = charsA [j - 1];
             auto& ch2 = charsA [j];
 
-            sp = (blk->rot & 1)
-                ? (ch2->ymin - ch->ymax)
-                : (ch2->xmin - ch->xmax);
+            sp = (blk->rot & 1) ? height_of (ch2->box) : width_of (ch->box);
 
-            if (sp > wordSp || ch->font != ch2->font || fabs (ch->size - ch2->size) > 0.01 ||
-                (control.mode == textOutRawOrder && ch2->charPos != ch->charPos + ch->charLen)) {
+            if (sp > wordSp || ch->font != ch2->font ||
+                fabs (ch->size - ch2->size) > 0.01 ||
+                (control.mode == textOutRawOrder &&
+                 ch2->charPos != ch->charPos + ch->charLen)) {
                 break;
             }
 
@@ -2672,8 +2708,8 @@ TextPage::makeLine (TextBlockPtr blk) {
 
     return std::make_shared< TextLine > (
         std::move (words),
-        blk->xMin, blk->yMin,
-        blk->xMax, blk->yMax,
+        blk->box.xmin, blk->box.ymin,
+        blk->box.xmax, blk->box.ymax,
         lineFontSize);
 }
 
@@ -2710,9 +2746,7 @@ double TextPage::computeWordSpacingThreshold (TextChars& charsA, int rot) {
         if (i < charsA.size () - 1) {
             auto& ch2 = charsA [i];
 
-            sp = (rot & 1)
-                ? (ch2->ymin - ch->ymax)
-                : (ch2->xmin - ch->xmax);
+            sp = (rot & 1) ? height_of (ch2->box) : width_of (ch2->box);
 
             if (i == 0 || sp < minSp) {
                 minSp = sp;
@@ -2774,14 +2808,14 @@ void TextPage::assignLinePhysPositions (TextColumns& columns) {
                 computeLinePhysWidth (*line, uMap);
 
                 if (control.fixedPitch > 0) {
-                    line->px = (line->xmin - col->xmin) / control.fixedPitch;
+                    line->px = (line->box.xmin - col->box.xmin) / control.fixedPitch;
                 }
                 else if (fabs (line->fontSize) < 0.001) {
                     line->px = 0;
                 }
                 else {
                     line->px =
-                        (line->xmin - col->xmin) /
+                        (line->box.xmin - col->box.xmin) /
                         (physLayoutSpaceWidth * line->fontSize);
                 }
 
@@ -2831,22 +2865,22 @@ int TextPage::assignColumnPhysPositions (TextColumns& columns) {
         auto& col = columns [i];
 
         if (control.fixedPitch) {
-            col->px = (int)(col->xmin / control.fixedPitch);
+            col->px = (int)(col->box.xmin / control.fixedPitch);
         }
         else {
             col->px = 0;
             for (j = 0; j < i; ++j) {
                 auto& col2 = columns [j];
-                xOverlap = col2->xmax - col->xmin;
-                if (xOverlap < slack * (col2->xmax - col2->xmin)) {
+                xOverlap = col2->box.xmax - col->box.xmin;
+                if (xOverlap < slack * (col2->box.xmax - col2->box.xmin)) {
                     if (col2->px + col2->pw + 2 > col->px) {
                         col->px = col2->px + col2->pw + 2;
                     }
                 }
                 else {
                     yOverlap =
-                        (col->ymax < col2->ymax ? col->ymax : col2->ymax) -
-                        (col->ymin > col2->ymin ? col->ymin : col2->ymin);
+                        (col->box.ymax < col2->box.ymax ? col->box.ymax : col2->box.ymax) -
+                        (col->box.ymin > col2->box.ymin ? col->box.ymin : col2->box.ymin);
                     if (yOverlap > 0 && xOverlap < yOverlap) {
                         if (col2->px + col2->pw > col->px) {
                             col->px = col2->px + col2->pw;
@@ -2869,16 +2903,17 @@ int TextPage::assignColumnPhysPositions (TextColumns& columns) {
 
         for (j = 0; j < i; ++j) {
             auto& col2 = columns [j];
-            yOverlap = col2->ymax - col->ymin;
-            if (yOverlap < slack * (col2->ymax - col2->ymin)) {
+            yOverlap = height_of (col2->box);
+
+            if (yOverlap < slack * height_of (col2->box)) {
                 if (col2->py + col2->ph + 1 > col->py) {
                     col->py = col2->py + col2->ph + 1;
                 }
             }
             else {
                 xOverlap =
-                    (col->xmax < col2->xmax ? col->xmax : col2->xmax) -
-                    (col->xmin > col2->xmin ? col->xmin : col2->xmin);
+                    (col->box.xmax < col2->box.xmax ? col->box.xmax : col2->box.xmax) -
+                    (col->box.xmin > col2->box.xmin ? col->box.xmin : col2->box.xmin);
 
                 if (xOverlap > 0 && yOverlap < xOverlap) {
                     if (col2->py + col2->ph > col->py) {
@@ -2917,8 +2952,8 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
                         if (underline->horiz) {
                             if (word->rot == 0 || word->rot == 2) {
                                 if (fabs (underline->y0 - base) < ubSlack &&
-                                    underline->x0 < word->xmin + uSlack &&
-                                    word->xmax - uSlack < underline->x1) {
+                                    underline->x0 < word->box.xmin + uSlack &&
+                                    word->box.xmax - uSlack < underline->x1) {
                                     word->underlined = true;
                                 }
                             }
@@ -2926,8 +2961,8 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
                         else {
                             if (word->rot == 1 || word->rot == 3) {
                                 if (fabs (underline->x0 - base) < ubSlack &&
-                                    underline->y0 < word->ymin + uSlack &&
-                                    word->ymax - uSlack < underline->y1) {
+                                    underline->y0 < word->box.ymin + uSlack &&
+                                    word->box.ymax - uSlack < underline->y1) {
                                     word->underlined = true;
                                 }
                             }
@@ -2936,10 +2971,8 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
 
                     // handle links
                     for (auto& link : links) {
-                        if (link->xMin < word->xmin + hSlack &&
-                            word->xmax - hSlack < link->xMax &&
-                            link->yMin < word->ymin + hSlack &&
-                            word->ymax - hSlack < link->yMax) {
+                        if (link->box.xmin < word->box.xmin + hSlack && word->box.xmax - hSlack < link->box.xmax &&
+                            link->box.ymin < word->box.ymin + hSlack && word->box.ymax - hSlack < link->box.ymax) {
                         }
                     }
                 }
@@ -3139,11 +3172,11 @@ TextPage::getText (const xpdf::bbox_t& box) {
     TextChars chars2;
 
     for (auto& ch : chars) {
-        xx = 0.5 * (ch->xmin + ch->xmax);
-        yy = 0.5 * (ch->ymin + ch->ymax);
+        xx = 0.5 * (ch->box.xmin + ch->box.xmax);
+        yy = 0.5 * (ch->box.ymin + ch->box.ymax);
 
-        if (box.arr [0] < xx && xx < box.arr [2] &&
-            box.arr [1] < yy && yy < box.arr [3]) {
+        if (box.xmin < xx && xx < box.xmax &&
+            box.ymin < yy && yy < box.ymax) {
             chars2.push_back (ch);
         }
     }

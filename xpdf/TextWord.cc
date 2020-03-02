@@ -14,7 +14,6 @@
 //
 TextWord::TextWord (
     TextChars& chars, int start, int lenA, int rotA, bool spaceAfterA) {
-    TextCharPtr ch;
     int i;
 
     rot = rotA;
@@ -25,69 +24,52 @@ TextWord::TextWord (
     edge.resize (len + 1);
     charPos.resize (len + 1);
 
-    switch (rot) {
-    case 0:
-    default:
-        ch = chars [start];
-        xmin = ch->xmin;
-        ymin = ch->ymin;
-        ymax = ch->ymax;
-        ch = chars [start + len - 1];
-        xmax = ch->xmax;
-        break;
-    case 1:
-        ch = chars [start];
-        xmin = ch->xmin;
-        xmax = ch->xmax;
-        ymin = ch->ymin;
-        ch = chars [start + len - 1];
-        ymax = ch->ymax;
-        break;
-    case 2:
-        ch = chars [start];
-        xmax = ch->xmax;
-        ymin = ch->ymin;
-        ymax = ch->ymax;
-        ch = chars [start + len - 1];
-        xmin = ch->xmin;
-        break;
-    case 3:
-        ch = chars [start];
-        xmin = ch->xmin;
-        xmax = ch->xmax;
-        ymax = ch->ymax;
-        ch = chars [start + len - 1];
-        ymin = ch->ymin;
-        break;
+    box = chars.front ()->box;
+
+    {
+        const auto& ch = chars.back ();
+
+        switch (rot) {
+        default:
+        case 0: box.xmax = ch->box.xmax; break;
+        case 1: box.ymax = ch->box.ymax; break;
+        case 2: box.xmin = ch->box.xmin; break;
+        case 3: box.ymin = ch->box.ymin; break;
+        }
     }
 
     for (i = 0; i < len; ++i) {
-        ch = chars [rot >= 2 ? start + len - 1 - i : start + i];
+        const auto& ch = chars [rot >= 2 ? start + len - 1 - i : start + i];
+
         text[i] = ch->c;
         charPos[i] = ch->charPos;
-        if (i == len - 1) { charPos[len] = ch->charPos + ch->charLen; }
+
+        if (i == len - 1) {
+            charPos[len] = ch->charPos + ch->charLen;
+        }
+
         switch (rot) {
         case 0:
         default:
-            edge[i] = ch->xmin;
-            if (i == len - 1) { edge[len] = ch->xmax; }
+            edge [i] = ch->box.xmin;
+            if (i == len - 1) { edge[len] = ch->box.xmax; }
             break;
         case 1:
-            edge[i] = ch->ymin;
-            if (i == len - 1) { edge[len] = ch->ymax; }
+            edge[i] = ch->box.ymin;
+            if (i == len - 1) { edge[len] = ch->box.ymax; }
             break;
         case 2:
-            edge[i] = ch->xmax;
-            if (i == len - 1) { edge[len] = ch->xmin; }
+            edge[i] = ch->box.xmax;
+            if (i == len - 1) { edge[len] = ch->box.xmin; }
             break;
         case 3:
-            edge[i] = ch->ymax;
-            if (i == len - 1) { edge[len] = ch->ymin; }
+            edge[i] = ch->box.ymax;
+            if (i == len - 1) { edge[len] = ch->box.ymin; }
             break;
         }
     }
 
-    ch = chars [start];
+    const auto& ch = chars.front ();
 
     font = ch->font;
     fontSize = ch->size;
@@ -102,44 +84,13 @@ GString* TextWord::getFontName () const {
     return font->name;
 }
 
-void TextWord::getCharBBox (
-    int charIdx, double* xminA, double* yminA, double* xmaxA, double* ymaxA) {
-    if (charIdx < 0 || charIdx >= text.size ()) { return; }
-    switch (rot) {
-    case 0:
-        *xminA = edge[charIdx];
-        *xmaxA = edge[charIdx + 1];
-        *yminA = ymin;
-        *ymaxA = ymax;
-        break;
-    case 1:
-        *xminA = xmin;
-        *xmaxA = xmax;
-        *yminA = edge[charIdx];
-        *ymaxA = edge[charIdx + 1];
-        break;
-    case 2:
-        *xminA = edge[charIdx + 1];
-        *xmaxA = edge[charIdx];
-        *yminA = ymin;
-        *ymaxA = ymax;
-        break;
-    case 3:
-        *xminA = xmin;
-        *xmaxA = xmax;
-        *yminA = edge[charIdx + 1];
-        *ymaxA = edge[charIdx];
-        break;
-    }
-}
-
 double TextWord::getBaseline () {
     switch (rot) {
-    case 0:
-    default: return ymax + fontSize * font->descent;
-    case 1: return xmin - fontSize * font->descent;
-    case 2: return ymin - fontSize * font->descent;
-    case 3: return xmax + fontSize * font->descent;
+    default:
+    case 0: return box.ymax + fontSize * font->descent;
+    case 1: return box.xmin - fontSize * font->descent;
+    case 2: return box.ymin - fontSize * font->descent;
+    case 3: return box.xmax + fontSize * font->descent;
     }
 }
 

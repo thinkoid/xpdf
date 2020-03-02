@@ -11,23 +11,14 @@
 #include <xpdf/TextLine.hh>
 
 struct TextParagraph {
-    TextParagraph (TextLines arg)
-        : lines (std::move (arg)) {
-        bool first = true;
-
+    TextParagraph (TextLines arg) : lines (std::move (arg)), box{ } {
         for (auto& line : lines) {
-            if (first || line->xmin < xmin) { xmin = line->xmin; }
-            if (first || line->ymin < ymin) { ymin = line->ymin; }
-            if (first || line->xmax > xmax) { xmax = line->xmax; }
-            if (first || line->ymax > ymax) { ymax = line->ymax; }
-
-            first = false;
+            box = coalesce (box, line->box);
         }
     }
 
     TextLines lines;
-
-    double xmin = 0, xmax = 0, ymin = 0, ymax = 0;
+    xpdf::bbox_t box;
 };
 
 using TextParagraphPtr = std::shared_ptr< TextParagraph >;

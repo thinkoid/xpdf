@@ -186,7 +186,7 @@ public:
     setSelection (int newSelectPage, const xpdf::bboxi_t& box) {
         setSelection (
             newSelectPage,
-            box.arr [0], box.arr [1], box.arr [2], box.arr [3]);
+            box.xmin, box.ymin, box.xmax, box.ymax);
     }
 
     void
@@ -265,7 +265,7 @@ protected:
         PDFCoreTile* oneTile = 0) {
         xorRectangle (
             pg,
-            box.arr [0], box.arr [1], box.arr [2], box.arr [3],
+            box.xmin, box.ymin, box.xmax, box.ymax,
             pattern, oneTile);
     }
 

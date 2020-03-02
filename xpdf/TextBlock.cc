@@ -8,20 +8,14 @@
 #include <xpdf/TextChar.hh>
 
 TextColumn::TextColumn (
-    TextParagraphs paragraphsA, double xMinA, double yMinA, double xMaxA,
-    double yMaxA) {
-    paragraphs = paragraphsA;
-    xmin = xMinA;
-    ymin = yMinA;
-    xmax = xMaxA;
-    ymax = yMaxA;
-    px = py = 0;
-    pw = ph = 0;
-}
+    TextParagraphs paragraphsA,
+    double xMinA, double yMinA, double xMaxA, double yMaxA)
+    : paragraphs (paragraphsA), box{ xMinA, yMinA, xMaxA, yMaxA },
+      px{ }, py{ }, pw{ }, ph{ }
+{ }
 
 TextBlock::TextBlock (TextBlockType typeA, int rotA)
-    :  xs (make_variant (typeA)),
-       xMin (0), yMin (0), xMax (0), yMax (0),
+    :  xs (make_variant (typeA)), box{ },
        type (typeA), tag (blkTagMulticolumn),
        rot (rotA), smallSplit ()
 { }
@@ -30,65 +24,43 @@ void TextBlock::addChild (TextBlockPtr p) {
     auto& blocks = as_blocks ();
 
     if (blocks.empty ()) {
-        xMin = p->xMin;
-        yMin = p->yMin;
-        xMax = p->xMax;
-        yMax = p->yMax;
+        box = p->box;
     }
     else {
-        if (p->xMin < xMin) { xMin = p->xMin; }
-        if (p->yMin < yMin) { yMin = p->yMin; }
-        if (p->xMax > xMax) { xMax = p->xMax; }
-        if (p->yMax > yMax) { yMax = p->yMax; }
+        box = coalesce (box, p->box);
     }
 
     blocks.push_back (p);
 }
 
-void TextBlock::addChild (TextCharPtr p) {
+void TextBlock::addChild (TextCharPtr ch) {
     auto& chars = as_chars ();
 
     if (chars.empty ()) {
-        xMin = p->xmin;
-        yMin = p->ymin;
-        xMax = p->xmax;
-        yMax = p->ymax;
+        box = ch->box;
     }
     else {
-        if (p->xmin < xMin) { xMin = p->xmin; }
-        if (p->ymin < yMin) { yMin = p->ymin; }
-        if (p->xmax > xMax) { xMax = p->xmax; }
-        if (p->ymax > yMax) { yMax = p->ymax; }
+        box = coalesce (box, ch->box);
     }
 
-    chars.push_back (p);
+    chars.push_back (ch);
 }
 
-void TextBlock::prependChild (TextCharPtr p) {
+void TextBlock::prependChild (TextCharPtr ch) {
     auto& chars = as_chars ();
 
     if (chars.empty ()) {
-        xMin = p->xmin;
-        yMin = p->ymin;
-        xMax = p->xmax;
-        yMax = p->ymax;
+        box = ch->box;
     }
     else {
-        if (p->xmin < xMin) { xMin = p->xmin; }
-        if (p->ymin < yMin) { yMin = p->ymin; }
-        if (p->xmax > xMax) { xMax = p->xmax; }
-        if (p->ymax > yMax) { yMax = p->ymax; }
+        box = coalesce (box, ch->box);
     }
 
-    chars.insert (chars.begin (), p);
+    chars.insert (chars.begin (), ch);
 }
 
 void TextBlock::updateBounds (int n) {
     auto& block = as_blocks ()[n];
-
-    if (block->xMin < xMin) { xMin = block->xMin; }
-    if (block->yMin < yMin) { yMin = block->yMin; }
-    if (block->xMax > xMax) { xMax = block->xMax; }
-    if (block->yMax > yMax) { yMax = block->yMax; }
+    box = coalesce (box, block->box);
 }
 

@@ -16,7 +16,7 @@ struct TextChar {
     TextFontInfoPtr font;
 
     double size;
-    double xmin, ymin, xmax, ymax;
+    xpdf::bbox_t box;
 
     Unicode c;
     int charPos;
@@ -34,7 +34,7 @@ template< typename T > xpdf::bbox_t bbox_from (const T&);
 template< >
 inline xpdf::bbox_t
 bbox_from< TextChar > (const TextChar& ch) {
-    return xpdf::bbox_t{ ch.xmin, ch.ymin, ch.xmax, ch.ymax };
+    return ch.box;
 }
 
 template< >

@@ -7,6 +7,7 @@
 
 #include <defs.hh>
 
+#include <xpdf/bbox.hh>
 #include <xpdf/CharTypes.hh>
 #include <xpdf/TextOutput.hh>
 
@@ -21,7 +22,7 @@ struct TextLine {
     int rot;
 
     // bounding box coordinates
-    double xmin, xmax, ymin, ymax;
+    xpdf::bbox_t box;
 
     // main (max) font size for this line
     double fontSize;

@@ -103,8 +103,8 @@ private:
 
     void tagBlock (TextBlockPtr blk);
 
-    void
-    insertLargeChars (TextChars& largeChars, TextBlockPtr blk);
+    void doInsertLargeChars (TextChars&, TextBlockPtr);
+    void   insertLargeChars (TextChars&, TextBlockPtr);
 
     void
     insertLargeCharsInFirstLeaf (TextChars& largeChars, TextBlockPtr blk);

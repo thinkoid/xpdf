@@ -9,6 +9,7 @@
 
 #include <utils/GString.hh>
 
+#include <xpdf/bbox.hh>
 #include <xpdf/CharTypes.hh>
 #include <xpdf/TextOutput.hh>
 
@@ -24,17 +25,13 @@ struct TextWord {
 
     GString* getFontName () const;
 
-    void getBBox (double* xminA, double* yminA,
-                  double* xmaxA, double* ymaxA) const {
-        *xminA = xmin;
-        *yminA = ymin;
-        *xmaxA = xmax;
-        *ymaxA = ymax;
+    void
+    getBBox (double* xminA, double* yminA, double* xmaxA, double* ymaxA) const {
+        *xminA = box.xmin;
+        *yminA = box.ymin;
+        *xmaxA = box.xmax;
+        *ymaxA = box.ymax;
     }
-
-    void getCharBBox (
-        int charIdx, double* xminA, double* yminA, double* xmaxA,
-        double* ymaxA);
 
     double getFontSize () const { return fontSize; }
     int getRotation () const { return rot; }
@@ -68,10 +65,7 @@ struct TextWord {
     TextFontInfoPtr font;
     double fontSize;
 
-    //
-    // Bounding box, colors:
-    //
-    double xmin, xmax, ymin, ymax;
+    xpdf::bbox_t box;
 
     unsigned char
         rot        : 2, // multiple of 90°: 0, 1, 2, or 3

@@ -42,6 +42,7 @@ struct bbox_t {
     union {
         value_type arr [4];
         point_type point [2];
+        struct { value_type xmin, ymin, xmax, ymax; };
     };
 };
 
@@ -85,10 +86,10 @@ template< typename T >
 inline std::ostream&
 operator<< (std::ostream& ss, const bbox_t< T >& box) {
     return ss
-        << box.arr [0] << ","
-        << box.arr [1] << ","
-        << box.arr [2] << ","
-        << box.arr [3];
+        << box.xmin << ","
+        << box.ymin << ","
+        << box.xmax << ","
+        << box.ymax;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -106,6 +107,15 @@ inline T width_of (const bbox_t< T >& x) { return x.arr [2] - x.arr [0]; }
 
 template< typename T >
 inline T height_of (const bbox_t< T >& x) { return x.arr [3] - x.arr [1]; }
+
+template< typename T >
+inline std::tuple< T, T >
+center_of (const bbox_t< T >& x) {
+    return {
+        x.arr [0] + (x.arr [2] - x.arr [0]) / 2,
+        x.arr [1] + (x.arr [3] - x.arr [1]) / 2
+    };
+}
 
 template< typename T >
 inline T
@@ -168,8 +178,8 @@ template< typename T >
 template< typename U >
 bool point_t< T >::in (const bbox_t< U >& box) const {
     return
-        box.arr [0] <= x && x < box.arr [2] &&
-        box.arr [1] <= y && y < box.arr [3];
+        box.xmin <= x && x < box.xmax &&
+        box.ymin <= y && y < box.ymax;
 }
 
 template< xpdf::rotation_t, typename >
