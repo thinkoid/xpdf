@@ -33,34 +33,33 @@ using namespace ranges;
 
 ////////////////////////////////////////////////////////////////////////
 
-//
-// Character/column comparison objects:
-//
-const auto lessX = [](const auto& lhs, const auto& rhs) {
+template< typename T >
+inline bool lessX (const T& lhs, const T& rhs) {
     return lhs->box.xmin < rhs->box.xmin;
 };
 
-const auto lessY = [](const auto & lhs, const auto& rhs) {
+template< typename T >
+inline bool lessY (const T& lhs, const T& rhs) {
     return lhs->box.ymin < rhs->box.ymin;
 };
 
-//
-// X-coordinate column position comparison object:
-//
-const auto lessPosX = [](const auto& lhs, const auto& rhs) {
-    return lhs->px < rhs->px;
-};
-
-//
-// Word comparison objects:
-//
-const auto lessYX = [](auto& lhs, auto& rhs) {
+template< typename T >
+inline bool lessYX (const T& lhs, const T& rhs) {
     return
         lhs->box.ymin  < rhs->box.ymin || (
         lhs->box.ymin == rhs->box.ymin && lhs->box.xmin < rhs->box.xmin);
 };
 
-const auto lessCharPos = [](auto& lhs, auto& rhs) {
+//
+// X-coordinate column position comparison object:
+//
+inline bool
+lessPosX (const TextColumnPtr& lhs, const TextColumnPtr& rhs) {
+    return lhs->px < rhs->px;
+};
+
+inline bool
+lessCharPos (const TextWordPtr& lhs, const TextWordPtr& rhs) {
     return lhs->charPos [0] < rhs->charPos [0];
 };
 
@@ -725,10 +724,10 @@ void TextPage::writeLinePrinter (
     int rot, n, i, k;
 
     rot = rotateChars (chars);
-    sort (chars, lessX);
+    sort (chars, lessX< TextCharPtr >);
 
     removeDuplicates (chars, 0);
-    sort (chars, lessY);
+    sort (chars, lessY< TextCharPtr >);
 
     //
     // Character pitch:
@@ -773,7 +772,7 @@ void TextPage::writeLinePrinter (
             line.push_back (chars [i++]);
         }
 
-        sort (line, lessX);
+        sort (line, lessX< TextCharPtr >);
 
         if (!line.empty ()) {
             //
@@ -1466,10 +1465,10 @@ TextPage::splitChars (TextChars& charsA) {
 
         if (chars2.size () > 0) {
             if (rot & 1) {
-                sort (chars2, lessY);
+                sort (chars2, lessY< TextCharPtr >);
             }
             else {
-                sort (chars2, lessX);
+                sort (chars2, lessX< TextCharPtr >);
             }
 
             removeDuplicates (chars2, rot);
@@ -2321,7 +2320,7 @@ TextPage::insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree) {
 void
 TextPage::insertClippedChars (TextChars& clippedChars, TextBlockPtr tree) {
     //~ this currently works only for characters in the primary rotation
-    sort (clippedChars, lessX);
+    sort (clippedChars, lessX< TextCharPtr >);
 
     while (!clippedChars.empty ()) {
         auto& ch = clippedChars.front ();
@@ -2859,7 +2858,7 @@ int TextPage::assignColumnPhysPositions (TextColumns& columns) {
     }
 
     // assign x positions
-    sort (columns, lessX);
+    sort (columns, lessX< TextColumnPtr >);
 
     for (i = 0; i < columns.size (); ++i) {
         auto& col = columns [i];
@@ -2894,7 +2893,7 @@ int TextPage::assignColumnPhysPositions (TextColumns& columns) {
         }
     }
 
-    sort (columns, lessY);
+    sort (columns, lessY< TextColumnPtr >);
 
     // assign y positions
     for (ph = 0, i = 0; i < columns.size (); ++i) {
@@ -3295,7 +3294,7 @@ TextPage::makeWordList () {
     case textOutPhysLayout:
     case textOutTableLayout:
     case textOutLinePrinter:
-        sort (words, lessYX);
+        sort (words, lessYX< TextWordPtr >);
         break;
 
     case textOutRawOrder:
