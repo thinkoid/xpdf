@@ -17,7 +17,6 @@
 
 struct TextPage {
     TextPage (TextOutputControl* controlA);
-    ~TextPage ();
 
     // Write contents of page to a stream.
     void write (void* outputStream, TextOutputFunc outputFunc);

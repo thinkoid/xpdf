@@ -101,10 +101,6 @@ TextPage::TextPage (TextOutputControl* controlA) {
     haveLastFind = false;
 }
 
-TextPage::~TextPage () {
-    clear ();
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 void TextPage::startPage (GfxState* state) {
