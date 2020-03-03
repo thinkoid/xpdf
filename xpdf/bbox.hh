@@ -257,6 +257,8 @@ using bbox_t  = detail::bbox_t< double >;
 using bboxi_t = detail::bbox_t< int >;
 using bboxu_t = detail::bbox_t< int unsigned >;
 
+using point_t  = detail::point_t< double >;
+
 ////////////////////////////////////////////////////////////////////////
 
 template< typename T >
