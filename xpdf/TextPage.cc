@@ -66,30 +66,17 @@ lessCharPos (const TextWordPtr& lhs, const TextWordPtr& rhs) {
 ////////////////////////////////////////////////////////////////////////
 
 struct TextUnderline {
-    TextUnderline (double x0A, double y0A, double x1A, double y1A) {
-        x0 = x0A;
-        y0 = y0A;
-        x1 = x1A;
-        y1 = y1A;
-        horiz = y0 == y1;
-    }
-
-    double x0, y0, x1, y1;
-    bool horiz;
+    xpdf::bbox_t box;
 };
 
-class TextLink {
-public:
-    TextLink (double x0, double y0, double x1, double y1, GString* uriA)
-        : box { x0, y0, x1, y1 }, uri (uriA)
-        { }
+inline bool
+is_horizontal (const TextUnderline& arg) {
+    return arg.box.arr [1] == arg.box.arr [3];
+};
 
-    ~TextLink () {
-        if (uri) { delete uri; }
-    }
-
+struct TextLink {
     xpdf::bbox_t box;
-    GString* uri;
+    std::string uri;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -442,16 +429,15 @@ void TextPage::endActualText (GfxState* state) {
 }
 
 void TextPage::addUnderline (double x0, double y0, double x1, double y1) {
-    underlines.push_back (std::make_shared< TextUnderline > (x0, y0, x1, y1));
+    underlines.push_back (TextUnderline{ x0, y0, x1, y1 });
 }
 
 void TextPage::addLink (
     double xMin, double yMin, double xMax, double yMax, Link* link) {
-    GString* uri;
 
     if (link && link->getAction () && link->getAction ()->getKind () == actionURI) {
-        uri = ((LinkURI*)link->getAction ())->getURI ()->copy ();
-        links.push_back (std::make_shared< TextLink > (xMin, yMin, xMax, yMax, uri));
+        std::string s (*((LinkURI*)link->getAction ())->getURI ());
+        links.push_back (TextLink{ { xMin, yMin, xMax, yMax }, s });
     }
 }
 
@@ -984,28 +970,31 @@ void TextPage::encodeFragment (
     }
 }
 
+template< typename T >
 inline void
-do_rotate (TextChar& c, double x0, double y0, double x1, double y1, int n) {
-    c.box = { x0, y0, x1, y1 };
-    c.rot = (c.rot + n) & 3;
+do_rotate (T& t, double x0, double y0, double x1, double y1) {
+    t.box = { x0, y0, x1, y1 };
 }
 
+template< typename T >
 inline void
-rotate90 (TextChar& c, int w, int) {
-    const auto& [ x0, y0, x1, y1 ] = c.box.arr;
-    do_rotate (c, y0, w - x1, y1, w - x0, 3);
+rotate90 (T& t, int w, int) {
+    const auto& [ x0, y0, x1, y1 ] = t.box.arr;
+    do_rotate (t, y0, w - x1, y1, w - x0);
 };
 
+template< typename T >
 inline void
-rotate180 (TextChar& c, int w, int h) {
-    const auto& [ x0, y0, x1, y1 ] = c.box.arr;
-    do_rotate (c, w - x1, h - y1, w - x0, h - y0, 2);
+rotate180 (T& t, int w, int h) {
+    const auto& [ x0, y0, x1, y1 ] = t.box.arr;
+    do_rotate (t, w - x1, h - y1, w - x0, h - y0);
 }
 
+template< typename T >
 inline void
-rotate270 (TextChar& c, int, int h) {
-    const auto& [ x0, y0, x1, y1 ] = c.box.arr;
-    do_rotate (c, h - y1, x0, h - y0, x1, 1);
+rotate270 (T& t, int, int h) {
+    const auto& [ x0, y0, x1, y1 ] = t.box.arr;
+    do_rotate (t, h - y1, x0, h - y0, x1);
 }
 
 inline int
@@ -1032,16 +1021,25 @@ int TextPage::rotateChars (TextChars& chars) {
     // rotate
     switch (rot) {
     case 1:
-        for (auto& c : chars) { rotate90 (*c, pageWidth, 0); }
+        for (auto& ch : chars) {
+            rotate90 (*ch, pageWidth, 0);
+            ch->rot = (ch->rot + 3) & 3;
+        }
         std::swap (pageWidth, pageHeight);
         break;
 
     case 2:
-        for (auto& c : chars) { rotate180 (*c, pageWidth, pageHeight); }
+        for (auto& ch : chars) {
+            rotate180 (*ch, pageWidth, pageHeight);
+            ch->rot = (ch->rot + 2) & 3;
+        }
         break;
 
     case 3:
-        for (auto& c : chars) { rotate270 (*c, 0, pageHeight); }
+        for (auto& ch : chars) {
+            rotate270 (*ch, 0, pageHeight);
+            ch->rot = (ch->rot + 1) & 3;
+        }
         std::swap (pageWidth, pageHeight);
         break;
 
@@ -1055,80 +1053,34 @@ int TextPage::rotateChars (TextChars& chars) {
 // Rotate the TextUnderlines and TextLinks to match the transform
 // performed by rotateChars().
 void TextPage::rotateUnderlinesAndLinks (int rot) {
-    double xMin, yMin, xMax, yMax;
-
     switch (rot) {
     case 1:
         for (auto& underline : underlines) {
-            xMin = underline->y0;
-            xMax = underline->y1;
-            yMin = pageWidth - underline->x1;
-            yMax = pageWidth - underline->x0;
-            underline->x0 = xMin;
-            underline->x1 = xMax;
-            underline->y0 = yMin;
-            underline->y1 = yMax;
-            underline->horiz = !underline->horiz;
+            rotate90 (underline, pageWidth, 0);
         }
 
         for (auto& link : links) {
-            xMin = link->box.ymin;
-            xMax = link->box.ymax;
-            yMin = pageWidth - link->box.xmax;
-            yMax = pageWidth - link->box.xmin;
-            link->box.xmin = xMin;
-            link->box.xmax = xMax;
-            link->box.ymin = yMin;
-            link->box.ymax = yMax;
+            rotate90 (link, pageWidth, 0);
         }
         break;
 
     case 2:
         for (auto& underline : underlines) {
-            xMin = pageWidth - underline->x1;
-            xMax = pageWidth - underline->x0;
-            yMin = pageHeight - underline->y1;
-            yMax = pageHeight - underline->y0;
-            underline->x0 = xMin;
-            underline->x1 = xMax;
-            underline->y0 = yMin;
-            underline->y1 = yMax;
+            rotate180 (underline, pageWidth, pageHeight);
         }
 
         for (auto& link : links) {
-            xMin = pageWidth - link->box.xmax;
-            xMax = pageWidth - link->box.xmin;
-            yMin = pageHeight - link->box.ymax;
-            yMax = pageHeight - link->box.ymin;
-            link->box.xmin = xMin;
-            link->box.xmax = xMax;
-            link->box.ymin = yMin;
-            link->box.ymax = yMax;
+            rotate180 (link, pageWidth, pageHeight);
         }
         break;
 
     case 3:
         for (auto& underline : underlines) {
-            xMin = pageHeight - underline->y1;
-            xMax = pageHeight - underline->y0;
-            yMin = underline->x0;
-            yMax = underline->x1;
-            underline->x0 = xMin;
-            underline->x1 = xMax;
-            underline->y0 = yMin;
-            underline->y1 = yMax;
-            underline->horiz = !underline->horiz;
+            rotate270 (underline, 0, pageHeight);
         }
 
         for (auto& link : links) {
-            xMin = pageHeight - link->box.ymax;
-            xMax = pageHeight - link->box.ymin;
-            yMin = link->box.xmin;
-            yMax = link->box.xmax;
-            link->box.xmin = xMin;
-            link->box.xmax = xMax;
-            link->box.ymin = yMin;
-            link->box.ymax = yMax;
+            rotate270 (link, 0, pageHeight);
         }
         break;
 
@@ -2948,20 +2900,20 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
 
                     // handle underlining
                     for (auto& underline : underlines) {
-                        if (underline->horiz) {
+                        if (is_horizontal (underline)) {
                             if (word->rot == 0 || word->rot == 2) {
-                                if (fabs (underline->y0 - base) < ubSlack &&
-                                    underline->x0 < word->box.xmin + uSlack &&
-                                    word->box.xmax - uSlack < underline->x1) {
+                                if (fabs (underline.box.ymin - base) < ubSlack &&
+                                    underline.box.xmin < word->box.xmin + uSlack &&
+                                    word->box.xmax - uSlack < underline.box.xmax) {
                                     word->underlined = true;
                                 }
                             }
                         }
                         else {
                             if (word->rot == 1 || word->rot == 3) {
-                                if (fabs (underline->x0 - base) < ubSlack &&
-                                    underline->y0 < word->box.ymin + uSlack &&
-                                    word->box.ymax - uSlack < underline->y1) {
+                                if (fabs (underline.box.xmin - base) < ubSlack &&
+                                    underline.box.ymin < word->box.ymin + uSlack &&
+                                    word->box.ymax - uSlack < underline.box.ymax) {
                                     word->underlined = true;
                                 }
                             }
@@ -2970,8 +2922,9 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
 
                     // handle links
                     for (auto& link : links) {
-                        if (link->box.xmin < word->box.xmin + hSlack && word->box.xmax - hSlack < link->box.xmax &&
-                            link->box.ymin < word->box.ymin + hSlack && word->box.ymax - hSlack < link->box.ymax) {
+                        if (link.box.xmin < word->box.xmin + hSlack && word->box.xmax - hSlack < link.box.xmax &&
+                            link.box.ymin < word->box.ymin + hSlack && word->box.ymax - hSlack < link.box.ymax) {
+                            word->link = link;
                         }
                     }
                 }

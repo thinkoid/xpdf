@@ -126,13 +126,17 @@ XPDF_TYPEDEF (TextFontInfo);
 XPDF_TYPEDEF (TextChar);
 XPDF_TYPEDEF (TextWord);
 XPDF_TYPEDEF (TextLine);
-XPDF_TYPEDEF (TextUnderline);
-XPDF_TYPEDEF (TextLink);
 XPDF_TYPEDEF (TextParagraph);
 XPDF_TYPEDEF (TextColumn);
 XPDF_TYPEDEF (TextBlock);
 XPDF_TYPEDEF (TextPage);
 
 #undef XPDF_TYPEDEF
+
+struct TextUnderline;
+using TextUnderlines = std::vector< TextUnderline >;
+
+struct TextLink;
+using TextLinks = std::vector< TextLink >;
 
 #endif // XPDF_XPDF_TEXTOUTPUT_HH
