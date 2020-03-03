@@ -7,10 +7,13 @@
 
 #include <defs.hh>
 
+#include <optional>
+
 #include <utils/GString.hh>
 
 #include <xpdf/bbox.hh>
 #include <xpdf/CharTypes.hh>
+#include <xpdf/TextLink.hh>
 #include <xpdf/TextOutput.hh>
 
 struct TextWord {
@@ -66,6 +69,11 @@ struct TextWord {
     double fontSize;
 
     xpdf::bbox_t box;
+
+    //
+    // Set once, unused otherwise:
+    //
+    std::optional< TextLink > link;
 
     unsigned char
         rot        : 2, // multiple of 90°: 0, 1, 2, or 3

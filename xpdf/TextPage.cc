@@ -65,22 +65,6 @@ lessCharPos (const TextWordPtr& lhs, const TextWordPtr& rhs) {
 
 ////////////////////////////////////////////////////////////////////////
 
-struct TextUnderline {
-    xpdf::bbox_t box;
-};
-
-inline bool
-is_horizontal (const TextUnderline& arg) {
-    return arg.box.arr [1] == arg.box.arr [3];
-};
-
-struct TextLink {
-    xpdf::bbox_t box;
-    std::string uri;
-};
-
-////////////////////////////////////////////////////////////////////////
-
 TextPage::TextPage (TextOutputControl* controlA) {
     control = *controlA;
     pageWidth = pageHeight = 0;
@@ -2896,7 +2880,7 @@ void TextPage::generateUnderlinesAndLinks (TextColumns& columns) {
 
                     // handle underlining
                     for (auto& underline : underlines) {
-                        if (is_horizontal (underline)) {
+                        if (0 == height_of (underline.box)) {
                             if (word->rot == 0 || word->rot == 2) {
                                 if (fabs (underline.box.ymin - base) < ubSlack &&
                                     underline.box.xmin < word->box.xmin + uSlack &&
