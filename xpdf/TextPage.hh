@@ -45,9 +45,6 @@ struct TextPage {
     GString*
     getText (const xpdf::bbox_t&);
 
-    // Build a flat word list, in the specified ordering.
-    TextWords makeWordList ();
-
 private:
     void startPage (GfxState* state);
     void clear ();

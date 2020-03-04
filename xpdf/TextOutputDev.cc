@@ -35,69 +35,23 @@ using namespace ranges;
 
 ////////////////////////////////////////////////////////////////////////
 
-static void outputToFile (void* stream, const char* text, int len) {
-    fwrite (text, 1, len, (FILE*)stream);
-}
-
-TextOutputDev::TextOutputDev (
-    const char* fileName, TextOutputControl* controlA, bool append) {
-    text = NULL;
-    control = *controlA;
-    ok = true;
-
-    // open file
-    needClose = false;
-    if (fileName) {
-        if (!strcmp (fileName, "-")) { outputStream = stdout; }
-        else if ((outputStream = fopen (fileName, append ? "ab" : "wb"))) {
-            needClose = true;
-        }
-        else {
-            error (errIO, -1, "Couldn't open text file '{0:s}'", fileName);
-            ok = false;
-            return;
-        }
-        outputFunc = &outputToFile;
-    }
-    else {
-        outputStream = NULL;
-    }
-
-    // set up text object
-    text = std::make_shared< TextPage > (&control);
-}
-
-TextOutputDev::TextOutputDev (
-    TextOutputFunc func, void* stream, TextOutputControl* controlA) {
-    outputFunc = func;
-    outputStream = stream;
-    needClose = false;
-    control = *controlA;
-    text = std::make_shared< TextPage > (&control);
-    ok = true;
-}
-
-TextOutputDev::~TextOutputDev () {
-    if (needClose) {
-        fclose ((FILE*)outputStream);
-    }
-}
+TextOutputDev::TextOutputDev (TextOutputControl control)
+    : text (std::make_shared< TextPage > (&control)), control (control)
+{ }
 
 void TextOutputDev::startPage (int pageNum, GfxState* state) {
     text->startPage (state);
 }
 
-void TextOutputDev::endPage () {
-    if (outputStream) { text->write (outputStream, outputFunc); }
+void
+TextOutputDev::restoreState (GfxState* state) {
+    text->updateFont (state);
 }
 
-void TextOutputDev::restoreState (GfxState* state) { text->updateFont (state); }
-
-void TextOutputDev::updateFont (GfxState* state) { text->updateFont (state); }
-
-void TextOutputDev::beginString (GfxState* state, GString* s) {}
-
-void TextOutputDev::endString (GfxState* state) {}
+void
+TextOutputDev::updateFont (GfxState* state) {
+    text->updateFont (state);
+}
 
 void TextOutputDev::drawChar (
     GfxState* state, double x, double y, double dx, double dy, double originX,
@@ -105,9 +59,13 @@ void TextOutputDev::drawChar (
     text->addChar (state, x, y, dx, dy, c, nBytes, u, uLen);
 }
 
-void TextOutputDev::incCharCount (int nChars) { text->incCharCount (nChars); }
+void
+TextOutputDev::incCharCount (int nChars) {
+    text->incCharCount (nChars);
+}
 
-void TextOutputDev::beginActualText (GfxState* state, Unicode* u, int uLen) {
+void
+TextOutputDev::beginActualText (GfxState* state, Unicode* u, int uLen) {
     text->beginActualText (state, u, uLen);
 }
 
@@ -132,12 +90,8 @@ TextOutputDev::getText (const xpdf::bbox_t& box) {
     return text->getText (box);
 }
 
-TextWords
-TextOutputDev::makeWordList () {
-    return text->makeWordList ();
-}
-
-TextPagePtr TextOutputDev::takeText () {
+TextPagePtr
+TextOutputDev::takeText () {
     auto other = std::make_shared< TextPage > (&control);
     return std::swap (other, text), other;
 }

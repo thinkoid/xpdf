@@ -874,12 +874,12 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
         TextOutputControl ctrl;
         ctrl.mode = textOutPhysLayout;
 
-        TextOutputDev textout (nullptr, &ctrl, false);
+        TextOutputDev textOut (ctrl);
 
         doc->displayPage (
-            &textout, page->page, dpi, dpi, rotate, false, true, false);
+            &textOut, page->page, dpi, dpi, rotate, false, true, false);
 
-        page->text = textout.takeText ();
+        page->text = textOut.takeText ();
     }
 
     page->tiles->append (tile);
@@ -1634,31 +1634,27 @@ GString* PDFCore::extractText (
         TextOutputControl textOutCtrl;
         textOutCtrl.mode = textOutPhysLayout;
 
-        TextOutputDev textOut (NULL, &textOutCtrl, false);
+        TextOutputDev textOut (textOutCtrl);
 
-        if (textOut.isOk ()) {
-            doc->displayPage (
-                &textOut, pg, dpi, dpi, rotate, false, true, false);
+        doc->displayPage (
+            &textOut, pg, dpi, dpi, rotate, false, true, false);
 
-            textOut.cvtUserToDev (xMin, yMin, &x0, &y0);
-            textOut.cvtUserToDev (xMax, yMax, &x1, &y1);
+        textOut.cvtUserToDev (xMin, yMin, &x0, &y0);
+        textOut.cvtUserToDev (xMax, yMax, &x1, &y1);
 
-            if (x0 > x1) {
-                t = x0;
-                x0 = x1;
-                x1 = t;
-            }
-            if (y0 > y1) {
-                t = y0;
-                y0 = y1;
-                y1 = t;
-            }
-            s = textOut.getText (xpdf::bbox_t{
+        if (x0 > x1) {
+            t = x0;
+            x0 = x1;
+            x1 = t;
+        }
+        if (y0 > y1) {
+            t = y0;
+            y0 = y1;
+            y1 = t;
+        }
+
+        s = textOut.getText (xpdf::bbox_t{
                 double (x0), double (y0), double (x1), double (y1) });
-        }
-        else {
-            s = new GString ();
-        }
     }
 
     return s;
@@ -1737,11 +1733,7 @@ bool PDFCore::findU (
     if (!onePageOnly) {
         // search following/previous pages
         textOutCtrl.mode = textOutPhysLayout;
-        TextOutputDev textOut (NULL, &textOutCtrl, false);
-
-        if (!textOut.isOk ()) {
-            goto notFound;
-        }
+        TextOutputDev textOut (textOutCtrl);
 
         for (pg = backward ? pg - 1 : pg + 1;
              backward ? pg >= 1 : pg <= doc->getNumPages ();
