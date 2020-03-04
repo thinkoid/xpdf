@@ -20,11 +20,6 @@
 struct TextPage {
     TextPage (TextOutputControl* controlA);
 
-    // Write contents of page to a stream.
-    void write (void* outputStream, TextOutputFunc outputFunc);
-
-    std::vector< xpdf::bbox_t > segment () const;
-
     //
     // Find a matching string:
     // - startAtTop  : if true, search starts at the top of the page,
@@ -35,7 +30,8 @@ struct TextPage {
     // - stopAtLast   : if true, stops looking before the last match,
     //     otherwise, stops looking at { xMax, yMax }
     //
-    bool findText (
+    bool
+    findText (
         Unicode* s, int len,
         bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
         bool caseSensitive, bool backward, bool wholeWord,
@@ -45,45 +41,37 @@ struct TextPage {
     GString*
     getText (const xpdf::bbox_t&);
 
-private:
-    void startPage (GfxState* state);
-    void clear ();
-    void updateFont (GfxState* state);
-    void addChar (
-        GfxState* state, double x, double y, double dx, double dy, CharCode c,
-        int nBytes, Unicode* u, int uLen);
+    std::vector< xpdf::bbox_t >
+    segment () const;
 
-    void incCharCount (int nChars);
+private:
+    void clear ();
+
+    void startPage (GfxState* state);
+    void updateFont (GfxState* state);
+
+    void addChar (
+        GfxState*, double, double, double, double,
+        CharCode, int, Unicode*, int);
+
+    void incCharCount (int);
 
     void beginActualText (GfxState* state, Unicode* u, int uLen);
-    void endActualText (GfxState* state);
+    void   endActualText (GfxState* state);
 
     void addUnderline (double x0, double y0, double x1, double y1);
 
     void
-    addLink (double xMin, double yMin, double xMax, double yMax, Link* link);
+    addLink (double, double, double, double, Link*);
 
     // output
-    void writeReadingOrder (
-        void* outputStream, TextOutputFunc outputFunc, UnicodeMap* uMap,
-        char* space, int spaceLen, char* eol, int eolLen);
-    void writePhysLayout (
-        void* outputStream, TextOutputFunc outputFunc, UnicodeMap* uMap,
-        char* space, int spaceLen, char* eol, int eolLen);
-    void writeLinePrinter (
-        void* outputStream, TextOutputFunc outputFunc, UnicodeMap* uMap,
-        char* space, int spaceLen, char* eol, int eolLen);
-    void writeRaw (
-        void* outputStream, TextOutputFunc outputFunc, UnicodeMap* uMap,
-        char* space, int spaceLen, char* eol, int eolLen);
-    void encodeFragment (
-        Unicode* text, int len, UnicodeMap* uMap, bool primaryLR, GString* s);
+    void encodeFragment (Unicode*, int, UnicodeMap*, bool, GString*);
 
     // analysis
     int rotateChars (TextChars& charsA);
     void rotateUnderlinesAndLinks (int rot);
 
-    void unrotateChars   (TextChars&, int rot);
+    void unrotateChars   (TextChars&, int);
     void unrotateColumns (TextColumns&, int);
     void unrotateWords   (TextWords&, int);
 
@@ -192,10 +180,16 @@ private:
     TextColumns findCols;  // text used by the findText function
                            //   [TextColumn]
 
-    bool findLR;         // primary text direction, used by the
-                         //   findText function
-    double lastFindXMin, // coordinates of the last "find" result
-        lastFindYMin;
+    //
+    // Primary text direction, used by the findText function:
+    //
+    bool findLR;
+
+    //
+    // Coordinates of the last "find" result:
+    //
+    double lastFindXMin, lastFindYMin;
+
     bool haveLastFind;
 
     friend struct TextOutputDev;
