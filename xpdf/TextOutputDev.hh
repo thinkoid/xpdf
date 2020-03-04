@@ -12,8 +12,7 @@
 #include <xpdf/TextOutputFunc.hh>
 #include <xpdf/TextOutputControl.hh>
 
-class TextOutputDev : public OutputDev {
-public:
+struct TextOutputDev : public OutputDev {
     // Open a text output file.  If <fileName> is NULL, no file is
     // written (this is useful, e.g., for searching text).  If
     // <physLayoutA> is true, the original physical layout of the text

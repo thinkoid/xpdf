@@ -201,7 +201,7 @@ private:
         lastFindYMin;
     bool haveLastFind;
 
-    friend class TextOutputDev;
+    friend struct TextOutputDev;
 };
 
 #endif // XPDF_XPDF_TEXTPAGE_HH
