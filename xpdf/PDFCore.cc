@@ -874,12 +874,12 @@ void PDFCore::needTile (PDFCorePage* page, int x, int y) {
         TextOutputControl ctrl;
         ctrl.mode = textOutPhysLayout;
 
-        auto pdev = std::make_unique< TextOutputDev > (nullptr, &ctrl, false);
+        TextOutputDev textout (nullptr, &ctrl, false);
 
         doc->displayPage (
-            pdev.get (), page->page, dpi, dpi, rotate, false, true, false);
+            &textout, page->page, dpi, dpi, rotate, false, true, false);
 
-        page->text = pdev->takeText ();
+        page->text = textout.takeText ();
     }
 
     page->tiles->append (tile);
@@ -1609,8 +1609,6 @@ bool PDFCore::getSelection (
 GString* PDFCore::extractText (
     int pg, double xMin, double yMin, double xMax, double yMax) {
     PDFCorePage* page;
-    TextOutputControl textOutCtrl;
-    TextOutputDev* textOut;
     int x0, y0, x1, y1, t;
     GString* s;
 
@@ -1633,13 +1631,18 @@ GString* PDFCore::extractText (
                 double (x0), double (y0), double (x1), double (y1) });
     }
     else {
+        TextOutputControl textOutCtrl;
         textOutCtrl.mode = textOutPhysLayout;
-        textOut = new TextOutputDev (NULL, &textOutCtrl, false);
-        if (textOut->isOk ()) {
+
+        TextOutputDev textOut (NULL, &textOutCtrl, false);
+
+        if (textOut.isOk ()) {
             doc->displayPage (
-                textOut, pg, dpi, dpi, rotate, false, true, false);
-            textOut->cvtUserToDev (xMin, yMin, &x0, &y0);
-            textOut->cvtUserToDev (xMax, yMax, &x1, &y1);
+                &textOut, pg, dpi, dpi, rotate, false, true, false);
+
+            textOut.cvtUserToDev (xMin, yMin, &x0, &y0);
+            textOut.cvtUserToDev (xMax, yMax, &x1, &y1);
+
             if (x0 > x1) {
                 t = x0;
                 x0 = x1;
@@ -1650,14 +1653,14 @@ GString* PDFCore::extractText (
                 y0 = y1;
                 y1 = t;
             }
-            s = textOut->getText (xpdf::bbox_t{
+            s = textOut.getText (xpdf::bbox_t{
                 double (x0), double (y0), double (x1), double (y1) });
         }
         else {
             s = new GString ();
         }
-        delete textOut;
     }
+
     return s;
 }
 
