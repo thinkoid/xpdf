@@ -54,6 +54,14 @@ private:
         GfxState*, double, double, double, double,
         CharCode, int, Unicode*, int);
 
+    void
+    doAddActualTextChar (double, double, double, double, int);
+
+    void
+    doAddChar (GfxState*,
+               double, double, double, double,
+               CharCode, int, Unicode*, int);
+
     void incCharCount (int);
 
     void beginActualText (GfxState* state, Unicode* u, int uLen);

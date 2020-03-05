@@ -206,9 +206,9 @@ void TextPage::updateFont (GfxState* state) {
 }
 
 //
-// Add a character to the TextPage text. Process `ActualText' spans separately:
+// Add a character to the TextPage text:
 //
-void TextPage::addChar (
+void TextPage::doAddChar (
     GfxState* state, double x, double y, double dx, double dy, CharCode c,
     int nBytes, Unicode* u, int uLen) {
     double x1, y1, x2, y2, w1, h1, dx2, dy2, ascent, descent, sp;
@@ -217,26 +217,6 @@ void TextPage::addChar (
     GfxRGB rgb;
     bool clipped, rtl;
     int i, j;
-
-    if (actualText) {
-        //
-        // If we're in an ActualText span, save the position info (the
-        // ActualText chars will be added by TextPage::endActualText):
-        //
-        // (JFHC what a stupid code)
-        //
-        if (0 == actualTextNBytes) {
-            actualTextX0 = x;
-            actualTextY0 = y;
-        }
-
-        actualTextX1 = x + dx;
-        actualTextY1 = y + dy;
-
-        actualTextNBytes += nBytes;
-
-        return;
-    }
 
     // subtract char and word spacing from the dx,dy values
     sp = state->getCharSpace ();
@@ -363,7 +343,43 @@ void TextPage::addChar (
     charPos += nBytes;
 }
 
-void TextPage::incCharCount (int nChars) { charPos += nChars; }
+//
+// Separate processing of `ActualText' spans:
+//
+void
+TextPage::doAddActualTextChar (double x, double y, double dx, double dy, int n) {
+    //
+    // If we're in an ActualText span, save the position info (the
+    // ActualText chars will be added by TextPage::endActualText):
+    //
+    // (JFHC what a stupid code)
+    //
+    if (0 == actualTextNBytes) {
+        actualTextX0 = x;
+        actualTextY0 = y;
+    }
+
+    actualTextX1 = x + dx;
+    actualTextY1 = y + dy;
+
+    actualTextNBytes += n;
+}
+
+void TextPage::addChar (
+    GfxState* state, double x, double y, double dx, double dy, CharCode c,
+    int nBytes, Unicode* u, int uLen) {
+
+    if (actualText) {
+        doAddActualTextChar (x, y, dx, dy, nBytes);
+    }
+    else {
+        doAddChar (state, x, y, dx, dy, c, nBytes, u, uLen);
+    }
+}
+
+void TextPage::incCharCount (int nChars) {
+    charPos += nChars;
+}
 
 void TextPage::beginActualText (GfxState* state, Unicode* u, int uLen) {
     actualText = std::vector< Unicode > (u, u + uLen);
