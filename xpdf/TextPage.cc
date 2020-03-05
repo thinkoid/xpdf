@@ -73,8 +73,6 @@ TextPage::TextPage (TextOutputControl* controlA) {
     curFontSize = 0;
     curRot = 0;
     nTinyChars = 0;
-    actualText = NULL;
-    actualTextLen = 0;
     actualTextX0 = 0;
     actualTextY0 = 0;
     actualTextX1 = 0;
@@ -106,10 +104,14 @@ void TextPage::clear () {
     curFontSize = 0;
     curRot = 0;
     nTinyChars = 0;
-    free (actualText);
-    actualText = NULL;
-    actualTextLen = 0;
+
+    actualText.reset ();
+    actualTextX0 = 0;
+    actualTextY0 = 0;
+    actualTextX1 = 0;
+    actualTextY1 = 0;
     actualTextNBytes = 0;
+
     chars.clear ();
     fonts.clear ();
     underlines.clear ();
@@ -221,7 +223,9 @@ void TextPage::addChar (
         // If we're in an ActualText span, save the position info (the
         // ActualText chars will be added by TextPage::endActualText):
         //
-        if (!actualTextNBytes) {
+        // (JFHC what a stupid code)
+        //
+        if (0 == actualTextNBytes) {
             actualTextX0 = x;
             actualTextY0 = y;
         }
@@ -362,28 +366,13 @@ void TextPage::addChar (
 void TextPage::incCharCount (int nChars) { charPos += nChars; }
 
 void TextPage::beginActualText (GfxState* state, Unicode* u, int uLen) {
-    if (actualText) {
-        //
-        // ActualText cannot be nested:
-        //
-        free (actualText);
-    }
-
-    actualText = (Unicode*)calloc (uLen, sizeof (Unicode));
-    memcpy (actualText, u, uLen * sizeof (Unicode));
-
-    actualTextLen = uLen;
+    actualText = std::vector< Unicode > (u, u + uLen);
     actualTextNBytes = 0;
 }
 
 void TextPage::endActualText (GfxState* state) {
-    Unicode* u = actualText;
-
-    //
-    // Zero, such that calling TextPage::addChar will not add to ActualText
-    // text:
-    //
-    actualText = 0;
+    std::vector< Unicode > text = std::move (actualText.value ());
+    actualText.reset ();
 
     if (actualTextNBytes) {
         //
@@ -396,16 +385,11 @@ void TextPage::endActualText (GfxState* state) {
             actualTextX1 - actualTextX0,
             actualTextY1 - actualTextY0,
             0, actualTextNBytes,
-            u, actualTextLen);
+            text.data (), text.size ());
 
     }
 
-    free (u);
-
-    actualText = 0;
-    actualTextLen = 0;
-
-    actualTextNBytes = false;
+    actualTextNBytes = 0;
 }
 
 void TextPage::addUnderline (double x0, double y0, double x1, double y1) {

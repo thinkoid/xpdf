@@ -159,18 +159,17 @@ private:
     //
     // `ActualText' characters and length in characters:
     //
-    Unicode* actualText;          // current "ActualText" span
-    int actualTextLen;
+    std::optional< std::vector< Unicode > > actualText;
+
+    //
+    // Not the length of actualText!
+    //
+    int actualTextNBytes;
 
     //
     // The bounding box for the `ActualText':
     //
     double actualTextX0, actualTextY0, actualTextX1, actualTextY1;
-
-    //
-    // Number of bytes:
-    //
-    int actualTextNBytes;
 
     TextChars chars; // [TextChar]
 
