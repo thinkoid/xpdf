@@ -526,7 +526,7 @@ void Gfx::display (Object* objRef, bool topLevel) {
         }
 
         for_each (arr, [](auto& x) {
-            if (!x.is_stream ()) {
+            if (!resolve (x).is_stream ()) {
                 throw std::runtime_error ("not a content stream");
             }});
 
