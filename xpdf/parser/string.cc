@@ -49,10 +49,14 @@ bool parenthesized_string (Iterator first, Iterator& iter, Iterator last,
             case '\r':
                 s += *iter;
 
-                if (++iter == last || *iter != '\n')
+                if (++iter == last)
                     return false;
 
-                s += *iter++;
+                if (*iter != '\n')
+                    //
+                    // Allow \CRLF
+                    //
+                    s += *iter++;
 
                 break;
 
