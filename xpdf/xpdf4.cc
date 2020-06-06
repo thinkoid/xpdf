@@ -72,6 +72,7 @@ int main (int argc, char** argv) {
         }
         else {
             std::cerr << "failed" << std::endl;
+            return 1;
         }
     }
 
