@@ -11,14 +11,14 @@
 namespace xpdf::parser {
 
 template< typename Iterator >
-void expected (Iterator, Iterator, Iterator,
+void expected (Iterator, Iterator, Iterator, Iterator,
                const std::string&, std::ostream& out = std::cerr);
 
 template< typename Iterator >
 inline void
-expected (Iterator first, Iterator iter, Iterator last, char what,
-          std::ostream& out = std::cerr) {
-    return expected (first, iter, last, std::string (1U, what), out);
+expected (Iterator first, Iterator start, Iterator iter, Iterator last,
+          char what, std::ostream& out = std::cerr) {
+    return expected (first, start, iter, last, std::string (1U, what), out);
 }
 
 } // xpdf::parser

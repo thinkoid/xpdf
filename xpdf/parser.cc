@@ -14,11 +14,12 @@ bool parse (Iterator first, Iterator& iter, Iterator last,
     ast::doc_t doc;
 
     for (SKIP; iter != last; SKIP) {
+        const auto start = iter;
+
         switch (*iter) {
         case '%':
-            if (!comment (first, iter, last)) {
+            if (!comment (first, iter, last))
                 return false;
-            }
 
             break;
 
@@ -29,7 +30,8 @@ bool parse (Iterator first, Iterator& iter, Iterator last,
             int ignore;
 
             if (!startxref (first, iter, last, ignore)) {
-                return expected (first, iter, last, "startxref"), false;
+                expected (first, start, iter, last, "startxref");
+                return false;
             }
         }
             break;
@@ -39,7 +41,8 @@ bool parse (Iterator first, Iterator& iter, Iterator last,
             // trailer
             //
             if (!trailer (first, iter, last, doc.trailer)) {
-                return expected (first, iter, last, "trailer"), false;
+                expected (first, start, iter, last, "trailer");
+                return false;
             }
         }
             break;
@@ -51,7 +54,8 @@ bool parse (Iterator first, Iterator& iter, Iterator last,
             std::map< size_t, off_t > ignore;
 
             if (!xrefs (first, iter, last, ignore)) {
-                return expected (first, iter, last, "xref"), false;
+                expected (first, start, iter, last, "xref");
+                return false;
             }
         }
             break;
@@ -61,13 +65,15 @@ bool parse (Iterator first, Iterator& iter, Iterator last,
                 std::tuple< int, ast::obj_t > obj;
 
                 if (!object (first, iter, last, obj)) {
-                    return expected (first, iter, last, "object"), false;
+                    expected (first, start, iter, last, "object");
+                    return false;
                 }
 
                 doc.objs.emplace_back (std::move (obj));
             }
             else {
-                return expected (first, iter, last, "anything but this"), false;
+                expected (first, start, iter, last, "anything but this");
+                return false;
             }
 
             break;
