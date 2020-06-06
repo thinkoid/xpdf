@@ -79,7 +79,7 @@ bool xrefs (Iterator first, Iterator& iter, Iterator last,
     for (int a, b, c = 0; iter != last && std::isdigit (*iter); ++c, SKIP) {
         // TODO: parsing is too relaxed
         if (ints (first, iter, last, a, b)) {
-            if (b <= 0 || !SKIP || !xrefs (first, iter, last, a, b, xs)) {
+            if (!SKIP || !xrefs (first, iter, last, a, b, xs)) {
                 return false;
             }
         }
