@@ -370,7 +370,6 @@ GlobalParams::GlobalParams (const char* cfgFileName) {
     psRasterResolution = 300;
     psRasterMono = false;
     psRasterSliceSize = 20000000;
-    psAlwaysRasterize = false;
     textEncoding = new GString ("Latin1");
     textEOL = eolUnix;
     textPageBreaks = true;
@@ -721,11 +720,6 @@ void GlobalParams::parseLine (char* buf, GString* fileName, int line) {
         else if (!cmd->cmp ("psRasterSliceSize")) {
             parseInteger (
                 "psRasterSliceSize", &psRasterSliceSize, tokens, fileName,
-                line);
-        }
-        else if (!cmd->cmp ("psAlwaysRasterize")) {
-            parseYesNo (
-                "psAlwaysRasterize", &psAlwaysRasterize, tokens, fileName,
                 line);
         }
         else if (!cmd->cmp ("textEncoding")) {
@@ -2099,13 +2093,6 @@ int GlobalParams::getPSRasterSliceSize () {
 
     slice = psRasterSliceSize;
     return slice;
-}
-
-bool GlobalParams::getPSAlwaysRasterize () {
-    bool rast;
-
-    rast = psAlwaysRasterize;
-    return rast;
 }
 
 GString* GlobalParams::getTextEncodingName () {

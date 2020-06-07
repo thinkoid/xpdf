@@ -36,7 +36,6 @@
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/PSOutputDev.hh>
 #include <xpdf/Page.hh>
-#include <xpdf/PreScanOutputDev.hh>
 #include <xpdf/SplashOutputDev.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/TextString.hh>
@@ -3117,8 +3116,6 @@ bool PSOutputDev::checkPageSlice (
     Page* page, double hDPI, double vDPI, int rotateA, bool useMediaBox,
     bool crop, int sliceX, int sliceY, int sliceW, int sliceH, bool printing,
     bool (*abortCheckCbk) (void* data), void* abortCheckCbkData) {
-    PreScanOutputDev* scan;
-    bool rasterize;
     bool mono;
     bool useLZW;
     double dpi;
@@ -3136,17 +3133,6 @@ bool PSOutputDev::checkPageSlice (
     double m0, m1, m2, m3, m4, m5;
     int nStripes, stripeH, stripeY;
     int w, h, x, y, comp, i, n;
-
-    if (globalParams->getPSAlwaysRasterize ()) { rasterize = true; }
-    else {
-        scan = new PreScanOutputDev ();
-        page->displaySlice (
-            scan, 72, 72, rotateA, useMediaBox, crop, sliceX, sliceY, sliceW,
-            sliceH, printing, abortCheckCbk, abortCheckCbkData);
-        rasterize = scan->usesTransparency () || scan->usesPatternImageMask ();
-        delete scan;
-    }
-    if (!rasterize) { return true; }
 
     // get the rasterization parameters
     dpi = globalParams->getPSRasterResolution ();

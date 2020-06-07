@@ -38,7 +38,6 @@ libxpdf_a_SOURCES =                             \
 	PSTokenizer.cc                              \
 	Page.cc                                     \
 	Parser.cc                                   \
-	PreScanOutputDev.cc                         \
 	SecurityHandler.cc                          \
 	SplashOutputDev.cc                          \
 	Stream.cc                                   \

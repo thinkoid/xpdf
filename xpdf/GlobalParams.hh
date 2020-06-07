@@ -402,7 +402,6 @@ private:
                                   //   in color (RGB/CMYK)
     int psRasterSliceSize;        // maximum size (pixels) of PostScript
                                   //   rasterization slice
-    bool psAlwaysRasterize;      // force PostScript rasterization
     GString* textEncoding;        // encoding (unicodeMap) to use for text
                                   //   output
     EndOfLineKind textEOL;        // type of EOL marker to use for text
