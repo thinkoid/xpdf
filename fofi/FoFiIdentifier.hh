@@ -1,37 +1,34 @@
 // -*- mode: c++; -*-
-// Copyright 2009 Glyph & Cog, LLC
+// Copyright 2020- Thinkoid, LLC
 
 #ifndef XPDF_FOFI_FOFIIDENTIFIER_HH
 #define XPDF_FOFI_FOFIIDENTIFIER_HH
 
 #include <defs.hh>
 
-class GList;
+#include <cstddef>
 
-//------------------------------------------------------------------------
-// FoFiIdentifier
-//------------------------------------------------------------------------
+namespace xpdf {
 
-enum FoFiIdentifierType {
-    fofiIdType1PFA,           // Type 1 font in PFA format
-    fofiIdType1PFB,           // Type 1 font in PFB format
-    fofiIdCFF8Bit,            // 8-bit CFF font
-    fofiIdCFFCID,             // CID CFF font
-    fofiIdTrueType,           // TrueType font
-    fofiIdTrueTypeCollection, // TrueType collection
-    fofiIdOpenTypeCFF8Bit,    // OpenType wrapper with 8-bit CFF font
-    fofiIdOpenTypeCFFCID,     // OpenType wrapper with CID CFF font
-    fofiIdDfont,              // Mac OS X dfont
-    fofiIdUnknown,            // unknown type
-    fofiIdError               // error in reading the file
+enum font_type {
+    FONT_TYPE1_PFA,           // Type 1 font in PFA format
+    FONT_TYPE1_PFB,           // Type 1 font in PFB format
+    FONT_CFF_8BIT,            // 8-bit CFF font
+    FONT_CFF_CID,             // CID CFF font
+    FONT_TRUETYPE,           // TrueType font
+    FONT_TRUETYPE_COLLECTION, // TrueType collection
+    FONT_OPENTYPE_CFF_8BIT,    // OpenType wrapper with 8-bit CFF font
+    FONT_OPENTYPE_CFF_CID,     // OpenType wrapper with CID CFF font
+    FONT_DFONT,              // Mac OS X dfont
+    FONT_UNKNOWN,            // unknown type
+    FONT_ERROR               // error in reading the file
 };
 
-class FoFiIdentifier {
-public:
-    // Identify a font file.
-    static FoFiIdentifierType identifyMem (const char*, int);
-    static FoFiIdentifierType identifyFile (const char*);
-    static FoFiIdentifierType identifyStream (int (*) (void*), void*);
-};
+bool font_identify_byextension (const char*, font_type&);
+bool font_identify_bycontent (const char*, font_type&);
+bool font_identify (const char*, font_type&);
+bool font_identify (const char*, size_t, font_type&);
+
+} // namespace xpdf
 
 #endif // XPDF_FOFI_FOFIIDENTIFIER_HH

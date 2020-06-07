@@ -120,7 +120,16 @@ static const char* base14SubstFonts[14] = {
 
 //------------------------------------------------------------------------
 
-static int readFromStream (void* data) { return ((Stream*)data)->get (); }
+static std::vector< char > stream_data(Stream *stream) {
+    std::vector< char > cs;
+
+    stream->reset ();
+    for (int c; EOF != (c = stream->get ()); cs.push_back (c)) ;
+    stream->close ();
+
+    return cs;
+}
+
 
 //------------------------------------------------------------------------
 // GfxFontLoc
@@ -204,7 +213,7 @@ GfxFont::~GfxFont () {
 // anything else.
 GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
     GfxFontType t, expectedType;
-    FoFiIdentifierType fft;
+    xpdf::font_type fft;
     Dict* fontDict2;
     Object subtype, fontDesc, obj1, obj2, obj3, obj4;
     bool isType0, err;
@@ -342,23 +351,38 @@ GfxFontType GfxFont::getFontType (XRef* xref, Dict* fontDict, Ref* embID) {
         obj3 = xpdf::make_ref_obj (embID->num, embID->gen, xref);
         obj4 = resolve (obj3);
         if (obj4.is_stream ()) {
-            obj4.streamReset ();
-            fft = FoFiIdentifier::identifyStream (
-                &readFromStream, obj4.as_stream ());
-            obj4.streamClose ();
+            {
+                auto xs = stream_data (obj4.as_stream ());
+                font_identify (xs.data (), xs.size (), fft);
+            }
+
             switch (fft) {
-            case fofiIdType1PFA:
-            case fofiIdType1PFB: t = fontType1; break;
-            case fofiIdCFF8Bit: t = isType0 ? fontCIDType0C : fontType1C; break;
-            case fofiIdCFFCID: t = fontCIDType0C; break;
-            case fofiIdTrueType:
-            case fofiIdTrueTypeCollection:
+            case xpdf::FONT_TYPE1_PFA:
+            case xpdf::FONT_TYPE1_PFB:
+                t = fontType1;
+                break;
+
+            case xpdf::FONT_CFF_8BIT:
+                t = isType0 ? fontCIDType0C : fontType1C;
+                break;
+
+            case xpdf::FONT_CFF_CID:
+                t = fontCIDType0C;
+                break;
+
+            case xpdf::FONT_TRUETYPE:
+            case xpdf::FONT_TRUETYPE_COLLECTION:
                 t = isType0 ? fontCIDType2 : fontTrueType;
                 break;
-            case fofiIdOpenTypeCFF8Bit:
+
+            case xpdf::FONT_OPENTYPE_CFF_8BIT:
                 t = isType0 ? fontCIDType0COT : fontType1COT;
                 break;
-            case fofiIdOpenTypeCFFCID: t = fontCIDType0COT; break;
+
+            case xpdf::FONT_OPENTYPE_CFF_CID:
+                t = fontCIDType0COT;
+                break;
+
             default:
                 error (errSyntaxError, -1, "Embedded font file may be invalid");
                 break;
@@ -691,26 +715,52 @@ GfxFontLoc* GfxFont::locateBase14Font (GString* base14Name) {
 
 GfxFontLoc* GfxFont::getExternalFont (
     GString* path, int fontNum, double oblique, bool cid) {
-    FoFiIdentifierType fft;
+
     GfxFontType fontType;
     GfxFontLoc* fontLoc;
 
-    fft = FoFiIdentifier::identifyFile (path->c_str ());
+    xpdf::font_type fft;
+
+    if (font_identify (path->c_str (), fft)) {
+    }
+
     switch (fft) {
-    case fofiIdType1PFA:
-    case fofiIdType1PFB: fontType = fontType1; break;
-    case fofiIdCFF8Bit: fontType = fontType1C; break;
-    case fofiIdCFFCID: fontType = fontCIDType0C; break;
-    case fofiIdTrueType:
-    case fofiIdTrueTypeCollection:
-        fontType = cid ? fontCIDType2 : fontTrueType;
+    case xpdf::FONT_TYPE1_PFA:
+    case xpdf::FONT_TYPE1_PFB:
+        fontType = fontType1;
         break;
-    case fofiIdOpenTypeCFF8Bit: fontType = fontType1COT; break;
-    case fofiIdOpenTypeCFFCID: fontType = fontCIDType0COT; break;
-    case fofiIdDfont: fontType = cid ? fontCIDType2 : fontTrueType; break;
-    case fofiIdUnknown:
-    case fofiIdError:
-    default: fontType = fontUnknownType; break;
+
+    case xpdf::FONT_CFF_8BIT:
+        fontType = fontType1C;
+        break;
+
+    case xpdf::FONT_CFF_CID:
+        fontType = fontCIDType0C;
+        break;
+
+    case xpdf::FONT_TRUETYPE:
+    case xpdf::FONT_TRUETYPE_COLLECTION:
+        fontType = cid ? fontCIDType2 :
+        fontTrueType;
+        break;
+
+    case xpdf::FONT_OPENTYPE_CFF_8BIT:
+        fontType = fontType1COT;
+        break;
+
+    case xpdf::FONT_OPENTYPE_CFF_CID:
+        fontType = fontCIDType0COT;
+        break;
+
+    case xpdf::FONT_DFONT:
+        fontType = cid ? fontCIDType2 :
+        fontTrueType;
+        break;
+
+    case xpdf::FONT_UNKNOWN:
+    case xpdf::FONT_ERROR:
+    default:
+        fontType = fontUnknownType; break;
     }
     if (fontType == fontUnknownType ||
         (cid ? (fontType < fontCIDType0) : (fontType >= fontCIDType0))) {

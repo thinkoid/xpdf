@@ -1,529 +1,522 @@
 // -*- mode: c++; -*-
-// Copyright 2009 Glyph & Cog, LLC
+// Copyright 2020- Thinkoid, LLC
 
-#include <defs.hh>
-
-#include <cstdio>
-#include <cstring>
-#include <climits>
-#include <utils/string.hh>
-#include <utils/GList.hh>
 #include <fofi/FoFiIdentifier.hh>
 
-//------------------------------------------------------------------------
+#include <cassert>
+#include <climits>
+#include <cstdio>
+#include <cstring>
 
-class Reader {
-public:
-    virtual ~Reader () {}
+#include <iostream>
+#include <vector>
+#include <filesystem>
+namespace fs = std::filesystem;
 
-    // Read one byte.  Returns -1 if past EOF.
-    virtual int getByte (int pos) = 0;
+#include <boost/endian/arithmetic.hpp>
+#include <boost/endian/conversion.hpp>
+namespace endian = boost::endian;
 
-    // Read a big-endian unsigned 16-bit integer.  Fills in *val and
-    // returns true if successful.
-    virtual bool getU16BE (int pos, int* val) = 0;
+#include <boost/iostreams/device/mapped_file.hpp>
+namespace io = boost::iostreams;
 
-    // Read a big-endian unsigned 32-bit integer.  Fills in *val and
-    // returns true if successful.
-    virtual bool getU32BE (int pos, unsigned* val) = 0;
+namespace xpdf {
+namespace detail {
 
-    // Read a little-endian unsigned 32-bit integer.  Fills in *val and
-    // returns true if successful.
-    virtual bool getU32LE (int pos, unsigned* val) = 0;
+inline const char* name_of (font_type arg) {
+    static const char* arr[] = {
+        "Type1 font in PFA format",
+        "Type1 font in PFB format",
+        "8-bit CFF font",
+        "CID CFF font",
+        "TrueType font",
+        "TrueType collection",
+        "OpenType container of 8-bit CFF font",
+        "OpenType container of CID-keyed CFF font",
+        "(unknown)"
+    };
 
-    // Read a big-endian unsigned <size>-byte integer, where 1 <= size
-    // <= 4.  Fills in *val and returns true if successful.
-    virtual bool getUVarBE (int pos, int size, unsigned* val) = 0;
+    return arr[arg];
+}
 
-    // Compare against a string.  Returns true if equal.
-    virtual bool cmp (int pos, const char* s) = 0;
+template< typename Iterator >
+struct iterator_guard_t {
+    iterator_guard_t (Iterator& iter)
+        : iter (iter), save (iter), restore (true) {}
+
+    ~iterator_guard_t () {
+        if (restore) {
+            iter = save;
+        }
+    }
+
+    void release () { restore = false; }
+
+    Iterator &iter, save;
+    bool restore;
 };
 
-//------------------------------------------------------------------------
+#define ITERATOR_GUARD(x) detail::iterator_guard_t iterator_guard (x)
+#define ITERATOR_RELEASE iterator_guard.release ()
+#define PARSE_SUCCESS ITERATOR_RELEASE; return true
 
-class MemReader : public Reader {
-public:
-    static MemReader* make (const char* bufA, int lenA);
-    virtual ~MemReader ();
-    virtual int getByte (int pos);
-    virtual bool getU16BE (int pos, int* val);
-    virtual bool getU32BE (int pos, unsigned* val);
-    virtual bool getU32LE (int pos, unsigned* val);
-    virtual bool getUVarBE (int pos, int size, unsigned* val);
-    virtual bool cmp (int pos, const char* s);
+#define S_(x) std::string (x, sizeof x - 1)
 
-private:
-    MemReader (const char* bufA, int lenA);
+#define ITERATOR_CONDITIONAL(x)                                \
+    template< typename T >                                     \
+    constexpr auto is_##x##_iterator = std::is_same_v<         \
+        typename std::iterator_traits< T >::iterator_category, \
+        std::x##_iterator_tag >
 
-    const char* buf;
-    int len;
-};
+ITERATOR_CONDITIONAL (input);
+ITERATOR_CONDITIONAL (output);
+ITERATOR_CONDITIONAL (forward);
+ITERATOR_CONDITIONAL (bidirectional);
+ITERATOR_CONDITIONAL (random_access);
 
-MemReader* MemReader::make (const char* bufA, int lenA) {
-    return new MemReader (bufA, lenA);
+#undef ITERATOR_CONDITIONAL
+
+template< typename Iterator, typename T >
+typename std::enable_if_t<
+    is_input_iterator< Iterator > || is_output_iterator< Iterator > ||
+    is_forward_iterator< Iterator > >
+advance (Iterator& iter, Iterator last, T dist) {
+    assert (dist >= 0);
+    for (; dist && iter != last; --dist, ++iter)
+        ;
 }
 
-MemReader::MemReader (const char* bufA, int lenA) {
-    buf = bufA;
-    len = lenA;
-}
-
-MemReader::~MemReader () {}
-
-int MemReader::getByte (int pos) {
-    if (pos < 0 || pos >= len) { return -1; }
-    return buf[pos] & 0xff;
-}
-
-bool MemReader::getU16BE (int pos, int* val) {
-    if (pos < 0 || pos > len - 2) { return false; }
-    *val = ((buf[pos] & 0xff) << 8) + (buf[pos + 1] & 0xff);
-    return true;
-}
-
-bool MemReader::getU32BE (int pos, unsigned* val) {
-    if (pos < 0 || pos > len - 4) { return false; }
-    *val = ((buf[pos] & 0xff) << 24) + ((buf[pos + 1] & 0xff) << 16) +
-           ((buf[pos + 2] & 0xff) << 8) + (buf[pos + 3] & 0xff);
-    return true;
-}
-
-bool MemReader::getU32LE (int pos, unsigned* val) {
-    if (pos < 0 || pos > len - 4) { return false; }
-    *val = (buf[pos] & 0xff) + ((buf[pos + 1] & 0xff) << 8) +
-           ((buf[pos + 2] & 0xff) << 16) + ((buf[pos + 3] & 0xff) << 24);
-    return true;
-}
-
-bool MemReader::getUVarBE (int pos, int size, unsigned* val) {
-    int i;
-
-    if (size < 1 || size > 4 || pos < 0 || pos > len - size) { return false; }
-    *val = 0;
-    for (i = 0; i < size; ++i) { *val = (*val << 8) + (buf[pos + i] & 0xff); }
-    return true;
-}
-
-bool MemReader::cmp (int pos, const char* s) {
-    int n;
-
-    n = (int)strlen (s);
-    if (pos < 0 || len < n || pos > len - n) { return false; }
-    return !memcmp (buf + pos, s, n);
-}
-
-//------------------------------------------------------------------------
-
-class FileReader : public Reader {
-public:
-    static FileReader* make (const char* fileName);
-    virtual ~FileReader ();
-    virtual int getByte (int pos);
-    virtual bool getU16BE (int pos, int* val);
-    virtual bool getU32BE (int pos, unsigned* val);
-    virtual bool getU32LE (int pos, unsigned* val);
-    virtual bool getUVarBE (int pos, int size, unsigned* val);
-    virtual bool cmp (int pos, const char* s);
-
-private:
-    FileReader (FILE* fA);
-    bool fillBuf (int pos, int len);
-
-    FILE* f;
-    char buf[1024];
-    int bufPos, bufLen;
-};
-
-FileReader* FileReader::make (const char* fileName) {
-    FILE* fA;
-
-    if (!(fA = fopen (fileName, "rb"))) { return NULL; }
-    return new FileReader (fA);
-}
-
-FileReader::FileReader (FILE* fA) {
-    f = fA;
-    bufPos = 0;
-    bufLen = 0;
-}
-
-FileReader::~FileReader () { fclose (f); }
-
-int FileReader::getByte (int pos) {
-    if (!fillBuf (pos, 1)) { return -1; }
-    return buf[pos - bufPos] & 0xff;
-}
-
-bool FileReader::getU16BE (int pos, int* val) {
-    if (!fillBuf (pos, 2)) { return false; }
-    *val = ((buf[pos - bufPos] & 0xff) << 8) + (buf[pos - bufPos + 1] & 0xff);
-    return true;
-}
-
-bool FileReader::getU32BE (int pos, unsigned* val) {
-    if (!fillBuf (pos, 4)) { return false; }
-    *val = ((buf[pos - bufPos] & 0xff) << 24) +
-           ((buf[pos - bufPos + 1] & 0xff) << 16) +
-           ((buf[pos - bufPos + 2] & 0xff) << 8) +
-           (buf[pos - bufPos + 3] & 0xff);
-    return true;
-}
-
-bool FileReader::getU32LE (int pos, unsigned* val) {
-    if (!fillBuf (pos, 4)) { return false; }
-    *val = (buf[pos - bufPos] & 0xff) + ((buf[pos - bufPos + 1] & 0xff) << 8) +
-           ((buf[pos - bufPos + 2] & 0xff) << 16) +
-           ((buf[pos - bufPos + 3] & 0xff) << 24);
-    return true;
-}
-
-bool FileReader::getUVarBE (int pos, int size, unsigned* val) {
-    int i;
-
-    if (size < 1 || size > 4 || !fillBuf (pos, size)) { return false; }
-    *val = 0;
-    for (i = 0; i < size; ++i) {
-        *val = (*val << 8) + (buf[pos - bufPos + i] & 0xff);
+template< typename Iterator, typename T >
+typename std::enable_if_t< is_bidirectional_iterator< Iterator > >
+advance (Iterator& iter, Iterator last, T dist) {
+    if (dist > 0) {
+        for (; dist && iter != last; --dist, ++iter)
+            ;
     }
-    return true;
-}
-
-bool FileReader::cmp (int pos, const char* s) {
-    int n;
-
-    n = (int)strlen (s);
-    if (!fillBuf (pos, n)) { return false; }
-    return !memcmp (buf - bufPos + pos, s, n);
-}
-
-bool FileReader::fillBuf (int pos, int len) {
-    if (pos < 0 || len < 0 || len > (int)sizeof (buf) ||
-        pos > INT_MAX - (int)sizeof (buf)) {
-        return false;
+    else if (dist < 0) {
+        for (; dist && iter != last; ++dist, --iter)
+            ;
     }
-    if (pos >= bufPos && pos + len <= bufPos + bufLen) { return true; }
-    if (fseek (f, pos, SEEK_SET)) { return false; }
-    bufPos = pos;
-    bufLen = (int)fread (buf, 1, sizeof (buf), f);
-    if (bufLen < len) { return false; }
-    return true;
 }
 
-//------------------------------------------------------------------------
-
-class StreamReader : public Reader {
-public:
-    static StreamReader* make (int (*getCharA) (void* data), void* dataA);
-    virtual ~StreamReader ();
-    virtual int getByte (int pos);
-    virtual bool getU16BE (int pos, int* val);
-    virtual bool getU32BE (int pos, unsigned* val);
-    virtual bool getU32LE (int pos, unsigned* val);
-    virtual bool getUVarBE (int pos, int size, unsigned* val);
-    virtual bool cmp (int pos, const char* s);
-
-private:
-    StreamReader (int (*getCharA) (void* data), void* dataA);
-    bool fillBuf (int pos, int len);
-
-    int (*getChar) (void* data);
-    void* data;
-    int streamPos;
-    char buf[1024];
-    int bufPos, bufLen;
-};
-
-StreamReader* StreamReader::make (int (*getCharA) (void* data), void* dataA) {
-    return new StreamReader (getCharA, dataA);
-}
-
-StreamReader::StreamReader (int (*getCharA) (void* data), void* dataA) {
-    getChar = getCharA;
-    data = dataA;
-    streamPos = 0;
-    bufPos = 0;
-    bufLen = 0;
-}
-
-StreamReader::~StreamReader () {}
-
-int StreamReader::getByte (int pos) {
-    if (!fillBuf (pos, 1)) { return -1; }
-    return buf[pos - bufPos] & 0xff;
-}
-
-bool StreamReader::getU16BE (int pos, int* val) {
-    if (!fillBuf (pos, 2)) { return false; }
-    *val = ((buf[pos - bufPos] & 0xff) << 8) + (buf[pos - bufPos + 1] & 0xff);
-    return true;
-}
-
-bool StreamReader::getU32BE (int pos, unsigned* val) {
-    if (!fillBuf (pos, 4)) { return false; }
-    *val = ((buf[pos - bufPos] & 0xff) << 24) +
-           ((buf[pos - bufPos + 1] & 0xff) << 16) +
-           ((buf[pos - bufPos + 2] & 0xff) << 8) +
-           (buf[pos - bufPos + 3] & 0xff);
-    return true;
-}
-
-bool StreamReader::getU32LE (int pos, unsigned* val) {
-    if (!fillBuf (pos, 4)) { return false; }
-    *val = (buf[pos - bufPos] & 0xff) + ((buf[pos - bufPos + 1] & 0xff) << 8) +
-           ((buf[pos - bufPos + 2] & 0xff) << 16) +
-           ((buf[pos - bufPos + 3] & 0xff) << 24);
-    return true;
-}
-
-bool StreamReader::getUVarBE (int pos, int size, unsigned* val) {
-    int i;
-
-    if (size < 1 || size > 4 || !fillBuf (pos, size)) { return false; }
-    *val = 0;
-    for (i = 0; i < size; ++i) {
-        *val = (*val << 8) + (buf[pos - bufPos + i] & 0xff);
+template< typename Iterator, typename T >
+typename std::enable_if_t<
+    is_random_access_iterator< Iterator > && std::is_signed_v< T > >
+advance (Iterator& iter, Iterator last, T dist) {
+    if (dist > 0) {
+        const auto n = std::distance (iter, last);
+        if (dist > n)
+            iter = last;
+        else
+            std::advance (iter, dist);
     }
-    return true;
-}
-
-bool StreamReader::cmp (int pos, const char* s) {
-    int n;
-
-    n = (int)strlen (s);
-    if (!fillBuf (pos, n)) { return false; }
-    return !memcmp (buf - bufPos + pos, s, n);
-}
-
-bool StreamReader::fillBuf (int pos, int len) {
-    int c;
-
-    if (pos < 0 || len < 0 || len > (int)sizeof (buf) ||
-        pos > INT_MAX - (int)sizeof (buf)) {
-        return false;
+    else if (dist < 0) {
+        if (dist < std::distance (iter, last))
+            iter = last;
+        else
+            std::advance (iter, dist);
     }
-    if (pos < bufPos) { return false; }
+}
 
-    // if requested region will not fit in the current buffer...
-    if (pos + len > bufPos + (int)sizeof (buf)) {
-        // if the start of the requested data is already in the buffer, move
-        // it to the start of the buffer
-        if (pos < bufPos + bufLen) {
-            bufLen -= pos - bufPos;
-            memmove (buf, buf + (pos - bufPos), bufLen);
-            bufPos = pos;
+template< typename Iterator, typename T >
+typename std::enable_if_t<
+    is_random_access_iterator< Iterator > && std::is_unsigned_v< T > >
+advance (Iterator& iter, Iterator last, T dist) {
+    if (std::distance (iter, last) < 0 ||
+        size_t (std::distance (iter, last)) < dist)
+        iter = last;
+    else
+        std::advance (iter, dist);
+}
 
-            // otherwise discard data from the
-            // stream until we get to the requested position
+template< typename Iterator, typename T >
+bool safe_advance (Iterator& iter, Iterator last, T dist) {
+    advance (iter, last, dist);
+    return iter != last;
+}
+
+template< typename T >
+void big_to_native_inplace (T& arg, size_t size) {
+    if (size == sizeof arg)
+        endian::big_to_native_inplace (arg);
+    else {
+        T dst = 0;
+        char* pdst = reinterpret_cast< char* > (&dst) + size - 1;
+
+        const char* psrc = reinterpret_cast< char* > (&arg);
+        const char* pend = psrc + size;
+
+        for (; psrc != pend; ++psrc, --pdst) {
+            pdst[0] = psrc[0];
+        }
+
+        arg = dst;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+template< typename Iterator >
+bool literal_char (Iterator& iter, Iterator last, char c) {
+    ITERATOR_GUARD (iter);
+
+    if (iter != last) {
+        auto x = *iter++;
+
+        if (x == c) {
+            PARSE_SUCCESS;
+        }
+    }
+
+    return false;
+}
+
+template< typename Iterator >
+bool literal_string (Iterator& iter, Iterator last, const std::string& s) {
+    ITERATOR_GUARD (iter);
+
+    auto other = s.begin ();
+
+    for (; iter != last && other != s.end () && *iter == *other;
+         ++iter, ++other)
+        ;
+
+    if (other == s.end ()) {
+        PARSE_SUCCESS;
+    }
+
+    return false;
+}
+
+template< typename Iterator >
+bool literal_int (Iterator& iter, Iterator last, int& i) {
+    ITERATOR_GUARD (iter);
+
+    if (iter != last) {
+        int x = 0;
+
+        if (!digit (iter, last, x)) return false;
+
+        int val = x;
+
+        for (; iter != last;) {
+            if (!digit (iter, last, x)) break;
+
+            val *= 10;
+            val += x;
+        }
+
+        i = val;
+
+        PARSE_SUCCESS;
+    }
+
+    return false;
+}
+
+template< typename Iterator, typename T >
+bool integral (Iterator& iter, Iterator last, T& attr) {
+    ITERATOR_GUARD (iter);
+
+    if (iter != last) {
+        int val = 0;
+
+        size_t i = 0;
+
+        for (; i < sizeof attr && iter != last; ++i, ++iter) {
+            reinterpret_cast< char* > (&val)[i] = *iter;
+        }
+
+        if (i < sizeof attr) return false;
+
+        attr = val;
+
+        PARSE_SUCCESS;
+    }
+
+    return false;
+}
+
+template< typename Iterator, typename T >
+bool sized_integral (Iterator& iter, Iterator last, T& attr, size_t n) {
+    assert (n <= sizeof attr);
+
+    ITERATOR_GUARD (iter);
+
+    if (iter != last) {
+        int val = 0;
+
+        size_t i = 0;
+
+        for (; i < n && iter != last; ++i, ++iter) {
+            reinterpret_cast< char* > (&val)[i] = *iter;
+        }
+
+        if (i < n) return false;
+
+        attr = val;
+
+        PARSE_SUCCESS;
+    }
+
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////
+
+template< typename Iterator >
+typename std::enable_if_t< is_random_access_iterator< Iterator >, bool >
+font_identify_pfa (Iterator& iter, Iterator last, font_type& result) {
+    if (literal_string (iter, last, "%!PS-AdobeFont-1") ||
+        literal_string (iter, last, "%!FontType1")) {
+        result = FONT_TYPE1_PFA;
+        return true;
+    }
+
+    return false;
+}
+
+template< typename Iterator >
+typename std::enable_if_t< is_random_access_iterator< Iterator >, bool >
+font_identify_pfb (Iterator& iter, Iterator last, font_type& result) {
+    ITERATOR_GUARD (iter);
+
+    if (literal_string (iter, last, "\x80\x01")) {
+        unsigned n = 0;
+
+        if (integral (iter, last, n)) {
+            if ((n >= 16 && literal_string (iter, last, "%!PS-AdobeFont-1")) ||
+                (n >= 11 && literal_string (iter, last, "%!FontType1"))) {
+                result = FONT_TYPE1_PFB;
+                PARSE_SUCCESS;
+            }
+        }
+    }
+
+    return false;
+}
+
+template< typename Iterator >
+typename std::enable_if_t< is_random_access_iterator< Iterator >, bool >
+font_identify_ttf (Iterator& iter, Iterator last, font_type& result) {
+    if (literal_string (iter, last, std::string ("\x00\x01\x00\x00", 4)) ||
+        literal_string (iter, last, "true")) {
+        result = FONT_TRUETYPE;
+        return true;
+    }
+
+    if (literal_string (iter, last, "ttcf")) {
+        result = FONT_TRUETYPE_COLLECTION;
+        return true;
+    }
+
+    return false;
+}
+
+template< typename Iterator >
+typename std::enable_if_t< is_random_access_iterator< Iterator >, bool >
+font_identify_cff (Iterator& iter, Iterator last, font_type& result) {
+    ITERATOR_GUARD (iter);
+
+    if (!literal_string (iter, last, std::string ("\x01\x00", 2))) return false;
+
+    {
+        unsigned char a = 0, b = 0;
+
+        if (!integral (iter, last, a) || !integral (iter, last, b))
+            return false;
+
+        if (b < 1 || 4 < b || a < 4) return false;
+
+        if (!safe_advance (iter, last, int (a) - 4)) return false;
+    }
+
+    {
+        unsigned short n;
+
+        if (!integral (iter, last, n)) return false;
+
+        endian::big_to_native_inplace (n);
+
+        if (n) {
+            unsigned char x;
+
+            if (!integral (iter, last, x)) return false;
+
+            if (!safe_advance (iter, last, n * x)) return false;
+
+            unsigned long y = 0;
+
+            if (!sized_integral (iter, last, y, x)) return false;
+
+            big_to_native_inplace (y, x);
+
+            if (!safe_advance (iter, last, long (y) - 1)) return false;
+        }
+    }
+
+    {
+        unsigned short n = 0;
+
+        if (!integral (iter, last, n) || 0 == n) return false;
+
+        endian::big_to_native_inplace (n);
+
+        unsigned char x = 0;
+
+        if (!integral (iter, last, x)) return false;
+
+        unsigned long y = 0, z = 0;
+
+        if (!sized_integral (iter, last, y, x) ||
+            !sized_integral (iter, last, z, x) || y > z)
+            return false;
+
+        big_to_native_inplace (y, x);
+        big_to_native_inplace (z, x);
+
+        {
+            auto end = last;
+            last = iter;
+
+            if (!safe_advance (iter, end, (n - 1) * x + y - 1) ||
+                !safe_advance (last, end, (n - 1) * x + z - 1))
+                return false;
+        }
+
+        for (size_t i = 0; i < 3; ++i) {
+            unsigned char c = 0;
+
+            if (!integral (iter, last, c)) return false;
+
+            if (c == 0x1c) {
+                if (!safe_advance (iter, last, 2)) return false;
+            }
+            else if (c == 0x1d) {
+                if (!safe_advance (iter, last, 4)) return false;
+            }
+            else if (c >= 0xf7 && c <= 0xfe) {
+                if (!safe_advance (iter, last, 1)) return false;
+            }
+            else if (c < 0x20 || c > 0xf6) {
+                result = FONT_CFF_8BIT;
+                PARSE_SUCCESS;
+            }
+
+            if (iter == last) {
+                result = FONT_CFF_8BIT;
+                PARSE_SUCCESS;
+            }
+        }
+
+        unsigned char c = 0;
+
+        if (integral (iter, last, c) && c == 12 && integral (iter, last, c) &&
+            c == 30) {
+            result = FONT_CFF_CID;
         }
         else {
-            bufPos += bufLen;
-            bufLen = 0;
-            while (bufPos < pos) {
-                if ((c = (*getChar) (data)) < 0) { return false; }
-                ++bufPos;
-            }
+            result = FONT_CFF_8BIT;
         }
+
+        PARSE_SUCCESS;
     }
 
-    // read the rest of the requested data
-    while (bufPos + bufLen < pos + len) {
-        if ((c = (*getChar) (data)) < 0) { return false; }
-        buf[bufLen++] = (char)c;
-    }
-
-    return true;
+    return false;
 }
 
-//------------------------------------------------------------------------
+template< typename Iterator >
+typename std::enable_if_t< is_random_access_iterator< Iterator >, bool >
+font_identify_otf (Iterator& iter, Iterator last, font_type& result) {
+    ITERATOR_GUARD (iter);
+    const auto save = iter;
 
-static FoFiIdentifierType identify (Reader* reader);
-static FoFiIdentifierType identifyOpenType (Reader* reader);
-static FoFiIdentifierType identifyCFF (Reader* reader, int start);
+    if (literal_string (iter, last, "OTTO")) {
+        int short n = 0;
 
-FoFiIdentifierType FoFiIdentifier::identifyMem (const char* file, int len) {
-    MemReader* reader;
-    FoFiIdentifierType type;
+        if (integral (iter, last, n)) {
+            endian::big_to_native_inplace (n);
+            assert (n >= 0);
 
-    if (!(reader = MemReader::make (file, len))) { return fofiIdError; }
-    type = identify (reader);
-    delete reader;
-    return type;
-}
+            if (!safe_advance (iter, last, 6)) return false;
 
-FoFiIdentifierType FoFiIdentifier::identifyFile (const char* fileName) {
-    FileReader* reader;
-    FoFiIdentifierType type;
-    int n;
+            for (size_t i = 0; i < size_t (n); ++i) {
+                if (literal_string (iter, last, "CFF ")) {
+                    if (!safe_advance (iter, last, 4)) break;
 
-    if (!(reader = FileReader::make (fileName))) { return fofiIdError; }
-    type = identify (reader);
-    delete reader;
+                    int off = 0;
 
-    // Mac OS X dfont files don't have any sort of header or magic number,
-    // so look at the file name extension
-    if (type == fofiIdUnknown) {
-        n = (int)strlen (fileName);
-        if (n >= 6 && !strcmp (fileName + n - 6, ".dfont")) {
-            type = fofiIdDfont;
-        }
-    }
+                    if (integral (iter, last, off)) {
+                        endian::big_to_native_inplace (off);
 
-    return type;
-}
+                        if (off < INT_MAX) {
+                            auto iter2 = save;
 
-FoFiIdentifierType
-FoFiIdentifier::identifyStream (int (*getChar) (void* data), void* data) {
-    StreamReader* reader;
-    FoFiIdentifierType type;
+                            if (!safe_advance (iter2, last, off)) break;
 
-    if (!(reader = StreamReader::make (getChar, data))) { return fofiIdError; }
-    type = identify (reader);
-    delete reader;
-    return type;
-}
+                            if (font_identify_cff (iter2, last, result)) {
+                                switch (result) {
+                                case FONT_CFF_8BIT:
+                                    result = FONT_OPENTYPE_CFF_8BIT;
+                                    PARSE_SUCCESS;
 
-static FoFiIdentifierType identify (Reader* reader) {
-    unsigned n;
+                                case FONT_CFF_CID:
+                                    result = FONT_OPENTYPE_CFF_CID;
+                                    PARSE_SUCCESS;
 
-    //----- PFA
-    if (reader->cmp (0, "%!PS-AdobeFont-1") || reader->cmp (0, "%!FontType1")) {
-        return fofiIdType1PFA;
-    }
+                                default:
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
-    //----- PFB
-    if (reader->getByte (0) == 0x80 && reader->getByte (1) == 0x01 &&
-        reader->getU32LE (2, &n)) {
-        if ((n >= 16 && reader->cmp (6, "%!PS-AdobeFont-1")) ||
-            (n >= 11 && reader->cmp (6, "%!FontType1"))) {
-            return fofiIdType1PFB;
-        }
-    }
-
-    //----- TrueType
-    if ((reader->getByte (0) == 0x00 && reader->getByte (1) == 0x01 &&
-         reader->getByte (2) == 0x00 && reader->getByte (3) == 0x00) ||
-        (reader->getByte (0) == 0x74 && // 'true'
-         reader->getByte (1) == 0x72 && reader->getByte (2) == 0x75 &&
-         reader->getByte (3) == 0x65)) {
-        return fofiIdTrueType;
-    }
-    if (reader->getByte (0) == 0x74 && // 'ttcf'
-        reader->getByte (1) == 0x74 && reader->getByte (2) == 0x63 &&
-        reader->getByte (3) == 0x66) {
-        return fofiIdTrueTypeCollection;
-    }
-
-    //----- OpenType
-    if (reader->getByte (0) == 0x4f && // 'OTTO
-        reader->getByte (1) == 0x54 && reader->getByte (2) == 0x54 &&
-        reader->getByte (3) == 0x4f) {
-        return identifyOpenType (reader);
-    }
-
-    //----- CFF
-    if (reader->getByte (0) == 0x01 && reader->getByte (1) == 0x00) {
-        return identifyCFF (reader, 0);
-    }
-    // some tools embed CFF fonts with an extra whitespace char at the
-    // beginning
-    if (reader->getByte (1) == 0x01 && reader->getByte (2) == 0x00) {
-        return identifyCFF (reader, 1);
-    }
-
-    return fofiIdUnknown;
-}
-
-static FoFiIdentifierType identifyOpenType (Reader* reader) {
-    FoFiIdentifierType type;
-    unsigned offset;
-    int nTables, i;
-
-    if (!reader->getU16BE (4, &nTables)) { return fofiIdUnknown; }
-    for (i = 0; i < nTables; ++i) {
-        if (reader->cmp (12 + i * 16, "CFF ")) {
-            if (reader->getU32BE (12 + i * 16 + 8, &offset) &&
-                offset < (unsigned)INT_MAX) {
-                type = identifyCFF (reader, (int)offset);
-                if (type == fofiIdCFF8Bit) { type = fofiIdOpenTypeCFF8Bit; }
-                else if (type == fofiIdCFFCID) {
-                    type = fofiIdOpenTypeCFFCID;
+                    return false;
                 }
-                return type;
+
+                if (!safe_advance (iter, last, 16)) break;
             }
-            return fofiIdUnknown;
         }
     }
-    return fofiIdUnknown;
+
+    return false;
 }
 
-static FoFiIdentifierType identifyCFF (Reader* reader, int start) {
-    unsigned offset0, offset1;
-    int hdrSize, offSize0, offSize1, pos, endPos, b0, n, i;
-
-    //----- read the header
-    if (reader->getByte (start) != 0x01 ||
-        reader->getByte (start + 1) != 0x00) {
-        return fofiIdUnknown;
-    }
-    if ((hdrSize = reader->getByte (start + 2)) < 0) { return fofiIdUnknown; }
-    if ((offSize0 = reader->getByte (start + 3)) < 1 || offSize0 > 4) {
-        return fofiIdUnknown;
-    }
-    pos = start + hdrSize;
-    if (pos < 0) { return fofiIdUnknown; }
-
-    //----- skip the name index
-    if (!reader->getU16BE (pos, &n)) { return fofiIdUnknown; }
-    if (n == 0) { pos += 2; }
-    else {
-        if ((offSize1 = reader->getByte (pos + 2)) < 1 || offSize1 > 4) {
-            return fofiIdUnknown;
-        }
-        if (!reader->getUVarBE (pos + 3 + n * offSize1, offSize1, &offset1) ||
-            offset1 > (unsigned)INT_MAX) {
-            return fofiIdUnknown;
-        }
-        pos += 3 + (n + 1) * offSize1 + (int)offset1 - 1;
-    }
-    if (pos < 0) { return fofiIdUnknown; }
-
-    //----- parse the top dict index
-    if (!reader->getU16BE (pos, &n) || n < 1) { return fofiIdUnknown; }
-    if ((offSize1 = reader->getByte (pos + 2)) < 1 || offSize1 > 4) {
-        return fofiIdUnknown;
-    }
-    if (!reader->getUVarBE (pos + 3, offSize1, &offset0) ||
-        offset0 > (unsigned)INT_MAX ||
-        !reader->getUVarBE (pos + 3 + offSize1, offSize1, &offset1) ||
-        offset1 > (unsigned)INT_MAX || offset0 > offset1) {
-        return fofiIdUnknown;
-    }
-    pos = pos + 3 + (n + 1) * offSize1 + (int)offset0 - 1;
-    endPos = pos + 3 + (n + 1) * offSize1 + (int)offset1 - 1;
-    if (pos < 0 || endPos < 0 || pos > endPos) { return fofiIdUnknown; }
-
-    //----- parse the top dict, look for ROS as first entry
-    // for a CID font, the top dict starts with:
-    //     <int> <int> <int> ROS
-    for (i = 0; i < 3; ++i) {
-        b0 = reader->getByte (pos++);
-        if (b0 == 0x1c) { pos += 2; }
-        else if (b0 == 0x1d) {
-            pos += 4;
-        }
-        else if (b0 >= 0xf7 && b0 <= 0xfe) {
-            pos += 1;
-        }
-        else if (b0 < 0x20 || b0 > 0xf6) {
-            return fofiIdCFF8Bit;
-        }
-        if (pos >= endPos || pos < 0) { return fofiIdCFF8Bit; }
-    }
-    if (pos + 1 < endPos && reader->getByte (pos) == 12 &&
-        reader->getByte (pos + 1) == 30) {
-        return fofiIdCFFCID;
-    }
-    else {
-        return fofiIdCFF8Bit;
-    }
+template< typename Iterator >
+typename std::enable_if_t< is_random_access_iterator< Iterator >, bool >
+font_identify (Iterator& iter, Iterator last, font_type& result) {
+    return font_identify_pfa (iter, last, result) ||
+           font_identify_pfb (iter, last, result) ||
+           font_identify_ttf (iter, last, result) ||
+           font_identify_otf (iter, last, result) ||
+           font_identify_cff (iter, last, result);
 }
+
+} // namespace detail
+
+////////////////////////////////////////////////////////////////////////
+
+bool font_identify_byextension (const char* filepath, font_type& result) {
+    if (fs::path (filepath).extension () == ".dfont") {
+        return result = FONT_DFONT, true;
+    }
+
+    return false;
+}
+
+bool font_identify_bycontent (const char* filepath, font_type& result) {
+    io::mapped_file_source src (filepath);
+    auto iter = src.begin (), last = src.end ();
+    return detail::font_identify (iter, last, result);
+}
+
+bool font_identify (const char* filepath, font_type& result) {
+    return font_identify_byextension (filepath, result) ||
+           font_identify_bycontent (filepath, result);
+}
+
+bool font_identify (const char* pbuf, size_t n, font_type& result) {
+    return detail::font_identify (pbuf, pbuf + n, result);
+}
+
+} // namespace xpdf
