@@ -2427,24 +2427,24 @@ void GfxGouraudTriangleShading::getTriangle (
 }
 
 void GfxGouraudTriangleShading::getColor (double* in, GfxColor* out) {
-    ASSERT (0);
-//     double c [gfxColorMaxComps] = { };
+    double c [gfxColorMaxComps] = { };
 
-//     if (nFuncs > 0) {
-//         for (size_t i = 0; i < nFuncs; ++i) {
-//             // TODO
-//             // funcs [i] (in, &c[i]);
-//         }
+    if (nFuncs > 0) {
+        for (size_t i = 0; i < nFuncs; ++i) {
+            // TODO
+            ASSERT (0);
+            // funcs [i] (in, &c[i]);
+        }
 
-//         for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
-//             out->c[i] = xpdf::to_color (c[i]);
-//         }
-//     }
-//     else {
-//         for (size_t i = 0; i < nComps; ++i) {
-//             out->c [i] = xpdf::to_color (in [i]);
-//         }
-//     }
+        for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
+            out->c[i] = xpdf::to_color (c[i]);
+        }
+    }
+    else {
+        for (size_t i = 0; i < nComps; ++i) {
+            out->c [i] = xpdf::to_color (in [i]);
+        }
+    }
 }
 
 //------------------------------------------------------------------------
@@ -2993,24 +2993,24 @@ GfxShading* GfxPatchMeshShading::copy () {
 }
 
 void GfxPatchMeshShading::getColor (double* in, GfxColor* out) {
-    ASSERT (0);
-//     double c [gfxColorMaxComps] = { };
+    double c [gfxColorMaxComps] = { };
 
-//     if (nFuncs > 0) {
-//         for (size_t i = 0; i < nFuncs; ++i) {
-//             // TODO
-//             // funcs [i] (in, &c[i]);
-//         }
+    if (nFuncs > 0) {
+        for (size_t i = 0; i < nFuncs; ++i) {
+            // TODO
+            ASSERT (0);
+            // funcs [i] (in, &c[i]);
+        }
 
-//         for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
-//             out->c [i] = xpdf::to_color (c [i]);
-//         }
-//     }
-//     else {
-//         for (size_t i = 0; i < nComps; ++i) {
-//             out->c [i] = xpdf::to_color (in [i]);
-//         }
-//     }
+        for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
+            out->c [i] = xpdf::to_color (c [i]);
+        }
+    }
+    else {
+        for (size_t i = 0; i < nComps; ++i) {
+            out->c [i] = xpdf::to_color (in [i]);
+        }
+    }
 }
 
 //------------------------------------------------------------------------
