@@ -512,7 +512,7 @@ bool XRef::readXRefTable (GFileOffset* pos, int offset, XRefPosSet* posSet) {
     obj = { };
 
     Parser parser (
-        NULL,
+        this,
         new Lexer (str->makeSubStream (str->getPos (), false, 0, &obj)),
         true);
 
