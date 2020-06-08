@@ -161,11 +161,12 @@ obj_t make_stream_obj (Stream* p) {
 obj_t resolve (const obj_t& obj, int recursion /* = 0 */) {
     if (obj.is_ref ()) {
         auto& ref = obj.as_ref ();
-        return ref.xref->fetch (ref, recursion);
+
+        if (ref.xref)
+            return ref.xref->fetch (ref, recursion);
     }
-    else {
-        return obj;
-    }
+
+    return obj;
 }
 
 } // namespace xpdf
