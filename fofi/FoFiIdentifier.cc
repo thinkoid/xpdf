@@ -496,18 +496,23 @@ font_identify (Iterator& iter, Iterator last, font_type& result) {
 
 ////////////////////////////////////////////////////////////////////////
 
-bool font_identify_byextension (const char* filepath, font_type& result) {
-    if (fs::path (filepath).extension () == ".dfont") {
+static bool
+font_identify_byextension (const char* filepath, font_type& result) {
+    if (fs::exists (filepath) && fs::path (filepath).extension () == ".dfont")
         return result = FONT_DFONT, true;
-    }
 
     return false;
 }
 
 bool font_identify_bycontent (const char* filepath, font_type& result) {
-    io::mapped_file_source src (filepath);
-    auto iter = src.begin (), last = src.end ();
-    return detail::font_identify (iter, last, result);
+    if (fs::exists (filepath)) {
+        io::mapped_file_source src (filepath);
+        auto iter = src.begin (), last = src.end ();
+        return detail::font_identify (iter, last, result);
+    }
+
+    result = FONT_ERROR;
+    return false;
 }
 
 bool font_identify (const char* filepath, font_type& result) {

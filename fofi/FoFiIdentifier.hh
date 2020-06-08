@@ -24,8 +24,6 @@ enum font_type {
     FONT_ERROR               // error in reading the file
 };
 
-bool font_identify_byextension (const char*, font_type&);
-bool font_identify_bycontent (const char*, font_type&);
 bool font_identify (const char*, font_type&);
 bool font_identify (const char*, size_t, font_type&);
 
