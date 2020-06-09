@@ -2866,9 +2866,9 @@ void Gfx::gouraudFillTriangle (
     //     space" is 72dpi when generating PostScript); or
     // (3) max recursion depth (gouraudMaxDepth) is hit.
     nComps = shading->getColorSpace ()->getNComps ();
-    shading->getColor (color0, &c0);
-    shading->getColor (color1, &c1);
-    shading->getColor (color2, &c2);
+    shading->getColor (color0, color0 + nComps, &c0);
+    shading->getColor (color1, color1 + nComps, &c1);
+    shading->getColor (color2, color2 + nComps, &c2);
     for (i = 0; i < nComps; ++i) {
         if (abs (c0.c[i] - c1.c[i]) > gouraudColorDelta ||
             abs (c1.c[i] - c2.c[i]) > gouraudColorDelta) {
@@ -2943,10 +2943,10 @@ void Gfx::fillPatch (GfxPatch* patch, GfxPatchMeshShading* shading, int depth) {
     int nComps, i;
 
     nComps = shading->getColorSpace ()->getNComps ();
-    shading->getColor (patch->color[0][0], &c00);
-    shading->getColor (patch->color[0][1], &c01);
-    shading->getColor (patch->color[1][0], &c10);
-    shading->getColor (patch->color[1][1], &c11);
+    shading->getColor (patch->color[0][0], patch->color[0][0] + nComps, &c00);
+    shading->getColor (patch->color[0][1], patch->color[0][1] + nComps, &c01);
+    shading->getColor (patch->color[1][0], patch->color[1][0] + nComps, &c10);
+    shading->getColor (patch->color[1][1], patch->color[1][1] + nComps, &c11);
     for (i = 0; i < nComps; ++i) {
         if (abs (c00.c[i] - c01.c[i]) > patchColorDelta ||
             abs (c01.c[i] - c11.c[i]) > patchColorDelta ||

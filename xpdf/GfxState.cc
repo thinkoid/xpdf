@@ -2426,24 +2426,21 @@ void GfxGouraudTriangleShading::getTriangle (
     for (j = 0; j < nComps; ++j) { color2[j] = vertices[v].color[j]; }
 }
 
-void GfxGouraudTriangleShading::getColor (double* in, GfxColor* out) {
+void
+GfxGouraudTriangleShading::getColor (
+    const double* p, const double* pend, GfxColor* out) {
     double c [gfxColorMaxComps] = { };
 
     if (nFuncs > 0) {
-        for (size_t i = 0; i < nFuncs; ++i) {
-            // TODO
-            ASSERT (0);
-            // funcs [i] (in, &c[i]);
-        }
+        for (size_t i = 0; i < nFuncs; ++i)
+            funcs [i] (p, pend, &c[i]);
 
-        for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
+        for (size_t i = 0; i < colorSpace->getNComps (); ++i)
             out->c[i] = xpdf::to_color (c[i]);
-        }
     }
     else {
-        for (size_t i = 0; i < nComps; ++i) {
-            out->c [i] = xpdf::to_color (in [i]);
-        }
+        for (size_t i = 0; i < nComps; ++i)
+            out->c [i] = xpdf::to_color (p [i]);
     }
 }
 
@@ -2992,24 +2989,20 @@ GfxShading* GfxPatchMeshShading::copy () {
     return new GfxPatchMeshShading (this);
 }
 
-void GfxPatchMeshShading::getColor (double* in, GfxColor* out) {
+void GfxPatchMeshShading::getColor (
+    const double* p, const double* pend, GfxColor* out) {
     double c [gfxColorMaxComps] = { };
 
     if (nFuncs > 0) {
-        for (size_t i = 0; i < nFuncs; ++i) {
-            // TODO
-            ASSERT (0);
-            // funcs [i] (in, &c[i]);
-        }
+        for (size_t i = 0; i < nFuncs; ++i)
+            funcs [i] (p, pend, &c[i]);
 
-        for (size_t i = 0; i < colorSpace->getNComps (); ++i) {
+        for (size_t i = 0; i < colorSpace->getNComps (); ++i)
             out->c [i] = xpdf::to_color (c [i]);
-        }
     }
     else {
-        for (size_t i = 0; i < nComps; ++i) {
-            out->c [i] = xpdf::to_color (in [i]);
-        }
+        for (size_t i = 0; i < nComps; ++i)
+            out->c [i] = xpdf::to_color (p [i]);
     }
 }
 
