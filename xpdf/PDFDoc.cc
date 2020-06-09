@@ -308,7 +308,7 @@ bool PDFDoc::isLinearized () {
     parser->getObj (&obj4);
     if (obj1.is_int () && obj2.is_int () && obj3.is_cmd ("obj") &&
         obj4.is_dict ()) {
-        *&obj5 = resolve (obj4.as_dict ()["Linearized"]);
+        obj5 = resolve (obj4.as_dict ()["Linearized"]);
         if (obj5.is_num () && obj5.as_num () > 0) { lin = true; }
     }
     delete parser;

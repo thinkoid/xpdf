@@ -173,7 +173,7 @@ XFAForm* XFAForm::load (PDFDoc* docA, Object* acroFormObj, Object* xfaObj) {
     int n, i;
 
     docA->getXRef ()->getCatalog (&catDict);
-    *&obj1 = resolve (catDict.as_dict ()["NeedsRendering"]);
+    obj1 = resolve (catDict.as_dict ()["NeedsRendering"]);
     fullXFAA = obj1.is_bool () && obj1.as_bool ();
 
     if (xfaObj->is_stream ()) {

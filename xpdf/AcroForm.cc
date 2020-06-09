@@ -173,7 +173,7 @@ void AcroForm::scanField (Object* fieldRef) {
     isTerminal = true;
 
     Object kidsObj;
-    *&kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
+    kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
 
     if (kidsObj.is_array ()) {
         isTerminal = false;
@@ -184,7 +184,7 @@ void AcroForm::scanField (Object* fieldRef) {
 
             if (kidObj.is_dict ()) {
                 Object subtypeObj;
-                *&subtypeObj = resolve (kidObj.as_dict ()["Parent"]);
+                subtypeObj = resolve (kidObj.as_dict ()["Parent"]);
 
                 if (subtypeObj.is_null ()) {
                     isTerminal = true;
@@ -230,7 +230,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     //----- get field info
 
     Object obj;
-    *&obj = resolve (fieldObjA.as_dict ()["T"]);
+    obj = resolve (fieldObjA.as_dict ()["T"]);
 
     if (obj.is_string ()) {
         nameA = new TextString (obj.as_string ());
@@ -239,7 +239,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         nameA = new TextString ();
     }
 
-    *&obj = resolve (fieldObjA.as_dict ()["FT"]);
+    obj = resolve (fieldObjA.as_dict ()["FT"]);
 
     if (obj.is_name ()) {
         typeStr = new GString (obj.as_name ());
@@ -248,7 +248,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         typeStr = NULL;
     }
 
-    *&obj = resolve (fieldObjA.as_dict ()["Ff"]);
+    obj = resolve (fieldObjA.as_dict ()["Ff"]);
 
     if (obj.is_int ()) {
         flagsA = (unsigned)obj.as_int ();
@@ -262,11 +262,11 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     //----- get info from parent non-terminal fields
 
     Object parentObj;
-    *&parentObj = resolve (fieldObjA.as_dict ()["Parent"]);
+    parentObj = resolve (fieldObjA.as_dict ()["Parent"]);
 
     while (parentObj.is_dict ()) {
         Object obj;
-        *&obj = resolve (parentObj.as_dict ()["T"]);
+        obj = resolve (parentObj.as_dict ()["T"]);
 
         if (obj.is_string ()) {
             if (nameA->getLength ()) {
@@ -277,7 +277,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
 
         if (!typeStr) {
-            *&obj = resolve (parentObj.as_dict ()["FT"]);
+            obj = resolve (parentObj.as_dict ()["FT"]);
 
             if (obj.is_name ()) {
                 typeStr = new GString (obj.as_name ());
@@ -285,7 +285,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
 
         if (!haveFlags) {
-            *&obj = resolve (parentObj.as_dict ()["Ff"]);
+            obj = resolve (parentObj.as_dict ()["Ff"]);
 
             if (obj.is_int ()) {
                 flagsA = (unsigned)obj.as_int ();
@@ -294,7 +294,7 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
         }
 
         Object tmp;
-        *&tmp = resolve (parentObj.as_dict ()["Parent"]);
+        tmp = resolve (parentObj.as_dict ()["Parent"]);
 
         parentObj = tmp;
     }
@@ -430,7 +430,7 @@ Unicode* AcroFormField::getValue (int* length) {
 void AcroFormField::draw (int pageNum, Gfx* gfx, bool printing) {
     // find the annotation object(s)
     Object kidsObj;
-    *&kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
+    kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
     if (kidsObj.is_array ()) {
         for (int i = 0; i < kidsObj.as_array ().size (); ++i) {
             Object annotRef, annotObj;
@@ -536,7 +536,7 @@ void AcroFormField::drawExistingAppearance (
 
     if (apObj.is_dict ()) {
         Object obj1;
-        *&obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict ()) {
             Object asObj;
@@ -825,7 +825,7 @@ void AcroFormField::drawNewAppearance (
         appearanceState = new GString (asObj.as_name ());
     }
     else if (apObj.is_dict ()) {
-        *&obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
             appearanceState = new GString (obj1.key_at (0));
@@ -1812,19 +1812,19 @@ Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
     if ((apObj = resolve ((*annot) ["AP"])).is_dict ()) {
         Object obj1;
 
-        *&obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict ()) {
             Object asObj;
 
             if ((asObj = resolve ((*annot) ["AS"])).is_name ()) {
-                *&appearance = resolve (obj1.as_dict ()[asObj.as_name ()]);
+                appearance = resolve (obj1.as_dict ()[asObj.as_name ()]);
             }
             else if (obj1.as_dict ().size () == 1) {
                 appearance = obj1.val_at (0);
             }
             else {
-                *&appearance = resolve (obj1.as_dict ()["Off"]);
+                appearance = resolve (obj1.as_dict ()["Off"]);
             }
         }
         else {

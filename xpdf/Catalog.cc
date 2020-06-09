@@ -106,11 +106,11 @@ Catalog::Catalog (PDFDoc* docA) {
     if (!readPageTree (&catDict)) { goto err1; }
 
     // read named destination dictionary
-    *&dests = resolve (catDict.as_dict ()["Dests"]);
+    dests = resolve (catDict.as_dict ()["Dests"]);
 
     // read root of named destination tree
     if ((obj = resolve (catDict.as_dict ()["Names"])).is_dict ())
-        *&nameTree = resolve (obj.as_dict ()["Dests"]);
+        nameTree = resolve (obj.as_dict ()["Dests"]);
     else
         nameTree = { };
 
@@ -137,21 +137,21 @@ Catalog::Catalog (PDFDoc* docA) {
     }
 
     // get the metadata stream
-    *&metadata = resolve (catDict.as_dict ()["Metadata"]);
+    metadata = resolve (catDict.as_dict ()["Metadata"]);
 
     // get the structure tree root
-    *&structTreeRoot = resolve (catDict.as_dict ()["StructTreeRoot"]);
+    structTreeRoot = resolve (catDict.as_dict ()["StructTreeRoot"]);
 
     // get the outline dictionary
-    *&outline = resolve (catDict.as_dict ()["Outlines"]);
+    outline = resolve (catDict.as_dict ()["Outlines"]);
 
     // get the AcroForm dictionary
-    *&acroForm = resolve (catDict.as_dict ()["AcroForm"]);
+    acroForm = resolve (catDict.as_dict ()["AcroForm"]);
 
     if (!acroForm.is_null ()) { form = Form::load (doc, this, &acroForm); }
 
     // get the OCProperties dictionary
-    *&ocProperties = resolve (catDict.as_dict ()["OCProperties"]);
+    ocProperties = resolve (catDict.as_dict ()["OCProperties"]);
 
     // get the list of embedded files
     readEmbeddedFileList (&catDict.as_dict ());

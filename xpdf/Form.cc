@@ -27,7 +27,7 @@ Form* Form::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObj) {
     //~ temporary: create an XFAForm only for XFAF, not for dynamic XFA
     xfaObj = resolve (acroFormObj->as_dict ()["XFA"]);
     docA->getXRef ()->getCatalog (&catDict);
-    *&needsRenderingObj = resolve (catDict.as_dict ()["NeedsRendering"]);
+    needsRenderingObj = resolve (catDict.as_dict ()["NeedsRendering"]);
     if (globalParams->getEnableXFA () && !xfaObj.is_null () &&
         !(needsRenderingObj.is_bool () && needsRenderingObj.as_bool ())) {
         form = XFAForm::load (docA, acroFormObj, &xfaObj);

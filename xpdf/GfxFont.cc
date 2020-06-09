@@ -421,15 +421,15 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
         }
 
         // get name
-        *&obj2 = resolve (obj1.as_dict ()["FontName"]);
+        obj2 = resolve (obj1.as_dict ()["FontName"]);
         if (obj2.is_name ()) { embFontName = new GString (obj2.as_name ()); }
 
         // look for MissingWidth
-        *&obj2 = resolve (obj1.as_dict ()["MissingWidth"]);
+        obj2 = resolve (obj1.as_dict ()["MissingWidth"]);
         if (obj2.is_num ()) { missingWidth = obj2.as_num (); }
 
         // get Ascent and Descent
-        *&obj2 = resolve (obj1.as_dict ()["Ascent"]);
+        obj2 = resolve (obj1.as_dict ()["Ascent"]);
         if (obj2.is_num ()) {
             t = 0.001 * obj2.as_num ();
             // some broken font descriptors specify a negative ascent
@@ -438,7 +438,7 @@ void GfxFont::readFontDescriptor (XRef* xref, Dict* fontDict) {
             // others set it to ridiculous values (e.g., 32768)
             if (t != 0 && t < 1.9) { ascent = t; }
         }
-        *&obj2 = resolve (obj1.as_dict ()["Descent"]);
+        obj2 = resolve (obj1.as_dict ()["Descent"]);
         if (obj2.is_num ()) {
             t = 0.001 * obj2.as_num ();
             // some broken font descriptors specify a positive descent
@@ -958,7 +958,7 @@ Gfx8BitFont::Gfx8BitFont (
     baseEncFromFontFile = false;
     obj1 = resolve ((*fontDict) ["Encoding"]);
     if (obj1.is_dict ()) {
-        *&obj2 = resolve (obj1.as_dict ()["BaseEncoding"]);
+        obj2 = resolve (obj1.as_dict ()["BaseEncoding"]);
         if (obj2.is_name ("MacRomanEncoding")) {
             hasEncoding = true;
             usesMacRomanEnc = true;
@@ -1061,7 +1061,7 @@ Gfx8BitFont::Gfx8BitFont (
 
     // merge differences into encoding
     if (obj1.is_dict ()) {
-        *&obj2 = resolve (obj1.as_dict ()["Differences"]);
+        obj2 = resolve (obj1.as_dict ()["Differences"]);
         if (obj2.is_array ()) {
             hasEncoding = true;
             code = 0;

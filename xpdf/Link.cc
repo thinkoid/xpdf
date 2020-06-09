@@ -499,7 +499,7 @@ LinkLaunch::LinkLaunch (Object* actionObj) {
             //~ This hasn't been defined by Adobe yet, so assume it looks
             //~ just like the Win dictionary until they say otherwise.
             if ((obj1 = resolve (actionObj->as_dict ()["Unix"])).is_dict ()) {
-                *&obj2 = resolve (obj1.as_dict ()["F"]);
+                obj2 = resolve (obj1.as_dict ()["F"]);
                 fileName = getFileSpecName (&obj2);
                 if ((obj2 = resolve (obj1.as_dict ()["P"])).is_string ()) {
                     params = obj2.as_string ()->copy ();
@@ -803,8 +803,8 @@ Links::Links (const Object& annots, GString* baseURI) {
     if (annots.is_array ()) {
         for (i = 0; i < annots.as_array ().size (); ++i) {
             if ((obj1 = resolve (annots [i])).is_dict ()) {
-                *&obj2 = resolve (obj1.as_dict ()["Subtype"]);
-                *&obj3 = resolve (obj1.as_dict ()["FT"]);
+                obj2 = resolve (obj1.as_dict ()["Subtype"]);
+                obj3 = resolve (obj1.as_dict ()["FT"]);
                 if (obj2.is_name ("Link") ||
                     (obj2.is_name ("Widget") &&
                      (obj3.is_name ("Btn") || obj3.is_null ()))) {

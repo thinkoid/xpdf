@@ -946,7 +946,7 @@ void Gfx::opSetExtGState (Object args[], int numArgs) {
 
     // transfer function
     if ((obj2 = resolve (obj1.as_dict ()["TR2"])).is_null ()) {
-        *&obj2 = resolve (obj1.as_dict ()["TR"]);
+        obj2 = resolve (obj1.as_dict ()["TR"]);
     }
     if (obj2.is_name ("Default") || obj2.is_name ("Identity")) {
         state->setTransfer (funcs);

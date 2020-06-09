@@ -1117,7 +1117,7 @@ void SplashOutputDev::doUpdateFont (GfxState* state) {
 
         if (!(fontLoc = gfxFont->locateFont (xref, false))) {
             error (
-                errSyntaxError, -1, "Couldn't find a font for '{0:s}'",
+                errSyntaxError, -1, "(Splash) Couldn't find a font for '{0:s}'",
                 gfxFont->as_name () ? gfxFont->as_name ()->c_str ()
                                     : "(unnamed)");
             goto err2;

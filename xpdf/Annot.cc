@@ -230,7 +230,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     else if (apObj.is_dict ()) {
         Object obj1;
 
-        *&obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve (apObj.as_dict ()["N"]);
 
         if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
             appearanceState = new GString (obj1.key_at (0));
@@ -246,7 +246,7 @@ Annot::Annot (PDFDoc* docA, Dict* dict, Ref* refA) {
     if (apObj.is_dict ()) {
         Object obj1, obj2;
 
-        *&obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve (apObj.as_dict ()["N"]);
         obj2 = apObj.as_dict ()["N"];
 
         if (obj1.is_dict ()) {
