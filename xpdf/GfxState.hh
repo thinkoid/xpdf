@@ -797,7 +797,7 @@ public:
     void getTriangle (
         int i, double* x0, double* y0, double* color0, double* x1, double* y1,
         double* color1, double* x2, double* y2, double* color2);
-    void getColor (double* in, GfxColor* out);
+    void getColor (const double*, const double*, GfxColor*);
 
 private:
     GfxGouraudVertex* vertices;
@@ -834,7 +834,7 @@ public:
     int getNComps () { return nComps; }
     int getNPatches () { return nPatches; }
     GfxPatch* getPatch (int i) { return &patches[i]; }
-    void getColor (double* in, GfxColor* out);
+    void getColor (const double*, const double*, GfxColor*);
 
 private:
     GfxPatch* patches;
