@@ -42,7 +42,7 @@ copy_escaped (Iterator iter, Iterator last, OutputIterator out)
             buf [1] = 0;
         }
         else {
-            sprintf (buf, "\\%03o", int (*iter));
+            sprintf (buf, "\\%03o", (unsigned char)*iter);
         }
 
         if (buf [1]) {
