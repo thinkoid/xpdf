@@ -12,7 +12,8 @@
 // SplashPathPoint
 //------------------------------------------------------------------------
 
-struct SplashPathPoint {
+struct SplashPathPoint
+{
     SplashCoord x, y;
 };
 
@@ -37,7 +38,8 @@ struct SplashPathPoint {
 // SplashPathHint
 //------------------------------------------------------------------------
 
-struct SplashPathHint {
+struct SplashPathHint
+{
     int ctrl0, ctrl1;
     int firstPt, lastPt;
 };
@@ -46,69 +48,70 @@ struct SplashPathHint {
 // SplashPath
 //------------------------------------------------------------------------
 
-class SplashPath {
+class SplashPath
+{
 public:
     // Create an empty path.
-    SplashPath ();
+    SplashPath();
 
     // Copy a path.
-    SplashPath* copy () { return new SplashPath (this); }
+    SplashPath *copy() { return new SplashPath(this); }
 
-    ~SplashPath ();
+    ~SplashPath();
 
     // Append <path> to <this>.
-    void append (SplashPath* path);
+    void append(SplashPath *path);
 
     // Start a new subpath.
-    SplashError moveTo (SplashCoord x, SplashCoord y);
+    SplashError moveTo(SplashCoord x, SplashCoord y);
 
     // Add a line segment to the last subpath.
-    SplashError lineTo (SplashCoord x, SplashCoord y);
+    SplashError lineTo(SplashCoord x, SplashCoord y);
 
     // Add a third-order (cubic) Bezier curve segment to the last
     // subpath.
-    SplashError curveTo (
-        SplashCoord x1, SplashCoord y1, SplashCoord x2, SplashCoord y2,
-        SplashCoord x3, SplashCoord y3);
+    SplashError curveTo(SplashCoord x1, SplashCoord y1, SplashCoord x2,
+                        SplashCoord y2, SplashCoord x3, SplashCoord y3);
 
     // Close the last subpath, adding a line segment if necessary.  If
     // <force> is true, this adds a line segment even if the current
     // point is equal to the first point in the subpath.
-    SplashError close (bool force = false);
+    SplashError close(bool force = false);
 
     // Add a stroke adjustment hint.  The controlling segments are
     // <ctrl0> and <ctrl1> (where segments are identified by their first
     // point), and the points to be adjusted are <firstPt> .. <lastPt>.
-    void addStrokeAdjustHint (int ctrl0, int ctrl1, int firstPt, int lastPt);
+    void addStrokeAdjustHint(int ctrl0, int ctrl1, int firstPt, int lastPt);
 
     // Add (<dx>, <dy>) to every point on this path.
-    void offset (SplashCoord dx, SplashCoord dy);
+    void offset(SplashCoord dx, SplashCoord dy);
 
     // Get the points on the path.
-    int getLength () { return length; }
-    void getPoint (int i, SplashCoord* x, SplashCoord* y, unsigned char* f) {
+    int  getLength() { return length; }
+    void getPoint(int i, SplashCoord *x, SplashCoord *y, unsigned char *f)
+    {
         *x = pts[i].x;
         *y = pts[i].y;
         *f = flags[i];
     }
 
     // Get the current point.
-    bool getCurPt (SplashCoord* x, SplashCoord* y);
+    bool getCurPt(SplashCoord *x, SplashCoord *y);
 
 private:
-    SplashPath (SplashPath* path);
-    void grow (int nPts);
-    bool noCurrentPoint () { return curSubpath == length; }
-    bool onePointSubpath () { return curSubpath == length - 1; }
-    bool openSubpath () { return curSubpath < length - 1; }
+    SplashPath(SplashPath *path);
+    void grow(int nPts);
+    bool noCurrentPoint() { return curSubpath == length; }
+    bool onePointSubpath() { return curSubpath == length - 1; }
+    bool openSubpath() { return curSubpath < length - 1; }
 
-    SplashPathPoint* pts; // array of points
-    unsigned char* flags;        // array of flags
-    int length, size;     // length/size of the pts and flags arrays
-    int curSubpath;       // index of first point in last subpath
+    SplashPathPoint *pts; // array of points
+    unsigned char *  flags; // array of flags
+    int              length, size; // length/size of the pts and flags arrays
+    int              curSubpath; // index of first point in last subpath
 
-    SplashPathHint* hints; // list of hints
-    int hintsLength, hintsSize;
+    SplashPathHint *hints; // list of hints
+    int             hintsLength, hintsSize;
 
     friend class SplashXPath;
     friend class Splash;

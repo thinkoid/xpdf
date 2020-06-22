@@ -9,9 +9,10 @@
 #include <string>
 #include <xpdf/bbox.hh>
 
-struct TextLink {
+struct TextLink
+{
     xpdf::bbox_t box;
-    std::string uri;
+    std::string  uri;
 };
 
 #endif // XPDF_XPDF_TEXTLINK_HH

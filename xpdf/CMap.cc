@@ -21,178 +21,183 @@
 
 //------------------------------------------------------------------------
 
-struct CMapVectorEntry {
+struct CMapVectorEntry
+{
     bool isVector;
-    union {
-        CMapVectorEntry* vector;
-        CID cid;
+    union
+    {
+        CMapVectorEntry *vector;
+        CID              cid;
     };
 };
 
 //------------------------------------------------------------------------
 
-static int getCharFromFile (void* data) { return fgetc ((FILE*)data); }
+static int getCharFromFile(void *data)
+{
+    return fgetc((FILE *)data);
+}
 
-static int getCharFromStream (void* data) {
-    return ((Stream*)data)->get ();
+static int getCharFromStream(void *data)
+{
+    return ((Stream *)data)->get();
 }
 
 //------------------------------------------------------------------------
 
-CMap* CMap::parse (CMapCache* cache, GString* collectionA, Object* obj) {
-    CMap* cMap;
-    GString* cMapNameA;
+CMap *CMap::parse(CMapCache *cache, GString *collectionA, Object *obj)
+{
+    CMap *   cMap;
+    GString *cMapNameA;
 
-    if (obj->is_name ()) {
-        cMapNameA = new GString (obj->as_name ());
-        if (!(cMap = globalParams->getCMap (collectionA, cMapNameA))) {
-            error (
-                errSyntaxError, -1,
-                "Unknown CMap '{0:t}' for character collection '{1:t}'",
-                cMapNameA, collectionA);
+    if (obj->is_name()) {
+        cMapNameA = new GString(obj->as_name());
+        if (!(cMap = globalParams->getCMap(collectionA, cMapNameA))) {
+            error(errSyntaxError, -1,
+                  "Unknown CMap '{0:t}' for character collection '{1:t}'",
+                  cMapNameA, collectionA);
         }
         delete cMapNameA;
-    }
-    else if (obj->is_stream ()) {
-        if (!(cMap = CMap::parse (NULL, collectionA, obj->as_stream ()))) {
-            error (errSyntaxError, -1, "Invalid CMap in Type 0 font");
+    } else if (obj->is_stream()) {
+        if (!(cMap = CMap::parse(NULL, collectionA, obj->as_stream()))) {
+            error(errSyntaxError, -1, "Invalid CMap in Type 0 font");
         }
-    }
-    else {
-        error (errSyntaxError, -1, "Invalid Encoding in Type 0 font");
+    } else {
+        error(errSyntaxError, -1, "Invalid Encoding in Type 0 font");
         return NULL;
     }
     return cMap;
 }
 
-CMap* CMap::parse (CMapCache* cache, GString* collectionA, GString* cMapNameA) {
-    FILE* f;
-    CMap* cMap;
+CMap *CMap::parse(CMapCache *cache, GString *collectionA, GString *cMapNameA)
+{
+    FILE *f;
+    CMap *cMap;
 
-    if (!(f = globalParams->findCMapFile (collectionA, cMapNameA))) {
+    if (!(f = globalParams->findCMapFile(collectionA, cMapNameA))) {
         // Check for an identity CMap.
-        if (!cMapNameA->cmp ("Identity") || !cMapNameA->cmp ("Identity-H")) {
-            return new CMap (collectionA->copy (), cMapNameA->copy (), 0);
+        if (!cMapNameA->cmp("Identity") || !cMapNameA->cmp("Identity-H")) {
+            return new CMap(collectionA->copy(), cMapNameA->copy(), 0);
         }
-        if (!cMapNameA->cmp ("Identity-V")) {
-            return new CMap (collectionA->copy (), cMapNameA->copy (), 1);
+        if (!cMapNameA->cmp("Identity-V")) {
+            return new CMap(collectionA->copy(), cMapNameA->copy(), 1);
         }
 
-        error (
-            errSyntaxError, -1,
-            "Couldn't find '{0:t}' CMap file for '{1:t}' collection", cMapNameA,
-            collectionA);
+        error(errSyntaxError, -1,
+              "Couldn't find '{0:t}' CMap file for '{1:t}' collection", cMapNameA,
+              collectionA);
         return NULL;
     }
 
-    cMap = new CMap (collectionA->copy (), cMapNameA->copy ());
-    cMap->parse2 (cache, &getCharFromFile, f);
+    cMap = new CMap(collectionA->copy(), cMapNameA->copy());
+    cMap->parse2(cache, &getCharFromFile, f);
 
-    fclose (f);
+    fclose(f);
 
     return cMap;
 }
 
-CMap* CMap::parse (CMapCache* cache, GString* collectionA, Stream* str) {
+CMap *CMap::parse(CMapCache *cache, GString *collectionA, Stream *str)
+{
     Object obj1;
-    CMap* cMap;
+    CMap * cMap;
 
-    cMap = new CMap (collectionA->copy (), NULL);
+    cMap = new CMap(collectionA->copy(), NULL);
 
-    if (!(obj1 = resolve ((str->as_dict ()) ["UseCMap"])).is_null ()) {
-        cMap->useCMap (cache, &obj1);
+    if (!(obj1 = resolve((str->as_dict())["UseCMap"])).is_null()) {
+        cMap->useCMap(cache, &obj1);
     }
 
-    str->reset ();
-    cMap->parse2 (cache, &getCharFromStream, str);
-    str->close ();
+    str->reset();
+    cMap->parse2(cache, &getCharFromStream, str);
+    str->close();
     return cMap;
 }
 
-void CMap::parse2 (CMapCache* cache, int (*getCharFunc) (void*), void* data) {
-    PSTokenizer* pst;
-    char tok1[256], tok2[256], tok3[256];
-    int n1, n2, n3;
-    unsigned start, end, code;
+void CMap::parse2(CMapCache *cache, int (*getCharFunc)(void *), void *data)
+{
+    PSTokenizer *pst;
+    char         tok1[256], tok2[256], tok3[256];
+    int          n1, n2, n3;
+    unsigned     start, end, code;
 
-    pst = new PSTokenizer (getCharFunc, data);
-    pst->getToken (tok1, sizeof (tok1), &n1);
-    while (pst->getToken (tok2, sizeof (tok2), &n2)) {
-        if (!strcmp (tok2, "usecmap")) {
-            if (tok1[0] == '/') { useCMap (cache, tok1 + 1); }
-            pst->getToken (tok1, sizeof (tok1), &n1);
-        }
-        else if (!strcmp (tok1, "/WMode")) {
-            wMode = atoi (tok2);
-            pst->getToken (tok1, sizeof (tok1), &n1);
-        }
-        else if (!strcmp (tok2, "begincidchar")) {
-            while (pst->getToken (tok1, sizeof (tok1), &n1)) {
-                if (!strcmp (tok1, "endcidchar")) { break; }
-                if (!pst->getToken (tok2, sizeof (tok2), &n2) ||
-                    !strcmp (tok2, "endcidchar")) {
-                    error (
-                        errSyntaxError, -1,
-                        "Illegal entry in cidchar block in CMap");
+    pst = new PSTokenizer(getCharFunc, data);
+    pst->getToken(tok1, sizeof(tok1), &n1);
+    while (pst->getToken(tok2, sizeof(tok2), &n2)) {
+        if (!strcmp(tok2, "usecmap")) {
+            if (tok1[0] == '/') {
+                useCMap(cache, tok1 + 1);
+            }
+            pst->getToken(tok1, sizeof(tok1), &n1);
+        } else if (!strcmp(tok1, "/WMode")) {
+            wMode = atoi(tok2);
+            pst->getToken(tok1, sizeof(tok1), &n1);
+        } else if (!strcmp(tok2, "begincidchar")) {
+            while (pst->getToken(tok1, sizeof(tok1), &n1)) {
+                if (!strcmp(tok1, "endcidchar")) {
+                    break;
+                }
+                if (!pst->getToken(tok2, sizeof(tok2), &n2) ||
+                    !strcmp(tok2, "endcidchar")) {
+                    error(errSyntaxError, -1,
+                          "Illegal entry in cidchar block in CMap");
                     break;
                 }
                 if (!(tok1[0] == '<' && tok1[n1 - 1] == '>' && n1 >= 4 &&
                       (n1 & 1) == 0)) {
-                    error (
-                        errSyntaxError, -1,
-                        "Illegal entry in cidchar block in CMap");
+                    error(errSyntaxError, -1,
+                          "Illegal entry in cidchar block in CMap");
                     continue;
                 }
                 tok1[n1 - 1] = '\0';
-                if (sscanf (tok1 + 1, "%x", &code) != 1) {
-                    error (
-                        errSyntaxError, -1,
-                        "Illegal entry in cidchar block in CMap");
+                if (sscanf(tok1 + 1, "%x", &code) != 1) {
+                    error(errSyntaxError, -1,
+                          "Illegal entry in cidchar block in CMap");
                     continue;
                 }
                 n1 = (n1 - 2) / 2;
-                addCIDs (code, code, n1, (CID)atoi (tok2));
+                addCIDs(code, code, n1, (CID)atoi(tok2));
             }
-            pst->getToken (tok1, sizeof (tok1), &n1);
-        }
-        else if (!strcmp (tok2, "begincidrange")) {
-            while (pst->getToken (tok1, sizeof (tok1), &n1)) {
-                if (!strcmp (tok1, "endcidrange")) { break; }
-                if (!pst->getToken (tok2, sizeof (tok2), &n2) ||
-                    !strcmp (tok2, "endcidrange") ||
-                    !pst->getToken (tok3, sizeof (tok3), &n3) ||
-                    !strcmp (tok3, "endcidrange")) {
-                    error (
-                        errSyntaxError, -1,
-                        "Illegal entry in cidrange block in CMap");
+            pst->getToken(tok1, sizeof(tok1), &n1);
+        } else if (!strcmp(tok2, "begincidrange")) {
+            while (pst->getToken(tok1, sizeof(tok1), &n1)) {
+                if (!strcmp(tok1, "endcidrange")) {
+                    break;
+                }
+                if (!pst->getToken(tok2, sizeof(tok2), &n2) ||
+                    !strcmp(tok2, "endcidrange") ||
+                    !pst->getToken(tok3, sizeof(tok3), &n3) ||
+                    !strcmp(tok3, "endcidrange")) {
+                    error(errSyntaxError, -1,
+                          "Illegal entry in cidrange block in CMap");
                     break;
                 }
                 if (tok1[0] == '<' && tok2[0] == '<' && n1 == n2 && n1 >= 4 &&
                     (n1 & 1) == 0) {
                     tok1[n1 - 1] = tok2[n1 - 1] = '\0';
-                    sscanf (tok1 + 1, "%x", &start);
-                    sscanf (tok2 + 1, "%x", &end);
+                    sscanf(tok1 + 1, "%x", &start);
+                    sscanf(tok2 + 1, "%x", &end);
                     n1 = (n1 - 2) / 2;
-                    addCIDs (start, end, n1, (CID)atoi (tok3));
+                    addCIDs(start, end, n1, (CID)atoi(tok3));
                 }
             }
-            pst->getToken (tok1, sizeof (tok1), &n1);
-        }
-        else {
-            strcpy (tok1, tok2);
+            pst->getToken(tok1, sizeof(tok1), &n1);
+        } else {
+            strcpy(tok1, tok2);
         }
     }
     delete pst;
 }
 
-CMap::CMap (GString* collectionA, GString* cMapNameA) {
+CMap::CMap(GString *collectionA, GString *cMapNameA)
+{
     int i;
 
     collection = collectionA;
     cMapName = cMapNameA;
     isIdent = false;
     wMode = 0;
-    vector = (CMapVectorEntry*)calloc (256, sizeof (CMapVectorEntry));
+    vector = (CMapVectorEntry *)calloc(256, sizeof(CMapVectorEntry));
     for (i = 0; i < 256; ++i) {
         vector[i].isVector = false;
         vector[i].cid = 0;
@@ -200,7 +205,8 @@ CMap::CMap (GString* collectionA, GString* cMapNameA) {
     refCnt = 1;
 }
 
-CMap::CMap (GString* collectionA, GString* cMapNameA, int wModeA) {
+CMap::CMap(GString *collectionA, GString *cMapNameA, int wModeA)
+{
     collection = collectionA;
     cMapName = cMapNameA;
     isIdent = true;
@@ -209,37 +215,49 @@ CMap::CMap (GString* collectionA, GString* cMapNameA, int wModeA) {
     refCnt = 1;
 }
 
-void CMap::useCMap (CMapCache* cache, char* useName) {
-    GString* useNameStr;
-    CMap* subCMap;
+void CMap::useCMap(CMapCache *cache, char *useName)
+{
+    GString *useNameStr;
+    CMap *   subCMap;
 
-    useNameStr = new GString (useName);
+    useNameStr = new GString(useName);
     // if cache is non-NULL, we already have a lock, and we can use
     // CMapCache::getCMap() directly; otherwise, we need to use
     // GlobalParams::getCMap() in order to acqure the lock need to use
     // GlobalParams::getCMap
-    if (cache) { subCMap = cache->getCMap (collection, useNameStr); }
-    else {
-        subCMap = globalParams->getCMap (collection, useNameStr);
+    if (cache) {
+        subCMap = cache->getCMap(collection, useNameStr);
+    } else {
+        subCMap = globalParams->getCMap(collection, useNameStr);
     }
     delete useNameStr;
-    if (!subCMap) { return; }
+    if (!subCMap) {
+        return;
+    }
     isIdent = subCMap->isIdent;
-    if (subCMap->vector) { copyVector (vector, subCMap->vector); }
-    subCMap->decRefCnt ();
+    if (subCMap->vector) {
+        copyVector(vector, subCMap->vector);
+    }
+    subCMap->decRefCnt();
 }
 
-void CMap::useCMap (CMapCache* cache, Object* obj) {
-    CMap* subCMap;
+void CMap::useCMap(CMapCache *cache, Object *obj)
+{
+    CMap *subCMap;
 
-    subCMap = CMap::parse (cache, collection, obj);
-    if (!subCMap) { return; }
+    subCMap = CMap::parse(cache, collection, obj);
+    if (!subCMap) {
+        return;
+    }
     isIdent = subCMap->isIdent;
-    if (subCMap->vector) { copyVector (vector, subCMap->vector); }
-    subCMap->decRefCnt ();
+    if (subCMap->vector) {
+        copyVector(vector, subCMap->vector);
+    }
+    subCMap->decRefCnt();
 }
 
-void CMap::copyVector (CMapVectorEntry* dest, CMapVectorEntry* src) {
+void CMap::copyVector(CMapVectorEntry *dest, CMapVectorEntry *src)
+{
     int i, j;
 
     for (i = 0; i < 256; ++i) {
@@ -247,29 +265,28 @@ void CMap::copyVector (CMapVectorEntry* dest, CMapVectorEntry* src) {
             if (!dest[i].isVector) {
                 dest[i].isVector = true;
                 dest[i].vector =
-                    (CMapVectorEntry*)calloc (256, sizeof (CMapVectorEntry));
+                    (CMapVectorEntry *)calloc(256, sizeof(CMapVectorEntry));
                 for (j = 0; j < 256; ++j) {
                     dest[i].vector[j].isVector = false;
                     dest[i].vector[j].cid = 0;
                 }
             }
-            copyVector (dest[i].vector, src[i].vector);
-        }
-        else {
+            copyVector(dest[i].vector, src[i].vector);
+        } else {
             if (dest[i].isVector) {
-                error (errSyntaxError, -1, "Collision in usecmap");
-            }
-            else {
+                error(errSyntaxError, -1, "Collision in usecmap");
+            } else {
                 dest[i].cid = src[i].cid;
             }
         }
     }
 }
 
-void CMap::addCIDs (unsigned start, unsigned end, unsigned nBytes, CID firstCID) {
-    CMapVectorEntry* vec;
-    int byte, byte0, byte1;
-    unsigned start1, end1, i, j, k;
+void CMap::addCIDs(unsigned start, unsigned end, unsigned nBytes, CID firstCID)
+{
+    CMapVectorEntry *vec;
+    int              byte, byte0, byte1;
+    unsigned         start1, end1, i, j, k;
 
     start1 = start & 0xffffff00;
     end1 = end & 0xffffff00;
@@ -280,7 +297,7 @@ void CMap::addCIDs (unsigned start, unsigned end, unsigned nBytes, CID firstCID)
             if (!vec[byte].isVector) {
                 vec[byte].isVector = true;
                 vec[byte].vector =
-                    (CMapVectorEntry*)calloc (256, sizeof (CMapVectorEntry));
+                    (CMapVectorEntry *)calloc(256, sizeof(CMapVectorEntry));
                 for (k = 0; k < 256; ++k) {
                     vec[byte].vector[k].isVector = false;
                     vec[byte].vector[k].cid = 0;
@@ -292,50 +309,64 @@ void CMap::addCIDs (unsigned start, unsigned end, unsigned nBytes, CID firstCID)
         byte1 = (i + 0xff > end) ? (end & 0xff) : 0xff;
         for (byte = byte0; byte <= byte1; ++byte) {
             if (vec[byte].isVector) {
-                error (
-                    errSyntaxError, -1,
-                    "Invalid CID ({0:x} [{1:d} bytes]) in CMap", i, nBytes);
-            }
-            else {
+                error(errSyntaxError, -1,
+                      "Invalid CID ({0:x} [{1:d} bytes]) in CMap", i, nBytes);
+            } else {
                 vec[byte].cid = firstCID + ((i + byte) - start);
             }
         }
     }
 }
 
-CMap::~CMap () {
+CMap::~CMap()
+{
     delete collection;
-    if (cMapName) { delete cMapName; }
-    if (vector) { freeCMapVector (vector); }
+    if (cMapName) {
+        delete cMapName;
+    }
+    if (vector) {
+        freeCMapVector(vector);
+    }
 }
 
-void CMap::freeCMapVector (CMapVectorEntry* vec) {
+void CMap::freeCMapVector(CMapVectorEntry *vec)
+{
     int i;
 
     for (i = 0; i < 256; ++i) {
-        if (vec[i].isVector) { freeCMapVector (vec[i].vector); }
+        if (vec[i].isVector) {
+            freeCMapVector(vec[i].vector);
+        }
     }
-    free (vec);
+    free(vec);
 }
 
-void CMap::incRefCnt () { ++refCnt; }
+void CMap::incRefCnt()
+{
+    ++refCnt;
+}
 
-void CMap::decRefCnt () {
+void CMap::decRefCnt()
+{
     bool done;
 
     done = --refCnt == 0;
 
-    if (done) { delete this; }
+    if (done) {
+        delete this;
+    }
 }
 
-bool CMap::match (GString* collectionA, GString* cMapNameA) {
-    return !collection->cmp (collectionA) && !cMapName->cmp (cMapNameA);
+bool CMap::match(GString *collectionA, GString *cMapNameA)
+{
+    return !collection->cmp(collectionA) && !cMapName->cmp(cMapNameA);
 }
 
-CID CMap::getCID (const char* s, int len, CharCode* c, int* nUsed) {
-    CMapVectorEntry* vec;
-    CharCode cc;
-    int n, i;
+CID CMap::getCID(const char *s, int len, CharCode *c, int *nUsed)
+{
+    CMapVectorEntry *vec;
+    CharCode         cc;
+    int              n, i;
 
     vec = vector;
     cc = 0;
@@ -363,44 +394,55 @@ CID CMap::getCID (const char* s, int len, CharCode* c, int* nUsed) {
 
 //------------------------------------------------------------------------
 
-CMapCache::CMapCache () {
-    int i;
-
-    for (i = 0; i < cMapCacheSize; ++i) { cache[i] = NULL; }
-}
-
-CMapCache::~CMapCache () {
+CMapCache::CMapCache()
+{
     int i;
 
     for (i = 0; i < cMapCacheSize; ++i) {
-        if (cache[i]) { cache[i]->decRefCnt (); }
+        cache[i] = NULL;
     }
 }
 
-CMap* CMapCache::getCMap (GString* collection, GString* cMapName) {
-    CMap* cmap;
-    int i, j;
+CMapCache::~CMapCache()
+{
+    int i;
 
-    if (cache[0] && cache[0]->match (collection, cMapName)) {
-        cache[0]->incRefCnt ();
+    for (i = 0; i < cMapCacheSize; ++i) {
+        if (cache[i]) {
+            cache[i]->decRefCnt();
+        }
+    }
+}
+
+CMap *CMapCache::getCMap(GString *collection, GString *cMapName)
+{
+    CMap *cmap;
+    int   i, j;
+
+    if (cache[0] && cache[0]->match(collection, cMapName)) {
+        cache[0]->incRefCnt();
         return cache[0];
     }
     for (i = 1; i < cMapCacheSize; ++i) {
-        if (cache[i] && cache[i]->match (collection, cMapName)) {
+        if (cache[i] && cache[i]->match(collection, cMapName)) {
             cmap = cache[i];
-            for (j = i; j >= 1; --j) { cache[j] = cache[j - 1]; }
+            for (j = i; j >= 1; --j) {
+                cache[j] = cache[j - 1];
+            }
             cache[0] = cmap;
-            cmap->incRefCnt ();
+            cmap->incRefCnt();
             return cmap;
         }
     }
-    if ((cmap = CMap::parse (this, collection, cMapName))) {
+    if ((cmap = CMap::parse(this, collection, cMapName))) {
         if (cache[cMapCacheSize - 1]) {
-            cache[cMapCacheSize - 1]->decRefCnt ();
+            cache[cMapCacheSize - 1]->decRefCnt();
         }
-        for (j = cMapCacheSize - 1; j >= 1; --j) { cache[j] = cache[j - 1]; }
+        for (j = cMapCacheSize - 1; j >= 1; --j) {
+            cache[j] = cache[j - 1];
+        }
         cache[0] = cmap;
-        cmap->incRefCnt ();
+        cmap->incRefCnt();
         return cmap;
     }
     return NULL;

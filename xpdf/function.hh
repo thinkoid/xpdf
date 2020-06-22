@@ -12,35 +12,39 @@
 
 namespace xpdf {
 
-struct function_t {
+struct function_t
+{
     struct impl_t;
 
-    static constexpr size_t max_recursion  =  8UL;
+    static constexpr size_t max_recursion = 8UL;
 
-    static constexpr size_t max_arity          = 32UL;
-    static constexpr size_t max_sampled_arity  = 16UL;
+    static constexpr size_t max_arity = 32UL;
+    static constexpr size_t max_sampled_arity = 16UL;
 
 public:
-    function_t () { }
+    function_t() { }
 
-    void operator() (const double*, const double* const, double*) const;
+    void operator()(const double *, const double *const, double *) const;
 
-    size_t   arity () const;
-    size_t coarity () const;
+    size_t arity() const;
+    size_t coarity() const;
 
-    std::string to_ps () const;
+    std::string to_ps() const;
 
-    operator bool () const { return bool (p_); }
+    operator bool() const { return bool(p_); }
 
 private:
     std::shared_ptr< impl_t > p_;
 
 private:
-    function_t (std::shared_ptr< impl_t > p) : p_ (p) { }
-    friend function_t make_function (Object&);
+    function_t(std::shared_ptr< impl_t > p)
+        : p_(p)
+    {
+    }
+    friend function_t make_function(Object &);
 };
 
-function_t make_function (Object&);
+function_t make_function(Object &);
 
 } // namespace xpdf
 

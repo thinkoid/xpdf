@@ -10,8 +10,7 @@
 
 namespace xpdf {
 
-std::vector< double >
-unpack (const char*, const char* const, size_t, size_t);
+std::vector< double > unpack(const char *, const char *const, size_t, size_t);
 
 } // namespace xpdf
 

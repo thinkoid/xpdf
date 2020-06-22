@@ -12,14 +12,14 @@ extern "C" {
  * Argument kinds.
  */
 typedef enum {
-    argFlag,   /* flag (present / not-present) */
-               /*   [val: bool *]             */
-    argInt,    /* integer arg    */
-               /*   [val: int *] */
-    argFP,     /* floating point arg */
-               /*   [val: double *]  */
+    argFlag, /* flag (present / not-present) */
+    /*   [val: bool *]             */
+    argInt, /* integer arg    */
+    /*   [val: int *] */
+    argFP, /* floating point arg */
+    /*   [val: double *]  */
     argString, /* string arg      */
-               /*   [val: char *] */
+    /*   [val: char *] */
     /* dummy entries -- these show up in the usage listing only; */
     /* useful for X args, for example                            */
     argFlagDummy,
@@ -31,12 +31,13 @@ typedef enum {
 /*
  * Argument descriptor.
  */
-typedef struct {
-    const char* arg;   /* the command line switch */
-    ArgKind kind;      /* kind of arg */
-    void* val;         /* place to store value */
-    int size;          /* for argString: size of string */
-    const char* usage; /* usage string */
+typedef struct
+{
+    const char *arg; /* the command line switch */
+    ArgKind     kind; /* kind of arg */
+    void *      val; /* place to store value */
+    int         size; /* for argString: size of string */
+    const char *usage; /* usage string */
 } ArgDesc;
 
 /*
@@ -44,19 +45,18 @@ typedef struct {
  * descriptor list <args>.  Stops parsing if "--" is found (and removes
  * it).  Returns false if there was an error.
  */
-extern bool parseArgs (ArgDesc* args, int* argc, char* argv[]);
+extern bool parseArgs(ArgDesc *args, int *argc, char *argv[]);
 
 /*
  * Print usage message, based on arg descriptor list.
  */
-extern void
-printUsage (const char* program, const char* otherArgs, ArgDesc* args);
+extern void printUsage(const char *program, const char *otherArgs, ArgDesc *args);
 
 /*
  * Check if a string is a valid integer or floating point number.
  */
-extern bool isInt (char* s);
-extern bool isFP (char* s);
+extern bool isInt(char *s);
+extern bool isFP(char *s);
 
 #ifdef __cplusplus
 }

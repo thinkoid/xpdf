@@ -10,11 +10,12 @@
 // SplashFontFileID
 //------------------------------------------------------------------------
 
-class SplashFontFileID {
+class SplashFontFileID
+{
 public:
-    SplashFontFileID ();
-    virtual ~SplashFontFileID ();
-    virtual bool matches (SplashFontFileID* id) = 0;
+    SplashFontFileID();
+    virtual ~SplashFontFileID();
+    virtual bool matches(SplashFontFileID *id) = 0;
 };
 
 #endif // XPDF_SPLASH_SPLASHFONTFILEID_HH

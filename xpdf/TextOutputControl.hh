@@ -10,13 +10,14 @@
 
 enum TextOutputMode {
     textOutReadingOrder, // format into reading order
-    textOutPhysLayout,   // maintain original physical layout
-    textOutTableLayout,  // similar to PhysLayout, but optimized for tables
-    textOutLinePrinter,  // strict fixed-pitch/height layout
-    textOutRawOrder      // keep text in content stream order
+    textOutPhysLayout, // maintain original physical layout
+    textOutTableLayout, // similar to PhysLayout, but optimized for tables
+    textOutLinePrinter, // strict fixed-pitch/height layout
+    textOutRawOrder // keep text in content stream order
 };
 
-struct TextOutputControl {
+struct TextOutputControl
+{
     //
     // Fixed-pitch characters with this width (if non-zero, only relevant for
     // PhysLayout, Table, and LinePrinter modes):
@@ -36,13 +37,13 @@ struct TextOutputControl {
     //
     // - html : enable extra processing for HTML
     //
-    unsigned char html: 1 = 0;
+    unsigned char html : 1 = 0;
 
     //
     // - clipText : separate clipped text and add it back in after forming
     //              columns:
     //
-    unsigned char clipText: 1 = 0;
+    unsigned char clipText : 1 = 0;
 };
 
 #endif // XPDF_XPDF_TEXTOUTPUTCONTROL_HH

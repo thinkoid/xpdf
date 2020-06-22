@@ -8,7 +8,7 @@
 
 #define TO_S(x) #x
 
-#define XPDF_DO_CAT(a, b) a ## b
+#define XPDF_DO_CAT(a, b) a##b
 #define XPDF_CAT(a, b) XPDF_DO_CAT(a, b)
 
 #include <boost/assert.hpp>

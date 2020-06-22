@@ -22,7 +22,7 @@
 // yMin and yMax (or xMin and xMax for rotations ∈ { 1, 3 }) are adjusted by
 // this fraction of the text height, to allow for slightly overlapping lines (or
 // large ascent/descent values):
-#define  ascentAdjustFactor 0.
+#define ascentAdjustFactor 0.
 #define descentAdjustFactor 0.35
 
 // Gaps larger than max{ gap } - splitGapSlack * avgFontSize are
@@ -117,19 +117,19 @@
 // fraction of font size).
 #define hyperlinkSlack 0.2
 
-#define XPDF_TYPEDEF(x)                                     \
-    struct x;                                               \
-    using XPDF_CAT(x, Ptr) = std::shared_ptr< x >;          \
+#define XPDF_TYPEDEF(x)                                                          \
+    struct x;                                                                    \
+    using XPDF_CAT(x, Ptr) = std::shared_ptr< x >;                               \
     using XPDF_CAT(x, s) = std::vector< XPDF_CAT(x, Ptr) >
 
-XPDF_TYPEDEF (TextFontInfo);
-XPDF_TYPEDEF (TextChar);
-XPDF_TYPEDEF (TextWord);
-XPDF_TYPEDEF (TextLine);
-XPDF_TYPEDEF (TextParagraph);
-XPDF_TYPEDEF (TextColumn);
-XPDF_TYPEDEF (TextBlock);
-XPDF_TYPEDEF (TextPage);
+XPDF_TYPEDEF(TextFontInfo);
+XPDF_TYPEDEF(TextChar);
+XPDF_TYPEDEF(TextWord);
+XPDF_TYPEDEF(TextLine);
+XPDF_TYPEDEF(TextParagraph);
+XPDF_TYPEDEF(TextColumn);
+XPDF_TYPEDEF(TextBlock);
+XPDF_TYPEDEF(TextPage);
 
 #undef XPDF_TYPEDEF
 

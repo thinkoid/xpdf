@@ -35,63 +35,65 @@ using namespace ranges;
 
 ////////////////////////////////////////////////////////////////////////
 
-TextOutputDev::TextOutputDev (TextOutputControl control)
-    : text (std::make_shared< TextPage > (&control)), control (control)
-{ }
-
-void TextOutputDev::startPage (int pageNum, GfxState* state) {
-    text->startPage (state);
+TextOutputDev::TextOutputDev(TextOutputControl control)
+    : text(std::make_shared< TextPage >(&control))
+    , control(control)
+{
 }
 
-void
-TextOutputDev::restoreState (GfxState* state) {
-    text->updateFont (state);
+void TextOutputDev::startPage(int pageNum, GfxState *state)
+{
+    text->startPage(state);
 }
 
-void
-TextOutputDev::updateFont (GfxState* state) {
-    text->updateFont (state);
+void TextOutputDev::restoreState(GfxState *state)
+{
+    text->updateFont(state);
 }
 
-void TextOutputDev::drawChar (
-    GfxState* state, double x, double y, double dx, double dy, double originX,
-    double originY, CharCode c, int nBytes, Unicode* u, int uLen) {
-    text->addChar (state, x, y, dx, dy, c, nBytes, u, uLen);
+void TextOutputDev::updateFont(GfxState *state)
+{
+    text->updateFont(state);
 }
 
-void
-TextOutputDev::incCharCount (int nChars) {
-    text->incCharCount (nChars);
+void TextOutputDev::drawChar(GfxState *state, double x, double y, double dx,
+                             double dy, double originX, double originY,
+                             CharCode c, int nBytes, Unicode *u, int uLen)
+{
+    text->addChar(state, x, y, dx, dy, c, nBytes, u, uLen);
 }
 
-void
-TextOutputDev::beginActualText (GfxState* state, Unicode* u, int uLen) {
-    text->beginActualText (state, u, uLen);
+void TextOutputDev::incCharCount(int nChars)
+{
+    text->incCharCount(nChars);
 }
 
-void TextOutputDev::endActualText (GfxState* state) {
-    text->endActualText (state);
+void TextOutputDev::beginActualText(GfxState *state, Unicode *u, int uLen)
+{
+    text->beginActualText(state, u, uLen);
 }
 
-bool TextOutputDev::findText (
-    Unicode* s, int len,
-    bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
-    bool caseSensitive, bool backward, bool wholeWord,
-    xpdf::bbox_t& box) {
-    return text->findText (
-        s, len,
-        startAtTop, stopAtBottom, startAtLast, stopAtLast,
-        caseSensitive, backward, wholeWord,
-        box);
+void TextOutputDev::endActualText(GfxState *state)
+{
+    text->endActualText(state);
 }
 
-GString*
-TextOutputDev::getText (const xpdf::bbox_t& box) {
-    return text->getText (box);
+bool TextOutputDev::findText(Unicode *s, int len, bool startAtTop,
+                             bool stopAtBottom, bool startAtLast, bool stopAtLast,
+                             bool caseSensitive, bool backward, bool wholeWord,
+                             xpdf::bbox_t &box)
+{
+    return text->findText(s, len, startAtTop, stopAtBottom, startAtLast,
+                          stopAtLast, caseSensitive, backward, wholeWord, box);
 }
 
-TextPagePtr
-TextOutputDev::takeText () {
-    auto other = std::make_shared< TextPage > (&control);
-    return std::swap (other, text), other;
+GString *TextOutputDev::getText(const xpdf::bbox_t &box)
+{
+    return text->getText(box);
+}
+
+TextPagePtr TextOutputDev::takeText()
+{
+    auto other = std::make_shared< TextPage >(&control);
+    return std::swap(other, text), other;
 }

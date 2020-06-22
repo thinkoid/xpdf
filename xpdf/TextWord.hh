@@ -16,37 +16,38 @@
 #include <xpdf/TextLink.hh>
 #include <xpdf/TextOutput.hh>
 
-struct TextWord {
-    TextWord (TextChars& chars, int start, int lenA, int rotA, bool spaceAfterA);
+struct TextWord
+{
+    TextWord(TextChars &chars, int start, int lenA, int rotA, bool spaceAfterA);
 
     // Get the TextFontInfo object associated with this word.
-    TextFontInfoPtr getFontInfo () const { return font; }
+    TextFontInfoPtr getFontInfo() const { return font; }
 
-    size_t size () const { return text.size (); }
+    size_t size() const { return text.size(); }
 
-    Unicode get (int idx) { return text[idx]; }
+    Unicode get(int idx) { return text[idx]; }
 
-    GString* getFontName () const;
+    GString *getFontName() const;
 
-    void
-    getBBox (double* xminA, double* yminA, double* xmaxA, double* ymaxA) const {
+    void getBBox(double *xminA, double *yminA, double *xmaxA, double *ymaxA) const
+    {
         *xminA = box.xmin;
         *yminA = box.ymin;
         *xmaxA = box.xmax;
         *ymaxA = box.ymax;
     }
 
-    double getFontSize () const { return fontSize; }
-    int getRotation () const { return rot; }
+    double getFontSize() const { return fontSize; }
+    int    getRotation() const { return rot; }
 
-    int getCharPos () const { return charPos.front (); }
-    int getCharLen () const { return charPos.back () - charPos.front (); }
+    int getCharPos() const { return charPos.front(); }
+    int getCharLen() const { return charPos.back() - charPos.front(); }
 
-    bool isInvisible () const { return invisible; }
-    bool isUnderlined () const { return underlined; }
-    bool getSpaceAfter () const { return spaceAfter; }
+    bool isInvisible() const { return invisible; }
+    bool isUnderlined() const { return underlined; }
+    bool getSpaceAfter() const { return spaceAfter; }
 
-    double getBaseline ();
+    double getBaseline();
 
     //
     // The text:
@@ -66,7 +67,7 @@ struct TextWord {
     std::vector< double > edge;
 
     TextFontInfoPtr font;
-    double fontSize;
+    double          fontSize;
 
     xpdf::bbox_t box;
 
@@ -75,11 +76,10 @@ struct TextWord {
     //
     std::optional< TextLink > link;
 
-    unsigned char
-        rot        : 2, // multiple of 90°: 0, 1, 2, or 3
+    unsigned char rot : 2, // multiple of 90°: 0, 1, 2, or 3
         spaceAfter : 1, // set if ∃ separating space before next character
         underlined : 1, // underlined ...?
-        invisible  : 1; // invisible, render mode 3
+        invisible : 1; // invisible, render mode 3
 };
 
 #endif // XPDF_XPDF_TEXTWORD_HH

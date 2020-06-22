@@ -11,11 +11,11 @@ extern "C" {
 
 externalref WidgetClass xpdfTreeWidgetClass;
 
-typedef struct _XPDFTreeClassRec* XPDFTreeWidgetClass;
-typedef struct _XPDFTreeRec* XPDFTreeWidget;
+typedef struct _XPDFTreeClassRec *XPDFTreeWidgetClass;
+typedef struct _XPDFTreeRec *     XPDFTreeWidget;
 
 #ifndef XPDFIsTree
-#define XPDFIsTree(w) XtIsSubclass (w, xpdfTreeWidgetClass)
+#define XPDFIsTree(w) XtIsSubclass(w, xpdfTreeWidgetClass)
 #endif
 
 #define XPDFNentryParent "entryParent"
@@ -27,14 +27,15 @@ typedef struct _XPDFTreeRec* XPDFTreeWidget;
 #define XPDFCentryExpanded "EntryExpanded"
 #define XPDFCentryPosition "EntryPosition"
 
-typedef struct {
-    int reason;
-    XEvent* event;
-    Widget selectedItem;
+typedef struct
+{
+    int     reason;
+    XEvent *event;
+    Widget  selectedItem;
 } XPDFTreeSelectCallbackStruct;
 
-extern Widget
-XPDFCreateTree (Widget parent, char* name, ArgList argList, Cardinal argCount);
+extern Widget XPDFCreateTree(Widget parent, char *name, ArgList argList,
+                             Cardinal argCount);
 
 } // extern "C"
 

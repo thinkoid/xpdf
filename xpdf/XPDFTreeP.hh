@@ -10,11 +10,10 @@
 
 extern "C" {
 
-typedef void (*XPDFLayoutProc) (Widget widget, Widget instigator);
-typedef void (*XPDFCalcSizeProc) (
-    Widget widget, Widget instigator, Dimension* totalWidth,
-    Dimension* totalHeight);
-typedef Boolean (*XPDFNeedRelayoutProc) (Widget oldWidget, Widget newWidget);
+typedef void (*XPDFLayoutProc)(Widget widget, Widget instigator);
+typedef void (*XPDFCalcSizeProc)(Widget widget, Widget instigator,
+                                 Dimension *totalWidth, Dimension *totalHeight);
+typedef Boolean (*XPDFNeedRelayoutProc)(Widget oldWidget, Widget newWidget);
 
 #define XPDFInheritCreateGC ((XtWidgetProc)_XtInherit)
 #define XPDFInheritDestroyGC ((XtWidgetProc)_XtInherit)
@@ -22,61 +21,66 @@ typedef Boolean (*XPDFNeedRelayoutProc) (Widget oldWidget, Widget newWidget);
 #define XPDFInheritCalcSize ((XPDFCalcSizeProc)_XtInherit)
 #define XPDFInheritNeedRelayout ((XPDFNeedRelayoutProc)_XtInherit)
 
-typedef struct {
-    XtWidgetProc createGC;
-    XtWidgetProc destroyGC;
-    XPDFLayoutProc layout;
-    XPDFCalcSizeProc calcSize;
+typedef struct
+{
+    XtWidgetProc         createGC;
+    XtWidgetProc         destroyGC;
+    XPDFLayoutProc       layout;
+    XPDFCalcSizeProc     calcSize;
     XPDFNeedRelayoutProc needRelayout;
-    XtPointer extension;
+    XtPointer            extension;
 } XPDFTreeClassPart;
 
-typedef struct _XPDFTreeClassRec {
-    CoreClassPart coreClass;
-    CompositeClassPart compositeClass;
+typedef struct _XPDFTreeClassRec
+{
+    CoreClassPart       coreClass;
+    CompositeClassPart  compositeClass;
     ConstraintClassPart constraintClass;
-    XmManagerClassPart managerClass;
-    XPDFTreeClassPart treeClass;
+    XmManagerClassPart  managerClass;
+    XPDFTreeClassPart   treeClass;
 } XPDFTreeClassRec;
 
 externalref XPDFTreeClassRec xpdfTreeClassRec;
 
 typedef struct _XPDFTreeEntry XPDFTreeEntry;
 
-typedef struct {
-    Dimension marginWidth;
-    Dimension marginHeight;
+typedef struct
+{
+    Dimension      marginWidth;
+    Dimension      marginHeight;
     XtCallbackList selectCallback;
-    GC plainGC;
-    GC dottedGC;
-    XPDFTreeEntry* root;
-    int redrawY;
+    GC             plainGC;
+    GC             dottedGC;
+    XPDFTreeEntry *root;
+    int            redrawY;
 } XPDFTreePart;
 
-typedef struct _XPDFTreeRec {
-    CorePart core;
-    CompositePart composite;
+typedef struct _XPDFTreeRec
+{
+    CorePart       core;
+    CompositePart  composite;
     ConstraintPart constraint;
-    XmManagerPart manager;
-    XPDFTreePart tree;
+    XmManagerPart  manager;
+    XPDFTreePart   tree;
 } XPDFTreeRec;
 
 #define XPDFTreeIndex (XmManagerIndex + 1)
 
-typedef struct _XPDFTreeConstraintPart {
-    Widget entryParent;
-    Boolean entryExpanded;
-    int entryPosition;
-    XPDFTreeEntry* e;
+typedef struct _XPDFTreeConstraintPart
+{
+    Widget         entryParent;
+    Boolean        entryExpanded;
+    int            entryPosition;
+    XPDFTreeEntry *e;
 } XPDFTreeConstraintPart, *XPDFTreeConstraint;
 
-typedef struct _XPDFTreeConstraintRec {
+typedef struct _XPDFTreeConstraintRec
+{
     XmManagerConstraintPart manager;
-    XPDFTreeConstraintPart tree;
+    XPDFTreeConstraintPart  tree;
 } XPDFTreeConstraintRec, *XPDFTreeConstraintPtr;
 
-#define XPDFTreeCPart(w) \
-    (&((XPDFTreeConstraintPtr) (w)->core.constraints)->tree)
+#define XPDFTreeCPart(w) (&((XPDFTreeConstraintPtr)(w)->core.constraints)->tree)
 
 } // extern "C"
 

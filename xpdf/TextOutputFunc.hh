@@ -6,6 +6,6 @@
 
 #include <defs.hh>
 
-typedef void (*TextOutputFunc) (void* stream, const char* text, int len);
+typedef void (*TextOutputFunc)(void *stream, const char *text, int len);
 
 #endif // XPDF_XPDF_TEXTOUTPUTFUNC_HH

@@ -14,36 +14,40 @@
 // SplashBitmap
 //------------------------------------------------------------------------
 
-SplashBitmap::SplashBitmap (
-    int widthA, int heightA, int rowPad, SplashColorMode modeA, bool alphaA,
-    bool topDown) {
+SplashBitmap::SplashBitmap(int widthA, int heightA, int rowPad,
+                           SplashColorMode modeA, bool alphaA, bool topDown)
+{
     width = widthA;
     height = heightA;
     mode = modeA;
     switch (mode) {
     case splashModeMono1:
-        if (width > 0) { rowSize = (width + 7) >> 3; }
-        else {
+        if (width > 0) {
+            rowSize = (width + 7) >> 3;
+        } else {
             rowSize = -1;
         }
         break;
     case splashModeMono8:
-        if (width > 0) { rowSize = width; }
-        else {
+        if (width > 0) {
+            rowSize = width;
+        } else {
             rowSize = -1;
         }
         break;
     case splashModeRGB8:
     case splashModeBGR8:
-        if (width > 0 && width <= INT_MAX / 3) { rowSize = width * 3; }
-        else {
+        if (width > 0 && width <= INT_MAX / 3) {
+            rowSize = width * 3;
+        } else {
             rowSize = -1;
         }
         break;
 #if SPLASH_CMYK
     case splashModeCMYK8:
-        if (width > 0 && width <= INT_MAX / 4) { rowSize = width * 4; }
-        else {
+        if (width > 0 && width <= INT_MAX / 4) {
+            rowSize = width * 4;
+        } else {
             rowSize = -1;
         }
         break;
@@ -53,49 +57,56 @@ SplashBitmap::SplashBitmap (
         rowSize += rowPad - 1;
         rowSize -= rowSize % rowPad;
     }
-    data = (SplashColorPtr)calloc (height, rowSize);
+    data = (SplashColorPtr)calloc(height, rowSize);
     if (!topDown) {
         data += (height - 1) * rowSize;
         rowSize = -rowSize;
     }
-    if (alphaA) { alpha = (unsigned char*)calloc (width, height); }
-    else {
+    if (alphaA) {
+        alpha = (unsigned char *)calloc(width, height);
+    } else {
         alpha = NULL;
     }
 }
 
-SplashBitmap::~SplashBitmap () {
+SplashBitmap::~SplashBitmap()
+{
     if (data) {
-        if (rowSize < 0) { free (data + (height - 1) * rowSize); }
-        else {
-            free (data);
+        if (rowSize < 0) {
+            free(data + (height - 1) * rowSize);
+        } else {
+            free(data);
         }
     }
-    free (alpha);
+    free(alpha);
 }
 
-SplashError SplashBitmap::writePNMFile (const char* fileName) {
-    FILE* f;
+SplashError SplashBitmap::writePNMFile(const char *fileName)
+{
+    FILE *      f;
     SplashError err;
 
-    if (!(f = fopen (fileName, "wb"))) { return splashErrOpenFile; }
-    err = writePNMFile (f);
-    fclose (f);
+    if (!(f = fopen(fileName, "wb"))) {
+        return splashErrOpenFile;
+    }
+    err = writePNMFile(f);
+    fclose(f);
     return err;
 }
 
-SplashError SplashBitmap::writePNMFile (FILE* f) {
+SplashError SplashBitmap::writePNMFile(FILE *f)
+{
     SplashColorPtr row, p;
-    int x, y;
+    int            x, y;
 
     switch (mode) {
     case splashModeMono1:
-        fprintf (f, "P4\n%d %d\n", width, height);
+        fprintf(f, "P4\n%d %d\n", width, height);
         row = data;
         for (y = 0; y < height; ++y) {
             p = row;
             for (x = 0; x < width; x += 8) {
-                fputc (*p ^ 0xff, f);
+                fputc(*p ^ 0xff, f);
                 ++p;
             }
             row += rowSize;
@@ -103,32 +114,32 @@ SplashError SplashBitmap::writePNMFile (FILE* f) {
         break;
 
     case splashModeMono8:
-        fprintf (f, "P5\n%d %d\n255\n", width, height);
+        fprintf(f, "P5\n%d %d\n255\n", width, height);
         row = data;
         for (y = 0; y < height; ++y) {
-            fwrite (row, 1, width, f);
+            fwrite(row, 1, width, f);
             row += rowSize;
         }
         break;
 
     case splashModeRGB8:
-        fprintf (f, "P6\n%d %d\n255\n", width, height);
+        fprintf(f, "P6\n%d %d\n255\n", width, height);
         row = data;
         for (y = 0; y < height; ++y) {
-            fwrite (row, 1, 3 * width, f);
+            fwrite(row, 1, 3 * width, f);
             row += rowSize;
         }
         break;
 
     case splashModeBGR8:
-        fprintf (f, "P6\n%d %d\n255\n", width, height);
+        fprintf(f, "P6\n%d %d\n255\n", width, height);
         row = data;
         for (y = 0; y < height; ++y) {
             p = row;
             for (x = 0; x < width; ++x) {
-                fputc (splashBGR8R (p), f);
-                fputc (splashBGR8G (p), f);
-                fputc (splashBGR8B (p), f);
+                fputc(splashBGR8R(p), f);
+                fputc(splashBGR8G(p), f);
+                fputc(splashBGR8B(p), f);
                 p += 3;
             }
             row += rowSize;
@@ -145,21 +156,29 @@ SplashError SplashBitmap::writePNMFile (FILE* f) {
     return splashOk;
 }
 
-SplashError SplashBitmap::writeAlphaPGMFile (char* fileName) {
-    FILE* f;
+SplashError SplashBitmap::writeAlphaPGMFile(char *fileName)
+{
+    FILE *f;
 
-    if (!alpha) { return splashErrModeMismatch; }
-    if (!(f = fopen (fileName, "wb"))) { return splashErrOpenFile; }
-    fprintf (f, "P5\n%d %d\n255\n", width, height);
-    fwrite (alpha, 1, width * height, f);
-    fclose (f);
+    if (!alpha) {
+        return splashErrModeMismatch;
+    }
+    if (!(f = fopen(fileName, "wb"))) {
+        return splashErrOpenFile;
+    }
+    fprintf(f, "P5\n%d %d\n255\n", width, height);
+    fwrite(alpha, 1, width * height, f);
+    fclose(f);
     return splashOk;
 }
 
-void SplashBitmap::getPixel (int x, int y, SplashColorPtr pixel) {
+void SplashBitmap::getPixel(int x, int y, SplashColorPtr pixel)
+{
     SplashColorPtr p;
 
-    if (y < 0 || y >= height || x < 0 || x >= width) { return; }
+    if (y < 0 || y >= height || x < 0 || x >= width) {
+        return;
+    }
     switch (mode) {
     case splashModeMono1:
         p = &data[y * rowSize + (x >> 3)];
@@ -193,9 +212,13 @@ void SplashBitmap::getPixel (int x, int y, SplashColorPtr pixel) {
     }
 }
 
-unsigned char SplashBitmap::getAlpha (int x, int y) { return alpha[y * width + x]; }
+unsigned char SplashBitmap::getAlpha(int x, int y)
+{
+    return alpha[y * width + x];
+}
 
-SplashColorPtr SplashBitmap::takeData () {
+SplashColorPtr SplashBitmap::takeData()
+{
     SplashColorPtr data2;
 
     data2 = data;

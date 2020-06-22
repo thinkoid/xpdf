@@ -4,7 +4,7 @@
 #ifndef XPDF_XPDF_COMPACTFONTTABLES_HH
 #define XPDF_XPDF_COMPACTFONTTABLES_HH
 
-static char* type1CStdStrings[391] = { ".notdef",
+static char *type1CStdStrings[391] = { ".notdef",
                                        "space",
                                        "exclam",
                                        "quotedbl",

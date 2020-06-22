@@ -13,65 +13,72 @@
 
 //------------------------------------------------------------------------
 
-TextString::TextString () {
+TextString::TextString()
+{
     u = NULL;
     len = size = 0;
 }
 
-TextString::TextString (GString* s) {
+TextString::TextString(GString *s)
+{
     u = NULL;
     len = size = 0;
-    append (s);
+    append(s);
 }
 
-TextString::TextString (TextString* s) {
+TextString::TextString(TextString *s)
+{
     len = size = s->len;
     if (len) {
-        u = (Unicode*)calloc (size, sizeof (Unicode));
-        memcpy (u, s->u, len * sizeof (Unicode));
-    }
-    else {
+        u = (Unicode *)calloc(size, sizeof(Unicode));
+        memcpy(u, s->u, len * sizeof(Unicode));
+    } else {
         u = NULL;
     }
 }
 
-TextString::~TextString () { free (u); }
+TextString::~TextString()
+{
+    free(u);
+}
 
-TextString* TextString::append (Unicode c) {
-    expand (1);
+TextString *TextString::append(Unicode c)
+{
+    expand(1);
     u[len] = c;
     ++len;
     return this;
 }
 
-TextString* TextString::append (GString* s) {
+TextString *TextString::append(GString *s)
+{
     int n, i;
 
-    if ((s->front () & 0xff) == 0xfe && ((*s) [1] & 0xff) == 0xff) {
-        n = (s->getLength () - 2) / 2;
-        expand (n);
+    if ((s->front() & 0xff) == 0xfe && ((*s)[1] & 0xff) == 0xff) {
+        n = (s->getLength() - 2) / 2;
+        expand(n);
         for (i = 0; i < n; ++i) {
-            u[len + i] = (((*s) [2 + 2 * i] & 0xff) << 8) |
-                         ((*s) [3 + 2 * i] & 0xff);
+            u[len + i] = (((*s)[2 + 2 * i] & 0xff) << 8) |
+                         ((*s)[3 + 2 * i] & 0xff);
         }
         len += n;
-    }
-    else {
-        n = s->getLength ();
-        expand (n);
+    } else {
+        n = s->getLength();
+        expand(n);
         for (i = 0; i < n; ++i) {
-            u[len + i] = pdfDocEncoding[(*s) [i] & 0xff];
+            u[len + i] = pdfDocEncoding[(*s)[i] & 0xff];
         }
         len += n;
     }
     return this;
 }
 
-TextString* TextString::insert (int idx, Unicode c) {
+TextString *TextString::insert(int idx, Unicode c)
+{
     if (idx >= 0 && idx <= len) {
-        expand (1);
+        expand(1);
         if (idx < len) {
-            memmove (u + idx + 1, u + idx, (len - idx) * sizeof (Unicode));
+            memmove(u + idx + 1, u + idx, (len - idx) * sizeof(Unicode));
         }
         u[idx] = c;
         ++len;
@@ -79,31 +86,30 @@ TextString* TextString::insert (int idx, Unicode c) {
     return this;
 }
 
-TextString* TextString::insert (int idx, GString* s) {
+TextString *TextString::insert(int idx, GString *s)
+{
     int n, i;
 
     if (idx >= 0 && idx <= len) {
-        if ((s->front () & 0xff) == 0xfe &&
-            ((*s) [1] & 0xff) == 0xff) {
-            n = (s->getLength () - 2) / 2;
-            expand (n);
+        if ((s->front() & 0xff) == 0xfe && ((*s)[1] & 0xff) == 0xff) {
+            n = (s->getLength() - 2) / 2;
+            expand(n);
             if (idx < len) {
-                memmove (u + idx + n, u + idx, (len - idx) * sizeof (Unicode));
+                memmove(u + idx + n, u + idx, (len - idx) * sizeof(Unicode));
             }
             for (i = 0; i < n; ++i) {
-                u[idx + i] = (((*s) [2 + 2 * i] & 0xff) << 8) |
-                             ((*s) [3 + 2 * i] & 0xff);
+                u[idx + i] = (((*s)[2 + 2 * i] & 0xff) << 8) |
+                             ((*s)[3 + 2 * i] & 0xff);
             }
             len += n;
-        }
-        else {
-            n = s->getLength ();
-            expand (n);
+        } else {
+            n = s->getLength();
+            expand(n);
             if (idx < len) {
-                memmove (u + idx + n, u + idx, (len - idx) * sizeof (Unicode));
+                memmove(u + idx + n, u + idx, (len - idx) * sizeof(Unicode));
             }
             for (i = 0; i < n; ++i) {
-                u[idx + i] = pdfDocEncoding[(*s) [i] & 0xff];
+                u[idx + i] = pdfDocEncoding[(*s)[i] & 0xff];
             }
             len += n;
         }
@@ -111,30 +117,29 @@ TextString* TextString::insert (int idx, GString* s) {
     return this;
 }
 
-void TextString::expand (int delta) {
+void TextString::expand(int delta)
+{
     int newLen;
 
     newLen = len + delta;
     if (delta > INT_MAX - len) {
         // trigger an out-of-memory error
         size = -1;
-    }
-    else if (newLen <= size) {
+    } else if (newLen <= size) {
         return;
-    }
-    else if (size > 0 && size <= INT_MAX / 2 && size * 2 >= newLen) {
+    } else if (size > 0 && size <= INT_MAX / 2 && size * 2 >= newLen) {
         size *= 2;
-    }
-    else {
+    } else {
         size = newLen;
     }
-    u = (Unicode*)reallocarray (u, size, sizeof (Unicode));
+    u = (Unicode *)reallocarray(u, size, sizeof(Unicode));
 }
 
-GString* TextString::toPDFTextString () {
-    GString* s;
-    bool useUnicode;
-    int i;
+GString *TextString::toPDFTextString()
+{
+    GString *s;
+    bool     useUnicode;
+    int      i;
 
     useUnicode = false;
     for (i = 0; i < len; ++i) {
@@ -143,17 +148,18 @@ GString* TextString::toPDFTextString () {
             break;
         }
     }
-    s = new GString ();
+    s = new GString();
     if (useUnicode) {
-        s->append (1UL, (char)0xfe);
-        s->append (1UL, (char)0xff);
+        s->append(1UL, (char)0xfe);
+        s->append(1UL, (char)0xff);
         for (i = 0; i < len; ++i) {
-            s->append (1UL, (char)(u[i] >> 8));
-            s->append (1UL, (char)u[i]);
+            s->append(1UL, (char)(u[i] >> 8));
+            s->append(1UL, (char)u[i]);
         }
-    }
-    else {
-        for (i = 0; i < len; ++i) { s->append (1UL, (char)u[i]); }
+    } else {
+        for (i = 0; i < len; ++i) {
+            s->append(1UL, (char)u[i]);
+        }
     }
     return s;
 }

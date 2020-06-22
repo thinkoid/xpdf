@@ -59,20 +59,16 @@ libxpdf_a_SOURCES =                             \
 	bitpack.cc                                  \
 	dict.cc                                     \
 	function.cc                                 \
-	obj.cc                                      \
-	parser/ctype.cc                             \
-	xpdf.cc
+	obj.cc
 
-bin_PROGRAMS = xpdf3 xpdf4
+bin_PROGRAMS = xpdf
 
-xpdf3_SOURCES = xpdf3.cc                        \
+xpdf_SOURCES = xpdf.cc                          \
    XPDFApp.cc                                   \
    XPDFAppRes.cc                                \
    XPDFCore.cc                                  \
    XPDFTree.cc                                  \
    XPDFUI.cc
-
-xpdf4_SOURCES = xpdf4.cc
 
 AM_LDFLAGS += $(FREETYPE2_CPPFLAGS)
 

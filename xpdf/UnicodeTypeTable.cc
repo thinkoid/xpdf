@@ -5,12 +5,14 @@
 #include <xpdf/CharTypes.hh>
 #include <xpdf/UnicodeTypeTable.hh>
 
-struct UnicodeMapTableEntry {
-    const char* vector;
-    char type;
+struct UnicodeMapTableEntry
+{
+    const char *vector;
+    char        type;
 };
 
-struct UnicodeCaseTableVector {
+struct UnicodeCaseTableVector
+{
     Unicode codes[256];
 };
 
@@ -757,7 +759,7 @@ static UnicodeCaseTableVector caseTableff = {
       0xfff3, 0xfff4, 0xfff5, 0xfff6, 0xfff7, 0xfff8, 0xfff9, 0xfffa, 0xfffb,
       0xfffc, 0xfffd, 0xfffe, 0xffff }
 };
-static UnicodeCaseTableVector* caseTable[256] = {
+static UnicodeCaseTableVector *caseTable[256] = {
     &caseTable00, &caseTable01, &caseTable02, &caseTable03, &caseTable04,
     &caseTable05, NULL,         NULL,         NULL,         NULL,
     NULL,         NULL,         NULL,         NULL,         NULL,
@@ -812,52 +814,66 @@ static UnicodeCaseTableVector* caseTable[256] = {
     &caseTableff
 };
 
-static inline char getType (Unicode c) {
-    int i;
+static inline char getType(Unicode c)
+{
+    int  i;
     char type;
 
     if (c > 0xffff) {
         type = 'X';
-    }
-    else {
+    } else {
         i = (c >> 8) & 0xff;
 
         if ((type = typeTable[i].type) == 'X') {
-            type = typeTable [i].vector [c & 0xff];
+            type = typeTable[i].vector[c & 0xff];
         }
     }
     return type;
 }
 
-bool unicodeTypeL (Unicode c) { return getType (c) == 'L'; }
-bool unicodeTypeR (Unicode c) { return getType (c) == 'R'; }
+bool unicodeTypeL(Unicode c)
+{
+    return getType(c) == 'L';
+}
+bool unicodeTypeR(Unicode c)
+{
+    return getType(c) == 'R';
+}
 
-bool unicodeTypeNum (Unicode c) {
+bool unicodeTypeNum(Unicode c)
+{
     char t;
 
-    t = getType (c);
+    t = getType(c);
     return t == '#' || t == '.';
 }
 
-bool unicodeTypeAlphaNum (Unicode c) {
+bool unicodeTypeAlphaNum(Unicode c)
+{
     char t;
 
-    t = getType (c);
+    t = getType(c);
     return t == 'L' || t == 'R' || t == '#' || t == '.';
 }
 
-bool unicodeTypeWord (Unicode c) {
+bool unicodeTypeWord(Unicode c)
+{
     char t;
 
-    t = getType (c);
+    t = getType(c);
     return t == 'L' || t == 'R' || t == '#';
 }
 
-Unicode unicodeToUpper (Unicode c) {
+Unicode unicodeToUpper(Unicode c)
+{
     int i;
 
-    if (c > 0xffff) { return c; }
+    if (c > 0xffff) {
+        return c;
+    }
     i = (c >> 8) & 0xff;
-    if (caseTable[i]) { return caseTable[i]->codes[c & 0xff]; }
+    if (caseTable[i]) {
+        return caseTable[i]->codes[c & 0xff];
+    }
     return c;
 }

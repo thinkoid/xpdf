@@ -13,106 +13,116 @@
 #endif
 #include <splash/SplashTypes.hh>
 
-static inline SplashCoord splashAbs (SplashCoord x) { return fabs (x); }
+static inline SplashCoord splashAbs(SplashCoord x)
+{
+    return fabs(x);
+}
 
-static inline int splashFloor (SplashCoord x) {
+static inline int splashFloor(SplashCoord x)
+{
 #if __GNUC__ && __i386__
     // floor() and (int)() are implemented separately, which results
     // in changing the FPCW multiple times - so we optimize it with
     // some inline assembly
     unsigned short oldCW, newCW, t;
-    int result;
+    int            result;
 
-    __asm__ volatile(
-        "fnstcw %0\n"
-        "movw   %0, %3\n"
-        "andw   $0xf3ff, %3\n"
-        "orw    $0x0400, %3\n"
-        "movw   %3, %1\n" // round down
-        "fldcw  %1\n"
-        "fistl %2\n"
-        "fldcw  %0\n"
-        : "=m"(oldCW), "=m"(newCW), "=m"(result), "=r"(t)
-        : "t"(x));
+    __asm__ volatile("fnstcw %0\n"
+                     "movw   %0, %3\n"
+                     "andw   $0xf3ff, %3\n"
+                     "orw    $0x0400, %3\n"
+                     "movw   %3, %1\n" // round down
+                     "fldcw  %1\n"
+                     "fistl %2\n"
+                     "fldcw  %0\n"
+                     : "=m"(oldCW), "=m"(newCW), "=m"(result), "=r"(t)
+                     : "t"(x));
     return result;
 #else
-    return (int)floor (x);
+    return (int)floor(x);
 #endif
 }
 
-static inline int splashCeil (SplashCoord x) {
+static inline int splashCeil(SplashCoord x)
+{
 #if __GNUC__ && __i386__
     // ceil() and (int)() are implemented separately, which results
     // in changing the FPCW multiple times - so we optimize it with
     // some inline assembly
     unsigned short oldCW, newCW, t;
-    int result;
+    int            result;
 
-    __asm__ volatile(
-        "fnstcw %0\n"
-        "movw   %0, %3\n"
-        "andw   $0xf3ff, %3\n"
-        "orw    $0x0800, %3\n"
-        "movw   %3, %1\n" // round up
-        "fldcw  %1\n"
-        "fistl %2\n"
-        "fldcw  %0\n"
-        : "=m"(oldCW), "=m"(newCW), "=m"(result), "=r"(t)
-        : "t"(x));
+    __asm__ volatile("fnstcw %0\n"
+                     "movw   %0, %3\n"
+                     "andw   $0xf3ff, %3\n"
+                     "orw    $0x0800, %3\n"
+                     "movw   %3, %1\n" // round up
+                     "fldcw  %1\n"
+                     "fistl %2\n"
+                     "fldcw  %0\n"
+                     : "=m"(oldCW), "=m"(newCW), "=m"(result), "=r"(t)
+                     : "t"(x));
     return result;
 #else
-    return (int)ceil (x);
+    return (int)ceil(x);
 #endif
 }
 
-static inline int splashRound (SplashCoord x) {
+static inline int splashRound(SplashCoord x)
+{
 #if __GNUC__ && __i386__
     // this could use round-to-nearest mode and avoid the "+0.5",
     // but that produces slightly different results (because i+0.5
     // sometimes rounds up and sometimes down using the even rule)
     unsigned short oldCW, newCW, t;
-    int result;
+    int            result;
 
     x += 0.5;
-    __asm__ volatile(
-        "fnstcw %0\n"
-        "movw   %0, %3\n"
-        "andw   $0xf3ff, %3\n"
-        "orw    $0x0400, %3\n"
-        "movw   %3, %1\n" // round down
-        "fldcw  %1\n"
-        "fistl %2\n"
-        "fldcw  %0\n"
-        : "=m"(oldCW), "=m"(newCW), "=m"(result), "=r"(t)
-        : "t"(x));
+    __asm__ volatile("fnstcw %0\n"
+                     "movw   %0, %3\n"
+                     "andw   $0xf3ff, %3\n"
+                     "orw    $0x0400, %3\n"
+                     "movw   %3, %1\n" // round down
+                     "fldcw  %1\n"
+                     "fistl %2\n"
+                     "fldcw  %0\n"
+                     : "=m"(oldCW), "=m"(newCW), "=m"(result), "=r"(t)
+                     : "t"(x));
     return result;
 #else
-    return (int)floor (x + 0.5);
+    return (int)floor(x + 0.5);
 #endif
 }
 
-static inline SplashCoord splashAvg (SplashCoord x, SplashCoord y) {
+static inline SplashCoord splashAvg(SplashCoord x, SplashCoord y)
+{
     return 0.5 * (x + y);
 }
 
-static inline SplashCoord splashSqrt (SplashCoord x) { return sqrt (x); }
-
-static inline SplashCoord splashPow (SplashCoord x, SplashCoord y) {
-    return pow (x, y);
+static inline SplashCoord splashSqrt(SplashCoord x)
+{
+    return sqrt(x);
 }
 
-static inline SplashCoord
-splashDist (SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1) {
+static inline SplashCoord splashPow(SplashCoord x, SplashCoord y)
+{
+    return pow(x, y);
+}
+
+static inline SplashCoord splashDist(SplashCoord x0, SplashCoord y0,
+                                     SplashCoord x1, SplashCoord y1)
+{
     SplashCoord dx, dy;
     dx = x1 - x0;
     dy = y1 - y0;
-    return sqrt (dx * dx + dy * dy);
+    return sqrt(dx * dx + dy * dy);
 }
 
-static inline bool splashCheckDet (
-    SplashCoord m11, SplashCoord m12, SplashCoord m21, SplashCoord m22,
-    SplashCoord epsilon) {
-    return fabs (m11 * m22 - m12 * m21) >= epsilon;
+static inline bool splashCheckDet(SplashCoord m11, SplashCoord m12,
+                                  SplashCoord m21, SplashCoord m22,
+                                  SplashCoord epsilon)
+{
+    return fabs(m11 * m22 - m12 * m21) >= epsilon;
 }
 
 // Perform stroke adjustment on a SplashCoord range [xMin, xMax),
@@ -155,14 +165,15 @@ static inline bool splashCheckDet (
 //         but
 //               xMin  = 10.1   xMax  = 11.3   (width = 1.2)
 //           --> xMinI = 10     xMaxI = 12     (width = 2)
-static inline void splashStrokeAdjust (
-    SplashCoord xMin, SplashCoord xMax, int* xMinI, int* xMaxI) {
+static inline void splashStrokeAdjust(SplashCoord xMin, SplashCoord xMax,
+                                      int *xMinI, int *xMaxI)
+{
     int x0, x1;
 
     // NB: enable exactly one of these.
 #if 1 // 1. Round both edge coordinates.
-    x0 = splashRound (xMin);
-    x1 = splashRound (xMax);
+    x0 = splashRound(xMin);
+    x1 = splashRound(xMax);
 #endif
 #if 0 // 2. Round the min coordinate; add the ceiling of the width.
   x0 = splashRound(xMin);
@@ -172,7 +183,9 @@ static inline void splashStrokeAdjust (
   x0 = splashFloor(xMin);
   x1 = splashCeil(xMax);
 #endif
-    if (x1 == x0) { ++x1; }
+    if (x1 == x0) {
+        ++x1;
+    }
     *xMinI = x0;
     *xMaxI = x1;
 }

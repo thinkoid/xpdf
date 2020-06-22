@@ -26,7 +26,8 @@
 // 3. open subpath with two or more points
 //    [curSubpath < length - 1]
 
-SplashPath::SplashPath () {
+SplashPath::SplashPath()
+{
     pts = NULL;
     flags = NULL;
     length = size = 0;
@@ -35,46 +36,53 @@ SplashPath::SplashPath () {
     hintsLength = hintsSize = 0;
 }
 
-SplashPath::SplashPath (SplashPath* path) {
+SplashPath::SplashPath(SplashPath *path)
+{
     length = path->length;
     size = path->size;
-    pts = (SplashPathPoint*)calloc (size, sizeof (SplashPathPoint));
-    flags = (unsigned char*)calloc (size, sizeof (unsigned char));
-    memcpy (pts, path->pts, length * sizeof (SplashPathPoint));
-    memcpy (flags, path->flags, length * sizeof (unsigned char));
+    pts = (SplashPathPoint *)calloc(size, sizeof(SplashPathPoint));
+    flags = (unsigned char *)calloc(size, sizeof(unsigned char));
+    memcpy(pts, path->pts, length * sizeof(SplashPathPoint));
+    memcpy(flags, path->flags, length * sizeof(unsigned char));
     curSubpath = path->curSubpath;
     if (path->hints) {
         hintsLength = hintsSize = path->hintsLength;
-        hints = (SplashPathHint*)calloc (hintsSize, sizeof (SplashPathHint));
-        memcpy (hints, path->hints, hintsLength * sizeof (SplashPathHint));
-    }
-    else {
+        hints = (SplashPathHint *)calloc(hintsSize, sizeof(SplashPathHint));
+        memcpy(hints, path->hints, hintsLength * sizeof(SplashPathHint));
+    } else {
         hints = NULL;
         hintsLength = hintsSize = 0;
     }
 }
 
-SplashPath::~SplashPath () {
-    free (pts);
-    free (flags);
-    free (hints);
+SplashPath::~SplashPath()
+{
+    free(pts);
+    free(flags);
+    free(hints);
 }
 
 // Add space for <nPts> more points.
-void SplashPath::grow (int nPts) {
+void SplashPath::grow(int nPts)
+{
     if (length + nPts > size) {
-        if (size == 0) { size = 32; }
-        while (size < length + nPts) { size *= 2; }
-        pts = (SplashPathPoint*)reallocarray (pts, size, sizeof (SplashPathPoint));
-        flags = (unsigned char*)reallocarray (flags, size, sizeof (unsigned char));
+        if (size == 0) {
+            size = 32;
+        }
+        while (size < length + nPts) {
+            size *= 2;
+        }
+        pts = (SplashPathPoint *)reallocarray(pts, size, sizeof(SplashPathPoint));
+        flags = (unsigned char *)reallocarray(flags, size, sizeof(unsigned char));
     }
 }
 
-void SplashPath::append (SplashPath* path) {
+void SplashPath::append(SplashPath *path)
+{
     int i;
 
     curSubpath = length + path->curSubpath;
-    grow (path->length);
+    grow(path->length);
     for (i = 0; i < path->length; ++i) {
         pts[length] = path->pts[i];
         flags[length] = path->flags[i];
@@ -82,9 +90,12 @@ void SplashPath::append (SplashPath* path) {
     }
 }
 
-SplashError SplashPath::moveTo (SplashCoord x, SplashCoord y) {
-    if (onePointSubpath ()) { return splashErrBogusPath; }
-    grow (1);
+SplashError SplashPath::moveTo(SplashCoord x, SplashCoord y)
+{
+    if (onePointSubpath()) {
+        return splashErrBogusPath;
+    }
+    grow(1);
     pts[length].x = x;
     pts[length].y = y;
     flags[length] = splashPathFirst | splashPathLast;
@@ -92,10 +103,13 @@ SplashError SplashPath::moveTo (SplashCoord x, SplashCoord y) {
     return splashOk;
 }
 
-SplashError SplashPath::lineTo (SplashCoord x, SplashCoord y) {
-    if (noCurrentPoint ()) { return splashErrNoCurPt; }
+SplashError SplashPath::lineTo(SplashCoord x, SplashCoord y)
+{
+    if (noCurrentPoint()) {
+        return splashErrNoCurPt;
+    }
     flags[length - 1] &= ~splashPathLast;
-    grow (1);
+    grow(1);
     pts[length].x = x;
     pts[length].y = y;
     flags[length] = splashPathLast;
@@ -103,12 +117,14 @@ SplashError SplashPath::lineTo (SplashCoord x, SplashCoord y) {
     return splashOk;
 }
 
-SplashError SplashPath::curveTo (
-    SplashCoord x1, SplashCoord y1, SplashCoord x2, SplashCoord y2,
-    SplashCoord x3, SplashCoord y3) {
-    if (noCurrentPoint ()) { return splashErrNoCurPt; }
+SplashError SplashPath::curveTo(SplashCoord x1, SplashCoord y1, SplashCoord x2,
+                                SplashCoord y2, SplashCoord x3, SplashCoord y3)
+{
+    if (noCurrentPoint()) {
+        return splashErrNoCurPt;
+    }
     flags[length - 1] &= ~splashPathLast;
-    grow (3);
+    grow(3);
     pts[length].x = x1;
     pts[length].y = y1;
     flags[length] = splashPathCurve;
@@ -124,12 +140,15 @@ SplashError SplashPath::curveTo (
     return splashOk;
 }
 
-SplashError SplashPath::close (bool force) {
-    if (noCurrentPoint ()) { return splashErrNoCurPt; }
+SplashError SplashPath::close(bool force)
+{
+    if (noCurrentPoint()) {
+        return splashErrNoCurPt;
+    }
     if (force || curSubpath == length - 1 ||
         pts[length - 1].x != pts[curSubpath].x ||
         pts[length - 1].y != pts[curSubpath].y) {
-        lineTo (pts[curSubpath].x, pts[curSubpath].y);
+        lineTo(pts[curSubpath].x, pts[curSubpath].y);
     }
     flags[curSubpath] |= splashPathClosed;
     flags[length - 1] |= splashPathClosed;
@@ -137,12 +156,13 @@ SplashError SplashPath::close (bool force) {
     return splashOk;
 }
 
-void SplashPath::addStrokeAdjustHint (
-    int ctrl0, int ctrl1, int firstPt, int lastPt) {
+void SplashPath::addStrokeAdjustHint(int ctrl0, int ctrl1, int firstPt,
+                                     int lastPt)
+{
     if (hintsLength == hintsSize) {
         hintsSize = hintsLength ? 2 * hintsLength : 8;
-        hints = (SplashPathHint*)reallocarray (
-            hints, hintsSize, sizeof (SplashPathHint));
+        hints = (SplashPathHint *)reallocarray(hints, hintsSize,
+                                               sizeof(SplashPathHint));
     }
     hints[hintsLength].ctrl0 = ctrl0;
     hints[hintsLength].ctrl1 = ctrl1;
@@ -151,7 +171,8 @@ void SplashPath::addStrokeAdjustHint (
     ++hintsLength;
 }
 
-void SplashPath::offset (SplashCoord dx, SplashCoord dy) {
+void SplashPath::offset(SplashCoord dx, SplashCoord dy)
+{
     int i;
 
     for (i = 0; i < length; ++i) {
@@ -160,8 +181,11 @@ void SplashPath::offset (SplashCoord dx, SplashCoord dy) {
     }
 }
 
-bool SplashPath::getCurPt (SplashCoord* x, SplashCoord* y) {
-    if (noCurrentPoint ()) { return false; }
+bool SplashPath::getCurPt(SplashCoord *x, SplashCoord *y)
+{
+    if (noCurrentPoint()) {
+        return false;
+    }
     *x = pts[length - 1].x;
     *y = pts[length - 1].y;
     return true;

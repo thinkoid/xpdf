@@ -1,9 +1,10 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2004 Glyph & Cog, LLC
 
-static struct {
-    Unicode u;
-    const char* name;
+static struct
+{
+    Unicode     u;
+    const char *name;
 } nameToUnicodeTab[] = { { 0x0021, "!" },
                          { 0x0023, "#" },
                          { 0x0024, "$" },

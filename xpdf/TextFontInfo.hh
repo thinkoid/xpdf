@@ -11,31 +11,32 @@
 #include <xpdf/GfxState.hh>
 #include <xpdf/TextOutput.hh>
 
-struct TextFontInfo {
-    explicit TextFontInfo (GfxState*);
+struct TextFontInfo
+{
+    explicit TextFontInfo(GfxState *);
 
-    bool matches (GfxState*) const;
+    bool matches(GfxState *) const;
 
     //
     // Get the font name (which may be NULL):
     //
-    GString* getFontName () const { return name; }
+    GString *getFontName() const { return name; }
 
     //
     // Get font descriptor flags:
     //
-    bool isFixedWidth () const { return flags & fontFixedWidth; }
-    bool isSerif      () const { return flags & fontSerif;      }
-    bool isSymbolic   () const { return flags & fontSymbolic;   }
-    bool isItalic     () const { return flags & fontItalic;     }
-    bool isBold       () const { return flags & fontBold;       }
+    bool isFixedWidth() const { return flags & fontFixedWidth; }
+    bool isSerif() const { return flags & fontSerif; }
+    bool isSymbolic() const { return flags & fontSymbolic; }
+    bool isItalic() const { return flags & fontItalic; }
+    bool isBold() const { return flags & fontBold; }
 
-    double getWidth () const { return width; }
+    double getWidth() const { return width; }
 
-    Ref id;
-    GString* name;
+    Ref      id;
+    GString *name;
 
-    double width, ascent, descent;
+    double   width, ascent, descent;
     unsigned flags;
 };
 

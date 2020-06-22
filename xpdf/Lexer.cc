@@ -13,7 +13,7 @@
 #include <xpdf/Error.hh>
 #include <xpdf/Lexer.hh>
 
-static const char specialChars [256] = {
+static const char specialChars[256] = {
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, // 0x
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 1x
     1, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2, // 2x
@@ -29,73 +29,78 @@ static const char specialChars [256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // cx
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // dx
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // ex
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  // fx
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 // fx
 };
 
-static inline Array make_array (Object* pobj = 0) {
+static inline Array make_array(Object *pobj = 0)
+{
     if (pobj) {
-        if (pobj->is_stream ()) {
+        if (pobj->is_stream()) {
             return Array{ *pobj };
+        } else {
+            return pobj->as_array();
         }
-        else {
-            return pobj->as_array ();
-        }
-    }
-    else {
-        return Array{ };
+    } else {
+        return Array{};
     }
 }
 
-Lexer::Lexer (Stream* pstr)
-    : streams (make_array ()) {
+Lexer::Lexer(Stream *pstr)
+    : streams(make_array())
+{
     // TODO: array of streams and nested parsing need some std-ing.
-    streams.push_back (curStr = xpdf::make_stream_obj (pstr));
+    streams.push_back(curStr = xpdf::make_stream_obj(pstr));
     strPtr = 0;
-    curStr.streamReset ();
+    curStr.streamReset();
 }
 
-Lexer::Lexer (Object* pobj)
-    : streams (make_array (pobj)) {
+Lexer::Lexer(Object *pobj)
+    : streams(make_array(pobj))
+{
     strPtr = 0;
 
-    if (streams.size () > 0) {
-        curStr = resolve (streams [strPtr]);
-        curStr.streamReset ();
+    if (streams.size() > 0) {
+        curStr = resolve(streams[strPtr]);
+        curStr.streamReset();
     }
 }
 
-Lexer::~Lexer () {
-    if (!curStr.is_none ()) {
-        curStr.streamClose ();
-        curStr = { };
+Lexer::~Lexer()
+{
+    if (!curStr.is_none()) {
+        curStr.streamClose();
+        curStr = {};
     }
 }
 
-int Lexer::get () {
+int Lexer::get()
+{
     int c = EOF;
 
-    while (!curStr.is_none () && (c = curStr.streamGetChar ()) == EOF) {
-        curStr.streamClose ();
-        curStr = { };
+    while (!curStr.is_none() && (c = curStr.streamGetChar()) == EOF) {
+        curStr.streamClose();
+        curStr = {};
 
-        if (++strPtr < streams.size ()) {
-            curStr = resolve (streams [strPtr]);
-            curStr.streamReset ();
+        if (++strPtr < streams.size()) {
+            curStr = resolve(streams[strPtr]);
+            curStr.streamReset();
         }
     }
 
     return c;
 }
 
-int Lexer::peek () {
-    if (curStr.is_none ()) {
+int Lexer::peek()
+{
+    if (curStr.is_none()) {
         return EOF;
     }
 
-    return curStr.streamLookChar ();
+    return curStr.streamLookChar();
 }
 
-Lexer::token_t Lexer::next () {
+Lexer::token_t Lexer::next()
+{
     int c;
 
     //
@@ -104,95 +109,99 @@ Lexer::token_t Lexer::next () {
     bool comment = false;
 
     for (;;) {
-        if ((c = get ()) == EOF) {
-            return { token_t::EOF_, { } };
+        if ((c = get()) == EOF) {
+            return { token_t::EOF_, {} };
         }
 
         if (comment) {
             if (c == '\r' || c == '\n') {
                 comment = false;
             }
-        }
-        else if (c == '%') {
+        } else if (c == '%') {
             comment = true;
-        }
-        else if (specialChars [c] != 1) {
+        } else if (specialChars[c] != 1) {
             break;
         }
     }
 
     switch (c) {
-    case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9':
-    case '-': case '.': {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '-':
+    case '.': {
         //
         // Number:
         //
-        std::string s (1UL, c);
+        std::string s(1UL, c);
 
-        if (s.back () == '.') {
+        if (s.back() == '.') {
             goto doReal;
         }
 
         for (;;) {
-            c = peek ();
+            c = peek();
 
-            if (isdigit (c)) {
-                get ();
-                s.append (1, c);
-            }
-            else if (c == '.') {
-                get ();
-                s.append (1, c);
+            if (isdigit(c)) {
+                get();
+                s.append(1, c);
+            } else if (c == '.') {
+                get();
+                s.append(1, c);
                 goto doReal;
-            }
-            else {
+            } else {
                 break;
             }
         }
 
         return { token_t::INT_, s };
 
-doReal:
+    doReal:
         for (;;) {
-            c = peek ();
+            c = peek();
 
             if (c == '-') {
                 // Ignore, just like Adobe(?):
-                get ();
+                get();
                 continue;
             }
 
-            if (!isdigit (c)) {
+            if (!isdigit(c)) {
                 break;
             }
 
-            get ();
-            s.append (1, c);
+            get();
+            s.append(1, c);
         }
 
         return { token_t::REAL_, s };
-    }
-        break;
+    } break;
 
     case '(': {
         //
         // String:
         //
-        int nesting = 1, c2;
+        int         nesting = 1, c2;
         std::string s;
-        bool done = false;
+        bool        done = false;
 
         do {
             c2 = EOF;
 
-            switch (c = get ()) {
+            switch (c = get()) {
             case EOF:
 #if 0
             case '\r': case '\n':
                 // This breaks some PDF files, e.g., ones from Photoshop.
 #endif
-                error (errSyntaxError, getPos (), "Unterminated string");
+                error(errSyntaxError, getPos(), "Unterminated string");
                 done = true;
                 break;
 
@@ -204,39 +213,58 @@ doReal:
             case ')':
                 if (--nesting == 0) {
                     done = true;
-                }
-                else {
+                } else {
                     c2 = c;
                 }
 
                 break;
 
             case '\\':
-                switch (c = get ()) {
-                case 'n': c2 = '\n'; break;
-                case 'r': c2 = '\r'; break;
-                case 't': c2 = '\t'; break;
-                case 'b': c2 = '\b'; break;
-                case 'f': c2 = '\f'; break;
-                case '\\': case '(': case ')': c2 = c; break;
-                case '0': case '1': case '2': case '3': case '4':
-                case '5': case '6': case '7':
+                switch (c = get()) {
+                case 'n':
+                    c2 = '\n';
+                    break;
+                case 'r':
+                    c2 = '\r';
+                    break;
+                case 't':
+                    c2 = '\t';
+                    break;
+                case 'b':
+                    c2 = '\b';
+                    break;
+                case 'f':
+                    c2 = '\f';
+                    break;
+                case '\\':
+                case '(':
+                case ')':
+                    c2 = c;
+                    break;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
                     c2 = c - '0';
-                    c = peek ();
+                    c = peek();
                     if (c >= '0' && c <= '7') {
-                        get ();
+                        get();
                         c2 = (c2 << 3) + (c - '0');
-                        c = peek ();
+                        c = peek();
                         if (c >= '0' && c <= '7') {
-                            get ();
+                            get();
                             c2 = (c2 << 3) + (c - '0');
                         }
                     }
                     break;
 
                 case '\r':
-                    if ((c = peek ()) == '\n') {
-                        get ();
+                    if ((c = peek()) == '\n') {
+                        get();
                     }
                     break;
 
@@ -244,7 +272,7 @@ doReal:
                     break;
 
                 case EOF:
-                    error (errSyntaxError, getPos (), "Unterminated string");
+                    error(errSyntaxError, getPos(), "Unterminated string");
                     done = true;
                     break;
 
@@ -260,7 +288,7 @@ doReal:
             }
 
             if (c2 != EOF) {
-                s.append (1, c2);
+                s.append(1, c2);
             }
         } while (!done);
 
@@ -271,91 +299,82 @@ doReal:
         //
         // Name:
         //
-        int c2;
+        int         c2;
         std::string s;
 
-        while ((c = peek ()) != EOF && !specialChars [c]) {
-            get ();
+        while ((c = peek()) != EOF && !specialChars[c]) {
+            get();
 
             if (c == '#') {
-                c2 = peek ();
+                c2 = peek();
 
                 if (c2 >= '0' && c2 <= '9') {
                     c = c2 - '0';
-                }
-                else if (c2 >= 'A' && c2 <= 'F') {
+                } else if (c2 >= 'A' && c2 <= 'F') {
                     c = c2 - 'A' + 10;
-                }
-                else if (c2 >= 'a' && c2 <= 'f') {
+                } else if (c2 >= 'a' && c2 <= 'f') {
                     c = c2 - 'a' + 10;
-                }
-                else {
+                } else {
                     goto notEscChar;
                 }
 
-                get ();
+                get();
 
                 c <<= 4;
-                c2 = get ();
+                c2 = get();
 
                 if (c2 >= '0' && c2 <= '9') {
                     c += c2 - '0';
-                }
-                else if (c2 >= 'A' && c2 <= 'F') {
+                } else if (c2 >= 'A' && c2 <= 'F') {
                     c += c2 - 'A' + 10;
-                }
-                else if (c2 >= 'a' && c2 <= 'f') {
+                } else if (c2 >= 'a' && c2 <= 'f') {
                     c += c2 - 'a' + 10;
-                }
-                else {
-                    error (
-                        errSyntaxError, getPos (),
-                        "Illegal digit in hex char in name");
+                } else {
+                    error(errSyntaxError, getPos(),
+                          "Illegal digit in hex char in name");
                 }
             }
         notEscChar:
             // the PDF spec claims that names are limited to 127 chars, but
             // Distiller 8 will produce longer names, and Acrobat 8 will
             // accept longer names
-            s.append (1, c);
+            s.append(1, c);
         }
 
         return { token_t::NAME_, s };
     }
 
     // array punctuation
-    case '[': case ']':
-        return { token_t::KEYWORD_, { char (c) } };
+    case '[':
+    case ']':
+        return { token_t::KEYWORD_, { char(c) } };
 
     // hex string or dict punctuation
     case '<': {
-        c = peek ();
+        c = peek();
 
         if (c == '<') {
             //
             // Dict punctuation:
             //
-            get ();
+            get();
             return { token_t::KEYWORD_, "<<" };
-        }
-        else {
+        } else {
             //
             // Hex string:
             //
-            int c2, m = 0;
+            int         c2, m = 0;
             std::string s;
 
             while (1) {
-                c = get ();
+                c = get();
 
                 if (c == '>') {
                     break;
-                }
-                else if (c == EOF) {
-                    error (errSyntaxError, getPos (), "Unterminated hex string");
+                } else if (c == EOF) {
+                    error(errSyntaxError, getPos(), "Unterminated hex string");
                     break;
-                }
-                else if (specialChars [c] != 1) {
+                } else if (specialChars[c] != 1) {
                     c2 = c2 << 4;
 
                     if (c >= '0' && c <= '9')
@@ -365,19 +384,18 @@ doReal:
                     else if (c >= 'a' && c <= 'f')
                         c2 += c - 'a' + 10;
                     else
-                        error (
-                            errSyntaxError, getPos (),
-                            "Illegal character <{0:02x}> in hex string", c);
+                        error(errSyntaxError, getPos(),
+                              "Illegal character <{0:02x}> in hex string", c);
 
                     if (++m == 2) {
-                        s.append (1, c2);
+                        s.append(1, c2);
                         c2 = m = 0;
                     }
                 }
             }
 
             if (m == 1) {
-                s.append (1, char (c2 << 4));
+                s.append(1, char(c2 << 4));
             }
 
             return { token_t::STRING_, s };
@@ -388,61 +406,66 @@ doReal:
         //
         // Dict punctuation:
         //
-        if ((c = peek ()) == '>') {
-            get ();
+        if ((c = peek()) == '>') {
+            get();
             return { token_t::KEYWORD_, ">>" };
-        }
-        else {
-            error (errSyntaxError, getPos (), "Illegal character '>'");
-            return { token_t::ERROR_, { } };
+        } else {
+            error(errSyntaxError, getPos(), "Illegal character '>'");
+            return { token_t::ERROR_, {} };
         }
 
-    case ')': case '{': case '}':
+    case ')':
+    case '{':
+    case '}':
         //
         // Assorted errors:
         //
-        error (errSyntaxError, getPos (), "Illegal character '{0:c}'", c);
-        return { token_t::ERROR_, { } };
+        error(errSyntaxError, getPos(), "Illegal character '{0:c}'", c);
+        return { token_t::ERROR_, {} };
 
     default: {
         //
         // Other keywords:
         //
-        std::string s (1UL, char (c));
+        std::string s(1UL, char(c));
 
-        while ((c = peek ()) != EOF && !specialChars [c]) {
-            get ();
-            s.append (1, c);
+        while ((c = peek()) != EOF && !specialChars[c]) {
+            get();
+            s.append(1, c);
         }
 
         if (s == "true" || s == "false") {
             return { token_t::BOOL_, s };
-        }
-        else if (s == "null") {
+        } else if (s == "null") {
             return { token_t::NULL_, s };
-        }
-        else {
+        } else {
             return { token_t::KEYWORD_, s };
         }
     }
     }
 
-    return { };
+    return {};
 }
 
-void Lexer::skipToNextLine () {
+void Lexer::skipToNextLine()
+{
     int c;
 
     while (1) {
-        c = get ();
-        if (c == EOF || c == '\n') { return; }
+        c = get();
+        if (c == EOF || c == '\n') {
+            return;
+        }
         if (c == '\r') {
-            if ((c = peek ()) == '\n') { get (); }
+            if ((c = peek()) == '\n') {
+                get();
+            }
             return;
         }
     }
 }
 
-bool Lexer::isSpace (int c) {
+bool Lexer::isSpace(int c)
+{
     return c >= 0 && c <= 0xff && specialChars[c] == 1;
 }

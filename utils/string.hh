@@ -11,7 +11,7 @@
 
 namespace xpdf {
 
-using          string_t = std::string;
+using string_t = std::string;
 using optional_string_t = std::optional< std::string >;
 
 } // namespace xpdf

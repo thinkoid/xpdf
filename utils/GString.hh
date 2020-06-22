@@ -11,35 +11,47 @@
 
 #include <string>
 
-struct GString : std::string {
+struct GString : std::string
+{
     using base_type = std::string;
 
-    GString () = default;
-    ~GString () = default;
+    GString() = default;
+    ~GString() = default;
 
     using base_type::base_type;
     using base_type::operator=;
 
     // Zero-cost conversion from and to std::string
-    explicit GString (const std::string& s) : std::string (s) { }
-    explicit GString (std::string&& s) : std::string (std::move (s)) { }
+    explicit GString(const std::string &s)
+        : std::string(s)
+    {
+    }
+    explicit GString(std::string &&s)
+        : std::string(std::move(s))
+    {
+    }
 
     // Create a string from <lengthA> chars at <idx> in <str>.
-    GString (const GString* str, int idx, int lengthA)
-        : std::string (*str, idx, lengthA) { }
+    GString(const GString *str, int idx, int lengthA)
+        : std::string(*str, idx, lengthA)
+    {
+    }
 
     // Copy a string.
-    explicit GString (const GString* p)
-        : std::string (p ? reinterpret_cast< const base_type& > (*p) : std::string{ })
-        { }
+    explicit GString(const GString *p)
+        : std::string(p ? reinterpret_cast< const base_type & >(*p) :
+                          std::string{})
+    {
+    }
 
-    GString* copy () const { return new GString (this); }
+    GString *copy() const { return new GString(this); }
 
     // Concatenate two strings.
-    GString (const GString* str1, const GString* str2) {
-        reserve (str1->size () + str2->size ());
-        static_cast< std::string& > (*this).append (*str1);
-        static_cast< std::string& > (*this).append (*str2);
+    GString(const GString *str1, const GString *str2)
+    {
+        reserve(str1->size() + str2->size());
+        static_cast< std::string & >(*this).append(*str1);
+        static_cast< std::string & >(*this).append(*str2);
     }
 
     // Create a formatted string.  Similar to printf, but without the
@@ -69,50 +81,55 @@ struct GString : std::string {
     //     t -- GString *
     //     w -- blank space; arg determines width
     // To get literal curly braces, use {{ or }}.
-    static GString* format (const char* fmt, ...);
-    static GString* formatv (const char* fmt, va_list argList);
+    static GString *format(const char *fmt, ...);
+    static GString *formatv(const char *fmt, va_list argList);
 
     // Get length.
-    int getLength () const { return size (); }
+    int getLength() const { return size(); }
 
     // Get C string.
     using std::string::c_str;
     using std::string::operator[];
 
     // Append a formatted string.
-    GString* appendf (const char* fmt, ...);
-    GString* appendfv (const char* fmt, va_list argList);
+    GString *appendf(const char *fmt, ...);
+    GString *appendfv(const char *fmt, va_list argList);
 
     // Insert a character or string.
-    GString* insert (int i, char c) {
-        static_cast< std::string& > (*this).insert (i, 1, c);
+    GString *insert(int i, char c)
+    {
+        static_cast< std::string & >(*this).insert(i, 1, c);
         return this;
     }
-    GString* insert (int i, const GString* str) {
-        static_cast< std::string& > (*this).insert (i, *str);
+    GString *insert(int i, const GString *str)
+    {
+        static_cast< std::string & >(*this).insert(i, *str);
         return this;
     }
-    GString* insert (int i, const char* str) {
-        static_cast< std::string& > (*this).insert (i, str);
+    GString *insert(int i, const char *str)
+    {
+        static_cast< std::string & >(*this).insert(i, str);
         return this;
     }
-    GString* insert (int i, const char* str, int lengthA) {
-        static_cast< std::string& > (*this).insert (i, str, lengthA);
+    GString *insert(int i, const char *str, int lengthA)
+    {
+        static_cast< std::string & >(*this).insert(i, str, lengthA);
         return this;
     }
 
     // Delete a character or range of characters.
-    GString* del (int i, int n = 1) {
-        erase (i, n);
+    GString *del(int i, int n = 1)
+    {
+        erase(i, n);
         return this;
     }
 
     // Compare two strings:  -1:<  0:=  +1:>
-    int cmp (const GString* str) const { return compare (*str); }
-    int cmp (const std::string& str) const { return compare (str); }
-    int cmpN (GString* str, int n) const { return compare (0, n, *str); }
-    int cmp (const char* sA) const { return compare (sA); }
-    int cmpN (const char* sA, int n) const { return compare (0, n, sA); }
+    int cmp(const GString *str) const { return compare(*str); }
+    int cmp(const std::string &str) const { return compare(str); }
+    int cmpN(GString *str, int n) const { return compare(0, n, *str); }
+    int cmp(const char *sA) const { return compare(sA); }
+    int cmpN(const char *sA, int n) const { return compare(0, n, sA); }
 };
 
 #endif // XPDF_UTILS_GSTRING_HH

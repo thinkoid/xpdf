@@ -11,21 +11,22 @@
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 
-struct XPDFAppResources {
+struct XPDFAppResources
+{
     String geometry, title;
-    Bool installCmap;
-    int rgbCubeSize;
-    Bool reverseVideo;
+    Bool   installCmap;
+    int    rgbCubeSize;
+    Bool   reverseVideo;
     String paperColor, matteColor, fullScreenMatteColor, initialZoom;
 };
 
-char** fallbackResources ();
-size_t fallbackResourcesSize ();
+char **fallbackResources();
+size_t fallbackResourcesSize();
 
-XrmOptionDescRec* xOpts ();
-size_t xOptsSize ();
+XrmOptionDescRec *xOpts();
+size_t            xOptsSize();
 
-XtResource* xResources ();
-size_t xResourcesSize ();
+XtResource *xResources();
+size_t      xResourcesSize();
 
 #endif // XPDF_XPDF_XPDFAPPRES_HH

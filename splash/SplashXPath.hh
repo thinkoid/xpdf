@@ -20,7 +20,8 @@ struct SplashPathHint;
 // SplashXPathSeg
 //------------------------------------------------------------------------
 
-struct SplashXPathSeg {
+struct SplashXPathSeg
+{
     //
     // x0, y0       : first endpoint (y0 <= y1)
     // x1, y1       : second endpoint
@@ -40,45 +41,43 @@ struct SplashXPathSeg {
 // SplashXPath
 //------------------------------------------------------------------------
 
-class SplashXPath {
+class SplashXPath
+{
 public:
     // Expands (converts to segments) and flattens (converts curves to
     // lines) <path>.  Transforms all points from user space to device
     // space, via <matrix>.  If <closeSubpaths> is true, closes all open
     // subpaths.
-    SplashXPath (
-        SplashPath* path, SplashCoord* matrix, SplashCoord flatness,
-        bool closeSubpaths);
+    SplashXPath(SplashPath *path, SplashCoord *matrix, SplashCoord flatness,
+                bool closeSubpaths);
 
     // Copy an expanded path.
-    SplashXPath* copy () { return new SplashXPath (this); }
+    SplashXPath *copy() { return new SplashXPath(this); }
 
-    ~SplashXPath ();
+    ~SplashXPath();
 
-    int getXMin () { return xMin; }
-    int getXMax () { return xMax; }
-    int getYMin () { return yMin; }
-    int getYMax () { return yMax; }
+    int getXMin() { return xMin; }
+    int getXMax() { return xMax; }
+    int getYMin() { return yMin; }
+    int getYMax() { return yMax; }
 
 private:
-    SplashXPath (SplashXPath* xPath);
-    void transform (
-        SplashCoord* matrix, SplashCoord xi, SplashCoord yi, SplashCoord* xo,
-        SplashCoord* yo);
-    void
-    strokeAdjust (SplashXPathPoint* pts, SplashPathHint* hints, int nHints);
-    void grow (int nSegs);
-    void addCurve (
-        SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
-        SplashCoord x2, SplashCoord y2, SplashCoord x3, SplashCoord y3,
-        SplashCoord flatness, bool first, bool last, bool end0, bool end1);
-    void
-    addSegment (SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1);
+    SplashXPath(SplashXPath *xPath);
+    void transform(SplashCoord *matrix, SplashCoord xi, SplashCoord yi,
+                   SplashCoord *xo, SplashCoord *yo);
+    void strokeAdjust(SplashXPathPoint *pts, SplashPathHint *hints, int nHints);
+    void grow(int nSegs);
+    void addCurve(SplashCoord x0, SplashCoord y0, SplashCoord x1, SplashCoord y1,
+                  SplashCoord x2, SplashCoord y2, SplashCoord x3, SplashCoord y3,
+                  SplashCoord flatness, bool first, bool last, bool end0,
+                  bool end1);
+    void addSegment(SplashCoord x0, SplashCoord y0, SplashCoord x1,
+                    SplashCoord y1);
 
-    SplashXPathSeg* segs;
-    int length, size; // length and size of segs array
-    int xMin, xMax;
-    int yMin, yMax;
+    SplashXPathSeg *segs;
+    int             length, size; // length and size of segs array
+    int             xMin, xMax;
+    int             yMin, yMax;
 
     friend class SplashXPathScanner;
     friend class SplashClip;

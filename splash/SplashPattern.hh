@@ -14,20 +14,21 @@ class SplashScreen;
 // SplashPattern
 //------------------------------------------------------------------------
 
-class SplashPattern {
+class SplashPattern
+{
 public:
-    SplashPattern ();
+    SplashPattern();
 
-    virtual SplashPattern* copy () = 0;
+    virtual SplashPattern *copy() = 0;
 
-    virtual ~SplashPattern ();
+    virtual ~SplashPattern();
 
     // Return the color value for a specific pixel.
-    virtual void getColor (int x, int y, SplashColorPtr c) = 0;
+    virtual void getColor(int x, int y, SplashColorPtr c) = 0;
 
     // Returns true if this pattern object will return the same color
     // value for all pixels.
-    virtual bool isStatic () = 0;
+    virtual bool isStatic() = 0;
 
 private:
 };
@@ -36,21 +37,23 @@ private:
 // SplashSolidColor
 //------------------------------------------------------------------------
 
-class SplashSolidColor : public SplashPattern {
+class SplashSolidColor : public SplashPattern
+{
 public:
-    SplashSolidColor (SplashColorPtr colorA);
+    SplashSolidColor(SplashColorPtr colorA);
 
-    SplashSolidColor (unsigned char r, unsigned char g, unsigned char b)
+    SplashSolidColor(unsigned char r, unsigned char g, unsigned char b)
         : color{ r, g, b }
-        { }
+    {
+    }
 
-    virtual SplashPattern* copy () { return new SplashSolidColor (color); }
+    virtual SplashPattern *copy() { return new SplashSolidColor(color); }
 
-    virtual ~SplashSolidColor ();
+    virtual ~SplashSolidColor();
 
-    virtual void getColor (int x, int y, SplashColorPtr c);
+    virtual void getColor(int x, int y, SplashColorPtr c);
 
-    virtual bool isStatic () { return true; }
+    virtual bool isStatic() { return true; }
 
 private:
     SplashColor color;

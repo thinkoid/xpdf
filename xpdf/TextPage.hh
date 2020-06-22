@@ -17,8 +17,9 @@
 #include <xpdf/TextUnderline.hh>
 #include <xpdf/UnicodeMap.hh>
 
-struct TextPage {
-    TextPage (TextOutputControl* controlA);
+struct TextPage
+{
+    TextPage(TextOutputControl *controlA);
 
     //
     // Find a matching string:
@@ -30,139 +31,112 @@ struct TextPage {
     // - stopAtLast   : if true, stops looking before the last match,
     //     otherwise, stops looking at { xMax, yMax }
     //
-    bool
-    findText (
-        Unicode* s, int len,
-        bool startAtTop, bool stopAtBottom, bool startAtLast, bool stopAtLast,
-        bool caseSensitive, bool backward, bool wholeWord,
-        xpdf::bbox_t&);
+    bool findText(Unicode *s, int len, bool startAtTop, bool stopAtBottom,
+                  bool startAtLast, bool stopAtLast, bool caseSensitive,
+                  bool backward, bool wholeWord, xpdf::bbox_t &);
 
     // Get the text which is inside the specified rectangle.
-    GString*
-    getText (const xpdf::bbox_t&);
+    GString *getText(const xpdf::bbox_t &);
 
-    std::vector< xpdf::bbox_t >
-    segment () const;
+    std::vector< xpdf::bbox_t > segment() const;
 
 private:
-    void clear ();
+    void clear();
 
-    void startPage (GfxState* state);
-    void updateFont (GfxState* state);
+    void startPage(GfxState *state);
+    void updateFont(GfxState *state);
 
-    void addChar (
-        GfxState*, double, double, double, double,
-        CharCode, int, Unicode*, int);
+    void addChar(GfxState *, double, double, double, double, CharCode, int,
+                 Unicode *, int);
 
-    void
-    doAddActualTextChar (double, double, double, double, int);
+    void doAddActualTextChar(double, double, double, double, int);
 
-    void
-    doAddChar (GfxState*,
-               double, double, double, double,
-               CharCode, int, Unicode*, int);
+    void doAddChar(GfxState *, double, double, double, double, CharCode, int,
+                   Unicode *, int);
 
-    void incCharCount (int);
+    void incCharCount(int);
 
-    void beginActualText (GfxState* state, Unicode* u, int uLen);
-    void   endActualText (GfxState* state);
+    void beginActualText(GfxState *state, Unicode *u, int uLen);
+    void endActualText(GfxState *state);
 
-    void addUnderline (double x0, double y0, double x1, double y1);
+    void addUnderline(double x0, double y0, double x1, double y1);
 
-    void
-    addLink (double, double, double, double, Link*);
+    void addLink(double, double, double, double, Link *);
 
     // output
-    void encodeFragment (Unicode*, int, UnicodeMap*, bool, GString*);
+    void encodeFragment(Unicode *, int, UnicodeMap *, bool, GString *);
 
     // analysis
-    int rotateChars (TextChars& charsA);
-    void rotateUnderlinesAndLinks (int rot);
+    int  rotateChars(TextChars &charsA);
+    void rotateUnderlinesAndLinks(int rot);
 
-    void unrotateChars   (TextChars&, int);
-    void unrotateColumns (TextColumns&, int);
-    void unrotateWords   (TextWords&, int);
+    void unrotateChars(TextChars &, int);
+    void unrotateColumns(TextColumns &, int);
+    void unrotateWords(TextWords &, int);
 
-    bool isPrevalentLeftToRight (TextChars&);
-    void removeDuplicates (TextChars&, int);
+    bool isPrevalentLeftToRight(TextChars &);
+    void removeDuplicates(TextChars &, int);
 
-    TextBlockPtr
-    splitChars (TextChars& charsA);
+    TextBlockPtr splitChars(TextChars &charsA);
 
-    TextBlockPtr
-    split (TextChars& charsA, int rot);
+    TextBlockPtr split(TextChars &charsA, int rot);
 
-    TextChars
-    charsIn (TextChars&, const xpdf::bbox_t&) const;
+    TextChars charsIn(TextChars &, const xpdf::bbox_t &) const;
 
-    void tagBlock (TextBlockPtr blk);
+    void tagBlock(TextBlockPtr blk);
 
-    void doInsertLargeChars (TextChars&, TextBlockPtr);
-    void   insertLargeChars (TextChars&, TextBlockPtr);
+    void doInsertLargeChars(TextChars &, TextBlockPtr);
+    void insertLargeChars(TextChars &, TextBlockPtr);
 
-    void
-    insertLargeCharsInFirstLeaf (TextChars& largeChars, TextBlockPtr blk);
+    void insertLargeCharsInFirstLeaf(TextChars &largeChars, TextBlockPtr blk);
 
-    void
-    insertLargeCharInLeaf (TextCharPtr ch, TextBlockPtr blk);
+    void insertLargeCharInLeaf(TextCharPtr ch, TextBlockPtr blk);
 
-    void
-    insertIntoTree (TextBlockPtr subtree, TextBlockPtr primaryTree);
+    void insertIntoTree(TextBlockPtr subtree, TextBlockPtr primaryTree);
 
-    void
-    insertColumnIntoTree (TextBlockPtr column, TextBlockPtr tree);
+    void insertColumnIntoTree(TextBlockPtr column, TextBlockPtr tree);
 
-    void
-    insertClippedChars (TextChars&, TextBlockPtr);
+    void insertClippedChars(TextChars &, TextBlockPtr);
 
-    TextBlockPtr
-    findClippedCharLeaf (TextCharPtr ch, TextBlockPtr tree);
+    TextBlockPtr findClippedCharLeaf(TextCharPtr ch, TextBlockPtr tree);
 
-    TextColumns
-    buildColumns (TextBlockPtr tree);
+    TextColumns buildColumns(TextBlockPtr tree);
 
-    TextColumnPtr
-    buildColumn (TextBlockPtr tree);
+    TextColumnPtr buildColumn(TextBlockPtr tree);
 
-    double
-    getLineIndent (const TextLine&, TextBlockPtr) const;
+    double getLineIndent(const TextLine &, TextBlockPtr) const;
 
-    double
-    getAverageLineSpacing (const TextLines&) const;
+    double getAverageLineSpacing(const TextLines &) const;
 
-    double
-    getLineSpacing (const TextLine&, const TextLine&) const;
+    double getLineSpacing(const TextLine &, const TextLine &) const;
 
-    void
-    makeLines (TextBlockPtr, TextLines&);
+    void makeLines(TextBlockPtr, TextLines &);
 
-    TextLinePtr
-    makeLine (TextBlockPtr);
+    TextLinePtr makeLine(TextBlockPtr);
 
-    TextChars
-    getLineOfChars (TextBlockPtr);
+    TextChars getLineOfChars(TextBlockPtr);
 
-    double computeWordSpacingThreshold (TextChars& charsA, int rot);
-    int assignPhysLayoutPositions (TextColumns&);
-    void assignLinePhysPositions (TextColumns&);
-    void computeLinePhysWidth (TextLine& line, UnicodeMap* uMap);
-    int assignColumnPhysPositions (TextColumns&);
-    void generateUnderlinesAndLinks (TextColumns&);
+    double computeWordSpacingThreshold(TextChars &charsA, int rot);
+    int    assignPhysLayoutPositions(TextColumns &);
+    void   assignLinePhysPositions(TextColumns &);
+    void   computeLinePhysWidth(TextLine &line, UnicodeMap *uMap);
+    int    assignColumnPhysPositions(TextColumns &);
+    void   generateUnderlinesAndLinks(TextColumns &);
 
     TextOutputControl control; // formatting parameters
 
     double pageWidth, pageHeight; // width and height of current page
-    int charPos;                  // next character position (within content
-                                  //   stream)
+    int    charPos; // next character position (within content
+        //   stream)
 
-    TextFontInfos fonts;          // all font info objects used on this page
-                                  //   [TextFontInfo]
+    TextFontInfos fonts; // all font info objects used on this page
+        //   [TextFontInfo]
 
-    TextFontInfoPtr curFont;      // current font
-    double curFontSize;           // current font size
+    TextFontInfoPtr curFont; // current font
+    double          curFontSize; // current font size
 
-    int curRot;                   // current rotation
-    int nTinyChars;               // number of "tiny" chars seen so far
+    int curRot; // current rotation
+    int nTinyChars; // number of "tiny" chars seen so far
 
     //
     // `ActualText' characters and length in characters:
@@ -181,11 +155,11 @@ private:
 
     TextChars chars; // [TextChar]
 
-    TextUnderlines underlines;   // [TextUnderline]
-    TextLinks links;             // [TextLink]
+    TextUnderlines underlines; // [TextUnderline]
+    TextLinks      links; // [TextLink]
 
-    TextColumns findCols;  // text used by the findText function
-                           //   [TextColumn]
+    TextColumns findCols; // text used by the findText function
+        //   [TextColumn]
 
     //
     // Primary text direction, used by the findText function:

@@ -11,7 +11,8 @@
 
 namespace xpdf {
 
-struct array_t : std::vector< obj_t > {
+struct array_t : std::vector< obj_t >
+{
     using base_type = std::vector< obj_t >;
 
     using base_type::base_type;

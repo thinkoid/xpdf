@@ -8,49 +8,51 @@
 
 #include <fofi/FoFiBase.hh>
 
-
 //------------------------------------------------------------------------
 
-struct Type1CIndex {
-    int pos;      // absolute position in file
-    int len;      // length (number of entries)
-    int offSize;  // offset size
+struct Type1CIndex
+{
+    int pos; // absolute position in file
+    int len; // length (number of entries)
+    int offSize; // offset size
     int startPos; // position of start of index data - 1
-    int endPos;   // position one byte past end of the index
+    int endPos; // position one byte past end of the index
 };
 
-struct Type1CIndexVal {
+struct Type1CIndexVal
+{
     int pos; // absolute position in file
     int len; // length, in bytes
 };
 
-struct Type1CTopDict {
+struct Type1CTopDict
+{
     int firstOp;
 
-    int versionSID;
-    int noticeSID;
-    int copyrightSID;
-    int fullNameSID;
-    int familyNameSID;
-    int weightSID;
-    int isFixedPitch;
+    int    versionSID;
+    int    noticeSID;
+    int    copyrightSID;
+    int    fullNameSID;
+    int    familyNameSID;
+    int    weightSID;
+    int    isFixedPitch;
     double italicAngle;
     double underlinePosition;
     double underlineThickness;
-    int paintType;
-    int charstringType;
+    int    paintType;
+    int    charstringType;
     double fontMatrix[6];
-    bool hasFontMatrix; // CID fonts are allowed to put their
-                         //   FontMatrix in the FD instead of the
-                         //   top dict
-    int uniqueID;
+    bool   hasFontMatrix; // CID fonts are allowed to put their
+        //   FontMatrix in the FD instead of the
+        //   top dict
+    int    uniqueID;
     double fontBBox[4];
     double strokeWidth;
-    int charsetOffset;
-    int encodingOffset;
-    int charStringsOffset;
-    int privateSize;
-    int privateOffset;
+    int    charsetOffset;
+    int    encodingOffset;
+    int    charStringsOffset;
+    int    privateSize;
+    int    privateOffset;
 
     // CIDFont entries
     int registrySID;
@@ -64,89 +66,94 @@ struct Type1CTopDict {
 #define type1CMaxOtherBlues 10
 #define type1CMaxStemSnap 12
 
-struct Type1CPrivateDict {
+struct Type1CPrivateDict
+{
     double fontMatrix[6];
-    bool hasFontMatrix;
-    int blueValues[type1CMaxBlueValues];
-    int nBlueValues;
-    int otherBlues[type1CMaxOtherBlues];
-    int nOtherBlues;
-    int familyBlues[type1CMaxBlueValues];
-    int nFamilyBlues;
-    int familyOtherBlues[type1CMaxOtherBlues];
-    int nFamilyOtherBlues;
+    bool   hasFontMatrix;
+    int    blueValues[type1CMaxBlueValues];
+    int    nBlueValues;
+    int    otherBlues[type1CMaxOtherBlues];
+    int    nOtherBlues;
+    int    familyBlues[type1CMaxBlueValues];
+    int    nFamilyBlues;
+    int    familyOtherBlues[type1CMaxOtherBlues];
+    int    nFamilyOtherBlues;
     double blueScale;
-    int blueShift;
-    int blueFuzz;
+    int    blueShift;
+    int    blueFuzz;
     double stdHW;
-    bool hasStdHW;
+    bool   hasStdHW;
     double stdVW;
-    bool hasStdVW;
+    bool   hasStdVW;
     double stemSnapH[type1CMaxStemSnap];
-    int nStemSnapH;
+    int    nStemSnapH;
     double stemSnapV[type1CMaxStemSnap];
-    int nStemSnapV;
-    bool forceBold;
-    bool hasForceBold;
+    int    nStemSnapV;
+    bool   forceBold;
+    bool   hasForceBold;
     double forceBoldThreshold;
-    int languageGroup;
+    int    languageGroup;
     double expansionFactor;
-    int initialRandomSeed;
-    int subrsOffset;
+    int    initialRandomSeed;
+    int    subrsOffset;
     double defaultWidthX;
-    bool defaultWidthXFP;
+    bool   defaultWidthXFP;
     double nominalWidthX;
-    bool nominalWidthXFP;
+    bool   nominalWidthXFP;
 };
 
-struct Type1COp {
+struct Type1COp
+{
     bool isNum; // true -> number, false -> operator
-    bool isFP;  // true -> floating point number, false -> int
-    union {
+    bool isFP; // true -> floating point number, false -> int
+    union
+    {
         double num; // if num is true
-        int op;     // if num is false
+        int    op; // if num is false
     };
 };
 
-struct Type1CEexecBuf {
+struct Type1CEexecBuf
+{
     FoFiOutputFunc outputFunc;
-    void* outputStream;
-    bool ascii; // ASCII encoding?
-    unsigned short r1;  // eexec encryption key
-    int line;    // number of eexec chars left on current line
+    void *         outputStream;
+    bool           ascii; // ASCII encoding?
+    unsigned short r1; // eexec encryption key
+    int            line; // number of eexec chars left on current line
 };
 
 //------------------------------------------------------------------------
 // FoFiType1C
 //------------------------------------------------------------------------
 
-class FoFiType1C : public FoFiBase {
+class FoFiType1C : public FoFiBase
+{
 public:
     // Create a FoFiType1C object from a memory buffer.
-    static FoFiType1C* make (char* fileA, int lenA);
+    static FoFiType1C *make(char *fileA, int lenA);
 
     // Create a FoFiType1C object from a file on disk.
-    static FoFiType1C* load (const char* fileName);
+    static FoFiType1C *load(const char *fileName);
 
-    virtual ~FoFiType1C ();
+    virtual ~FoFiType1C();
 
     // Return the font name.
-    const char* getName ();
+    const char *getName();
 
     // Return the encoding, as an array of 256 names (any of which may
     // be NULL).  This is only useful with 8-bit fonts.
-    char** getEncoding ();
+    char **getEncoding();
 
     // Get the glyph names.
-    int getNumGlyphs () { return nGlyphs; }
-    GString* getGlyphName (int gid);
+    int      getNumGlyphs() { return nGlyphs; }
+    GString *getGlyphName(int gid);
 
     // Return the mapping from CIDs to GIDs, and return the number of
     // CIDs in *<nCIDs>.  This is only useful for CID fonts.
-    int* getCIDToGIDMap (int* nCIDs);
+    int *getCIDToGIDMap(int *nCIDs);
 
     // Return the font matrix as an array of six numbers.
-    void getFontMatrix (double* mat);
+    void getFontMatrix(double *mat);
 
     // Convert to a Type 1 font, suitable for embedding in a PostScript
     // file.  This is only useful with 8-bit fonts.  If <newEncoding> is
@@ -154,9 +161,8 @@ public:
     // font.  If <ascii> is true the eexec section will be hex-encoded,
     // otherwise it will be left as binary data.  If <psName> is non-NULL,
     // it will be used as the PostScript font name.
-    void convertToType1 (
-        const char* psName, const char** newEncoding, bool ascii,
-        FoFiOutputFunc outputFunc, void* outputStream);
+    void convertToType1(const char *psName, const char **newEncoding, bool ascii,
+                        FoFiOutputFunc outputFunc, void *outputStream);
 
     // Convert to a Type 0 CIDFont, suitable for embedding in a
     // PostScript file.  <psName> will be used as the PostScript font
@@ -166,9 +172,8 @@ public:
     //     font's internal CID-to-GID mapping is used
     // (3) is <codeMap> is NULL and this is an 8-bit CFF font, then
     //     the identity CID-to-GID mapping is used
-    void convertToCIDType0 (
-        const char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
-        void* outputStream);
+    void convertToCIDType0(const char *psName, int *codeMap, int nCodes,
+                           FoFiOutputFunc outputFunc, void *outputStream);
 
     // Convert to a Type 0 (but non-CID) composite font, suitable for
     // embedding in a PostScript file.  <psName> will be used as the
@@ -179,40 +184,37 @@ public:
     //     font's internal CID-to-GID mapping is used
     // (3) is <codeMap> is NULL and this is an 8-bit CFF font, then
     //     the identity CID-to-GID mapping is used
-    void convertToType0 (
-        const char* psName, int* codeMap, int nCodes, FoFiOutputFunc outputFunc,
-        void* outputStream);
+    void convertToType0(const char *psName, int *codeMap, int nCodes,
+                        FoFiOutputFunc outputFunc, void *outputStream);
 
 private:
-    FoFiType1C (char* fileA, int lenA, bool freeFileDataA);
-    void eexecCvtGlyph (
-        Type1CEexecBuf* eb, const char* glyphName, int offset, int nBytes,
-        Type1CIndex* subrIdx, Type1CPrivateDict* pDict);
-    void cvtGlyph (
-        int offset, int nBytes, GString* charBuf, Type1CIndex* subrIdx,
-        Type1CPrivateDict* pDict, bool top);
-    void
-    cvtGlyphWidth (bool useOp, GString* charBuf, Type1CPrivateDict* pDict);
-    void cvtNum (double x, bool isFP, GString* charBuf);
-    void eexecWrite (Type1CEexecBuf* eb, const char* s);
-    void eexecWriteCharstring (Type1CEexecBuf* eb, unsigned char* s, int n);
-    void writePSString (char* s, FoFiOutputFunc outputFunc, void* outputStream);
-    bool parse ();
-    void readTopDict ();
-    void readFD (int offset, int length, Type1CPrivateDict* pDict);
-    void readPrivateDict (int offset, int length, Type1CPrivateDict* pDict);
-    void readFDSelect ();
-    void buildEncoding ();
-    bool readCharset ();
-    int getOp (int pos, bool charstring, bool* ok);
-    int getDeltaIntArray (int* arr, int maxLen);
-    int getDeltaFPArray (double* arr, int maxLen);
-    void getIndex (int pos, Type1CIndex* idx, bool* ok);
-    void getIndexVal (Type1CIndex* idx, int i, Type1CIndexVal* val, bool* ok);
-    char* getString (int sid, char* buf, bool* ok);
+    FoFiType1C(char *fileA, int lenA, bool freeFileDataA);
+    void  eexecCvtGlyph(Type1CEexecBuf *eb, const char *glyphName, int offset,
+                        int nBytes, Type1CIndex *subrIdx,
+                        Type1CPrivateDict *pDict);
+    void  cvtGlyph(int offset, int nBytes, GString *charBuf, Type1CIndex *subrIdx,
+                   Type1CPrivateDict *pDict, bool top);
+    void  cvtGlyphWidth(bool useOp, GString *charBuf, Type1CPrivateDict *pDict);
+    void  cvtNum(double x, bool isFP, GString *charBuf);
+    void  eexecWrite(Type1CEexecBuf *eb, const char *s);
+    void  eexecWriteCharstring(Type1CEexecBuf *eb, unsigned char *s, int n);
+    void  writePSString(char *s, FoFiOutputFunc outputFunc, void *outputStream);
+    bool  parse();
+    void  readTopDict();
+    void  readFD(int offset, int length, Type1CPrivateDict *pDict);
+    void  readPrivateDict(int offset, int length, Type1CPrivateDict *pDict);
+    void  readFDSelect();
+    void  buildEncoding();
+    bool  readCharset();
+    int   getOp(int pos, bool charstring, bool *ok);
+    int   getDeltaIntArray(int *arr, int maxLen);
+    int   getDeltaFPArray(double *arr, int maxLen);
+    void  getIndex(int pos, Type1CIndex *idx, bool *ok);
+    void  getIndexVal(Type1CIndex *idx, int i, Type1CIndexVal *val, bool *ok);
+    char *getString(int sid, char *buf, bool *ok);
 
-    GString* name;
-    char** encoding;
+    GString *name;
+    char **  encoding;
 
     Type1CIndex nameIdx;
     Type1CIndex topDictIdx;
@@ -220,22 +222,22 @@ private:
     Type1CIndex gsubrIdx;
     Type1CIndex charStringsIdx;
 
-    Type1CTopDict topDict;
-    Type1CPrivateDict* privateDicts;
+    Type1CTopDict      topDict;
+    Type1CPrivateDict *privateDicts;
 
-    int nGlyphs;
-    int nFDs;
-    unsigned char* fdSelect;
-    unsigned short* charset;
-    int gsubrBias;
+    int             nGlyphs;
+    int             nFDs;
+    unsigned char * fdSelect;
+    unsigned short *charset;
+    int             gsubrBias;
 
     bool parsedOk;
 
     Type1COp ops[49]; // operands and operator
-    int nOps;         // number of operands
-    int nHints;       // number of hints for the current glyph
-    bool firstOp;    // true if we haven't hit the first op yet
-    bool openPath;   // true if there is an unclosed path
+    int      nOps; // number of operands
+    int      nHints; // number of hints for the current glyph
+    bool     firstOp; // true if we haven't hit the first op yet
+    bool     openPath; // true if there is an unclosed path
 };
 
 #endif // XPDF_FOFI_FOFITYPE1C_HH

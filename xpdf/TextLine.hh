@@ -11,10 +11,11 @@
 #include <xpdf/CharTypes.hh>
 #include <xpdf/TextOutput.hh>
 
-struct TextLine {
-    TextLine (TextWords, double, double, double, double, double);
+struct TextLine
+{
+    TextLine(TextWords, double, double, double, double, double);
 
-    double getBaseline () const;
+    double getBaseline() const;
 
     TextWords words;
 
@@ -38,12 +39,12 @@ struct TextLine {
     //
     std::vector< double > edge;
 
-    int len;           // number of Unicode chars
-    bool hyphenated;   // set if last char is a hyphen
-    int px;            // x offset (in characters, relative to
-                       //   containing column) in physical layout mode
-    int pw;            // line width (in characters) in physical
-                       //   layout mode
+    int  len; // number of Unicode chars
+    bool hyphenated; // set if last char is a hyphen
+    int  px; // x offset (in characters, relative to
+        //   containing column) in physical layout mode
+    int pw; // line width (in characters) in physical
+        //   layout mode
 };
 
 #endif // XPDF_XPDF_TEXTLINE_HH

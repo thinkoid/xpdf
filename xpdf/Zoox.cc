@@ -31,7 +31,7 @@ static char nameStartChar[256] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // c0
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // d0
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // e0
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // f0
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 // f0
 };
 
 static char nameChar[256] = {
@@ -50,19 +50,21 @@ static char nameChar[256] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // c0
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // d0
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // e0
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // f0
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 // f0
 };
 
 //------------------------------------------------------------------------
 
-ZxNode::ZxNode () {
+ZxNode::ZxNode()
+{
     next = NULL;
     parent = NULL;
     firstChild = lastChild = NULL;
 }
 
-ZxNode::~ZxNode () {
-    ZxNode* child;
+ZxNode::~ZxNode()
+{
+    ZxNode *child;
 
     while (firstChild) {
         child = firstChild;
@@ -71,60 +73,75 @@ ZxNode::~ZxNode () {
     }
 }
 
-ZxElement* ZxNode::findFirstElement (const char* type) {
-    ZxNode* child;
-    ZxElement* result;
+ZxElement *ZxNode::findFirstElement(const char *type)
+{
+    ZxNode *   child;
+    ZxElement *result;
 
-    if (isElement (type)) { return (ZxElement*)this; }
+    if (isElement(type)) {
+        return (ZxElement *)this;
+    }
     for (child = firstChild; child; child = child->next) {
-        if ((result = child->findFirstElement (type))) { return result; }
+        if ((result = child->findFirstElement(type))) {
+            return result;
+        }
     }
     return NULL;
 }
 
-ZxElement* ZxNode::findFirstChildElement (const char* type) {
-    ZxNode* child;
+ZxElement *ZxNode::findFirstChildElement(const char *type)
+{
+    ZxNode *child;
 
     for (child = firstChild; child; child = child->next) {
-        if (child->isElement (type)) { return (ZxElement*)child; }
+        if (child->isElement(type)) {
+            return (ZxElement *)child;
+        }
     }
     return NULL;
 }
 
-GList* ZxNode::findAllElements (const char* type) {
-    GList* results;
+GList *ZxNode::findAllElements(const char *type)
+{
+    GList *results;
 
-    results = new GList ();
-    findAllElements (type, results);
+    results = new GList();
+    findAllElements(type, results);
     return results;
 }
 
-void ZxNode::findAllElements (const char* type, GList* results) {
-    ZxNode* child;
+void ZxNode::findAllElements(const char *type, GList *results)
+{
+    ZxNode *child;
 
-    if (isElement (type)) { results->append (this); }
+    if (isElement(type)) {
+        results->append(this);
+    }
     for (child = firstChild; child; child = child->next) {
-        child->findAllElements (type, results);
+        child->findAllElements(type, results);
     }
 }
 
-GList* ZxNode::findAllChildElements (const char* type) {
-    GList* results;
-    ZxNode* child;
+GList *ZxNode::findAllChildElements(const char *type)
+{
+    GList * results;
+    ZxNode *child;
 
-    results = new GList ();
+    results = new GList();
     for (child = firstChild; child; child = child->next) {
-        if (child->isElement (type)) { results->append (child); }
+        if (child->isElement(type)) {
+            results->append(child);
+        }
     }
     return results;
 }
 
-void ZxNode::addChild (ZxNode* child) {
+void ZxNode::addChild(ZxNode *child)
+{
     if (lastChild) {
         lastChild->next = child;
         lastChild = child;
-    }
-    else {
+    } else {
         firstChild = lastChild = child;
     }
     child->parent = this;
@@ -133,143 +150,162 @@ void ZxNode::addChild (ZxNode* child) {
 
 //------------------------------------------------------------------------
 
-ZxDoc::ZxDoc () {
+ZxDoc::ZxDoc()
+{
     xmlDecl = NULL;
     docTypeDecl = NULL;
     root = NULL;
 }
 
-ZxDoc* ZxDoc::loadMem (const char* data, unsigned dataLen) {
-    ZxDoc* doc;
+ZxDoc *ZxDoc::loadMem(const char *data, unsigned dataLen)
+{
+    ZxDoc *doc;
 
-    doc = new ZxDoc ();
-    if (!doc->parse (data, dataLen)) {
+    doc = new ZxDoc();
+    if (!doc->parse(data, dataLen)) {
         delete doc;
         return NULL;
     }
     return doc;
 }
 
-ZxDoc* ZxDoc::loadFile (const char* fileName) {
-    ZxDoc* doc;
-    FILE* f;
-    char* data;
+ZxDoc *ZxDoc::loadFile(const char *fileName)
+{
+    ZxDoc *  doc;
+    FILE *   f;
+    char *   data;
     unsigned dataLen;
 
-    if (!(f = fopen (fileName, "rb"))) { return NULL; }
-    fseek (f, 0, SEEK_END);
-    dataLen = (unsigned)ftell (f);
+    if (!(f = fopen(fileName, "rb"))) {
+        return NULL;
+    }
+    fseek(f, 0, SEEK_END);
+    dataLen = (unsigned)ftell(f);
     if (!dataLen) {
-        fclose (f);
+        fclose(f);
         return NULL;
     }
-    fseek (f, 0, SEEK_SET);
-    data = (char*)malloc (dataLen);
-    if (fread (data, 1, dataLen, f) != dataLen) {
-        fclose (f);
-        free (data);
+    fseek(f, 0, SEEK_SET);
+    data = (char *)malloc(dataLen);
+    if (fread(data, 1, dataLen, f) != dataLen) {
+        fclose(f);
+        free(data);
         return NULL;
     }
-    fclose (f);
-    doc = loadMem (data, dataLen);
-    free (data);
+    fclose(f);
+    doc = loadMem(data, dataLen);
+    free(data);
     return doc;
 }
 
-ZxDoc::~ZxDoc () {}
+ZxDoc::~ZxDoc() { }
 
-void ZxDoc::addChild (ZxNode* node) {
-    if (node->isXMLDecl () && !xmlDecl) { xmlDecl = (ZxXMLDecl*)node; }
-    else if (node->isDocTypeDecl () && !docTypeDecl) {
-        docTypeDecl = (ZxDocTypeDecl*)node;
+void ZxDoc::addChild(ZxNode *node)
+{
+    if (node->isXMLDecl() && !xmlDecl) {
+        xmlDecl = (ZxXMLDecl *)node;
+    } else if (node->isDocTypeDecl() && !docTypeDecl) {
+        docTypeDecl = (ZxDocTypeDecl *)node;
+    } else if (node->isElement() && !root) {
+        root = (ZxElement *)node;
     }
-    else if (node->isElement () && !root) {
-        root = (ZxElement*)node;
-    }
-    ZxNode::addChild (node);
+    ZxNode::addChild(node);
 }
 
-bool ZxDoc::parse (const char* data, unsigned dataLen) {
+bool ZxDoc::parse(const char *data, unsigned dataLen)
+{
     parsePtr = data;
     parseEnd = data + dataLen;
 
-    parseSpace ();
-    parseXMLDecl (this);
-    parseMisc (this);
-    parseDocTypeDecl (this);
-    parseMisc (this);
-    if (match ("<")) { parseElement (this); }
-    parseMisc (this);
+    parseSpace();
+    parseXMLDecl(this);
+    parseMisc(this);
+    parseDocTypeDecl(this);
+    parseMisc(this);
+    if (match("<")) {
+        parseElement(this);
+    }
+    parseMisc(this);
     return root != NULL;
 }
 
-void ZxDoc::parseXMLDecl (ZxNode* par) {
+void ZxDoc::parseXMLDecl(ZxNode *par)
+{
     GString *version, *encoding, *s;
-    bool standalone;
+    bool     standalone;
 
-    if (!match ("<?xml")) { return; }
+    if (!match("<?xml")) {
+        return;
+    }
     parsePtr += 5;
-    parseSpace ();
+    parseSpace();
 
     // version
     version = NULL;
-    if (match ("version")) {
+    if (match("version")) {
         parsePtr += 7;
-        parseSpace ();
-        if (match ("=")) {
+        parseSpace();
+        if (match("=")) {
             ++parsePtr;
-            parseSpace ();
-            version = parseQuotedString ();
+            parseSpace();
+            version = parseQuotedString();
         }
     }
-    if (!version) { version = new GString ("1.0"); }
-    parseSpace ();
+    if (!version) {
+        version = new GString("1.0");
+    }
+    parseSpace();
 
     // encoding
     encoding = NULL;
-    if (match ("encoding")) {
+    if (match("encoding")) {
         parsePtr += 8;
-        parseSpace ();
-        if (match ("=")) {
+        parseSpace();
+        if (match("=")) {
             ++parsePtr;
-            parseSpace ();
-            encoding = parseQuotedString ();
+            parseSpace();
+            encoding = parseQuotedString();
         }
     }
-    parseSpace ();
+    parseSpace();
 
     // standalone
     standalone = false;
-    if (match ("standalone")) {
+    if (match("standalone")) {
         parsePtr += 10;
-        parseSpace ();
-        if (match ("=")) {
+        parseSpace();
+        if (match("=")) {
             ++parsePtr;
-            parseSpace ();
-            s = parseQuotedString ();
-            standalone = !s->cmp ("yes");
+            parseSpace();
+            s = parseQuotedString();
+            standalone = !s->cmp("yes");
             delete s;
         }
     }
-    parseSpace ();
+    parseSpace();
 
-    if (match ("?>")) { parsePtr += 2; }
+    if (match("?>")) {
+        parsePtr += 2;
+    }
 
-    par->addChild (new ZxXMLDecl (version, encoding, standalone));
+    par->addChild(new ZxXMLDecl(version, encoding, standalone));
 }
 
 //~ this just skips everything after the name
-void ZxDoc::parseDocTypeDecl (ZxNode* par) {
-    GString* name;
-    int state;
-    char c, quote;
+void ZxDoc::parseDocTypeDecl(ZxNode *par)
+{
+    GString *name;
+    int      state;
+    char     c, quote;
 
-    if (!match ("<!DOCTYPE")) { return; }
+    if (!match("<!DOCTYPE")) {
+        return;
+    }
     parsePtr += 9;
-    parseSpace ();
+    parseSpace();
 
-    name = parseName ();
-    parseSpace ();
+    name = parseName();
+    parseSpace();
 
     state = 0;
     quote = '\0';
@@ -277,74 +313,82 @@ void ZxDoc::parseDocTypeDecl (ZxNode* par) {
         c = *parsePtr++;
         switch (state) {
         case 0: // not in square brackets; not in quotes
-            if (c == '>') { state = 4; }
-            else if (c == '"' || c == '\'') {
+            if (c == '>') {
+                state = 4;
+            } else if (c == '"' || c == '\'') {
                 state = 1;
-            }
-            else if (c == '[') {
+            } else if (c == '[') {
                 state = 2;
             }
             break;
         case 1: // not in square brackets; in quotes
-            if (c == quote) { state = 0; }
+            if (c == quote) {
+                state = 0;
+            }
             break;
         case 2: // in square brackets; not in quotes
-            if (c == ']') { state = 0; }
-            else if (c == '"' || c == '\'') {
+            if (c == ']') {
+                state = 0;
+            } else if (c == '"' || c == '\'') {
                 state = 3;
             }
             break;
         case 3: // in square brackets; in quotes
-            if (c == quote) { state = 2; }
+            if (c == quote) {
+                state = 2;
+            }
             break;
         }
     }
 
-    par->addChild (new ZxDocTypeDecl (name));
+    par->addChild(new ZxDocTypeDecl(name));
 }
 
 // assumes match("<")
-void ZxDoc::parseElement (ZxNode* par) {
-    GString* type;
-    ZxElement* elem;
-    ZxAttr* attr;
+void ZxDoc::parseElement(ZxNode *par)
+{
+    GString *  type;
+    ZxElement *elem;
+    ZxAttr *   attr;
 
     ++parsePtr;
-    type = parseName ();
-    elem = new ZxElement (type);
-    parseSpace ();
-    while ((attr = parseAttr ())) {
-        elem->addAttr (attr);
-        parseSpace ();
+    type = parseName();
+    elem = new ZxElement(type);
+    parseSpace();
+    while ((attr = parseAttr())) {
+        elem->addAttr(attr);
+        parseSpace();
     }
-    if (match ("/>")) { parsePtr += 2; }
-    else if (match (">")) {
+    if (match("/>")) {
+        parsePtr += 2;
+    } else if (match(">")) {
         ++parsePtr;
-        parseContent (elem);
+        parseContent(elem);
     }
-    par->addChild (elem);
+    par->addChild(elem);
 }
 
-ZxAttr* ZxDoc::parseAttr () {
-    GString *name, *value;
-    const char* start;
-    char quote, c;
-    int x, n;
+ZxAttr *ZxDoc::parseAttr()
+{
+    GString *   name, *value;
+    const char *start;
+    char        quote, c;
+    int         x, n;
 
-    name = parseName ();
-    parseSpace ();
-    if (!match ("=")) {
+    name = parseName();
+    parseSpace();
+    if (!match("=")) {
         delete name;
         return NULL;
     }
     ++parsePtr;
-    parseSpace ();
+    parseSpace();
     if (!(parsePtr < parseEnd && (*parsePtr == '"' || *parsePtr == '\''))) {
         delete name;
         return NULL;
     }
     quote = *parsePtr++;
-    value = new GString ();
+    value = new GString();
     while (parsePtr < parseEnd && *parsePtr != quote) {
         if (*parsePtr == '&') {
             ++parsePtr;
@@ -355,117 +399,116 @@ ZxAttr* ZxDoc::parseAttr () {
                     x = 0;
                     while (parsePtr < parseEnd) {
                         c = *parsePtr;
-                        if (c >= '0' && c <= '9') { x = (x << 4) + (c - '0'); }
-                        else if (c >= 'a' && c <= 'f') {
+                        if (c >= '0' && c <= '9') {
+                            x = (x << 4) + (c - '0');
+                        } else if (c >= 'a' && c <= 'f') {
                             x = (x << 4) + (10 + c - 'a');
-                        }
-                        else if (c >= 'A' && c <= 'F') {
+                        } else if (c >= 'A' && c <= 'F') {
                             x = (x << 4) + (10 + c - 'A');
-                        }
-                        else {
+                        } else {
                             break;
                         }
                         ++parsePtr;
                     }
-                    if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                    appendUTF8 (value, x);
-                }
-                else {
+                    if (parsePtr < parseEnd && *parsePtr == ';') {
+                        ++parsePtr;
+                    }
+                    appendUTF8(value, x);
+                } else {
                     x = 0;
                     while (parsePtr < parseEnd) {
                         c = *parsePtr;
-                        if (c >= '0' && c <= '9') { x = x * 10 + (c - '0'); }
-                        else {
+                        if (c >= '0' && c <= '9') {
+                            x = x * 10 + (c - '0');
+                        } else {
                             break;
                         }
                         ++parsePtr;
                     }
-                    if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                    appendUTF8 (value, x);
+                    if (parsePtr < parseEnd && *parsePtr == ';') {
+                        ++parsePtr;
+                    }
+                    appendUTF8(value, x);
                 }
-            }
-            else {
+            } else {
                 start = parsePtr;
                 for (++parsePtr; parsePtr < parseEnd && *parsePtr != ';' &&
                                  *parsePtr != quote && *parsePtr != '&';
                      ++parsePtr)
                     ;
                 n = (int)(parsePtr - start);
-                if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                if (n == 2 && !strncmp (start, "lt", 2)) {
-                    value->append (1UL, '<');
+                if (parsePtr < parseEnd && *parsePtr == ';') {
+                    ++parsePtr;
                 }
-                else if (n == 2 && !strncmp (start, "gt", 2)) {
-                    value->append (1UL, '>');
-                }
-                else if (n == 3 && !strncmp (start, "amp", 3)) {
-                    value->append (1UL, '&');
-                }
-                else if (n == 4 && !strncmp (start, "apos", 4)) {
-                    value->append (1UL, '\'');
-                }
-                else if (n == 4 && !strncmp (start, "quot", 4)) {
-                    value->append (1UL, '"');
-                }
-                else {
-                    value->append (start - 1, (int)(parsePtr - start) + 1);
+                if (n == 2 && !strncmp(start, "lt", 2)) {
+                    value->append(1UL, '<');
+                } else if (n == 2 && !strncmp(start, "gt", 2)) {
+                    value->append(1UL, '>');
+                } else if (n == 3 && !strncmp(start, "amp", 3)) {
+                    value->append(1UL, '&');
+                } else if (n == 4 && !strncmp(start, "apos", 4)) {
+                    value->append(1UL, '\'');
+                } else if (n == 4 && !strncmp(start, "quot", 4)) {
+                    value->append(1UL, '"');
+                } else {
+                    value->append(start - 1, (int)(parsePtr - start) + 1);
                 }
             }
-        }
-        else {
+        } else {
             start = parsePtr;
             for (++parsePtr;
                  parsePtr < parseEnd && *parsePtr != quote && *parsePtr != '&';
                  ++parsePtr)
                 ;
-            value->append (start, (int)(parsePtr - start));
+            value->append(start, (int)(parsePtr - start));
         }
     }
-    if (parsePtr < parseEnd && *parsePtr == quote) { ++parsePtr; }
-    return new ZxAttr (name, value);
+    if (parsePtr < parseEnd && *parsePtr == quote) {
+        ++parsePtr;
+    }
+    return new ZxAttr(name, value);
 }
 
 // this consumes the end tag
-void ZxDoc::parseContent (ZxElement* par) {
-    GString* endType;
+void ZxDoc::parseContent(ZxElement *par)
+{
+    GString *endType;
 
-    endType = new GString ("</");
-    endType->append (*par->getType ());
+    endType = new GString("</");
+    endType->append(*par->getType());
 
     while (parsePtr < parseEnd) {
-        if (match (endType->c_str ())) {
-            parsePtr += endType->getLength ();
-            parseSpace ();
-            if (match (">")) { ++parsePtr; }
+        if (match(endType->c_str())) {
+            parsePtr += endType->getLength();
+            parseSpace();
+            if (match(">")) {
+                ++parsePtr;
+            }
             break;
-        }
-        else if (match ("<?")) {
-            parsePI (par);
-        }
-        else if (match ("<![CDATA[")) {
-            parseCDSect (par);
-        }
-        else if (match ("<!--")) {
-            parseComment (par);
-        }
-        else if (match ("<")) {
-            parseElement (par);
-        }
-        else {
-            parseCharData (par);
+        } else if (match("<?")) {
+            parsePI(par);
+        } else if (match("<![CDATA[")) {
+            parseCDSect(par);
+        } else if (match("<!--")) {
+            parseComment(par);
+        } else if (match("<")) {
+            parseElement(par);
+        } else {
+            parseCharData(par);
         }
     }
 
     delete endType;
 }
 
-void ZxDoc::parseCharData (ZxElement* par) {
-    GString* data;
-    const char* start;
-    char c;
-    int x, n;
+void ZxDoc::parseCharData(ZxElement *par)
+{
+    GString *   data;
+    const char *start;
+    char        c;
+    int         x, n;
 
-    data = new GString ();
+    data = new GString();
     while (parsePtr < parseEnd && *parsePtr != '<') {
         if (*parsePtr == '&') {
             ++parsePtr;
@@ -476,155 +519,154 @@ void ZxDoc::parseCharData (ZxElement* par) {
                     x = 0;
                     while (parsePtr < parseEnd) {
                         c = *parsePtr;
-                        if (c >= '0' && c <= '9') { x = (x << 4) + (c - '0'); }
-                        else if (c >= 'a' && c <= 'f') {
+                        if (c >= '0' && c <= '9') {
+                            x = (x << 4) + (c - '0');
+                        } else if (c >= 'a' && c <= 'f') {
                             x = (x << 4) + (10 + c - 'a');
-                        }
-                        else if (c >= 'A' && c <= 'F') {
+                        } else if (c >= 'A' && c <= 'F') {
                             x = (x << 4) + (10 + c - 'A');
-                        }
-                        else {
+                        } else {
                             break;
                         }
                         ++parsePtr;
                     }
-                    if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                    appendUTF8 (data, x);
-                }
-                else {
+                    if (parsePtr < parseEnd && *parsePtr == ';') {
+                        ++parsePtr;
+                    }
+                    appendUTF8(data, x);
+                } else {
                     x = 0;
                     while (parsePtr < parseEnd) {
                         c = *parsePtr;
-                        if (c >= '0' && c <= '9') { x = x * 10 + (c - '0'); }
-                        else {
+                        if (c >= '0' && c <= '9') {
+                            x = x * 10 + (c - '0');
+                        } else {
                             break;
                         }
                         ++parsePtr;
                     }
-                    if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                    appendUTF8 (data, x);
+                    if (parsePtr < parseEnd && *parsePtr == ';') {
+                        ++parsePtr;
+                    }
+                    appendUTF8(data, x);
                 }
-            }
-            else {
+            } else {
                 start = parsePtr;
                 for (++parsePtr; parsePtr < parseEnd && *parsePtr != ';' &&
                                  *parsePtr != '<' && *parsePtr != '&';
                      ++parsePtr)
                     ;
                 n = (int)(parsePtr - start);
-                if (parsePtr < parseEnd && *parsePtr == ';') { ++parsePtr; }
-                if (n == 2 && !strncmp (start, "lt", 2)) { data->append (1UL, '<'); }
-                else if (n == 2 && !strncmp (start, "gt", 2)) {
-                    data->append (1UL, '>');
+                if (parsePtr < parseEnd && *parsePtr == ';') {
+                    ++parsePtr;
                 }
-                else if (n == 3 && !strncmp (start, "amp", 3)) {
-                    data->append (1UL, '&');
-                }
-                else if (n == 4 && !strncmp (start, "apos", 4)) {
-                    data->append (1UL, '\'');
-                }
-                else if (n == 4 && !strncmp (start, "quot", 4)) {
-                    data->append (1UL, '"');
-                }
-                else {
-                    data->append (start - 1, (int)(parsePtr - start) + 1);
+                if (n == 2 && !strncmp(start, "lt", 2)) {
+                    data->append(1UL, '<');
+                } else if (n == 2 && !strncmp(start, "gt", 2)) {
+                    data->append(1UL, '>');
+                } else if (n == 3 && !strncmp(start, "amp", 3)) {
+                    data->append(1UL, '&');
+                } else if (n == 4 && !strncmp(start, "apos", 4)) {
+                    data->append(1UL, '\'');
+                } else if (n == 4 && !strncmp(start, "quot", 4)) {
+                    data->append(1UL, '"');
+                } else {
+                    data->append(start - 1, (int)(parsePtr - start) + 1);
                 }
             }
-        }
-        else {
+        } else {
             start = parsePtr;
             for (++parsePtr;
                  parsePtr < parseEnd && *parsePtr != '<' && *parsePtr != '&';
                  ++parsePtr)
                 ;
-            data->append (start, (int)(parsePtr - start));
+            data->append(start, (int)(parsePtr - start));
         }
     }
-    par->addChild (new ZxCharData (data, true));
+    par->addChild(new ZxCharData(data, true));
 }
 
-void ZxDoc::appendUTF8 (GString* s, int c) {
-    if (c <= 0x7f) { s->append (1UL, (char)c); }
-    else if (c <= 0x7ff) {
-        s->append (1UL, (char)(0xc0 + (c >> 6)));
-        s->append (1UL, (char)(0x80 + (c & 0x3f)));
-    }
-    else if (c <= 0xffff) {
-        s->append (1UL, (char)(0xe0 + (c >> 12)));
-        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append (1UL, (char)(0x80 + (c & 0x3f)));
-    }
-    else if (c <= 0x1fffff) {
-        s->append (1UL, (char)(0xf0 + (c >> 18)));
-        s->append (1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
-        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append (1UL, (char)(0x80 + (c & 0x3f)));
-    }
-    else if (c <= 0x3ffffff) {
-        s->append (1UL, (char)(0xf8 + (c >> 24)));
-        s->append (1UL, (char)(0x80 + ((c >> 18) & 0x3f)));
-        s->append (1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
-        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append (1UL, (char)(0x80 + (c & 0x3f)));
-    }
-    else if (c <= 0x7fffffff) {
-        s->append (1UL, (char)(0xfc + (c >> 30)));
-        s->append (1UL, (char)(0x80 + ((c >> 24) & 0x3f)));
-        s->append (1UL, (char)(0x80 + ((c >> 18) & 0x3f)));
-        s->append (1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
-        s->append (1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
-        s->append (1UL, (char)(0x80 + (c & 0x3f)));
+void ZxDoc::appendUTF8(GString *s, int c)
+{
+    if (c <= 0x7f) {
+        s->append(1UL, (char)c);
+    } else if (c <= 0x7ff) {
+        s->append(1UL, (char)(0xc0 + (c >> 6)));
+        s->append(1UL, (char)(0x80 + (c & 0x3f)));
+    } else if (c <= 0xffff) {
+        s->append(1UL, (char)(0xe0 + (c >> 12)));
+        s->append(1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append(1UL, (char)(0x80 + (c & 0x3f)));
+    } else if (c <= 0x1fffff) {
+        s->append(1UL, (char)(0xf0 + (c >> 18)));
+        s->append(1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
+        s->append(1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append(1UL, (char)(0x80 + (c & 0x3f)));
+    } else if (c <= 0x3ffffff) {
+        s->append(1UL, (char)(0xf8 + (c >> 24)));
+        s->append(1UL, (char)(0x80 + ((c >> 18) & 0x3f)));
+        s->append(1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
+        s->append(1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append(1UL, (char)(0x80 + (c & 0x3f)));
+    } else if (c <= 0x7fffffff) {
+        s->append(1UL, (char)(0xfc + (c >> 30)));
+        s->append(1UL, (char)(0x80 + ((c >> 24) & 0x3f)));
+        s->append(1UL, (char)(0x80 + ((c >> 18) & 0x3f)));
+        s->append(1UL, (char)(0x80 + ((c >> 12) & 0x3f)));
+        s->append(1UL, (char)(0x80 + ((c >> 6) & 0x3f)));
+        s->append(1UL, (char)(0x80 + (c & 0x3f)));
     }
 }
 
 // assumes match("<![CDATA[")
-void ZxDoc::parseCDSect (ZxNode* par) {
-    const char* start;
+void ZxDoc::parseCDSect(ZxNode *par)
+{
+    const char *start;
 
     parsePtr += 9;
     start = parsePtr;
     while (parsePtr < parseEnd - 3) {
-        if (!strncmp (parsePtr, "]]>", 3)) {
-            par->addChild (new ZxCharData (
-                new GString (start, (int)(parsePtr - start)), false));
+        if (!strncmp(parsePtr, "]]>", 3)) {
+            par->addChild(new ZxCharData(
+                new GString(start, (int)(parsePtr - start)), false));
             parsePtr += 3;
             return;
         }
         ++parsePtr;
     }
     parsePtr = parseEnd;
-    par->addChild (
-        new ZxCharData (new GString (start, (int)(parsePtr - start)), false));
+    par->addChild(
+        new ZxCharData(new GString(start, (int)(parsePtr - start)), false));
 }
 
-void ZxDoc::parseMisc (ZxNode* par) {
+void ZxDoc::parseMisc(ZxNode *par)
+{
     while (1) {
-        if (match ("<!--")) { parseComment (par); }
-        else if (match ("<?")) {
-            parsePI (par);
-        }
-        else if (
-            parsePtr < parseEnd &&
-            (*parsePtr == '\x20' || *parsePtr == '\x09' ||
-             *parsePtr == '\x0d' || *parsePtr == '\x0a')) {
+        if (match("<!--")) {
+            parseComment(par);
+        } else if (match("<?")) {
+            parsePI(par);
+        } else if (parsePtr < parseEnd &&
+                   (*parsePtr == '\x20' || *parsePtr == '\x09' ||
+                    *parsePtr == '\x0d' || *parsePtr == '\x0a')) {
             ++parsePtr;
-        }
-        else {
+        } else {
             break;
         }
     }
 }
 
 // assumes match("<!--")
-void ZxDoc::parseComment (ZxNode* par) {
-    const char* start;
+void ZxDoc::parseComment(ZxNode *par)
+{
+    const char *start;
 
     parsePtr += 4;
     start = parsePtr;
     while (parsePtr <= parseEnd - 3) {
-        if (!strncmp (parsePtr, "-->", 3)) {
-            par->addChild (
-                new ZxComment (new GString (start, (int)(parsePtr - start))));
+        if (!strncmp(parsePtr, "-->", 3)) {
+            par->addChild(
+                new ZxComment(new GString(start, (int)(parsePtr - start))));
             parsePtr += 3;
             return;
         }
@@ -634,139 +676,169 @@ void ZxDoc::parseComment (ZxNode* par) {
 }
 
 // assumes match("<?")
-void ZxDoc::parsePI (ZxNode* par) {
-    GString* target;
-    const char* start;
+void ZxDoc::parsePI(ZxNode *par)
+{
+    GString *   target;
+    const char *start;
 
     parsePtr += 2;
-    target = parseName ();
-    parseSpace ();
+    target = parseName();
+    parseSpace();
     start = parsePtr;
     while (parsePtr <= parseEnd - 2) {
-        if (!strncmp (parsePtr, "?>", 2)) {
-            par->addChild (new ZxPI (
-                target, new GString (start, (int)(parsePtr - start))));
+        if (!strncmp(parsePtr, "?>", 2)) {
+            par->addChild(
+                new ZxPI(target, new GString(start, (int)(parsePtr - start))));
             parsePtr += 2;
             return;
         }
         ++parsePtr;
     }
     parsePtr = parseEnd;
-    par->addChild (
-        new ZxPI (target, new GString (start, (int)(parsePtr - start))));
+    par->addChild(new ZxPI(target, new GString(start, (int)(parsePtr - start))));
 }
 
 //~ this accepts all chars >= 0x80
 //~ this doesn't check for properly-formed UTF-8
-GString* ZxDoc::parseName () {
-    GString* name;
+GString *ZxDoc::parseName()
+{
+    GString *name;
 
-    name = new GString ();
+    name = new GString();
     if (parsePtr < parseEnd && nameStartChar[*parsePtr & 0xff]) {
-        name->append (1UL, *parsePtr++);
+        name->append(1UL, *parsePtr++);
         while (parsePtr < parseEnd && nameChar[*parsePtr & 0xff]) {
-            name->append (1UL, *parsePtr++);
+            name->append(1UL, *parsePtr++);
         }
     }
     return name;
 }
 
-GString* ZxDoc::parseQuotedString () {
-    GString* s;
-    const char* start;
-    char quote;
+GString *ZxDoc::parseQuotedString()
+{
+    GString *   s;
+    const char *start;
+    char        quote;
 
     if (parsePtr < parseEnd && (*parsePtr == '"' || *parsePtr == '\'')) {
         quote = *parsePtr++;
         start = parsePtr;
-        while (parsePtr < parseEnd && *parsePtr != quote) { ++parsePtr; }
-        s = new GString (start, (int)(parsePtr - start));
-        if (parsePtr < parseEnd && *parsePtr == quote) { ++parsePtr; }
-    }
-    else {
-        s = new GString ();
+        while (parsePtr < parseEnd && *parsePtr != quote) {
+            ++parsePtr;
+        }
+        s = new GString(start, (int)(parsePtr - start));
+        if (parsePtr < parseEnd && *parsePtr == quote) {
+            ++parsePtr;
+        }
+    } else {
+        s = new GString();
     }
     return s;
 }
 
-void ZxDoc::parseSpace () {
-    while (parsePtr < parseEnd &&
-           (*parsePtr == '\x20' || *parsePtr == '\x09' || *parsePtr == '\x0d' ||
-            *parsePtr == '\x0a')) {
+void ZxDoc::parseSpace()
+{
+    while (parsePtr < parseEnd && (*parsePtr == '\x20' || *parsePtr == '\x09' ||
+                                   *parsePtr == '\x0d' || *parsePtr == '\x0a')) {
         ++parsePtr;
     }
 }
 
-bool ZxDoc::match (const char* s) {
+bool ZxDoc::match(const char *s)
+{
     int n;
 
-    n = (int)strlen (s);
-    return parseEnd - parsePtr >= n && !strncmp (parsePtr, s, n);
+    n = (int)strlen(s);
+    return parseEnd - parsePtr >= n && !strncmp(parsePtr, s, n);
 }
 
 //------------------------------------------------------------------------
 
-ZxXMLDecl::ZxXMLDecl (GString* versionA, GString* encodingA, bool standaloneA) {
+ZxXMLDecl::ZxXMLDecl(GString *versionA, GString *encodingA, bool standaloneA)
+{
     version = versionA;
     encoding = encodingA;
     standalone = standaloneA;
 }
 
-ZxXMLDecl::~ZxXMLDecl () {
+ZxXMLDecl::~ZxXMLDecl()
+{
     delete version;
-    if (encoding) { delete encoding; }
+    if (encoding) {
+        delete encoding;
+    }
 }
 
 //------------------------------------------------------------------------
 
-ZxDocTypeDecl::ZxDocTypeDecl (GString* nameA) { name = nameA; }
+ZxDocTypeDecl::ZxDocTypeDecl(GString *nameA)
+{
+    name = nameA;
+}
 
-ZxDocTypeDecl::~ZxDocTypeDecl () { delete name; }
+ZxDocTypeDecl::~ZxDocTypeDecl()
+{
+    delete name;
+}
 
 //------------------------------------------------------------------------
 
-ZxComment::ZxComment (GString* textA) { text = textA; }
+ZxComment::ZxComment(GString *textA)
+{
+    text = textA;
+}
 
-ZxComment::~ZxComment () { delete text; }
+ZxComment::~ZxComment()
+{
+    delete text;
+}
 
 //------------------------------------------------------------------------
 
-ZxPI::ZxPI (GString* targetA, GString* textA) {
+ZxPI::ZxPI(GString *targetA, GString *textA)
+{
     target = targetA;
     text = textA;
 }
 
-ZxPI::~ZxPI () {
+ZxPI::~ZxPI()
+{
     delete target;
     delete text;
 }
 
 //------------------------------------------------------------------------
 
-ZxElement::ZxElement (GString* typeA) {
+ZxElement::ZxElement(GString *typeA)
+{
     type = typeA;
-    attrs = new GHash ();
+    attrs = new GHash();
     firstAttr = lastAttr = NULL;
 }
 
-ZxElement::~ZxElement () {
+ZxElement::~ZxElement()
+{
     delete type;
-    deleteGHash (attrs, ZxAttr);
+    deleteGHash(attrs, ZxAttr);
 }
 
-bool ZxElement::isElement (const char* typeA) { return !type->cmp (typeA); }
-
-ZxAttr* ZxElement::findAttr (const char* attrName) {
-    return (ZxAttr*)attrs->lookup (attrName);
+bool ZxElement::isElement(const char *typeA)
+{
+    return !type->cmp(typeA);
 }
 
-void ZxElement::addAttr (ZxAttr* attr) {
-    attrs->add (attr->as_name (), attr);
+ZxAttr *ZxElement::findAttr(const char *attrName)
+{
+    return (ZxAttr *)attrs->lookup(attrName);
+}
+
+void ZxElement::addAttr(ZxAttr *attr)
+{
+    attrs->add(attr->as_name(), attr);
     if (lastAttr) {
         lastAttr->next = attr;
         lastAttr = attr;
-    }
-    else {
+    } else {
         firstAttr = lastAttr = attr;
     }
     attr->parent = this;
@@ -775,23 +847,29 @@ void ZxElement::addAttr (ZxAttr* attr) {
 
 //------------------------------------------------------------------------
 
-ZxAttr::ZxAttr (GString* nameA, GString* valueA) {
+ZxAttr::ZxAttr(GString *nameA, GString *valueA)
+{
     name = nameA;
     value = valueA;
     parent = NULL;
     next = NULL;
 }
 
-ZxAttr::~ZxAttr () {
+ZxAttr::~ZxAttr()
+{
     delete name;
     delete value;
 }
 
 //------------------------------------------------------------------------
 
-ZxCharData::ZxCharData (GString* dataA, bool parsedA) {
+ZxCharData::ZxCharData(GString *dataA, bool parsedA)
+{
     data = dataA;
     parsed = parsedA;
 }
 
-ZxCharData::~ZxCharData () { delete data; }
+ZxCharData::~ZxCharData()
+{
+    delete data;
+}

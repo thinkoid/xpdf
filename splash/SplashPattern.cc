@@ -11,20 +11,22 @@
 // SplashPattern
 //------------------------------------------------------------------------
 
-SplashPattern::SplashPattern () {}
+SplashPattern::SplashPattern() { }
 
-SplashPattern::~SplashPattern () {}
+SplashPattern::~SplashPattern() { }
 
 //------------------------------------------------------------------------
 // SplashSolidColor
 //------------------------------------------------------------------------
 
-SplashSolidColor::SplashSolidColor (SplashColorPtr colorA) {
-    splashColorCopy (color, colorA);
+SplashSolidColor::SplashSolidColor(SplashColorPtr colorA)
+{
+    splashColorCopy(color, colorA);
 }
 
-SplashSolidColor::~SplashSolidColor () {}
+SplashSolidColor::~SplashSolidColor() { }
 
-void SplashSolidColor::getColor (int x, int y, SplashColorPtr c) {
-    splashColorCopy (c, color);
+void SplashSolidColor::getColor(int x, int y, SplashColorPtr c)
+{
+    splashColorCopy(c, color);
 }

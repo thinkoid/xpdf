@@ -10,14 +10,18 @@
 #include <xpdf/TextOutput.hh>
 #include <xpdf/TextLine.hh>
 
-struct TextParagraph {
-    TextParagraph (TextLines arg) : lines (std::move (arg)), box{ } {
-        for (auto& line : lines) {
-            box = coalesce (box, line->box);
+struct TextParagraph
+{
+    TextParagraph(TextLines arg)
+        : lines(std::move(arg))
+        , box{}
+    {
+        for (auto &line : lines) {
+            box = coalesce(box, line->box);
         }
     }
 
-    TextLines lines;
+    TextLines    lines;
     xpdf::bbox_t box;
 };
 

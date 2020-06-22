@@ -15,36 +15,45 @@
 // SplashFontFile
 //------------------------------------------------------------------------
 
-SplashFontFile::SplashFontFile (
-    SplashFontFileID* idA,
+SplashFontFile::SplashFontFile(SplashFontFileID *idA,
 #if LOAD_FONTS_FROM_MEM
-    GString* fontBufA
+                               GString *fontBufA
 #else
-    const char* fileNameA, bool deleteFileA
+                               const char *fileNameA, bool deleteFileA
 #endif
-) {
+)
+{
     id = idA;
 #if LOAD_FONTS_FROM_MEM
     fontBuf = fontBufA;
 #else
-    fileName = new GString (fileNameA);
+    fileName = new GString(fileNameA);
     deleteFile = deleteFileA;
 #endif
     refCnt = 0;
 }
 
-SplashFontFile::~SplashFontFile () {
+SplashFontFile::~SplashFontFile()
+{
 #if LOAD_FONTS_FROM_MEM
     delete fontBuf;
 #else
-    if (deleteFile) { unlink (fileName->c_str ()); }
+    if (deleteFile) {
+        unlink(fileName->c_str());
+    }
     delete fileName;
 #endif
     delete id;
 }
 
-void SplashFontFile::incRefCnt () { ++refCnt; }
+void SplashFontFile::incRefCnt()
+{
+    ++refCnt;
+}
 
-void SplashFontFile::decRefCnt () {
-    if (!--refCnt) { delete this; }
+void SplashFontFile::decRefCnt()
+{
+    if (!--refCnt) {
+        delete this;
+    }
 }

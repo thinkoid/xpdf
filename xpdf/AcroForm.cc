@@ -30,24 +30,24 @@ using fmt::format;
 
 //------------------------------------------------------------------------
 
-#define acroFormFlagReadOnly (1 << 0)           // all
-#define acroFormFlagRequired (1 << 1)           // all
-#define acroFormFlagNoExport (1 << 2)           // all
-#define acroFormFlagMultiline (1 << 12)         // text
-#define acroFormFlagPassword (1 << 13)          // text
-#define acroFormFlagNoToggleToOff (1 << 14)     // button
-#define acroFormFlagRadio (1 << 15)             // button
-#define acroFormFlagPushbutton (1 << 16)        // button
-#define acroFormFlagCombo (1 << 17)             // choice
-#define acroFormFlagEdit (1 << 18)              // choice
-#define acroFormFlagSort (1 << 19)              // choice
-#define acroFormFlagFileSelect (1 << 20)        // text
-#define acroFormFlagMultiSelect (1 << 21)       // choice
-#define acroFormFlagDoNotSpellCheck (1 << 22)   // text, choice
-#define acroFormFlagDoNotScroll (1 << 23)       // text
-#define acroFormFlagComb (1 << 24)              // text
-#define acroFormFlagRadiosInUnison (1 << 25)    // button
-#define acroFormFlagRichText (1 << 25)          // text
+#define acroFormFlagReadOnly (1 << 0) // all
+#define acroFormFlagRequired (1 << 1) // all
+#define acroFormFlagNoExport (1 << 2) // all
+#define acroFormFlagMultiline (1 << 12) // text
+#define acroFormFlagPassword (1 << 13) // text
+#define acroFormFlagNoToggleToOff (1 << 14) // button
+#define acroFormFlagRadio (1 << 15) // button
+#define acroFormFlagPushbutton (1 << 16) // button
+#define acroFormFlagCombo (1 << 17) // choice
+#define acroFormFlagEdit (1 << 18) // choice
+#define acroFormFlagSort (1 << 19) // choice
+#define acroFormFlagFileSelect (1 << 20) // text
+#define acroFormFlagMultiSelect (1 << 21) // choice
+#define acroFormFlagDoNotSpellCheck (1 << 22) // text, choice
+#define acroFormFlagDoNotScroll (1 << 23) // text
+#define acroFormFlagComb (1 << 24) // text
+#define acroFormFlagRadiosInUnison (1 << 25) // button
+#define acroFormFlagRichText (1 << 25) // text
 #define acroFormFlagCommitOnSelChange (1 << 26) // choice
 
 #define acroFormQuadLeft 0
@@ -65,10 +65,14 @@ using fmt::format;
 //------------------------------------------------------------------------
 
 // map an annotation ref to a page number
-struct AcroFormAnnotPage {
-    AcroFormAnnotPage (int a, int b, int c)
-        : annotNum (a), annotGen (b), pageNum (c)
-        { }
+struct AcroFormAnnotPage
+{
+    AcroFormAnnotPage(int a, int b, int c)
+        : annotNum(a)
+        , annotGen(b)
+        , pageNum(c)
+    {
+    }
 
     int annotNum;
     int annotGen;
@@ -79,90 +83,92 @@ struct AcroFormAnnotPage {
 // AcroForm
 //------------------------------------------------------------------------
 
-AcroForm*
-AcroForm::load (PDFDoc* docA, Catalog* catalog, Object* acroFormObjA) {
-    AcroForm* acroForm;
-    int i;
+AcroForm *AcroForm::load(PDFDoc *docA, Catalog *catalog, Object *acroFormObjA)
+{
+    AcroForm *acroForm;
+    int       i;
 
-    acroForm = new AcroForm (docA, acroFormObjA);
-    Object obj = resolve (acroFormObjA->as_dict ()["NeedAppearances"]);
+    acroForm = new AcroForm(docA, acroFormObjA);
+    Object obj = resolve(acroFormObjA->as_dict()["NeedAppearances"]);
 
-    if (obj.is_bool ()) {
-        acroForm->needAppearances = obj.as_bool ();
+    if (obj.is_bool()) {
+        acroForm->needAppearances = obj.as_bool();
     }
 
-    acroForm->buildAnnotPageList (catalog);
-    obj = resolve (acroFormObjA->as_dict ()["Fields"]);
+    acroForm->buildAnnotPageList(catalog);
+    obj = resolve(acroFormObjA->as_dict()["Fields"]);
 
-    if (!obj.is_array ()) {
-        if (!obj.is_null ()) {
-            error (errSyntaxError, -1, "AcroForm Fields entry is wrong type");
+    if (!obj.is_array()) {
+        if (!obj.is_null()) {
+            error(errSyntaxError, -1, "AcroForm Fields entry is wrong type");
         }
 
         delete acroForm;
         return 0;
     }
 
-    for (i = 0; i < obj.as_array ().size (); ++i) {
-        Object tmp = obj [i];
-        acroForm->scanField (&tmp);
+    for (i = 0; i < obj.as_array().size(); ++i) {
+        Object tmp = obj[i];
+        acroForm->scanField(&tmp);
     }
 
     return acroForm;
 }
 
-AcroForm::AcroForm (PDFDoc* docA, Object* acroFormObjA) : Form (docA) {
+AcroForm::AcroForm(PDFDoc *docA, Object *acroFormObjA)
+    : Form(docA)
+{
     acroFormObj = *acroFormObjA;
     needAppearances = false;
 }
 
-AcroForm::~AcroForm () { }
+AcroForm::~AcroForm() { }
 
-void AcroForm::buildAnnotPageList (Catalog* catalog) {
+void AcroForm::buildAnnotPageList(Catalog *catalog)
+{
     int pageNum, i;
 
-    for (pageNum = 1; pageNum <= catalog->getNumPages (); ++pageNum) {
-        Object annots = catalog->getPage (pageNum)->getAnnots ();
+    for (pageNum = 1; pageNum <= catalog->getNumPages(); ++pageNum) {
+        Object annots = catalog->getPage(pageNum)->getAnnots();
 
-        if (annots.is_array ()) {
-            for (i = 0; i < annots.as_array ().size (); ++i) {
-                Object annot = annots [i];
+        if (annots.is_array()) {
+            for (i = 0; i < annots.as_array().size(); ++i) {
+                Object annot = annots[i];
 
-                if (annot.is_ref ()) {
-                    annotPages.push_back (
-                        std::make_unique< AcroFormAnnotPage > (
-                            annot.getRefNum (),
-                            annot.getRefGen (),
-                            pageNum));
+                if (annot.is_ref()) {
+                    annotPages.push_back(std::make_unique< AcroFormAnnotPage >(
+                        annot.getRefNum(), annot.getRefGen(), pageNum));
                 }
             }
         }
     }
 }
 
-int AcroForm::lookupAnnotPage (Object* annotRef) {
-    if (!annotRef->is_ref ()) {
+int AcroForm::lookupAnnotPage(Object *annotRef)
+{
+    if (!annotRef->is_ref()) {
         return 0;
     }
 
-    int num = annotRef->getRefNum ();
-    int gen = annotRef->getRefGen ();
+    int num = annotRef->getRefNum();
+    int gen = annotRef->getRefGen();
 
-    auto iter = find_if (annotPages, [=](auto& p) {
+    auto iter = find_if(annotPages, [=](auto &p) {
         return p->annotNum == num && p->annotGen == gen;
     });
 
-    return (iter == annotPages.end ()) ? 0 : (*iter)->pageNum;
+    return (iter == annotPages.end()) ? 0 : (*iter)->pageNum;
 }
 
-void AcroForm::scanField (Object* fieldRef) {
+void AcroForm::scanField(Object *fieldRef)
+{
     bool isTerminal;
-    int i;
+    int  i;
 
-    Object fieldObj = resolve (*fieldRef);
+    Object fieldObj = resolve(*fieldRef);
 
-    if (!fieldObj.is_dict ()) {
-        error (errSyntaxError, -1, "AcroForm field object is wrong type");
+    if (!fieldObj.is_dict()) {
+        error(errSyntaxError, -1, "AcroForm field object is wrong type");
         return;
     }
 
@@ -173,43 +179,44 @@ void AcroForm::scanField (Object* fieldRef) {
     isTerminal = true;
 
     Object kidsObj;
-    kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
+    kidsObj = resolve(fieldObj.as_dict()["Kids"]);
 
-    if (kidsObj.is_array ()) {
+    if (kidsObj.is_array()) {
         isTerminal = false;
 
-        for (i = 0; !isTerminal && i < kidsObj.as_array ().size (); ++i) {
+        for (i = 0; !isTerminal && i < kidsObj.as_array().size(); ++i) {
             Object kidObj;
-            kidObj = resolve (kidsObj [i]);
+            kidObj = resolve(kidsObj[i]);
 
-            if (kidObj.is_dict ()) {
+            if (kidObj.is_dict()) {
                 Object subtypeObj;
-                subtypeObj = resolve (kidObj.as_dict ()["Parent"]);
+                subtypeObj = resolve(kidObj.as_dict()["Parent"]);
 
-                if (subtypeObj.is_null ()) {
+                if (subtypeObj.is_null()) {
                     isTerminal = true;
                 }
             }
         }
 
         if (!isTerminal) {
-            for (i = 0; !isTerminal && i < kidsObj.as_array ().size (); ++i) {
-                Object kidRef = kidsObj [i];
-                scanField (&kidRef);
+            for (i = 0; !isTerminal && i < kidsObj.as_array().size(); ++i) {
+                Object kidRef = kidsObj[i];
+                scanField(&kidRef);
             }
         }
     }
 
     if (isTerminal) {
-        if (auto p = AcroFormField::load (this, fieldRef)) {
-            fields.push_back (std::unique_ptr< AcroFormField > (p));
+        if (auto p = AcroFormField::load(this, fieldRef)) {
+            fields.push_back(std::unique_ptr< AcroFormField >(p));
         }
     }
 }
 
-void AcroForm::draw (int pageNum, Gfx* gfx, bool printing) {
-    for (auto& p : fields) {
-        p->draw (pageNum, gfx, printing);
+void AcroForm::draw(int pageNum, Gfx *gfx, bool printing)
+{
+    for (auto &p : fields) {
+        p->draw(pageNum, gfx, printing);
     }
 }
 
@@ -217,44 +224,42 @@ void AcroForm::draw (int pageNum, Gfx* gfx, bool printing) {
 // AcroFormField
 //------------------------------------------------------------------------
 
-AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
-    GString* typeStr;
-    TextString* nameA;
-    unsigned flagsA;
-    bool haveFlags;
+AcroFormField *AcroFormField::load(AcroForm *acroFormA, Object *fieldRefA)
+{
+    GString *         typeStr;
+    TextString *      nameA;
+    unsigned          flagsA;
+    bool              haveFlags;
     AcroFormFieldType typeA;
-    AcroFormField* field;
+    AcroFormField *   field;
 
-    Object fieldObjA = resolve (*fieldRefA);
+    Object fieldObjA = resolve(*fieldRefA);
 
     //----- get field info
 
     Object obj;
-    obj = resolve (fieldObjA.as_dict ()["T"]);
+    obj = resolve(fieldObjA.as_dict()["T"]);
 
-    if (obj.is_string ()) {
-        nameA = new TextString (obj.as_string ());
-    }
-    else {
-        nameA = new TextString ();
+    if (obj.is_string()) {
+        nameA = new TextString(obj.as_string());
+    } else {
+        nameA = new TextString();
     }
 
-    obj = resolve (fieldObjA.as_dict ()["FT"]);
+    obj = resolve(fieldObjA.as_dict()["FT"]);
 
-    if (obj.is_name ()) {
-        typeStr = new GString (obj.as_name ());
-    }
-    else {
+    if (obj.is_name()) {
+        typeStr = new GString(obj.as_name());
+    } else {
         typeStr = NULL;
     }
 
-    obj = resolve (fieldObjA.as_dict ()["Ff"]);
+    obj = resolve(fieldObjA.as_dict()["Ff"]);
 
-    if (obj.is_int ()) {
-        flagsA = (unsigned)obj.as_int ();
+    if (obj.is_int()) {
+        flagsA = (unsigned)obj.as_int();
         haveFlags = true;
-    }
-    else {
+    } else {
         flagsA = 0;
         haveFlags = false;
     }
@@ -262,89 +267,79 @@ AcroFormField* AcroFormField::load (AcroForm* acroFormA, Object* fieldRefA) {
     //----- get info from parent non-terminal fields
 
     Object parentObj;
-    parentObj = resolve (fieldObjA.as_dict ()["Parent"]);
+    parentObj = resolve(fieldObjA.as_dict()["Parent"]);
 
-    while (parentObj.is_dict ()) {
+    while (parentObj.is_dict()) {
         Object obj;
-        obj = resolve (parentObj.as_dict ()["T"]);
+        obj = resolve(parentObj.as_dict()["T"]);
 
-        if (obj.is_string ()) {
-            if (nameA->getLength ()) {
-                nameA->insert (0, (Unicode)'.');
+        if (obj.is_string()) {
+            if (nameA->getLength()) {
+                nameA->insert(0, (Unicode)'.');
             }
 
-            nameA->insert (0, obj.as_string ());
+            nameA->insert(0, obj.as_string());
         }
 
         if (!typeStr) {
-            obj = resolve (parentObj.as_dict ()["FT"]);
+            obj = resolve(parentObj.as_dict()["FT"]);
 
-            if (obj.is_name ()) {
-                typeStr = new GString (obj.as_name ());
+            if (obj.is_name()) {
+                typeStr = new GString(obj.as_name());
             }
         }
 
         if (!haveFlags) {
-            obj = resolve (parentObj.as_dict ()["Ff"]);
+            obj = resolve(parentObj.as_dict()["Ff"]);
 
-            if (obj.is_int ()) {
-                flagsA = (unsigned)obj.as_int ();
+            if (obj.is_int()) {
+                flagsA = (unsigned)obj.as_int();
                 haveFlags = true;
             }
         }
 
         Object tmp;
-        tmp = resolve (parentObj.as_dict ()["Parent"]);
+        tmp = resolve(parentObj.as_dict()["Parent"]);
 
         parentObj = tmp;
     }
 
     if (!typeStr) {
-        error (errSyntaxError, -1, "Missing type in AcroForm field");
+        error(errSyntaxError, -1, "Missing type in AcroForm field");
         goto err1;
-    }
-    else if (!typeStr->cmp ("Btn")) {
+    } else if (!typeStr->cmp("Btn")) {
         if (flagsA & acroFormFlagPushbutton) {
             typeA = acroFormFieldPushbutton;
-        }
-        else if (flagsA & acroFormFlagRadio) {
+        } else if (flagsA & acroFormFlagRadio) {
             typeA = acroFormFieldRadioButton;
-        }
-        else {
+        } else {
             typeA = acroFormFieldCheckbox;
         }
-    }
-    else if (!typeStr->cmp ("Tx")) {
+    } else if (!typeStr->cmp("Tx")) {
         if (flagsA & acroFormFlagFileSelect) {
             typeA = acroFormFieldFileSelect;
-        }
-        else if (flagsA & acroFormFlagMultiline) {
+        } else if (flagsA & acroFormFlagMultiline) {
             typeA = acroFormFieldMultilineText;
-        }
-        else {
+        } else {
             typeA = acroFormFieldText;
         }
-    }
-    else if (!typeStr->cmp ("Ch")) {
+    } else if (!typeStr->cmp("Ch")) {
         if (flagsA & acroFormFlagCombo) {
             typeA = acroFormFieldComboBox;
-        }
-        else {
+        } else {
             typeA = acroFormFieldListBox;
         }
-    }
-    else if (!typeStr->cmp ("Sig")) {
+    } else if (!typeStr->cmp("Sig")) {
         typeA = acroFormFieldSignature;
-    }
-    else {
-        error (errSyntaxError, -1, "Invalid type in AcroForm field");
+    } else {
+        error(errSyntaxError, -1, "Invalid type in AcroForm field");
         goto err1;
     }
 
     delete typeStr;
 
-    field = new AcroFormField (
-        acroFormA, fieldRefA, &fieldObjA, typeA, nameA, flagsA);
+    field =
+        new AcroFormField(acroFormA, fieldRefA, &fieldObjA, typeA, nameA, flagsA);
 
     return field;
 
@@ -355,9 +350,10 @@ err1:
     return 0;
 }
 
-AcroFormField::AcroFormField (
-    AcroForm* acroFormA, Object* fieldRefA, Object* fieldObjA,
-    AcroFormFieldType typeA, TextString* nameA, unsigned flagsA) {
+AcroFormField::AcroFormField(AcroForm *acroFormA, Object *fieldRefA,
+                             Object *fieldObjA, AcroFormFieldType typeA,
+                             TextString *nameA, unsigned flagsA)
+{
     acroForm = acroFormA;
     fieldRef = *fieldRefA;
     fieldObj = *fieldObjA;
@@ -366,105 +362,123 @@ AcroFormField::AcroFormField (
     flags = flagsA;
 }
 
-AcroFormField::~AcroFormField () {
+AcroFormField::~AcroFormField()
+{
     delete name;
 }
 
-const char* AcroFormField::getType () {
+const char *AcroFormField::getType()
+{
     switch (type) {
-    case acroFormFieldPushbutton: return "PushButton";
-    case acroFormFieldRadioButton: return "RadioButton";
-    case acroFormFieldCheckbox: return "Checkbox";
-    case acroFormFieldFileSelect: return "FileSelect";
-    case acroFormFieldMultilineText: return "MultilineText";
-    case acroFormFieldText: return "Text";
-    case acroFormFieldComboBox: return "ComboBox";
-    case acroFormFieldListBox: return "ListBox";
-    case acroFormFieldSignature: return "Signature";
-    default: return NULL;
-    }
-}
-
-Unicode* AcroFormField::as_name (int* length) {
-    Unicode *u, *ret;
-    int n;
-
-    u = name->getUnicode ();
-    n = name->getLength ();
-    ret = (Unicode*)calloc (n, sizeof (Unicode));
-    memcpy (ret, u, n * sizeof (Unicode));
-    *length = n;
-    return ret;
-}
-
-Unicode* AcroFormField::getValue (int* length) {
-    Object obj1;
-    Unicode* u;
-    const char* s;
-    TextString* ts;
-    int n, i;
-
-    fieldLookup ("V", &obj1);
-    if (obj1.is_name ()) {
-        s = obj1.as_name ();
-        n = (int)strlen (s);
-        u = (Unicode*)calloc (n, sizeof (Unicode));
-        for (i = 0; i < n; ++i) { u[i] = s[i] & 0xff; }
-        *length = n;
-        return u;
-    }
-    else if (obj1.is_string ()) {
-        ts = new TextString (obj1.as_string ());
-        n = ts->getLength ();
-        u = (Unicode*)calloc (n, sizeof (Unicode));
-        memcpy (u, ts->getUnicode (), n * sizeof (Unicode));
-        *length = n;
-        delete ts;
-        return u;
-    }
-    else {
+    case acroFormFieldPushbutton:
+        return "PushButton";
+    case acroFormFieldRadioButton:
+        return "RadioButton";
+    case acroFormFieldCheckbox:
+        return "Checkbox";
+    case acroFormFieldFileSelect:
+        return "FileSelect";
+    case acroFormFieldMultilineText:
+        return "MultilineText";
+    case acroFormFieldText:
+        return "Text";
+    case acroFormFieldComboBox:
+        return "ComboBox";
+    case acroFormFieldListBox:
+        return "ListBox";
+    case acroFormFieldSignature:
+        return "Signature";
+    default:
         return NULL;
     }
 }
 
-void AcroFormField::draw (int pageNum, Gfx* gfx, bool printing) {
-    // find the annotation object(s)
-    Object kidsObj;
-    kidsObj = resolve (fieldObj.as_dict ()["Kids"]);
-    if (kidsObj.is_array ()) {
-        for (int i = 0; i < kidsObj.as_array ().size (); ++i) {
-            Object annotRef, annotObj;
-            annotRef = kidsObj [i];
-            annotObj = resolve (annotRef);
-            drawAnnot (pageNum, gfx, printing, &annotRef, &annotObj);
+Unicode *AcroFormField::as_name(int *length)
+{
+    Unicode *u, *ret;
+    int      n;
+
+    u = name->getUnicode();
+    n = name->getLength();
+    ret = (Unicode *)calloc(n, sizeof(Unicode));
+    memcpy(ret, u, n * sizeof(Unicode));
+    *length = n;
+    return ret;
+}
+
+Unicode *AcroFormField::getValue(int *length)
+{
+    Object      obj1;
+    Unicode *   u;
+    const char *s;
+    TextString *ts;
+    int         n, i;
+
+    fieldLookup("V", &obj1);
+    if (obj1.is_name()) {
+        s = obj1.as_name();
+        n = (int)strlen(s);
+        u = (Unicode *)calloc(n, sizeof(Unicode));
+        for (i = 0; i < n; ++i) {
+            u[i] = s[i] & 0xff;
         }
-    }
-    else {
-        drawAnnot (pageNum, gfx, printing, &fieldRef, &fieldObj);
+        *length = n;
+        return u;
+    } else if (obj1.is_string()) {
+        ts = new TextString(obj1.as_string());
+        n = ts->getLength();
+        u = (Unicode *)calloc(n, sizeof(Unicode));
+        memcpy(u, ts->getUnicode(), n * sizeof(Unicode));
+        *length = n;
+        delete ts;
+        return u;
+    } else {
+        return NULL;
     }
 }
 
-void AcroFormField::drawAnnot (
-    int pageNum, Gfx* gfx, bool printing, Object* annotRef, Object* annotObj) {
-    double xMin, yMin, xMax, yMax, t;
-    int annotFlags;
-    bool oc;
+void AcroFormField::draw(int pageNum, Gfx *gfx, bool printing)
+{
+    // find the annotation object(s)
+    Object kidsObj;
+    kidsObj = resolve(fieldObj.as_dict()["Kids"]);
+    if (kidsObj.is_array()) {
+        for (int i = 0; i < kidsObj.as_array().size(); ++i) {
+            Object annotRef, annotObj;
+            annotRef = kidsObj[i];
+            annotObj = resolve(annotRef);
+            drawAnnot(pageNum, gfx, printing, &annotRef, &annotObj);
+        }
+    } else {
+        drawAnnot(pageNum, gfx, printing, &fieldRef, &fieldObj);
+    }
+}
 
-    if (!annotObj->is_dict ()) { return; }
+void AcroFormField::drawAnnot(int pageNum, Gfx *gfx, bool printing,
+                              Object *annotRef, Object *annotObj)
+{
+    double xMin, yMin, xMax, yMax, t;
+    int    annotFlags;
+    bool   oc;
+
+    if (!annotObj->is_dict()) {
+        return;
+    }
 
     //----- get the page number
 
     // the "P" (page) field in annotations is optional, so we can't
     // depend on it here
-    if (acroForm->lookupAnnotPage (annotRef) != pageNum) { return; }
+    if (acroForm->lookupAnnotPage(annotRef) != pageNum) {
+        return;
+    }
 
     //----- check annotation flags
-    Object obj = resolve (annotObj->as_dict ()["F"]);
+    Object obj = resolve(annotObj->as_dict()["F"]);
 
-    if (obj.is_int ()) {
-        annotFlags = obj.as_int ();
-    }
-    else {
+    if (obj.is_int()) {
+        annotFlags = obj.as_int();
+    } else {
         annotFlags = 0;
     }
 
@@ -476,24 +490,32 @@ void AcroFormField::drawAnnot (
 
     //----- check the optional content entry
 
-    obj = (*annotObj).as_dict ()["OC"];
+    obj = (*annotObj).as_dict()["OC"];
 
-    if (acroForm->doc->getOptionalContent ()->evalOCObject (&obj, &oc) && !oc) {
+    if (acroForm->doc->getOptionalContent()->evalOCObject(&obj, &oc) && !oc) {
         return;
     }
 
     //----- get the bounding box
-    obj = resolve (annotObj->as_dict ()["Rect"]);
+    obj = resolve(annotObj->as_dict()["Rect"]);
 
-    if (obj.is_array () && obj.as_array ().size () == 4) {
+    if (obj.is_array() && obj.as_array().size() == 4) {
         xMin = yMin = xMax = yMax = 0;
 
         Object number;
 
-        if ((number = resolve (obj [0UL])).is_num ()) { xMin = number.as_num (); }
-        if ((number = resolve (obj [1])).is_num ()) { yMin = number.as_num (); }
-        if ((number = resolve (obj [2])).is_num ()) { xMax = number.as_num (); }
-        if ((number = resolve (obj [3])).is_num ()) { yMax = number.as_num (); }
+        if ((number = resolve(obj[0UL])).is_num()) {
+            xMin = number.as_num();
+        }
+        if ((number = resolve(obj[1])).is_num()) {
+            yMin = number.as_num();
+        }
+        if ((number = resolve(obj[2])).is_num()) {
+            xMax = number.as_num();
+        }
+        if ((number = resolve(obj[3])).is_num()) {
+            yMax = number.as_num();
+        }
 
         if (xMin > xMax) {
             t = xMin;
@@ -506,161 +528,153 @@ void AcroFormField::drawAnnot (
             yMin = yMax;
             yMax = t;
         }
-    }
-    else {
-        error (errSyntaxError, -1, "Bad bounding box for annotation");
+    } else {
+        error(errSyntaxError, -1, "Bad bounding box for annotation");
         return;
     }
 
     //----- draw it
 
     if (acroForm->needAppearances) {
-        drawNewAppearance (gfx, &annotObj->as_dict (), xMin, yMin, xMax, yMax);
-    }
-    else {
-        drawExistingAppearance (
-            gfx, &annotObj->as_dict (), xMin, yMin, xMax, yMax);
+        drawNewAppearance(gfx, &annotObj->as_dict(), xMin, yMin, xMax, yMax);
+    } else {
+        drawExistingAppearance(gfx, &annotObj->as_dict(), xMin, yMin, xMax, yMax);
     }
 }
 
 // Draw the existing appearance stream for a single annotation
 // attached to this field.
-void AcroFormField::drawExistingAppearance (
-    Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax, double yMax) {
-
+void AcroFormField::drawExistingAppearance(Gfx *gfx, Dict *annot, double xMin,
+                                           double yMin, double xMax, double yMax)
+{
     //----- get the appearance stream
     Object appearance;
 
     Object apObj;
-    apObj = resolve ((*annot) ["AP"]);
+    apObj = resolve((*annot)["AP"]);
 
-    if (apObj.is_dict ()) {
+    if (apObj.is_dict()) {
         Object obj1;
-        obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve(apObj.as_dict()["N"]);
 
-        if (obj1.is_dict ()) {
+        if (obj1.is_dict()) {
             Object asObj;
-            asObj = resolve ((*annot) ["AS"]);
+            asObj = resolve((*annot)["AS"]);
 
-            if (asObj.is_name ()) {
-                appearance = obj1.as_dict ()[asObj.as_name ()];
+            if (asObj.is_name()) {
+                appearance = obj1.as_dict()[asObj.as_name()];
+            } else if (obj1.as_dict().size() == 1) {
+                appearance = obj1.val_at(0);
+            } else {
+                appearance = obj1.as_dict()["Off"];
             }
-            else if (obj1.as_dict ().size () == 1) {
-                appearance = obj1.val_at (0);
-            }
-            else {
-                appearance = obj1.as_dict ()["Off"];
-            }
-        }
-        else {
-            appearance = apObj.as_dict ()["N"];
+        } else {
+            appearance = apObj.as_dict()["N"];
         }
     }
 
     //----- draw it
 
-    if (!appearance.is_none ()) {
-        gfx->drawAnnot (&appearance, NULL, xMin, yMin, xMax, yMax);
+    if (!appearance.is_none()) {
+        gfx->drawAnnot(&appearance, NULL, xMin, yMin, xMax, yMax);
     }
 }
 
 // Regenerate the appearnce for this field, and draw it.
-void AcroFormField::drawNewAppearance (
-    Gfx* gfx, Dict* annot, double xMin, double yMin, double xMax, double yMax) {
-    Object appearance, mkObj, ftObj, appearDict, drObj, apObj, asObj;
-    Object obj1, obj2, obj3;
-    Dict* mkDict;
-    MemStream* appearStream;
-    GfxFontDict* fontDict;
-    bool hasCaption;
-    double dx, dy, r;
-    GString *caption, *da;
-    GString** text;
-    bool* selection;
+void AcroFormField::drawNewAppearance(Gfx *gfx, Dict *annot, double xMin,
+                                      double yMin, double xMax, double yMax)
+{
+    Object          appearance, mkObj, ftObj, appearDict, drObj, apObj, asObj;
+    Object          obj1, obj2, obj3;
+    Dict *          mkDict;
+    MemStream *     appearStream;
+    GfxFontDict *   fontDict;
+    bool            hasCaption;
+    double          dx, dy, r;
+    GString *       caption, *da;
+    GString **      text;
+    bool *          selection;
     AnnotBorderType borderType;
-    double borderWidth;
-    double* borderDash;
-    GString* appearanceState;
-    int borderDashLength, rot, quadding, comb, nOptions, topIdx, i, j;
+    double          borderWidth;
+    double *        borderDash;
+    GString *       appearanceState;
+    int             borderDashLength, rot, quadding, comb, nOptions, topIdx, i, j;
 
     // get the appearance characteristics (MK) dictionary
-    if ((mkObj = resolve ((*annot) ["MK"])).is_dict ()) { mkDict = &mkObj.as_dict (); }
-    else {
+    if ((mkObj = resolve((*annot)["MK"])).is_dict()) {
+        mkDict = &mkObj.as_dict();
+    } else {
         mkDict = NULL;
     }
 
     // draw the background
     if (mkDict) {
-        if ((obj1 = resolve ((*mkDict) ["BG"])).is_array () && obj1.as_array ().size () > 0) {
-            setColor (obj1.as_array (), true, 0);
-            appearBuf += format (
-                "0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
+        if ((obj1 = resolve((*mkDict)["BG"])).is_array() &&
+            obj1.as_array().size() > 0) {
+            setColor(obj1.as_array(), true, 0);
+            appearBuf +=
+                format("0 0 {0:.4f} {1:.4f} re f\n", xMax - xMin, yMax - yMin);
         }
     }
 
     // get the field type
-    fieldLookup ("FT", &ftObj);
+    fieldLookup("FT", &ftObj);
 
     // draw the border
     borderType = annotBorderSolid;
     borderWidth = 1;
     borderDash = NULL;
     borderDashLength = 0;
-    if ((obj1 = resolve ((*annot) ["BS"])).is_dict ()) {
-        if ((obj2 = resolve (obj1.as_dict ()["S"])).is_name ()) {
-            if (obj2.is_name ("S")) { borderType = annotBorderSolid; }
-            else if (obj2.is_name ("D")) {
+    if ((obj1 = resolve((*annot)["BS"])).is_dict()) {
+        if ((obj2 = resolve(obj1.as_dict()["S"])).is_name()) {
+            if (obj2.is_name("S")) {
+                borderType = annotBorderSolid;
+            } else if (obj2.is_name("D")) {
                 borderType = annotBorderDashed;
-            }
-            else if (obj2.is_name ("B")) {
+            } else if (obj2.is_name("B")) {
                 borderType = annotBorderBeveled;
-            }
-            else if (obj2.is_name ("I")) {
+            } else if (obj2.is_name("I")) {
                 borderType = annotBorderInset;
-            }
-            else if (obj2.is_name ("U")) {
+            } else if (obj2.is_name("U")) {
                 borderType = annotBorderUnderlined;
             }
         }
-        if ((obj2 = resolve (obj1.as_dict ()["W"])).is_num ()) {
-            borderWidth = obj2.as_num ();
+        if ((obj2 = resolve(obj1.as_dict()["W"])).is_num()) {
+            borderWidth = obj2.as_num();
         }
-        if ((obj2 = resolve (obj1.as_dict ()["D"])).is_array ()) {
-            borderDashLength = obj2.as_array ().size ();
-            borderDash = (double*)calloc (borderDashLength, sizeof (double));
+        if ((obj2 = resolve(obj1.as_dict()["D"])).is_array()) {
+            borderDashLength = obj2.as_array().size();
+            borderDash = (double *)calloc(borderDashLength, sizeof(double));
             for (i = 0; i < borderDashLength; ++i) {
-                if ((obj3 = resolve (obj2 [i])).is_num ()) {
-                    borderDash[i] = obj3.as_num ();
-                }
-                else {
+                if ((obj3 = resolve(obj2[i])).is_num()) {
+                    borderDash[i] = obj3.as_num();
+                } else {
                     borderDash[i] = 1;
                 }
             }
         }
-    }
-    else {
-        if ((obj1 = resolve ((*annot) ["Border"])).is_array ()) {
-            if (obj1.as_array ().size () >= 3) {
-                if ((obj2 = resolve (obj1 [2])).is_num ()) {
-                    borderWidth = obj2.as_num ();
+    } else {
+        if ((obj1 = resolve((*annot)["Border"])).is_array()) {
+            if (obj1.as_array().size() >= 3) {
+                if ((obj2 = resolve(obj1[2])).is_num()) {
+                    borderWidth = obj2.as_num();
                 }
 
-                if (obj1.as_array ().size () >= 4) {
-                    if ((obj2 = resolve (obj1 [3])).is_array ()) {
+                if (obj1.as_array().size() >= 4) {
+                    if ((obj2 = resolve(obj1[3])).is_array()) {
                         borderType = annotBorderDashed;
-                        borderDashLength = obj2.as_array ().size ();
-                        borderDash = (double*)calloc (borderDashLength, sizeof (double));
+                        borderDashLength = obj2.as_array().size();
+                        borderDash =
+                            (double *)calloc(borderDashLength, sizeof(double));
 
                         for (i = 0; i < borderDashLength; ++i) {
-                            if ((obj3 = resolve (obj2 [i])).is_num ()) {
-                                borderDash[i] = obj3.as_num ();
-                            }
-                            else {
+                            if ((obj3 = resolve(obj2[i])).is_num()) {
+                                borderDash[i] = obj3.as_num();
+                            } else {
                                 borderDash[i] = 1;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         // Adobe draws no border at all if the last element is of
                         // the wrong type.
                         borderWidth = 0;
@@ -672,111 +686,102 @@ void AcroFormField::drawNewAppearance (
 
     if (mkDict) {
         if (borderWidth > 0) {
-            obj1 = resolve ((*mkDict) ["BC"]);
-            if (!(obj1.is_array () && obj1.as_array ().size () > 0)) {
-                obj1 = resolve ((*mkDict) ["BG"]);
+            obj1 = resolve((*mkDict)["BC"]);
+            if (!(obj1.is_array() && obj1.as_array().size() > 0)) {
+                obj1 = resolve((*mkDict)["BG"]);
             }
-            if (obj1.is_array () && obj1.as_array ().size () > 0) {
+            if (obj1.is_array() && obj1.as_array().size() > 0) {
                 dx = xMax - xMin;
                 dy = yMax - yMin;
 
                 // radio buttons with no caption have a round border
-                hasCaption = (obj2 = resolve ((*mkDict) ["CA"])).is_string ();
+                hasCaption = (obj2 = resolve((*mkDict)["CA"])).is_string();
 
-                if (ftObj.is_name ("Btn") && (flags & acroFormFlagRadio) &&
+                if (ftObj.is_name("Btn") && (flags & acroFormFlagRadio) &&
                     !hasCaption) {
                     r = 0.5 * (dx < dy ? dx : dy);
                     switch (borderType) {
                     case annotBorderDashed:
-                        appearBuf.append (1UL, '[');
+                        appearBuf.append(1UL, '[');
                         for (i = 0; i < borderDashLength; ++i) {
-                            appearBuf += format (" {0:.4f}", borderDash[i]);
+                            appearBuf += format(" {0:.4f}", borderDash[i]);
                         }
                         appearBuf += "] 0 d\n";
                         // fall through to the solid case
                     case annotBorderSolid:
                     case annotBorderUnderlined:
-                        appearBuf += format ("{0:.4f} w\n", borderWidth);
-                        setColor (obj1.as_array (), false, 0);
-                        drawCircle (
-                            0.5 * dx, 0.5 * dy, r - 0.5 * borderWidth, "s");
+                        appearBuf += format("{0:.4f} w\n", borderWidth);
+                        setColor(obj1.as_array(), false, 0);
+                        drawCircle(0.5 * dx, 0.5 * dy, r - 0.5 * borderWidth,
+                                   "s");
                         break;
                     case annotBorderBeveled:
                     case annotBorderInset:
-                        appearBuf += format ("{0:.4f} w\n", 0.5 * borderWidth);
-                        setColor (obj1.as_array (), false, 0);
-                        drawCircle (
-                            0.5 * dx, 0.5 * dy, r - 0.25 * borderWidth, "s");
-                        setColor (
-                            obj1.as_array (), false,
-                            borderType == annotBorderBeveled ? 1 : -1);
-                        drawCircleTopLeft (
-                            0.5 * dx, 0.5 * dy, r - 0.75 * borderWidth);
-                        setColor (
-                            obj1.as_array (), false,
-                            borderType == annotBorderBeveled ? -1 : 1);
-                        drawCircleBottomRight (
-                            0.5 * dx, 0.5 * dy, r - 0.75 * borderWidth);
+                        appearBuf += format("{0:.4f} w\n", 0.5 * borderWidth);
+                        setColor(obj1.as_array(), false, 0);
+                        drawCircle(0.5 * dx, 0.5 * dy, r - 0.25 * borderWidth,
+                                   "s");
+                        setColor(obj1.as_array(), false,
+                                 borderType == annotBorderBeveled ? 1 : -1);
+                        drawCircleTopLeft(0.5 * dx, 0.5 * dy,
+                                          r - 0.75 * borderWidth);
+                        setColor(obj1.as_array(), false,
+                                 borderType == annotBorderBeveled ? -1 : 1);
+                        drawCircleBottomRight(0.5 * dx, 0.5 * dy,
+                                              r - 0.75 * borderWidth);
                         break;
                     }
-                }
-                else {
+                } else {
                     switch (borderType) {
                     case annotBorderDashed:
-                        appearBuf.append (1UL, '[');
+                        appearBuf.append(1UL, '[');
                         for (i = 0; i < borderDashLength; ++i) {
-                            appearBuf += format (" {0:.4f}", borderDash[i]);
+                            appearBuf += format(" {0:.4f}", borderDash[i]);
                         }
                         appearBuf += "] 0 d\n";
                         // fall through to the solid case
                     case annotBorderSolid:
-                        appearBuf += format ("{0:.4f} w\n", borderWidth);
-                        setColor (obj1.as_array (), false, 0);
-                        appearBuf += format (
-                            "{0:.4f} {0:.4f} {1:.4f} {2:.4f} re s\n",
-                            0.5 * borderWidth, dx - borderWidth,
-                            dy - borderWidth);
+                        appearBuf += format("{0:.4f} w\n", borderWidth);
+                        setColor(obj1.as_array(), false, 0);
+                        appearBuf +=
+                            format("{0:.4f} {0:.4f} {1:.4f} {2:.4f} re s\n",
+                                   0.5 * borderWidth, dx - borderWidth,
+                                   dy - borderWidth);
                         break;
                     case annotBorderBeveled:
                     case annotBorderInset:
-                        setColor (
-                            obj1.as_array (), true,
-                            borderType == annotBorderBeveled ? 1 : -1);
+                        setColor(obj1.as_array(), true,
+                                 borderType == annotBorderBeveled ? 1 : -1);
                         appearBuf += "0 0 m\n";
-                        appearBuf += format ("0 {0:.4f} l\n", dy);
-                        appearBuf += format ("{0:.4f} {1:.4f} l\n", dx, dy);
-                        appearBuf += format (
-                            "{0:.4f} {1:.4f} l\n", dx - borderWidth,
-                            dy - borderWidth);
-                        appearBuf += format (
-                            "{0:.4f} {1:.4f} l\n", borderWidth,
-                            dy - borderWidth);
-                        appearBuf += format ("{0:.4f} {0:.4f} l\n", borderWidth);
+                        appearBuf += format("0 {0:.4f} l\n", dy);
+                        appearBuf += format("{0:.4f} {1:.4f} l\n", dx, dy);
+                        appearBuf += format("{0:.4f} {1:.4f} l\n",
+                                            dx - borderWidth, dy - borderWidth);
+                        appearBuf += format("{0:.4f} {1:.4f} l\n", borderWidth,
+                                            dy - borderWidth);
+                        appearBuf += format("{0:.4f} {0:.4f} l\n", borderWidth);
                         appearBuf += "f\n";
-                        setColor (
-                            obj1.as_array (), true,
-                            borderType == annotBorderBeveled ? -1 : 1);
+                        setColor(obj1.as_array(), true,
+                                 borderType == annotBorderBeveled ? -1 : 1);
                         appearBuf += "0 0 m\n";
-                        appearBuf += format ("{0:.4f} 0 l\n", dx);
-                        appearBuf += format ("{0:.4f} {1:.4f} l\n", dx, dy);
-                        appearBuf += format (
-                            "{0:.4f} {1:.4f} l\n", dx - borderWidth,
-                            dy - borderWidth);
-                        appearBuf += format (
-                            "{0:.4f} {1:.4f} l\n", dx - borderWidth,
-                            borderWidth);
-                        appearBuf += format ("{0:.4f} {0:.4f} l\n", borderWidth);
+                        appearBuf += format("{0:.4f} 0 l\n", dx);
+                        appearBuf += format("{0:.4f} {1:.4f} l\n", dx, dy);
+                        appearBuf += format("{0:.4f} {1:.4f} l\n",
+                                            dx - borderWidth, dy - borderWidth);
+                        appearBuf += format("{0:.4f} {1:.4f} l\n",
+                                            dx - borderWidth, borderWidth);
+                        appearBuf += format("{0:.4f} {0:.4f} l\n", borderWidth);
                         appearBuf += "f\n";
                         break;
                     case annotBorderUnderlined:
-                        appearBuf += format ("{0:.4f} w\n", borderWidth);
-                        setColor (obj1.as_array (), false, 0);
-                        appearBuf += format ("0 0 m {0:.4f} 0 l s\n", dx);
+                        appearBuf += format("{0:.4f} w\n", borderWidth);
+                        setColor(obj1.as_array(), false, 0);
+                        appearBuf += format("0 0 m {0:.4f} 0 l s\n", dx);
                         break;
                     }
 
                     // clip to the inside of the border
-                    appearBuf += format (
+                    appearBuf += format(
                         "{0:.4f} {0:.4f} {1:.4f} {2:.4f} re W n\n", borderWidth,
                         dx - 2 * borderWidth, dy - 2 * borderWidth);
                 }
@@ -784,25 +789,22 @@ void AcroFormField::drawNewAppearance (
         }
     }
 
-    free (borderDash);
+    free(borderDash);
 
     // get the resource dictionary
-    fieldLookup ("DR", &drObj);
+    fieldLookup("DR", &drObj);
 
     // build the font dictionary
-    if (drObj.is_dict () && (obj1 = resolve (drObj.as_dict ()["Font"])).is_dict ()) {
-        fontDict = new GfxFontDict (
-            acroForm->doc->getXRef (), 0, &obj1.as_dict ());
-    }
-    else {
+    if (drObj.is_dict() && (obj1 = resolve(drObj.as_dict()["Font"])).is_dict()) {
+        fontDict = new GfxFontDict(acroForm->doc->getXRef(), 0, &obj1.as_dict());
+    } else {
         fontDict = NULL;
     }
 
     // get the default appearance string
-    if (fieldLookup ("DA", &obj1)->is_string ()) {
-        da = obj1.as_string ()->copy ();
-    }
-    else {
+    if (fieldLookup("DA", &obj1)->is_string()) {
+        da = obj1.as_string()->copy();
+    } else {
         da = NULL;
     }
 
@@ -810,281 +812,273 @@ void AcroFormField::drawNewAppearance (
     rot = 0;
 
     if (mkDict) {
-        if ((obj1 = resolve ((*mkDict) ["R"])).is_int ()) {
-            rot = obj1.as_int ();
+        if ((obj1 = resolve((*mkDict)["R"])).is_int()) {
+            rot = obj1.as_int();
         }
     }
 
     // get the appearance state
-    apObj = resolve ((*annot) ["AP"]);
-    asObj = resolve ((*annot) ["AS"]);
+    apObj = resolve((*annot)["AP"]);
+    asObj = resolve((*annot)["AS"]);
 
     appearanceState = 0;
 
-    if (asObj.is_name ()) {
-        appearanceState = new GString (asObj.as_name ());
-    }
-    else if (apObj.is_dict ()) {
-        obj1 = resolve (apObj.as_dict ()["N"]);
+    if (asObj.is_name()) {
+        appearanceState = new GString(asObj.as_name());
+    } else if (apObj.is_dict()) {
+        obj1 = resolve(apObj.as_dict()["N"]);
 
-        if (obj1.is_dict () && obj1.as_dict ().size () == 1) {
-            appearanceState = new GString (obj1.key_at (0));
+        if (obj1.is_dict() && obj1.as_dict().size() == 1) {
+            appearanceState = new GString(obj1.key_at(0));
         }
     }
 
     if (!appearanceState) {
-        appearanceState = new GString ("Off");
+        appearanceState = new GString("Off");
     }
 
     // draw the field contents
-    if (ftObj.is_name ("Btn")) {
+    if (ftObj.is_name("Btn")) {
         caption = 0;
 
         if (mkDict) {
-            if ((obj1 = resolve ((*mkDict) ["CA"])).is_string ()) {
-                caption = obj1.as_string ()->copy ();
+            if ((obj1 = resolve((*mkDict)["CA"])).is_string()) {
+                caption = obj1.as_string()->copy();
             }
         }
 
         // radio button
         if (flags & acroFormFlagRadio) {
             //~ Acrobat doesn't draw a caption if there is no AP dict (?)
-            if (fieldLookup ("V", &obj1)->is_name (appearanceState->c_str ())) {
+            if (fieldLookup("V", &obj1)->is_name(appearanceState->c_str())) {
                 if (caption) {
-                    drawText (
-                        caption, da, fontDict, false, 0, acroFormQuadCenter,
-                        false, true, rot, xMin, yMin, xMax, yMax,
-                        borderWidth);
-                }
-                else {
+                    drawText(caption, da, fontDict, false, 0, acroFormQuadCenter,
+                             false, true, rot, xMin, yMin, xMax, yMax,
+                             borderWidth);
+                } else {
                     if (mkDict) {
-                        if ((obj2 = resolve ((*mkDict) ["BC"])).is_array () &&
-                            obj2.as_array ().size () > 0) {
+                        if ((obj2 = resolve((*mkDict)["BC"])).is_array() &&
+                            obj2.as_array().size() > 0) {
                             dx = xMax - xMin;
                             dy = yMax - yMin;
-                            setColor (obj2.as_array (), true, 0);
-                            drawCircle (
-                                0.5 * dx, 0.5 * dy, 0.2 * (dx < dy ? dx : dy),
-                                "f");
+                            setColor(obj2.as_array(), true, 0);
+                            drawCircle(0.5 * dx, 0.5 * dy,
+                                       0.2 * (dx < dy ? dx : dy), "f");
                         }
                     }
                 }
             }
             // pushbutton
-        }
-        else if (flags & acroFormFlagPushbutton) {
+        } else if (flags & acroFormFlagPushbutton) {
             if (caption) {
-                drawText (
-                    caption, da, fontDict, false, 0, acroFormQuadCenter,
-                    false, false, rot, xMin, yMin, xMax, yMax, borderWidth);
+                drawText(caption, da, fontDict, false, 0, acroFormQuadCenter,
+                         false, false, rot, xMin, yMin, xMax, yMax, borderWidth);
             }
             // checkbox
-        }
-        else {
-            fieldLookup ("V", &obj1);
-            if (obj1.is_name () && !obj1.is_name ("Off")) {
+        } else {
+            fieldLookup("V", &obj1);
+            if (obj1.is_name() && !obj1.is_name("Off")) {
                 if (!caption) {
-                    caption = new GString ("3"); // ZapfDingbats checkmark
+                    caption = new GString("3"); // ZapfDingbats checkmark
                 }
-                drawText (
-                    caption, da, fontDict, false, 0, acroFormQuadCenter,
-                    false, true, rot, xMin, yMin, xMax, yMax, borderWidth);
+                drawText(caption, da, fontDict, false, 0, acroFormQuadCenter,
+                         false, true, rot, xMin, yMin, xMax, yMax, borderWidth);
             }
         }
-        if (caption) { delete caption; }
-    }
-    else if (ftObj.is_name ("Tx")) {
+        if (caption) {
+            delete caption;
+        }
+    } else if (ftObj.is_name("Tx")) {
         //~ value strings can be Unicode
-        if (!fieldLookup ("V", &obj1)->is_string ()) {
-            fieldLookup ("DV", &obj1);
+        if (!fieldLookup("V", &obj1)->is_string()) {
+            fieldLookup("DV", &obj1);
         }
-        if (obj1.is_string ()) {
-            if (fieldLookup ("Q", &obj2)->is_int ()) {
-                quadding = obj2.as_int ();
-            }
-            else {
+        if (obj1.is_string()) {
+            if (fieldLookup("Q", &obj2)->is_int()) {
+                quadding = obj2.as_int();
+            } else {
                 quadding = acroFormQuadLeft;
             }
             comb = 0;
             if (flags & acroFormFlagComb) {
-                if (fieldLookup ("MaxLen", &obj2)->is_int ()) {
-                    comb = obj2.as_int ();
+                if (fieldLookup("MaxLen", &obj2)->is_int()) {
+                    comb = obj2.as_int();
                 }
             }
-            drawText (
-                obj1.as_string (), da, fontDict, flags & acroFormFlagMultiline,
-                comb, quadding, true, false, rot, xMin, yMin, xMax, yMax,
-                borderWidth);
+            drawText(obj1.as_string(), da, fontDict,
+                     flags & acroFormFlagMultiline, comb, quadding, true, false,
+                     rot, xMin, yMin, xMax, yMax, borderWidth);
         }
-    }
-    else if (ftObj.is_name ("Ch")) {
+    } else if (ftObj.is_name("Ch")) {
         //~ value/option strings can be Unicode
-        if (fieldLookup ("Q", &obj1)->is_int ()) { quadding = obj1.as_int (); }
-        else {
+        if (fieldLookup("Q", &obj1)->is_int()) {
+            quadding = obj1.as_int();
+        } else {
             quadding = acroFormQuadLeft;
         }
         // combo box
         if (flags & acroFormFlagCombo) {
-            if (fieldLookup ("V", &obj1)->is_string ()) {
-                drawText (
-                    obj1.as_string (), da, fontDict, false, 0, quadding, true,
-                    false, rot, xMin, yMin, xMax, yMax, borderWidth);
+            if (fieldLookup("V", &obj1)->is_string()) {
+                drawText(obj1.as_string(), da, fontDict, false, 0, quadding, true,
+                         false, rot, xMin, yMin, xMax, yMax, borderWidth);
                 //~ Acrobat draws a popup icon on the right side
             }
             // list box
-        }
-        else {
-            if ((obj1 = resolve (fieldObj.as_dict ()["Opt"])).is_array ()) {
-                nOptions = obj1.as_array ().size ();
+        } else {
+            if ((obj1 = resolve(fieldObj.as_dict()["Opt"])).is_array()) {
+                nOptions = obj1.as_array().size();
                 // get the option text
-                text = (GString**)calloc (nOptions, sizeof (GString*));
+                text = (GString **)calloc(nOptions, sizeof(GString *));
                 for (i = 0; i < nOptions; ++i) {
                     text[i] = NULL;
-                    obj2 = resolve (obj1 [i]);
-                    if (obj2.is_string ()) {
-                        text[i] = obj2.as_string ()->copy ();
-                    }
-                    else if (obj2.is_array () && obj2.as_array ().size () == 2) {
-                        if ((obj3 = resolve (obj2 [1])).is_string ()) {
-                            text[i] = obj3.as_string ()->copy ();
+                    obj2 = resolve(obj1[i]);
+                    if (obj2.is_string()) {
+                        text[i] = obj2.as_string()->copy();
+                    } else if (obj2.is_array() && obj2.as_array().size() == 2) {
+                        if ((obj3 = resolve(obj2[1])).is_string()) {
+                            text[i] = obj3.as_string()->copy();
                         }
                     }
-                    if (!text[i]) { text[i] = new GString (); }
+                    if (!text[i]) {
+                        text[i] = new GString();
+                    }
                 }
                 // get the selected option(s)
-                selection = (bool*)calloc (nOptions, sizeof (bool));
+                selection = (bool *)calloc(nOptions, sizeof(bool));
                 //~ need to use the I field in addition to the V field
-                fieldLookup ("V", &obj2);
+                fieldLookup("V", &obj2);
                 for (i = 0; i < nOptions; ++i) {
                     selection[i] = false;
-                    if (obj2.is_string ()) {
-                        if (!obj2.as_string ()->cmp (text[i])) {
+                    if (obj2.is_string()) {
+                        if (!obj2.as_string()->cmp(text[i])) {
                             selection[i] = true;
                         }
-                    }
-                    else if (obj2.is_array ()) {
-                        for (j = 0; j < obj2.as_array ().size (); ++j) {
-                            if ((obj3 = resolve (obj2 [j])).is_string () &&
-                                !obj3.as_string ()->cmp (text[i])) {
+                    } else if (obj2.is_array()) {
+                        for (j = 0; j < obj2.as_array().size(); ++j) {
+                            if ((obj3 = resolve(obj2[j])).is_string() &&
+                                !obj3.as_string()->cmp(text[i])) {
                                 selection[i] = true;
                             }
                         }
                     }
                 }
                 // get the top index
-                if ((obj2 = resolve (fieldObj.as_dict ()["TI"])).is_int ()) {
-                    topIdx = obj2.as_int ();
-                }
-                else {
+                if ((obj2 = resolve(fieldObj.as_dict()["TI"])).is_int()) {
+                    topIdx = obj2.as_int();
+                } else {
                     topIdx = 0;
                 }
                 // draw the text
-                drawListBox (
-                    text, selection, nOptions, topIdx, da, fontDict, quadding,
-                    xMin, yMin, xMax, yMax, borderWidth);
-                for (i = 0; i < nOptions; ++i) { delete text[i]; }
-                free (text);
-                free (selection);
+                drawListBox(text, selection, nOptions, topIdx, da, fontDict,
+                            quadding, xMin, yMin, xMax, yMax, borderWidth);
+                for (i = 0; i < nOptions; ++i) {
+                    delete text[i];
+                }
+                free(text);
+                free(selection);
             }
         }
-    }
-    else if (ftObj.is_name ("Sig")) {
+    } else if (ftObj.is_name("Sig")) {
         //~unimp
-    }
-    else {
-        error (errSyntaxError, -1, "Unknown field type");
+    } else {
+        error(errSyntaxError, -1, "Unknown field type");
     }
 
     delete appearanceState;
-    if (da) { delete da; }
+    if (da) {
+        delete da;
+    }
 
     // build the appearance stream dictionary
-    appearDict = xpdf::make_dict_obj ();
+    appearDict = xpdf::make_dict_obj();
 
-    appearDict.emplace ("Length",  xpdf::make_int_obj (appearBuf.size ()));
-    appearDict.emplace ("Subtype", xpdf::make_name_obj ("Form"));
+    appearDict.emplace("Length", xpdf::make_int_obj(appearBuf.size()));
+    appearDict.emplace("Subtype", xpdf::make_name_obj("Form"));
 
-    obj1 = xpdf::make_arr_obj ();
+    obj1 = xpdf::make_arr_obj();
 
-    obj1.as_array ().push_back (xpdf::make_real_obj (0));
-    obj1.as_array ().push_back (xpdf::make_real_obj (0));
-    obj1.as_array ().push_back (xpdf::make_real_obj (xMax - xMin));
-    obj1.as_array ().push_back (xpdf::make_real_obj (yMax - yMin));
+    obj1.as_array().push_back(xpdf::make_real_obj(0));
+    obj1.as_array().push_back(xpdf::make_real_obj(0));
+    obj1.as_array().push_back(xpdf::make_real_obj(xMax - xMin));
+    obj1.as_array().push_back(xpdf::make_real_obj(yMax - yMin));
 
-    appearDict.emplace ("BBox", std::move (obj1));
+    appearDict.emplace("BBox", std::move(obj1));
 
     // set the resource dictionary
-    if (drObj.is_dict ()) {
-        appearDict.emplace ("Resources", std::move (drObj));
+    if (drObj.is_dict()) {
+        appearDict.emplace("Resources", std::move(drObj));
     }
 
     // build the appearance stream
-    appearStream = new MemStream (
-        appearBuf.c_str (), 0, appearBuf.size (), &appearDict);
-    appearance = xpdf::make_stream_obj (appearStream);
+    appearStream =
+        new MemStream(appearBuf.c_str(), 0, appearBuf.size(), &appearDict);
+    appearance = xpdf::make_stream_obj(appearStream);
 
     // draw it
-    gfx->drawAnnot (&appearance, NULL, xMin, yMin, xMax, yMax);
+    gfx->drawAnnot(&appearance, NULL, xMin, yMin, xMax, yMax);
 
     if (fontDict) {
         delete fontDict;
     }
-
 }
 
 // Set the current fill or stroke color, based on <a> (which should
 // have 1, 3, or 4 elements).  If <adjust> is +1, color is brightened;
 // if <adjust> is -1, color is darkened; otherwise color is not
 // modified.
-void AcroFormField::setColor (Array& arr, bool fill, int adjust) {
+void AcroFormField::setColor(Array &arr, bool fill, int adjust)
+{
     Object obj1;
     double color[4];
-    int nComps, i;
+    int    nComps, i;
 
-    nComps = arr.size ();
-    if (nComps > 4) { nComps = 4; }
+    nComps = arr.size();
+    if (nComps > 4) {
+        nComps = 4;
+    }
     for (i = 0; i < nComps && i < 4; ++i) {
-        if ((obj1 = resolve (arr [i])).is_num ()) {
-            color[i] = obj1.as_num ();
-        }
-        else {
+        if ((obj1 = resolve(arr[i])).is_num()) {
+            color[i] = obj1.as_num();
+        } else {
             color[i] = 0;
         }
     }
-    if (nComps == 4) { adjust = -adjust; }
-    if (adjust > 0) {
-        for (i = 0; i < nComps; ++i) { color[i] = 0.5 * color[i] + 0.5; }
+    if (nComps == 4) {
+        adjust = -adjust;
     }
-    else if (adjust < 0) {
-        for (i = 0; i < nComps; ++i) { color[i] = 0.5 * color[i]; }
+    if (adjust > 0) {
+        for (i = 0; i < nComps; ++i) {
+            color[i] = 0.5 * color[i] + 0.5;
+        }
+    } else if (adjust < 0) {
+        for (i = 0; i < nComps; ++i) {
+            color[i] = 0.5 * color[i];
+        }
     }
     if (nComps == 4) {
-        appearBuf += format (
-            "{0:.2f} {1:.2f} {2:.2f} {3:.2f} {4:c}\n", color[0], color[1],
-            color[2], color[3], fill ? 'k' : 'K');
-    }
-    else if (nComps == 3) {
-        appearBuf += format (
-            "{0:.2f} {1:.2f} {2:.2f} {3:s}\n", color[0], color[1], color[2],
-            fill ? "rg" : "RG");
-    }
-    else {
-        appearBuf += format ("{0:.2f} {1:c}\n", color[0], fill ? 'g' : 'G');
+        appearBuf += format("{0:.2f} {1:.2f} {2:.2f} {3:.2f} {4:c}\n", color[0],
+                            color[1], color[2], color[3], fill ? 'k' : 'K');
+    } else if (nComps == 3) {
+        appearBuf += format("{0:.2f} {1:.2f} {2:.2f} {3:s}\n", color[0], color[1],
+                            color[2], fill ? "rg" : "RG");
+    } else {
+        appearBuf += format("{0:.2f} {1:c}\n", color[0], fill ? 'g' : 'G');
     }
 }
 
 // Draw the variable text or caption for a field.
-void AcroFormField::drawText (
-    GString* text, GString* da, GfxFontDict* fontDict, bool multiline,
-    int comb, int quadding, bool txField, bool forceZapfDingbats, int rot,
-    double xMin, double yMin, double xMax, double yMax, double border) {
-    GString* text2;
-    GList* daToks;
-    GString* tok;
-    GfxFont* font;
-    double dx, dy;
-    double fontSize, fontSize2, x, xPrev, y, w, w2, wMax;
-    int tfPos, tmPos, i, j, k, c;
+void AcroFormField::drawText(GString *text, GString *da, GfxFontDict *fontDict,
+                             bool multiline, int comb, int quadding, bool txField,
+                             bool forceZapfDingbats, int rot, double xMin,
+                             double yMin, double xMax, double yMax, double border)
+{
+    GString *text2;
+    GList *  daToks;
+    GString *tok;
+    GfxFont *font;
+    double   dx, dy;
+    double   fontSize, fontSize2, x, xPrev, y, w, w2, wMax;
+    int      tfPos, tmPos, i, j, k, c;
 
     //~ if there is no MK entry, this should use the existing content stream,
     //~ and only replace the marked content portion of it
@@ -1092,50 +1086,45 @@ void AcroFormField::drawText (
 
     // check for a Unicode string
     //~ this currently drops all non-Latin1 characters
-    if (text->getLength () >= 2 && (*text) [0] == '\xfe' &&
-        (*text) [1] == '\xff') {
-        text2 = new GString ();
-        for (i = 2; i + 1 < text->getLength (); i += 2) {
-            c = (((*text) [i] & 0xff) << 8) +
-                ((*text) [i + 1] & 0xff);
-            if (c <= 0xff) { text2->append (1UL, (char)c); }
-            else {
-                text2->append (1UL, '?');
+    if (text->getLength() >= 2 && (*text)[0] == '\xfe' && (*text)[1] == '\xff') {
+        text2 = new GString();
+        for (i = 2; i + 1 < text->getLength(); i += 2) {
+            c = (((*text)[i] & 0xff) << 8) + ((*text)[i + 1] & 0xff);
+            if (c <= 0xff) {
+                text2->append(1UL, (char)c);
+            } else {
+                text2->append(1UL, '?');
             }
         }
-    }
-    else {
+    } else {
         text2 = text;
     }
 
     // parse the default appearance string
     tfPos = tmPos = -1;
     if (da) {
-        daToks = new GList ();
+        daToks = new GList();
         i = 0;
-        while (i < da->getLength ()) {
-            while (i < da->getLength () && Lexer::isSpace ((*da) [i])) {
+        while (i < da->getLength()) {
+            while (i < da->getLength() && Lexer::isSpace((*da)[i])) {
                 ++i;
             }
-            if (i < da->getLength ()) {
-                for (j = i + 1;
-                     j < da->getLength () && !Lexer::isSpace ((*da) [j]);
+            if (i < da->getLength()) {
+                for (j = i + 1; j < da->getLength() && !Lexer::isSpace((*da)[j]);
                      ++j)
                     ;
-                daToks->append (new GString (da, i, j - i));
+                daToks->append(new GString(da, i, j - i));
                 i = j;
             }
         }
-        for (i = 2; i < daToks->getLength (); ++i) {
-            if (i >= 2 && !((GString*)daToks->get (i))->cmp ("Tf")) {
+        for (i = 2; i < daToks->getLength(); ++i) {
+            if (i >= 2 && !((GString *)daToks->get(i))->cmp("Tf")) {
                 tfPos = i - 2;
-            }
-            else if (i >= 6 && !((GString*)daToks->get (i))->cmp ("Tm")) {
+            } else if (i >= 6 && !((GString *)daToks->get(i))->cmp("Tm")) {
                 tmPos = i - 6;
             }
         }
-    }
-    else {
+    } else {
         daToks = NULL;
     }
 
@@ -1143,10 +1132,10 @@ void AcroFormField::drawText (
     //~ this should create the font if needed (?)
     if (forceZapfDingbats) {
         if (tfPos >= 0) {
-            tok = (GString*)daToks->get (tfPos);
-            if (tok->cmp ("/ZaDb")) {
-                tok->clear ();
-                tok->append ("/ZaDb");
+            tok = (GString *)daToks->get(tfPos);
+            if (tok->cmp("/ZaDb")) {
+                tok->clear();
+                tok->append("/ZaDb");
             }
         }
     }
@@ -1155,46 +1144,40 @@ void AcroFormField::drawText (
     font = NULL;
     fontSize = 0;
     if (tfPos >= 0) {
-        tok = (GString*)daToks->get (tfPos);
-        if (tok->getLength () >= 1 && (*tok) [0] == '/') {
-            if (!fontDict ||
-                !(font = fontDict->lookup (tok->c_str () + 1))) {
-                error (errSyntaxError, -1, "Unknown font in field's DA string");
+        tok = (GString *)daToks->get(tfPos);
+        if (tok->getLength() >= 1 && (*tok)[0] == '/') {
+            if (!fontDict || !(font = fontDict->lookup(tok->c_str() + 1))) {
+                error(errSyntaxError, -1, "Unknown font in field's DA string");
             }
+        } else {
+            error(errSyntaxError, -1,
+                  "Invalid font name in 'Tf' operator in field's DA string");
         }
-        else {
-            error (
-                errSyntaxError, -1,
-                "Invalid font name in 'Tf' operator in field's DA string");
-        }
-        tok = (GString*)daToks->get (tfPos + 1);
-        fontSize = atof (tok->c_str ());
-    }
-    else {
-        error (
-            errSyntaxError, -1, "Missing 'Tf' operator in field's DA string");
+        tok = (GString *)daToks->get(tfPos + 1);
+        fontSize = atof(tok->c_str());
+    } else {
+        error(errSyntaxError, -1, "Missing 'Tf' operator in field's DA string");
     }
 
     // setup
-    if (txField) { appearBuf += "/Tx BMC\n"; }
+    if (txField) {
+        appearBuf += "/Tx BMC\n";
+    }
     appearBuf += "q\n";
     if (rot == 90) {
-        appearBuf += format ("0 1 -1 0 {0:.4f} 0 cm\n", xMax - xMin);
+        appearBuf += format("0 1 -1 0 {0:.4f} 0 cm\n", xMax - xMin);
         dx = yMax - yMin;
         dy = xMax - xMin;
-    }
-    else if (rot == 180) {
-        appearBuf += format (
-            "-1 0 0 -1 {0:.4f} {1:.4f} cm\n", xMax - xMin, yMax - yMin);
+    } else if (rot == 180) {
+        appearBuf +=
+            format("-1 0 0 -1 {0:.4f} {1:.4f} cm\n", xMax - xMin, yMax - yMin);
         dx = xMax - yMax;
         dy = yMax - yMin;
-    }
-    else if (rot == 270) {
-        appearBuf += format ("0 -1 1 0 0 {0:.4f} cm\n", yMax - yMin);
+    } else if (rot == 270) {
+        appearBuf += format("0 -1 1 0 0 {0:.4f} cm\n", yMax - yMin);
         dx = yMax - yMin;
         dy = xMax - xMin;
-    }
-    else { // assume rot == 0
+    } else { // assume rot == 0
         dx = xMax - xMin;
         dy = yMax - yMin;
     }
@@ -1212,19 +1195,23 @@ void AcroFormField::drawText (
                 y = dy - 3;
                 w2 = 0;
                 i = 0;
-                while (i < text2->getLength ()) {
-                    getNextLine (text2, i, font, fontSize, wMax, &j, &w, &k);
-                    if (w > w2) { w2 = w; }
+                while (i < text2->getLength()) {
+                    getNextLine(text2, i, font, fontSize, wMax, &j, &w, &k);
+                    if (w > w2) {
+                        w2 = w;
+                    }
                     i = k;
                     y -= fontSize;
                 }
                 // approximate the descender for the last line
-                if (y >= 0.33 * fontSize) { break; }
+                if (y >= 0.33 * fontSize) {
+                    break;
+                }
             }
             if (tfPos >= 0) {
-                tok = (GString*)daToks->get (tfPos + 1);
-                tok->clear ();
-                tok->appendf ("{0:.2f}", fontSize);
+                tok = (GString *)daToks->get(tfPos + 1);
+                tok->clear();
+                tok->appendf("{0:.2f}", fontSize);
             }
         }
 
@@ -1235,53 +1222,59 @@ void AcroFormField::drawText (
 
         // set the font matrix
         if (tmPos >= 0) {
-            tok = (GString*)daToks->get (tmPos + 4);
-            tok->clear ();
-            tok->append (1UL, '0');
-            tok = (GString*)daToks->get (tmPos + 5);
-            tok->clear ();
-            tok->appendf ("{0:.4f}", y);
+            tok = (GString *)daToks->get(tmPos + 4);
+            tok->clear();
+            tok->append(1UL, '0');
+            tok = (GString *)daToks->get(tmPos + 5);
+            tok->clear();
+            tok->appendf("{0:.4f}", y);
         }
 
         // write the DA string
         if (daToks) {
-            for (i = 0; i < daToks->getLength (); ++i) {
-                auto& gstr = *(GString*)daToks->get (i);
-                appearBuf += std::string (gstr.c_str ());
-                appearBuf.append (1UL, ' ');
+            for (i = 0; i < daToks->getLength(); ++i) {
+                auto &gstr = *(GString *)daToks->get(i);
+                appearBuf += std::string(gstr.c_str());
+                appearBuf.append(1UL, ' ');
             }
         }
 
         // write the font matrix (if not part of the DA string)
-        if (tmPos < 0) { appearBuf += format ("1 0 0 1 0 {0:.4f} Tm\n", y); }
+        if (tmPos < 0) {
+            appearBuf += format("1 0 0 1 0 {0:.4f} Tm\n", y);
+        }
 
         // write a series of lines of text
         i = 0;
         xPrev = 0;
-        while (i < text2->getLength ()) {
-            getNextLine (text2, i, font, fontSize, wMax, &j, &w, &k);
+        while (i < text2->getLength()) {
+            getNextLine(text2, i, font, fontSize, wMax, &j, &w, &k);
 
             // compute text start position
             switch (quadding) {
             case acroFormQuadLeft:
-            default: x = border + 2; break;
-            case acroFormQuadCenter: x = (dx - w) / 2; break;
-            case acroFormQuadRight: x = dx - border - 2 - w; break;
+            default:
+                x = border + 2;
+                break;
+            case acroFormQuadCenter:
+                x = (dx - w) / 2;
+                break;
+            case acroFormQuadRight:
+                x = dx - border - 2 - w;
+                break;
             }
 
             // draw the line
-            appearBuf += format ("{0:.4f} {1:.4f} Td\n", x - xPrev, -fontSize);
-            appearBuf.append (1UL, '(');
+            appearBuf += format("{0:.4f} {1:.4f} Td\n", x - xPrev, -fontSize);
+            appearBuf.append(1UL, '(');
             for (; i < j; ++i) {
-                c = (*text2) [i] & 0xff;
+                c = (*text2)[i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
                     appearBuf += '\\';
                     appearBuf += c;
-                }
-                else if (c < 0x20 || c >= 0x80) {
-                    appearBuf += format ("\\{0:03o}", c);
-                }
-                else {
+                } else if (c < 0x20 || c >= 0x80) {
+                    appearBuf += format("\\{0:03o}", c);
+                } else {
                     appearBuf += c;
                 }
             }
@@ -1293,8 +1286,7 @@ void AcroFormField::drawText (
         }
 
         // single-line text
-    }
-    else {
+    } else {
         //~ replace newlines with spaces? - what does Acrobat do?
 
         // comb formatting
@@ -1305,97 +1297,101 @@ void AcroFormField::drawText (
             // compute font autosize
             if (fontSize == 0) {
                 fontSize = dy - 2 * border;
-                if (w < fontSize) { fontSize = w; }
-                fontSize = floor (fontSize);
+                if (w < fontSize) {
+                    fontSize = w;
+                }
+                fontSize = floor(fontSize);
                 if (tfPos >= 0) {
-                    tok = (GString*)daToks->get (tfPos + 1);
-                    tok->clear ();
-                    tok->appendf ("{0:.4f}", fontSize);
+                    tok = (GString *)daToks->get(tfPos + 1);
+                    tok->clear();
+                    tok->appendf("{0:.4f}", fontSize);
                 }
             }
 
             // compute text start position
             switch (quadding) {
             case acroFormQuadLeft:
-            default: x = border + 2; break;
+            default:
+                x = border + 2;
+                break;
             case acroFormQuadCenter:
-                x = border + 2 + 0.5 * (comb - text2->getLength ()) * w;
+                x = border + 2 + 0.5 * (comb - text2->getLength()) * w;
                 break;
             case acroFormQuadRight:
-                x = border + 2 + (comb - text2->getLength ()) * w;
+                x = border + 2 + (comb - text2->getLength()) * w;
                 break;
             }
             y = 0.5 * dy - 0.4 * fontSize;
 
             // set the font matrix
             if (tmPos >= 0) {
-                tok = (GString*)daToks->get (tmPos + 4);
-                tok->clear ();
-                tok->appendf ("{0:.4f}", x);
-                tok = (GString*)daToks->get (tmPos + 5);
-                tok->clear ();
-                tok->appendf ("{0:.4f}", y);
+                tok = (GString *)daToks->get(tmPos + 4);
+                tok->clear();
+                tok->appendf("{0:.4f}", x);
+                tok = (GString *)daToks->get(tmPos + 5);
+                tok->clear();
+                tok->appendf("{0:.4f}", y);
             }
 
             // write the DA string
             if (daToks) {
-                for (i = 0; i < daToks->getLength (); ++i) {
-                    auto& gstr = *(GString*)daToks->get (i);
-                    appearBuf += std::string (gstr.c_str ());
-                    appearBuf.append (1UL, ' ');
+                for (i = 0; i < daToks->getLength(); ++i) {
+                    auto &gstr = *(GString *)daToks->get(i);
+                    appearBuf += std::string(gstr.c_str());
+                    appearBuf.append(1UL, ' ');
                 }
             }
 
             // write the font matrix (if not part of the DA string)
             if (tmPos < 0) {
-                appearBuf += format ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
+                appearBuf += format("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
             }
 
             // write the text string
             //~ this should center (instead of left-justify) each character within
             //~     its comb cell
-            for (i = 0; i < text2->getLength (); ++i) {
-                if (i > 0) { appearBuf += format ("{0:.4f} 0 Td\n", w); }
-                appearBuf.append (1UL, '(');
-                c = (*text2) [i] & 0xff;
+            for (i = 0; i < text2->getLength(); ++i) {
+                if (i > 0) {
+                    appearBuf += format("{0:.4f} 0 Td\n", w);
+                }
+                appearBuf.append(1UL, '(');
+                c = (*text2)[i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
                     appearBuf += '\\';
                     appearBuf += c;
-                }
-                else if (c < 0x20 || c >= 0x80) {
-                    appearBuf += format ("{0:.4f} 0 Td\n", w);
-                }
-                else {
+                } else if (c < 0x20 || c >= 0x80) {
+                    appearBuf += format("{0:.4f} 0 Td\n", w);
+                } else {
                     appearBuf += c;
                 }
                 appearBuf += ") Tj\n";
             }
 
             // regular (non-comb) formatting
-        }
-        else {
+        } else {
             // compute string width
-            if (font && !font->isCIDFont ()) {
+            if (font && !font->isCIDFont()) {
                 w = 0;
-                for (i = 0; i < text2->getLength (); ++i) {
-                    w += ((Gfx8BitFont*)font)->getWidth ((*text2) [i]);
+                for (i = 0; i < text2->getLength(); ++i) {
+                    w += ((Gfx8BitFont *)font)->getWidth((*text2)[i]);
                 }
-            }
-            else {
+            } else {
                 // otherwise, make a crude estimate
-                w = text2->getLength () * 0.5;
+                w = text2->getLength() * 0.5;
             }
 
             // compute font autosize
             if (fontSize == 0) {
                 fontSize = dy - 2 * border;
                 fontSize2 = (dx - 4 - 2 * border) / w;
-                if (fontSize2 < fontSize) { fontSize = fontSize2; }
-                fontSize = floor (fontSize);
+                if (fontSize2 < fontSize) {
+                    fontSize = fontSize2;
+                }
+                fontSize = floor(fontSize);
                 if (tfPos >= 0) {
-                    tok = (GString*)daToks->get (tfPos + 1);
-                    tok->clear ();
-                    tok->appendf ("{0:.4f}", fontSize);
+                    tok = (GString *)daToks->get(tfPos + 1);
+                    tok->clear();
+                    tok->appendf("{0:.4f}", fontSize);
                 }
             }
 
@@ -1403,48 +1399,52 @@ void AcroFormField::drawText (
             w *= fontSize;
             switch (quadding) {
             case acroFormQuadLeft:
-            default: x = border + 2; break;
-            case acroFormQuadCenter: x = (dx - w) / 2; break;
-            case acroFormQuadRight: x = dx - border - 2 - w; break;
+            default:
+                x = border + 2;
+                break;
+            case acroFormQuadCenter:
+                x = (dx - w) / 2;
+                break;
+            case acroFormQuadRight:
+                x = dx - border - 2 - w;
+                break;
             }
             y = 0.5 * dy - 0.4 * fontSize;
 
             // set the font matrix
             if (tmPos >= 0) {
-                tok = (GString*)daToks->get (tmPos + 4);
-                tok->clear ();
-                tok->appendf ("{0:.4f}", x);
-                tok = (GString*)daToks->get (tmPos + 5);
-                tok->clear ();
-                tok->appendf ("{0:.4f}", y);
+                tok = (GString *)daToks->get(tmPos + 4);
+                tok->clear();
+                tok->appendf("{0:.4f}", x);
+                tok = (GString *)daToks->get(tmPos + 5);
+                tok->clear();
+                tok->appendf("{0:.4f}", y);
             }
 
             // write the DA string
             if (daToks) {
-                for (i = 0; i < daToks->getLength (); ++i) {
-                    auto& gstr = *(GString*)daToks->get (i);
-                    appearBuf += std::string (gstr.c_str ());
-                    appearBuf.append (1UL, ' ');
+                for (i = 0; i < daToks->getLength(); ++i) {
+                    auto &gstr = *(GString *)daToks->get(i);
+                    appearBuf += std::string(gstr.c_str());
+                    appearBuf.append(1UL, ' ');
                 }
             }
 
             // write the font matrix (if not part of the DA string)
             if (tmPos < 0) {
-                appearBuf += format ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
+                appearBuf += format("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
             }
 
             // write the text string
-            appearBuf.append (1UL, '(');
-            for (i = 0; i < text2->getLength (); ++i) {
-                c = (*text2) [i] & 0xff;
+            appearBuf.append(1UL, '(');
+            for (i = 0; i < text2->getLength(); ++i) {
+                c = (*text2)[i] & 0xff;
                 if (c == '(' || c == ')' || c == '\\') {
                     appearBuf += '\\';
                     appearBuf += c;
-                }
-                else if (c < 0x20 || c >= 0x80) {
-                    appearBuf += format ("\\{0:03o}", c);
-                }
-                else {
+                } else if (c < 0x20 || c >= 0x80) {
+                    appearBuf += format("\\{0:03o}", c);
+                } else {
                     appearBuf += c;
                 }
             }
@@ -1455,22 +1455,29 @@ void AcroFormField::drawText (
     // cleanup
     appearBuf += "ET\n";
     appearBuf += "Q\n";
-    if (txField) { appearBuf += "EMC\n"; }
+    if (txField) {
+        appearBuf += "EMC\n";
+    }
 
-    if (daToks) { deleteGList (daToks, GString); }
-    if (text2 != text) { delete text2; }
+    if (daToks) {
+        deleteGList(daToks, GString);
+    }
+    if (text2 != text) {
+        delete text2;
+    }
 }
 
 // Draw the variable text or caption for a field.
-void AcroFormField::drawListBox (
-    GString** text, bool* selection, int nOptions, int topIdx, GString* da,
-    GfxFontDict* fontDict, int quadding, double xMin, double yMin,
-    double xMax, double yMax, double border) {
-    GList* daToks;
-    GString* tok;
-    GfxFont* font;
-    double fontSize, fontSize2, x, y, w, wMax;
-    int tfPos, tmPos, i, j, c;
+void AcroFormField::drawListBox(GString **text, bool *selection, int nOptions,
+                                int topIdx, GString *da, GfxFontDict *fontDict,
+                                int quadding, double xMin, double yMin,
+                                double xMax, double yMax, double border)
+{
+    GList *  daToks;
+    GString *tok;
+    GfxFont *font;
+    double   fontSize, fontSize2, x, y, w, wMax;
+    int      tfPos, tmPos, i, j, c;
 
     //~ if there is no MK entry, this should use the existing content stream,
     //~ and only replace the marked content portion of it
@@ -1479,31 +1486,28 @@ void AcroFormField::drawListBox (
     // parse the default appearance string
     tfPos = tmPos = -1;
     if (da) {
-        daToks = new GList ();
+        daToks = new GList();
         i = 0;
-        while (i < da->getLength ()) {
-            while (i < da->getLength () && Lexer::isSpace ((*da) [i])) {
+        while (i < da->getLength()) {
+            while (i < da->getLength() && Lexer::isSpace((*da)[i])) {
                 ++i;
             }
-            if (i < da->getLength ()) {
-                for (j = i + 1;
-                     j < da->getLength () && !Lexer::isSpace ((*da) [j]);
+            if (i < da->getLength()) {
+                for (j = i + 1; j < da->getLength() && !Lexer::isSpace((*da)[j]);
                      ++j)
                     ;
-                daToks->append (new GString (da, i, j - i));
+                daToks->append(new GString(da, i, j - i));
                 i = j;
             }
         }
-        for (i = 2; i < daToks->getLength (); ++i) {
-            if (i >= 2 && !((GString*)daToks->get (i))->cmp ("Tf")) {
+        for (i = 2; i < daToks->getLength(); ++i) {
+            if (i >= 2 && !((GString *)daToks->get(i))->cmp("Tf")) {
                 tfPos = i - 2;
-            }
-            else if (i >= 6 && !((GString*)daToks->get (i))->cmp ("Tm")) {
+            } else if (i >= 6 && !((GString *)daToks->get(i))->cmp("Tm")) {
                 tmPos = i - 6;
             }
         }
-    }
-    else {
+    } else {
         daToks = NULL;
     }
 
@@ -1511,50 +1515,48 @@ void AcroFormField::drawListBox (
     font = NULL;
     fontSize = 0;
     if (tfPos >= 0) {
-        tok = (GString*)daToks->get (tfPos);
-        if (tok->getLength () >= 1 && (*tok) [0] == '/') {
-            if (!fontDict ||
-                !(font = fontDict->lookup (tok->c_str () + 1))) {
-                error (errSyntaxError, -1, "Unknown font in field's DA string");
+        tok = (GString *)daToks->get(tfPos);
+        if (tok->getLength() >= 1 && (*tok)[0] == '/') {
+            if (!fontDict || !(font = fontDict->lookup(tok->c_str() + 1))) {
+                error(errSyntaxError, -1, "Unknown font in field's DA string");
             }
+        } else {
+            error(errSyntaxError, -1,
+                  "Invalid font name in 'Tf' operator in field's DA string");
         }
-        else {
-            error (
-                errSyntaxError, -1,
-                "Invalid font name in 'Tf' operator in field's DA string");
-        }
-        tok = (GString*)daToks->get (tfPos + 1);
-        fontSize = atof (tok->c_str ());
-    }
-    else {
-        error (
-            errSyntaxError, -1, "Missing 'Tf' operator in field's DA string");
+        tok = (GString *)daToks->get(tfPos + 1);
+        fontSize = atof(tok->c_str());
+    } else {
+        error(errSyntaxError, -1, "Missing 'Tf' operator in field's DA string");
     }
 
     // compute font autosize
     if (fontSize == 0) {
         wMax = 0;
         for (i = 0; i < nOptions; ++i) {
-            if (font && !font->isCIDFont ()) {
+            if (font && !font->isCIDFont()) {
                 w = 0;
-                for (j = 0; j < text[i]->getLength (); ++j) {
-                    w += ((Gfx8BitFont*)font)->getWidth ((*text [i]) [j]);
+                for (j = 0; j < text[i]->getLength(); ++j) {
+                    w += ((Gfx8BitFont *)font)->getWidth((*text[i])[j]);
                 }
-            }
-            else {
+            } else {
                 // otherwise, make a crude estimate
-                w = text[i]->getLength () * 0.5;
+                w = text[i]->getLength() * 0.5;
             }
-            if (w > wMax) { wMax = w; }
+            if (w > wMax) {
+                wMax = w;
+            }
         }
         fontSize = yMax - yMin - 2 * border;
         fontSize2 = (xMax - xMin - 4 - 2 * border) / wMax;
-        if (fontSize2 < fontSize) { fontSize = fontSize2; }
-        fontSize = floor (fontSize);
+        if (fontSize2 < fontSize) {
+            fontSize = fontSize2;
+        }
+        fontSize = floor(fontSize);
         if (tfPos >= 0) {
-            tok = (GString*)daToks->get (tfPos + 1);
-            tok->clear ();
-            tok->appendf ("{0:.4f}", fontSize);
+            tok = (GString *)daToks->get(tfPos + 1);
+            tok->clear();
+            tok->appendf("{0:.4f}", fontSize);
         }
     }
 
@@ -1567,74 +1569,79 @@ void AcroFormField::drawListBox (
         // draw the background if selected
         if (selection[i]) {
             appearBuf += "0 g f\n";
-            appearBuf += format (
-                "{0:.4f} {1:.4f} {2:.4f} {3:.4f} re f\n", border,
-                y - 0.2 * fontSize, xMax - xMin - 2 * border, 1.1 * fontSize);
+            appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} re f\n", border,
+                                y - 0.2 * fontSize, xMax - xMin - 2 * border,
+                                1.1 * fontSize);
         }
 
         // setup
         appearBuf += "BT\n";
 
         // compute string width
-        if (font && !font->isCIDFont ()) {
+        if (font && !font->isCIDFont()) {
             w = 0;
-            for (j = 0; j < text[i]->getLength (); ++j) {
-                w += ((Gfx8BitFont*)font)->getWidth ((*text [i]) [j]);
+            for (j = 0; j < text[i]->getLength(); ++j) {
+                w += ((Gfx8BitFont *)font)->getWidth((*text[i])[j]);
             }
-        }
-        else {
+        } else {
             // otherwise, make a crude estimate
-            w = text[i]->getLength () * 0.5;
+            w = text[i]->getLength() * 0.5;
         }
 
         // compute text start position
         w *= fontSize;
         switch (quadding) {
         case acroFormQuadLeft:
-        default: x = border + 2; break;
-        case acroFormQuadCenter: x = (xMax - xMin - w) / 2; break;
-        case acroFormQuadRight: x = xMax - xMin - border - 2 - w; break;
+        default:
+            x = border + 2;
+            break;
+        case acroFormQuadCenter:
+            x = (xMax - xMin - w) / 2;
+            break;
+        case acroFormQuadRight:
+            x = xMax - xMin - border - 2 - w;
+            break;
         }
 
         // set the font matrix
         if (tmPos >= 0) {
-            tok = (GString*)daToks->get (tmPos + 4);
-            tok->clear ();
-            tok->appendf ("{0:.4f}", x);
-            tok = (GString*)daToks->get (tmPos + 5);
-            tok->clear ();
-            tok->appendf ("{0:.4f}", y);
+            tok = (GString *)daToks->get(tmPos + 4);
+            tok->clear();
+            tok->appendf("{0:.4f}", x);
+            tok = (GString *)daToks->get(tmPos + 5);
+            tok->clear();
+            tok->appendf("{0:.4f}", y);
         }
 
         // write the DA string
         if (daToks) {
-            for (j = 0; j < daToks->getLength (); ++j) {
-                auto& gstr = *(GString*)daToks->get (i);
-                appearBuf += std::string (gstr.c_str ());
-                appearBuf.append (1UL, ' ');
+            for (j = 0; j < daToks->getLength(); ++j) {
+                auto &gstr = *(GString *)daToks->get(i);
+                appearBuf += std::string(gstr.c_str());
+                appearBuf.append(1UL, ' ');
             }
         }
 
         // write the font matrix (if not part of the DA string)
         if (tmPos < 0) {
-            appearBuf += format ("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
+            appearBuf += format("1 0 0 1 {0:.4f} {1:.4f} Tm\n", x, y);
         }
 
         // change the text color if selected
-        if (selection[i]) { appearBuf += "1 g\n"; }
+        if (selection[i]) {
+            appearBuf += "1 g\n";
+        }
 
         // write the text string
-        appearBuf.append (1UL, '(');
-        for (j = 0; j < text[i]->getLength (); ++j) {
-            c = (*text[i]) [j] & 0xff;
+        appearBuf.append(1UL, '(');
+        for (j = 0; j < text[i]->getLength(); ++j) {
+            c = (*text[i])[j] & 0xff;
             if (c == '(' || c == ')' || c == '\\') {
                 appearBuf += '\\';
                 appearBuf += c;
-            }
-            else if (c < 0x20 || c >= 0x80) {
-                appearBuf += format ("\\{0:03o}", c);
-            }
-            else {
+            } else if (c < 0x20 || c >= 0x80) {
+                appearBuf += format("\\{0:03o}", c);
+            } else {
                 appearBuf += c;
             }
         }
@@ -1647,40 +1654,46 @@ void AcroFormField::drawListBox (
         y -= 1.1 * fontSize;
     }
 
-    if (daToks) { deleteGList (daToks, GString); }
+    if (daToks) {
+        deleteGList(daToks, GString);
+    }
 }
 
 // Figure out how much text will fit on the next line.  Returns:
 // *end = one past the last character to be included
 // *width = width of the characters start .. end-1
 // *next = index of first character on the following line
-void AcroFormField::getNextLine (
-    GString* text, int start, GfxFont* font, double fontSize, double wMax,
-    int* end, double* width, int* next) {
+void AcroFormField::getNextLine(GString *text, int start, GfxFont *font,
+                                double fontSize, double wMax, int *end,
+                                double *width, int *next)
+{
     double w, dw;
-    int j, k, c;
+    int    j, k, c;
 
     // figure out how much text will fit on the line
     //~ what does Adobe do with tabs?
     w = 0;
-    for (j = start; j < text->getLength () && w <= wMax; ++j) {
-        c = (*text) [j] & 0xff;
-        if (c == 0x0a || c == 0x0d) { break; }
-        if (font && !font->isCIDFont ()) {
-            dw = ((Gfx8BitFont*)font)->getWidth (c) * fontSize;
+    for (j = start; j < text->getLength() && w <= wMax; ++j) {
+        c = (*text)[j] & 0xff;
+        if (c == 0x0a || c == 0x0d) {
+            break;
         }
-        else {
+        if (font && !font->isCIDFont()) {
+            dw = ((Gfx8BitFont *)font)->getWidth(c) * fontSize;
+        } else {
             // otherwise, make a crude estimate
             dw = 0.5 * fontSize;
         }
         w += dw;
     }
     if (w > wMax) {
-        for (k = j; k > start && (*text) [k - 1] != ' '; --k)
+        for (k = j; k > start && (*text)[k - 1] != ' '; --k)
             ;
-        for (; k > start && (*text) [k - 1] == ' '; --k)
+        for (; k > start && (*text)[k - 1] == ' '; --k)
             ;
-        if (k > start) { j = k; }
+        if (k > start) {
+            j = k;
+        }
         if (j == start) {
             // handle the pathological case where the first character is
             // too wide to fit on the line all by itself
@@ -1692,10 +1705,9 @@ void AcroFormField::getNextLine (
     // compute the width
     w = 0;
     for (k = start; k < j; ++k) {
-        if (font && !font->isCIDFont ()) {
-            dw = ((Gfx8BitFont*)font)->getWidth ((*text) [k]) * fontSize;
-        }
-        else {
+        if (font && !font->isCIDFont()) {
+            dw = ((Gfx8BitFont *)font)->getWidth((*text)[k]) * fontSize;
+        } else {
             // otherwise, make a crude estimate
             dw = 0.5 * fontSize;
         }
@@ -1704,100 +1716,104 @@ void AcroFormField::getNextLine (
     *width = w;
 
     // next line
-    while (j < text->getLength () && (*text) [j] == ' ') { ++j; }
-    if (j < text->getLength () && (*text) [j] == 0x0d) { ++j; }
-    if (j < text->getLength () && (*text) [j] == 0x0a) { ++j; }
+    while (j < text->getLength() && (*text)[j] == ' ') {
+        ++j;
+    }
+    if (j < text->getLength() && (*text)[j] == 0x0d) {
+        ++j;
+    }
+    if (j < text->getLength() && (*text)[j] == 0x0a) {
+        ++j;
+    }
     *next = j;
 }
 
 // Draw an (approximate) circle of radius <r> centered at (<cx>, <cy>).
 // <cmd> is used to draw the circle ("f", "s", or "b").
-void AcroFormField::drawCircle (
-    double cx, double cy, double r, const char* cmd) {
-    appearBuf += format ("{0:.4f} {1:.4f} m\n", cx + r, cy);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n", cx + r,
-        cy + bezierCircle * r, cx + bezierCircle * r, cy + r, cx, cy + r);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
-        cx - bezierCircle * r, cy + r, cx - r, cy + bezierCircle * r, cx - r,
-        cy);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n", cx - r,
-        cy - bezierCircle * r, cx - bezierCircle * r, cy - r, cx, cy - r);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
-        cx + bezierCircle * r, cy - r, cx + r, cy - bezierCircle * r, cx + r,
-        cy);
-    appearBuf += format ("{0:s}\n", cmd);
+void AcroFormField::drawCircle(double cx, double cy, double r, const char *cmd)
+{
+    appearBuf += format("{0:.4f} {1:.4f} m\n", cx + r, cy);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx + r, cy + bezierCircle * r, cx + bezierCircle * r,
+                        cy + r, cx, cy + r);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx - bezierCircle * r, cy + r, cx - r,
+                        cy + bezierCircle * r, cx - r, cy);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx - r, cy - bezierCircle * r, cx - bezierCircle * r,
+                        cy - r, cx, cy - r);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx + bezierCircle * r, cy - r, cx + r,
+                        cy - bezierCircle * r, cx + r, cy);
+    appearBuf += format("{0:s}\n", cmd);
 }
 
 // Draw the top-left half of an (approximate) circle of radius <r>
 // centered at (<cx>, <cy>).
-void AcroFormField::drawCircleTopLeft (double cx, double cy, double r) {
+void AcroFormField::drawCircleTopLeft(double cx, double cy, double r)
+{
     double r2;
 
-    r2 = r / sqrt (2.0);
-    appearBuf += format ("{0:.4f} {1:.4f} m\n", cx + r2, cy + r2);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
-        cx + (1 - bezierCircle) * r2, cy + (1 + bezierCircle) * r2,
-        cx - (1 - bezierCircle) * r2, cy + (1 + bezierCircle) * r2, cx - r2,
-        cy + r2);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
-        cx - (1 + bezierCircle) * r2, cy + (1 - bezierCircle) * r2,
-        cx - (1 + bezierCircle) * r2, cy - (1 - bezierCircle) * r2, cx - r2,
-        cy - r2);
+    r2 = r / sqrt(2.0);
+    appearBuf += format("{0:.4f} {1:.4f} m\n", cx + r2, cy + r2);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx + (1 - bezierCircle) * r2,
+                        cy + (1 + bezierCircle) * r2,
+                        cx - (1 - bezierCircle) * r2,
+                        cy + (1 + bezierCircle) * r2, cx - r2, cy + r2);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx - (1 + bezierCircle) * r2,
+                        cy + (1 - bezierCircle) * r2,
+                        cx - (1 + bezierCircle) * r2,
+                        cy - (1 - bezierCircle) * r2, cx - r2, cy - r2);
     appearBuf += "S\n";
 }
 
 // Draw the bottom-right half of an (approximate) circle of radius <r>
 // centered at (<cx>, <cy>).
-void AcroFormField::drawCircleBottomRight (double cx, double cy, double r) {
+void AcroFormField::drawCircleBottomRight(double cx, double cy, double r)
+{
     double r2;
 
-    r2 = r / sqrt (2.0);
-    appearBuf += format ("{0:.4f} {1:.4f} m\n", cx - r2, cy - r2);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
-        cx - (1 - bezierCircle) * r2, cy - (1 + bezierCircle) * r2,
-        cx + (1 - bezierCircle) * r2, cy - (1 + bezierCircle) * r2, cx + r2,
-        cy - r2);
-    appearBuf += format (
-        "{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
-        cx + (1 + bezierCircle) * r2, cy - (1 - bezierCircle) * r2,
-        cx + (1 + bezierCircle) * r2, cy + (1 - bezierCircle) * r2, cx + r2,
-        cy + r2);
+    r2 = r / sqrt(2.0);
+    appearBuf += format("{0:.4f} {1:.4f} m\n", cx - r2, cy - r2);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx - (1 - bezierCircle) * r2,
+                        cy - (1 + bezierCircle) * r2,
+                        cx + (1 - bezierCircle) * r2,
+                        cy - (1 + bezierCircle) * r2, cx + r2, cy - r2);
+    appearBuf += format("{0:.4f} {1:.4f} {2:.4f} {3:.4f} {4:.4f} {5:.4f} c\n",
+                        cx + (1 + bezierCircle) * r2,
+                        cy - (1 - bezierCircle) * r2,
+                        cx + (1 + bezierCircle) * r2,
+                        cy + (1 - bezierCircle) * r2, cx + r2, cy + r2);
     appearBuf += "S\n";
 }
 
-Object* AcroFormField::getResources (Object* res) {
+Object *AcroFormField::getResources(Object *res)
+{
     Object kidsObj, annotObj, obj1;
-    int i;
+    int    i;
 
-    if (acroForm->needAppearances) { fieldLookup ("DR", res); }
-    else {
-        *res = xpdf::make_arr_obj ();
+    if (acroForm->needAppearances) {
+        fieldLookup("DR", res);
+    } else {
+        *res = xpdf::make_arr_obj();
         // find the annotation object(s)
-        if ((kidsObj = resolve (fieldObj.as_dict ()["Kids"])).is_array ()) {
-            for (i = 0; i < kidsObj.as_array ().size (); ++i) {
-                annotObj = resolve (kidsObj [i]);
-                if (annotObj.is_dict ()) {
-                    if (getAnnotResources (&annotObj.as_dict (), &obj1)
-                            ->is_dict ()) {
-                        res->as_array ().push_back (obj1);
-                    }
-                    else {
+        if ((kidsObj = resolve(fieldObj.as_dict()["Kids"])).is_array()) {
+            for (i = 0; i < kidsObj.as_array().size(); ++i) {
+                annotObj = resolve(kidsObj[i]);
+                if (annotObj.is_dict()) {
+                    if (getAnnotResources(&annotObj.as_dict(), &obj1)->is_dict()) {
+                        res->as_array().push_back(obj1);
+                    } else {
                     }
                 }
             }
-        }
-        else {
-            if (getAnnotResources (&fieldObj.as_dict (), &obj1)->is_dict ()) {
-                res->as_array ().push_back (obj1);
-            }
-            else {
+        } else {
+            if (getAnnotResources(&fieldObj.as_dict(), &obj1)->is_dict()) {
+                res->as_array().push_back(obj1);
+            } else {
             }
         }
     }
@@ -1805,65 +1821,62 @@ Object* AcroFormField::getResources (Object* res) {
     return res;
 }
 
-Object* AcroFormField::getAnnotResources (Dict* annot, Object* res) {
+Object *AcroFormField::getAnnotResources(Dict *annot, Object *res)
+{
     Object apObj, appearance;
 
     // get the appearance stream
-    if ((apObj = resolve ((*annot) ["AP"])).is_dict ()) {
+    if ((apObj = resolve((*annot)["AP"])).is_dict()) {
         Object obj1;
 
-        obj1 = resolve (apObj.as_dict ()["N"]);
+        obj1 = resolve(apObj.as_dict()["N"]);
 
-        if (obj1.is_dict ()) {
+        if (obj1.is_dict()) {
             Object asObj;
 
-            if ((asObj = resolve ((*annot) ["AS"])).is_name ()) {
-                appearance = resolve (obj1.as_dict ()[asObj.as_name ()]);
+            if ((asObj = resolve((*annot)["AS"])).is_name()) {
+                appearance = resolve(obj1.as_dict()[asObj.as_name()]);
+            } else if (obj1.as_dict().size() == 1) {
+                appearance = obj1.val_at(0);
+            } else {
+                appearance = resolve(obj1.as_dict()["Off"]);
             }
-            else if (obj1.as_dict ().size () == 1) {
-                appearance = obj1.val_at (0);
-            }
-            else {
-                appearance = resolve (obj1.as_dict ()["Off"]);
-            }
-        }
-        else {
+        } else {
             appearance = obj1;
         }
     }
 
-
-    if (appearance.is_stream ()) {
-        *res = resolve ((*appearance.streamGetDict ()) ["Resources"]);
-    }
-    else {
-        *res = { };
+    if (appearance.is_stream()) {
+        *res = resolve((*appearance.streamGetDict())["Resources"]);
+    } else {
+        *res = {};
     }
 
     return res;
 }
 
 // Look up an inheritable field dictionary entry.
-Object* AcroFormField::fieldLookup (const char* key, Object* obj) {
-    return fieldLookup (&fieldObj.as_dict (), key, obj);
+Object *AcroFormField::fieldLookup(const char *key, Object *obj)
+{
+    return fieldLookup(&fieldObj.as_dict(), key, obj);
 }
 
-Object* AcroFormField::fieldLookup (Dict* dict, const char* key, Object* obj) {
-    *obj = resolve ((*dict) [key]);
+Object *AcroFormField::fieldLookup(Dict *dict, const char *key, Object *obj)
+{
+    *obj = resolve((*dict)[key]);
 
-    if (!obj->is_null ()) {
+    if (!obj->is_null()) {
         return obj;
     }
 
-    Object parent = resolve ((*dict) ["Parent"]);
+    Object parent = resolve((*dict)["Parent"]);
 
-    if (parent.is_dict ()) {
-        fieldLookup (&parent.as_dict (), key, obj);
-    }
-    else {
+    if (parent.is_dict()) {
+        fieldLookup(&parent.as_dict(), key, obj);
+    } else {
         // some fields don't specify a parent, so we check the AcroForm
         // dictionary just in case
-        *obj = resolve (acroForm->acroFormObj.as_dict ()[key]);
+        *obj = resolve(acroForm->acroFormObj.as_dict()[key]);
     }
 
     return obj;

@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <xpdf/FontEncodingTables.hh>
 
-const char* macRomanEncoding[256] = { NULL,
+const char *macRomanEncoding[256] = { NULL,
                                       NULL,
                                       NULL,
                                       NULL,
@@ -262,7 +262,7 @@ const char* macRomanEncoding[256] = { NULL,
                                       "ogonek",
                                       "caron" };
 
-const char* macExpertEncoding[256] = { NULL,
+const char *macExpertEncoding[256] = { NULL,
                                        NULL,
                                        NULL,
                                        NULL,
@@ -519,7 +519,7 @@ const char* macExpertEncoding[256] = { NULL,
                                        NULL,
                                        NULL };
 
-const char* winAnsiEncoding[256] = { NULL,
+const char *winAnsiEncoding[256] = { NULL,
                                      NULL,
                                      NULL,
                                      NULL,
@@ -776,7 +776,7 @@ const char* winAnsiEncoding[256] = { NULL,
                                      "thorn",
                                      "ydieresis" };
 
-const char* standardEncoding[256] = { NULL,
+const char *standardEncoding[256] = { NULL,
                                       NULL,
                                       NULL,
                                       NULL,
@@ -1033,7 +1033,7 @@ const char* standardEncoding[256] = { NULL,
                                       NULL,
                                       NULL };
 
-const char* expertEncoding[256] = { NULL,
+const char *expertEncoding[256] = { NULL,
                                     NULL,
                                     NULL,
                                     NULL,
@@ -1290,7 +1290,7 @@ const char* expertEncoding[256] = { NULL,
                                     "Thornsmall",
                                     "Ydieresissmall" };
 
-const char* symbolEncoding[256] = { NULL,
+const char *symbolEncoding[256] = { NULL,
                                     NULL,
                                     NULL,
                                     NULL,
@@ -1547,7 +1547,7 @@ const char* symbolEncoding[256] = { NULL,
                                     "bracerightbt",
                                     NULL };
 
-const char* zapfDingbatsEncoding[256] = {
+const char *zapfDingbatsEncoding[256] = {
     NULL,   NULL,   NULL,   NULL,   NULL,   NULL,    NULL,   NULL,   NULL,
     NULL,   NULL,   NULL,   NULL,   NULL,   NULL,    NULL,   NULL,   NULL,
     NULL,   NULL,   NULL,   NULL,   NULL,   NULL,    NULL,   NULL,   NULL,

@@ -20,22 +20,23 @@
 
 //------------------------------------------------------------------------
 
-struct SplashFontCacheTag {
-    int c;
+struct SplashFontCacheTag
+{
+    int   c;
     short xFrac, yFrac; // x and y fractions
-    int mru;            // valid bit (0x80000000) and MRU index
-    int x, y, w, h;     // offset and size of glyph
+    int   mru; // valid bit (0x80000000) and MRU index
+    int   x, y, w, h; // offset and size of glyph
 };
 
 //------------------------------------------------------------------------
 // SplashFont
 //------------------------------------------------------------------------
 
-SplashFont::SplashFont (
-    SplashFontFile* fontFileA, SplashCoord* matA, SplashCoord* textMatA,
-    bool aaA) {
+SplashFont::SplashFont(SplashFontFile *fontFileA, SplashCoord *matA,
+                       SplashCoord *textMatA, bool aaA)
+{
     fontFile = fontFileA;
-    fontFile->incRefCnt ();
+    fontFile->incRefCnt();
     mat[0] = matA[0];
     mat[1] = matA[1];
     mat[2] = matA[2];
@@ -52,15 +53,17 @@ SplashFont::SplashFont (
     xMin = yMin = xMax = yMax = 0;
 }
 
-void SplashFont::initCache () {
+void SplashFont::initCache()
+{
     int i;
 
     // this should be (max - min + 1), but we add some padding to
     // deal with rounding errors
     glyphW = xMax - xMin + 3;
     glyphH = yMax - yMin + 3;
-    if (aa) { glyphSize = glyphW * glyphH; }
-    else {
+    if (aa) {
+        glyphSize = glyphW * glyphH;
+    } else {
         glyphSize = ((glyphW + 7) >> 3) * glyphH;
     }
 
@@ -71,30 +74,37 @@ void SplashFont::initCache () {
          cacheSets * cacheAssoc * glyphSize > splashFontCacheSize;
          cacheSets >>= 1)
         ;
-    cache = (unsigned char*)calloc (cacheSets * cacheAssoc, glyphSize);
-    cacheTags = (SplashFontCacheTag*)calloc (
-        cacheSets * cacheAssoc, sizeof (SplashFontCacheTag));
+    cache = (unsigned char *)calloc(cacheSets * cacheAssoc, glyphSize);
+    cacheTags = (SplashFontCacheTag *)calloc(cacheSets * cacheAssoc,
+                                             sizeof(SplashFontCacheTag));
     for (i = 0; i < cacheSets * cacheAssoc; ++i) {
         cacheTags[i].mru = i & (cacheAssoc - 1);
     }
 }
 
-SplashFont::~SplashFont () {
-    fontFile->decRefCnt ();
-    if (cache) { free (cache); }
-    if (cacheTags) { free (cacheTags); }
+SplashFont::~SplashFont()
+{
+    fontFile->decRefCnt();
+    if (cache) {
+        free(cache);
+    }
+    if (cacheTags) {
+        free(cacheTags);
+    }
 }
 
-bool SplashFont::getGlyph (
-    int c, int xFrac, int yFrac, SplashGlyphBitmap* bitmap) {
+bool SplashFont::getGlyph(int c, int xFrac, int yFrac, SplashGlyphBitmap *bitmap)
+{
     SplashGlyphBitmap bitmap2;
-    int size;
-    unsigned char* p;
-    int i, j, k;
+    int               size;
+    unsigned char *   p;
+    int               i, j, k;
 
     // no fractional coordinates for large glyphs or non-anti-aliased
     // glyphs
-    if (!aa || glyphH > 50) { xFrac = yFrac = 0; }
+    if (!aa || glyphH > 50) {
+        xFrac = yFrac = 0;
+    }
 
     // check the cache
     i = (c & (cacheSets - 1)) * cacheAssoc;
@@ -121,7 +131,9 @@ bool SplashFont::getGlyph (
     }
 
     // generate the glyph bitmap
-    if (!makeGlyph (c, xFrac, yFrac, &bitmap2)) { return false; }
+    if (!makeGlyph(c, xFrac, yFrac, &bitmap2)) {
+        return false;
+    }
 
     // if the glyph doesn't fit in the bounding box, return a temporary
     // uncached bitmap
@@ -131,8 +143,9 @@ bool SplashFont::getGlyph (
     }
 
     // insert glyph pixmap in cache
-    if (aa) { size = bitmap2.w * bitmap2.h; }
-    else {
+    if (aa) {
+        size = bitmap2.w * bitmap2.h;
+    } else {
         size = ((bitmap2.w + 7) >> 3) * bitmap2.h;
     }
     p = NULL; // make gcc happy
@@ -147,15 +160,16 @@ bool SplashFont::getGlyph (
             cacheTags[i + j].w = bitmap2.w;
             cacheTags[i + j].h = bitmap2.h;
             p = cache + (i + j) * glyphSize;
-            memcpy (p, bitmap2.data, size);
-        }
-        else {
+            memcpy(p, bitmap2.data, size);
+        } else {
             ++cacheTags[i + j].mru;
         }
     }
     *bitmap = bitmap2;
     bitmap->data = p;
     bitmap->freeData = false;
-    if (bitmap2.freeData) { free (bitmap2.data); }
+    if (bitmap2.freeData) {
+        free(bitmap2.data);
+    }
     return true;
 }

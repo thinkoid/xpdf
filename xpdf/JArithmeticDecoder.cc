@@ -11,29 +11,39 @@
 // JArithmeticDecoderStates
 //------------------------------------------------------------------------
 
-JArithmeticDecoderStats::JArithmeticDecoderStats (int contextSizeA) {
+JArithmeticDecoderStats::JArithmeticDecoderStats(int contextSizeA)
+{
     contextSize = contextSizeA;
-    cxTab = (unsigned char*)calloc (contextSize, sizeof (unsigned char));
-    reset ();
+    cxTab = (unsigned char *)calloc(contextSize, sizeof(unsigned char));
+    reset();
 }
 
-JArithmeticDecoderStats::~JArithmeticDecoderStats () { free (cxTab); }
+JArithmeticDecoderStats::~JArithmeticDecoderStats()
+{
+    free(cxTab);
+}
 
-JArithmeticDecoderStats* JArithmeticDecoderStats::copy () {
-    JArithmeticDecoderStats* stats;
+JArithmeticDecoderStats *JArithmeticDecoderStats::copy()
+{
+    JArithmeticDecoderStats *stats;
 
-    stats = new JArithmeticDecoderStats (contextSize);
-    memcpy (stats->cxTab, cxTab, contextSize);
+    stats = new JArithmeticDecoderStats(contextSize);
+    memcpy(stats->cxTab, cxTab, contextSize);
     return stats;
 }
 
-void JArithmeticDecoderStats::reset () { memset (cxTab, 0, contextSize); }
-
-void JArithmeticDecoderStats::copyFrom (JArithmeticDecoderStats* stats) {
-    memcpy (cxTab, stats->cxTab, contextSize);
+void JArithmeticDecoderStats::reset()
+{
+    memset(cxTab, 0, contextSize);
 }
 
-void JArithmeticDecoderStats::setEntry (unsigned cx, int i, int mps) {
+void JArithmeticDecoderStats::copyFrom(JArithmeticDecoderStats *stats)
+{
+    memcpy(cxTab, stats->cxTab, contextSize);
+}
+
+void JArithmeticDecoderStats::setEntry(unsigned cx, int i, int mps)
+{
     cxTab[cx] = (i << 1) + mps;
 }
 
@@ -69,7 +79,8 @@ int JArithmeticDecoder::switchTab[47] = { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-JArithmeticDecoder::JArithmeticDecoder () {
+JArithmeticDecoder::JArithmeticDecoder()
+{
     str = NULL;
     dataLen = 0;
     limitStream = false;
@@ -77,7 +88,8 @@ JArithmeticDecoder::JArithmeticDecoder () {
     readBuf = -1;
 }
 
-inline unsigned JArithmeticDecoder::readByte () {
+inline unsigned JArithmeticDecoder::readByte()
+{
     unsigned x;
 
     if (limitStream) {
@@ -87,48 +99,54 @@ inline unsigned JArithmeticDecoder::readByte () {
             return x;
         }
         --dataLen;
-        if (dataLen < 0) { return 0xff; }
+        if (dataLen < 0) {
+            return 0xff;
+        }
     }
     ++nBytesRead;
-    return (unsigned)str->get () & 0xff;
+    return (unsigned)str->get() & 0xff;
 }
 
-JArithmeticDecoder::~JArithmeticDecoder () { cleanup (); }
+JArithmeticDecoder::~JArithmeticDecoder()
+{
+    cleanup();
+}
 
-void JArithmeticDecoder::start () {
-    buf0 = readByte ();
-    buf1 = readByte ();
+void JArithmeticDecoder::start()
+{
+    buf0 = readByte();
+    buf1 = readByte();
 
     // INITDEC
     c = (buf0 ^ 0xff) << 16;
-    byteIn ();
+    byteIn();
     c <<= 7;
     ct -= 7;
     a = 0x80000000;
 }
 
-void JArithmeticDecoder::restart (int dataLenA) {
+void JArithmeticDecoder::restart(int dataLenA)
+{
     unsigned cAdd;
-    bool prevFF;
-    int k, nBits;
+    bool     prevFF;
+    int      k, nBits;
 
-    if (dataLen >= 0) { dataLen = dataLenA; }
-    else if (dataLen == -1) {
+    if (dataLen >= 0) {
         dataLen = dataLenA;
-        buf1 = readByte ();
-    }
-    else {
+    } else if (dataLen == -1) {
+        dataLen = dataLenA;
+        buf1 = readByte();
+    } else {
         k = (-dataLen - 1) * 8 - ct;
         dataLen = dataLenA;
         cAdd = 0;
         prevFF = false;
         while (k > 0) {
-            buf0 = readByte ();
+            buf0 = readByte();
             if (prevFF) {
                 cAdd += 0xfe00 - (buf0 << 9);
                 nBits = 7;
-            }
-            else {
+            } else {
                 cAdd += 0xff00 - (buf0 << 8);
                 nBits = 8;
             }
@@ -136,19 +154,19 @@ void JArithmeticDecoder::restart (int dataLenA) {
             if (k > nBits) {
                 cAdd <<= nBits;
                 k -= nBits;
-            }
-            else {
+            } else {
                 cAdd <<= k;
                 ct = nBits - k;
                 k = 0;
             }
         }
         c += cAdd;
-        buf1 = readByte ();
+        buf1 = readByte();
     }
 }
 
-void JArithmeticDecoder::cleanup () {
+void JArithmeticDecoder::cleanup()
+{
     if (limitStream) {
         // This saves one extra byte of data from the end of packet i, to
         // be used in packet i+1.  It's not clear from the JPEG 2000 spec
@@ -158,67 +176,68 @@ void JArithmeticDecoder::cleanup () {
         // one byte), but I haven't run into that case yet.
         while (dataLen > 0) {
             readBuf = -1;
-            readBuf = readByte ();
+            readBuf = readByte();
         }
     }
 }
 
-int JArithmeticDecoder::decodeBit (
-    unsigned context, JArithmeticDecoderStats* stats) {
-    int bit;
+int JArithmeticDecoder::decodeBit(unsigned                 context,
+                                  JArithmeticDecoderStats *stats)
+{
+    int      bit;
     unsigned qe;
-    int iCX, mpsCX;
+    int      iCX, mpsCX;
 
     iCX = stats->cxTab[context] >> 1;
     mpsCX = stats->cxTab[context] & 1;
     qe = qeTab[iCX];
     a -= qe;
     if (c < a) {
-        if (a & 0x80000000) { bit = mpsCX; }
-        else {
+        if (a & 0x80000000) {
+            bit = mpsCX;
+        } else {
             // MPS_EXCHANGE
             if (a < qe) {
                 bit = 1 - mpsCX;
                 if (switchTab[iCX]) {
                     stats->cxTab[context] = (nlpsTab[iCX] << 1) | (1 - mpsCX);
-                }
-                else {
+                } else {
                     stats->cxTab[context] = (nlpsTab[iCX] << 1) | mpsCX;
                 }
-            }
-            else {
+            } else {
                 bit = mpsCX;
                 stats->cxTab[context] = (nmpsTab[iCX] << 1) | mpsCX;
             }
             // RENORMD
             do {
-                if (ct == 0) { byteIn (); }
+                if (ct == 0) {
+                    byteIn();
+                }
                 a <<= 1;
                 c <<= 1;
                 --ct;
             } while (!(a & 0x80000000));
         }
-    }
-    else {
+    } else {
         c -= a;
         // LPS_EXCHANGE
         if (a < qe) {
             bit = mpsCX;
             stats->cxTab[context] = (nmpsTab[iCX] << 1) | mpsCX;
-        }
-        else {
+        } else {
             bit = 1 - mpsCX;
             if (switchTab[iCX]) {
                 stats->cxTab[context] = (nlpsTab[iCX] << 1) | (1 - mpsCX);
-            }
-            else {
+            } else {
                 stats->cxTab[context] = (nlpsTab[iCX] << 1) | mpsCX;
             }
         }
         a = qe;
         // RENORMD
         do {
-            if (ct == 0) { byteIn (); }
+            if (ct == 0) {
+                byteIn();
+            }
             a <<= 1;
             c <<= 1;
             --ct;
@@ -227,123 +246,127 @@ int JArithmeticDecoder::decodeBit (
     return bit;
 }
 
-int JArithmeticDecoder::decodeByte (
-    unsigned context, JArithmeticDecoderStats* stats) {
+int JArithmeticDecoder::decodeByte(unsigned                 context,
+                                   JArithmeticDecoderStats *stats)
+{
     int byte;
     int i;
 
     byte = 0;
-    for (i = 0; i < 8; ++i) { byte = (byte << 1) | decodeBit (context, stats); }
+    for (i = 0; i < 8; ++i) {
+        byte = (byte << 1) | decodeBit(context, stats);
+    }
     return byte;
 }
 
-bool JArithmeticDecoder::decodeInt (int* x, JArithmeticDecoderStats* stats) {
-    int s;
+bool JArithmeticDecoder::decodeInt(int *x, JArithmeticDecoderStats *stats)
+{
+    int      s;
     unsigned v;
-    int i;
+    int      i;
 
     prev = 1;
-    s = decodeIntBit (stats);
-    if (decodeIntBit (stats)) {
-        if (decodeIntBit (stats)) {
-            if (decodeIntBit (stats)) {
-                if (decodeIntBit (stats)) {
-                    if (decodeIntBit (stats)) {
+    s = decodeIntBit(stats);
+    if (decodeIntBit(stats)) {
+        if (decodeIntBit(stats)) {
+            if (decodeIntBit(stats)) {
+                if (decodeIntBit(stats)) {
+                    if (decodeIntBit(stats)) {
                         v = 0;
                         for (i = 0; i < 32; ++i) {
-                            v = (v << 1) | decodeIntBit (stats);
+                            v = (v << 1) | decodeIntBit(stats);
                         }
                         v += 4436;
-                    }
-                    else {
+                    } else {
                         v = 0;
                         for (i = 0; i < 12; ++i) {
-                            v = (v << 1) | decodeIntBit (stats);
+                            v = (v << 1) | decodeIntBit(stats);
                         }
                         v += 340;
                     }
-                }
-                else {
+                } else {
                     v = 0;
                     for (i = 0; i < 8; ++i) {
-                        v = (v << 1) | decodeIntBit (stats);
+                        v = (v << 1) | decodeIntBit(stats);
                     }
                     v += 84;
                 }
-            }
-            else {
+            } else {
                 v = 0;
-                for (i = 0; i < 6; ++i) { v = (v << 1) | decodeIntBit (stats); }
+                for (i = 0; i < 6; ++i) {
+                    v = (v << 1) | decodeIntBit(stats);
+                }
                 v += 20;
             }
-        }
-        else {
-            v = decodeIntBit (stats);
-            v = (v << 1) | decodeIntBit (stats);
-            v = (v << 1) | decodeIntBit (stats);
-            v = (v << 1) | decodeIntBit (stats);
+        } else {
+            v = decodeIntBit(stats);
+            v = (v << 1) | decodeIntBit(stats);
+            v = (v << 1) | decodeIntBit(stats);
+            v = (v << 1) | decodeIntBit(stats);
             v += 4;
         }
-    }
-    else {
-        v = decodeIntBit (stats);
-        v = (v << 1) | decodeIntBit (stats);
+    } else {
+        v = decodeIntBit(stats);
+        v = (v << 1) | decodeIntBit(stats);
     }
 
     if (s) {
-        if (v == 0) { return false; }
+        if (v == 0) {
+            return false;
+        }
         *x = -(int)v;
-    }
-    else {
+    } else {
         *x = (int)v;
     }
     return true;
 }
 
-int JArithmeticDecoder::decodeIntBit (JArithmeticDecoderStats* stats) {
+int JArithmeticDecoder::decodeIntBit(JArithmeticDecoderStats *stats)
+{
     int bit;
 
-    bit = decodeBit (prev, stats);
-    if (prev < 0x100) { prev = (prev << 1) | bit; }
-    else {
+    bit = decodeBit(prev, stats);
+    if (prev < 0x100) {
+        prev = (prev << 1) | bit;
+    } else {
         prev = (((prev << 1) | bit) & 0x1ff) | 0x100;
     }
     return bit;
 }
 
-unsigned JArithmeticDecoder::decodeIAID (
-    unsigned codeLen, JArithmeticDecoderStats* stats) {
+unsigned JArithmeticDecoder::decodeIAID(unsigned                 codeLen,
+                                        JArithmeticDecoderStats *stats)
+{
     unsigned i;
-    int bit;
+    int      bit;
 
     prev = 1;
     for (i = 0; i < codeLen; ++i) {
-        bit = decodeBit (prev, stats);
+        bit = decodeBit(prev, stats);
         prev = (prev << 1) | bit;
     }
     return prev - (1 << codeLen);
 }
 
-void JArithmeticDecoder::byteIn () {
+void JArithmeticDecoder::byteIn()
+{
     if (buf0 == 0xff) {
         if (buf1 > 0x8f) {
             if (limitStream) {
                 buf0 = buf1;
-                buf1 = readByte ();
+                buf1 = readByte();
                 c = c + 0xff00 - (buf0 << 8);
             }
             ct = 8;
-        }
-        else {
+        } else {
             buf0 = buf1;
-            buf1 = readByte ();
+            buf1 = readByte();
             c = c + 0xfe00 - (buf0 << 9);
             ct = 7;
         }
-    }
-    else {
+    } else {
         buf0 = buf1;
-        buf1 = readByte ();
+        buf1 = readByte();
         c = c + 0xff00 - (buf0 << 8);
         ct = 8;
     }

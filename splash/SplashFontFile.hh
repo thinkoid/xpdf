@@ -18,39 +18,39 @@ class SplashFontFileID;
 // SplashFontFile
 //------------------------------------------------------------------------
 
-class SplashFontFile {
+class SplashFontFile
+{
 public:
-    virtual ~SplashFontFile ();
+    virtual ~SplashFontFile();
 
     // Create a new SplashFont, i.e., a scaled instance of this font
     // file.
-    virtual SplashFont* makeFont (SplashCoord* mat, SplashCoord* textMat) = 0;
+    virtual SplashFont *makeFont(SplashCoord *mat, SplashCoord *textMat) = 0;
 
     // Get the font file ID.
-    SplashFontFileID* getID () { return id; }
+    SplashFontFileID *getID() { return id; }
 
     // Increment the reference count.
-    void incRefCnt ();
+    void incRefCnt();
 
     // Decrement the reference count.  If the new value is zero, delete
     // the SplashFontFile object.
-    void decRefCnt ();
+    void decRefCnt();
 
 protected:
-    SplashFontFile (
-        SplashFontFileID* idA,
+    SplashFontFile(SplashFontFileID *idA,
 #if LOAD_FONTS_FROM_MEM
-        GString* fontBufA
+                   GString *fontBufA
 #else
-        const char* fileNameA, bool deleteFileA
+                   const char *fileNameA, bool deleteFileA
 #endif
     );
 
-    SplashFontFileID* id;
+    SplashFontFileID *id;
 #if LOAD_FONTS_FROM_MEM
-    GString* fontBuf;
+    GString *fontBuf;
 #else
-    GString* fileName;
+    GString *fileName;
     bool deleteFile;
 #endif
     int refCnt;

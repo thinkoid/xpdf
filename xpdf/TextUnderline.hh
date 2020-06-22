@@ -8,7 +8,8 @@
 
 #include <xpdf/bbox.hh>
 
-struct TextUnderline {
+struct TextUnderline
+{
     xpdf::bbox_t box;
 };
 

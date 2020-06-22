@@ -17,22 +17,25 @@
 
 static SplashScreenParams defaultParams = {
     splashScreenDispersed, // type
-    2,                     // size
-    2,                     // dotRadius
-    1.0,                   // gamma
-    0.0,                   // blackThreshold
-    1.0                    // whiteThreshold
+    2, // size
+    2, // dotRadius
+    1.0, // gamma
+    0.0, // blackThreshold
+    1.0 // whiteThreshold
 };
 
 //------------------------------------------------------------------------
 
-struct SplashScreenPoint {
+struct SplashScreenPoint
+{
     int x, y;
     int dist;
 };
 
-struct cmpDistancesFunctor {
-    bool operator() (const SplashScreenPoint& p0, const SplashScreenPoint& p1) {
+struct cmpDistancesFunctor
+{
+    bool operator()(const SplashScreenPoint &p0, const SplashScreenPoint &p1)
+    {
         return p0.dist < p1.dist;
     }
 };
@@ -46,11 +49,14 @@ struct cmpDistancesFunctor {
 // sqrt(2)).  If <clustered> is false, this generates an optimal
 // threshold matrix using recursive tesselation.  Gamma correction
 // (gamma = 1 / 1.33) is also computed here.
-SplashScreen::SplashScreen (SplashScreenParams* params) {
+SplashScreen::SplashScreen(SplashScreenParams *params)
+{
     unsigned char u;
-    int black, white, i;
+    int           black, white, i;
 
-    if (!params) { params = &defaultParams; }
+    if (!params) {
+        params = &defaultParams;
+    }
 
     // size must be a power of 2, and at least 2
     for (size = 2, log2Size = 1; size < params->size; size <<= 1, ++log2Size)
@@ -58,13 +64,13 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
 
     switch (params->type) {
     case splashScreenDispersed:
-        mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
-        buildDispersedMatrix (size / 2, size / 2, 1, size / 2, 1);
+        mat = (unsigned char *)calloc(size * size, sizeof(unsigned char));
+        buildDispersedMatrix(size / 2, size / 2, 1, size / 2, 1);
         break;
 
     case splashScreenClustered:
-        mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
-        buildClusteredMatrix ();
+        mat = (unsigned char *)calloc(size * size, sizeof(unsigned char));
+        buildClusteredMatrix();
         break;
 
     case splashScreenStochasticClustered:
@@ -73,8 +79,8 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
             size <<= 1;
             ++log2Size;
         }
-        mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
-        buildSCDMatrix (params->dotRadius);
+        mat = (unsigned char *)calloc(size * size, sizeof(unsigned char));
+        buildSCDMatrix(params->dotRadius);
         break;
     }
 
@@ -83,67 +89,72 @@ SplashScreen::SplashScreen (SplashScreenParams* params) {
     // do gamma correction and compute minVal/maxVal
     minVal = 255;
     maxVal = 0;
-    black = splashRound ((SplashCoord)255.0 * params->blackThreshold);
-    if (black < 1) { black = 1; }
-    white = splashRound ((SplashCoord)255.0 * params->whiteThreshold);
-    if (white > 255) { white = 255; }
+    black = splashRound((SplashCoord)255.0 * params->blackThreshold);
+    if (black < 1) {
+        black = 1;
+    }
+    white = splashRound((SplashCoord)255.0 * params->whiteThreshold);
+    if (white > 255) {
+        white = 255;
+    }
     for (i = 0; i < size * size; ++i) {
-        u = splashRound (
-            (SplashCoord)255.0 *
-            splashPow ((SplashCoord)mat[i] / 255.0, params->gamma));
-        if (u < black) { u = (unsigned char)black; }
-        else if (u >= white) {
+        u = splashRound((SplashCoord)255.0 *
+                        splashPow((SplashCoord)mat[i] / 255.0, params->gamma));
+        if (u < black) {
+            u = (unsigned char)black;
+        } else if (u >= white) {
             u = (unsigned char)white;
         }
         mat[i] = u;
-        if (u < minVal) { minVal = u; }
-        else if (u > maxVal) {
+        if (u < minVal) {
+            minVal = u;
+        } else if (u > maxVal) {
             maxVal = u;
         }
     }
 }
 
-void SplashScreen::buildDispersedMatrix (
-    int i, int j, int val, int delta, int offset) {
+void SplashScreen::buildDispersedMatrix(int i, int j, int val, int delta,
+                                        int offset)
+{
     if (delta == 0) {
         // map values in [1, size^2] --> [1, 255]
         mat[(i << log2Size) + j] = 1 + (254 * (val - 1)) / (size * size - 1);
-    }
-    else {
-        buildDispersedMatrix (i, j, val, delta / 2, 4 * offset);
-        buildDispersedMatrix (
-            (i + delta) % size, (j + delta) % size, val + offset, delta / 2,
-            4 * offset);
-        buildDispersedMatrix (
-            (i + delta) % size, j, val + 2 * offset, delta / 2, 4 * offset);
-        buildDispersedMatrix (
-            (i + 2 * delta) % size, (j + delta) % size, val + 3 * offset,
-            delta / 2, 4 * offset);
+    } else {
+        buildDispersedMatrix(i, j, val, delta / 2, 4 * offset);
+        buildDispersedMatrix((i + delta) % size, (j + delta) % size, val + offset,
+                             delta / 2, 4 * offset);
+        buildDispersedMatrix((i + delta) % size, j, val + 2 * offset, delta / 2,
+                             4 * offset);
+        buildDispersedMatrix((i + 2 * delta) % size, (j + delta) % size,
+                             val + 3 * offset, delta / 2, 4 * offset);
     }
 }
 
-void SplashScreen::buildClusteredMatrix () {
-    SplashCoord* dist;
-    SplashCoord u, v, d;
+void SplashScreen::buildClusteredMatrix()
+{
+    SplashCoord * dist;
+    SplashCoord   u, v, d;
     unsigned char val;
-    int size2, x, y, x1, y1, i;
+    int           size2, x, y, x1, y1, i;
 
     size2 = size >> 1;
 
     // initialize the threshold matrix
     for (y = 0; y < size; ++y) {
-        for (x = 0; x < size; ++x) { mat[(y << log2Size) + x] = 0; }
+        for (x = 0; x < size; ++x) {
+            mat[(y << log2Size) + x] = 0;
+        }
     }
 
     // build the distance matrix
-    dist = (SplashCoord*)calloc (size * size2, sizeof (SplashCoord));
+    dist = (SplashCoord *)calloc(size * size2, sizeof(SplashCoord));
     for (y = 0; y < size2; ++y) {
         for (x = 0; x < size2; ++x) {
             if (x + y < size2 - 1) {
                 u = (SplashCoord)x + 0.5 - 0;
                 v = (SplashCoord)y + 0.5 - 0;
-            }
-            else {
+            } else {
                 u = (SplashCoord)x + 0.5 - (SplashCoord)size2;
                 v = (SplashCoord)y + 0.5 - (SplashCoord)size2;
             }
@@ -155,8 +166,7 @@ void SplashScreen::buildClusteredMatrix () {
             if (x < y) {
                 u = (SplashCoord)x + 0.5 - 0;
                 v = (SplashCoord)y + 0.5 - (SplashCoord)size2;
-            }
-            else {
+            } else {
                 u = (SplashCoord)x + 0.5 - (SplashCoord)size2;
                 v = (SplashCoord)y + 0.5 - 0;
             }
@@ -181,23 +191,25 @@ void SplashScreen::buildClusteredMatrix () {
         val = 1 + (254 * (2 * i)) / (2 * size * size2 - 1);
         mat[(y1 << log2Size) + x1] = val;
         val = 1 + (254 * (2 * i + 1)) / (2 * size * size2 - 1);
-        if (y1 < size2) { mat[((y1 + size2) << log2Size) + x1 + size2] = val; }
-        else {
+        if (y1 < size2) {
+            mat[((y1 + size2) << log2Size) + x1 + size2] = val;
+        } else {
             mat[((y1 - size2) << log2Size) + x1 + size2] = val;
         }
     }
 
-    free (dist);
+    free(dist);
 }
 
 // Compute the distance between two points on a toroid.
-int SplashScreen::distance (int x0, int y0, int x1, int y1) {
+int SplashScreen::distance(int x0, int y0, int x1, int y1)
+{
     int dx0, dx1, dx, dy0, dy1, dy;
 
-    dx0 = abs (x0 - x1);
+    dx0 = abs(x0 - x1);
     dx1 = size - dx0;
     dx = dx0 < dx1 ? dx0 : dx1;
-    dy0 = abs (y0 - y1);
+    dy0 = abs(y0 - y1);
     dy1 = size - dy0;
     dy = dy0 < dy1 ? dy0 : dy1;
     return dx * dx + dy * dy;
@@ -207,20 +219,20 @@ int SplashScreen::distance (int x0, int y0, int x1, int y1) {
 // Victor Ostromoukhov and Roger D. Hersch, "Stochastic Clustered-Dot
 // Dithering" in Color Imaging: Device-Independent Color, Color
 // Hardcopy, and Graphic Arts IV, SPIE Vol. 3648, pp. 496-505, 1999.
-void SplashScreen::buildSCDMatrix (int r) {
+void SplashScreen::buildSCDMatrix(int r)
+{
     SplashScreenPoint *dots, *pts;
-    int dotsLen, dotsSize;
-    char* tmpl;
-    char* grid;
-    int *region, *dist;
-    int x, y, xx, yy, x0, x1, y0, y1, i, j, d, iMin, dMin, n;
+    int                dotsLen, dotsSize;
+    char *             tmpl;
+    char *             grid;
+    int *              region, *dist;
+    int                x, y, xx, yy, x0, x1, y0, y1, i, j, d, iMin, dMin, n;
 
     //~ this should probably happen somewhere else
-    srand (123);
+    srand(123);
 
     // generate the random space-filling curve
-    pts =
-        (SplashScreenPoint*)calloc (size * size, sizeof (SplashScreenPoint));
+    pts = (SplashScreenPoint *)calloc(size * size, sizeof(SplashScreenPoint));
     i = 0;
     for (y = 0; y < size; ++y) {
         for (x = 0; x < size; ++x) {
@@ -230,8 +242,8 @@ void SplashScreen::buildSCDMatrix (int r) {
         }
     }
     for (i = 0; i < size * size; ++i) {
-        j = i +
-            (int)((double)(size * size - i) * (double)rand () / ((double)RAND_MAX + 1.0));
+        j = i + (int)((double)(size * size - i) * (double)rand() /
+                      ((double)RAND_MAX + 1.0));
         x = pts[i].x;
         y = pts[i].y;
         pts[i].x = pts[j].x;
@@ -241,7 +253,7 @@ void SplashScreen::buildSCDMatrix (int r) {
     }
 
     // construct the circle template
-    tmpl = (char*)calloc ((r + 1) * (r + 1), sizeof (char));
+    tmpl = (char *)calloc((r + 1) * (r + 1), sizeof(char));
     for (y = 0; y <= r; ++y) {
         for (x = 0; x <= r; ++x) {
             tmpl[y * (r + 1) + x] = (x * y <= r * r) ? 1 : 0;
@@ -249,23 +261,25 @@ void SplashScreen::buildSCDMatrix (int r) {
     }
 
     // mark all grid cells as free
-    grid = (char*)calloc (size * size, sizeof (char));
+    grid = (char *)calloc(size * size, sizeof(char));
     for (y = 0; y < size; ++y) {
-        for (x = 0; x < size; ++x) { grid[(y << log2Size) + x] = 0; }
+        for (x = 0; x < size; ++x) {
+            grid[(y << log2Size) + x] = 0;
+        }
     }
 
     // walk the space-filling curve, adding dots
     dotsLen = 0;
     dotsSize = 32;
-    dots = (SplashScreenPoint*)calloc (dotsSize, sizeof (SplashScreenPoint));
+    dots = (SplashScreenPoint *)calloc(dotsSize, sizeof(SplashScreenPoint));
     for (i = 0; i < size * size; ++i) {
         x = pts[i].x;
         y = pts[i].y;
         if (!grid[(y << log2Size) + x]) {
             if (dotsLen == dotsSize) {
                 dotsSize *= 2;
-                dots = (SplashScreenPoint*)reallocarray (
-                    dots, dotsSize, sizeof (SplashScreenPoint));
+                dots = (SplashScreenPoint *)reallocarray(
+                    dots, dotsSize, sizeof(SplashScreenPoint));
             }
             dots[dotsLen++] = pts[i];
             for (yy = 0; yy <= r; ++yy) {
@@ -285,18 +299,18 @@ void SplashScreen::buildSCDMatrix (int r) {
         }
     }
 
-    free (tmpl);
-    free (grid);
+    free(tmpl);
+    free(grid);
 
     // assign each cell to a dot, compute distance to center of dot
-    region = (int*)calloc (size * size, sizeof (int));
-    dist = (int*)calloc (size * size, sizeof (int));
+    region = (int *)calloc(size * size, sizeof(int));
+    dist = (int *)calloc(size * size, sizeof(int));
     for (y = 0; y < size; ++y) {
         for (x = 0; x < size; ++x) {
             iMin = 0;
-            dMin = distance (dots[0].x, dots[0].y, x, y);
+            dMin = distance(dots[0].x, dots[0].y, x, y);
             for (i = 1; i < dotsLen; ++i) {
-                d = distance (dots[i].x, dots[i].y, x, y);
+                d = distance(dots[i].x, dots[i].y, x, y);
                 if (d < dMin) {
                     iMin = i;
                     dMin = d;
@@ -315,33 +329,37 @@ void SplashScreen::buildSCDMatrix (int r) {
                 if (region[(y << log2Size) + x] == i) {
                     pts[n].x = x;
                     pts[n].y = y;
-                    pts[n].dist = distance (dots[i].x, dots[i].y, x, y);
+                    pts[n].dist = distance(dots[i].x, dots[i].y, x, y);
                     ++n;
                 }
             }
         }
-        std::sort (pts, pts + n, cmpDistancesFunctor ());
+        std::sort(pts, pts + n, cmpDistancesFunctor());
         for (j = 0; j < n; ++j) {
             // map values in [0 .. n-1] --> [255 .. 1]
             mat[(pts[j].y << log2Size) + pts[j].x] = 255 - (254 * j) / (n - 1);
         }
     }
 
-    free (pts);
-    free (region);
-    free (dist);
+    free(pts);
+    free(region);
+    free(dist);
 
-    free (dots);
+    free(dots);
 }
 
-SplashScreen::SplashScreen (SplashScreen* screen) {
+SplashScreen::SplashScreen(SplashScreen *screen)
+{
     size = screen->size;
     sizeM1 = screen->sizeM1;
     log2Size = screen->log2Size;
-    mat = (unsigned char*)calloc (size * size, sizeof (unsigned char));
-    memcpy (mat, screen->mat, size * size * sizeof (unsigned char));
+    mat = (unsigned char *)calloc(size * size, sizeof(unsigned char));
+    memcpy(mat, screen->mat, size * size * sizeof(unsigned char));
     minVal = screen->minVal;
     maxVal = screen->maxVal;
 }
 
-SplashScreen::~SplashScreen () { free (mat); }
+SplashScreen::~SplashScreen()
+{
+    free(mat);
+}

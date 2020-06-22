@@ -12,8 +12,9 @@
 #include <xpdf/bbox.hh>
 #include <xpdf/TextOutput.hh>
 
-struct TextColumn {
-    TextColumn (TextParagraphs, double, double, double, double);
+struct TextColumn
+{
+    TextColumn(TextParagraphs, double, double, double, double);
 
     TextParagraphs paragraphs;
 
@@ -26,39 +27,37 @@ struct TextColumn {
     int px, py, pw, ph;
 };
 
-enum TextBlockType {
-    blkVertSplit, blkHorizSplit, blkLeaf
-};
+enum TextBlockType { blkVertSplit, blkHorizSplit, blkLeaf };
 
-enum TextBlockTag {
-    blkTagMulticolumn, blkTagColumn, blkTagLine
-};
+enum TextBlockTag { blkTagMulticolumn, blkTagColumn, blkTagLine };
 
-struct TextBlock {
-    TextBlock (TextBlockType typeA, int rotA);
+struct TextBlock
+{
+    TextBlock(TextBlockType typeA, int rotA);
 
-    void addChild (TextBlockPtr);
-    void addChild (TextCharPtr);
+    void addChild(TextBlockPtr);
+    void addChild(TextCharPtr);
 
-    void prependChild (TextCharPtr);
+    void prependChild(TextCharPtr);
 
     template< typename Iterator >
-    void prependChildren (Iterator iter, Iterator last) {
-        auto& chars = as_chars ();
+    void prependChildren(Iterator iter, Iterator last)
+    {
+        auto &chars = as_chars();
 
-        TextChars xs (iter, last);
-        xs.insert (xs.end (), chars.begin (), chars.end ());
+        TextChars xs(iter, last);
+        xs.insert(xs.end(), chars.begin(), chars.end());
 
-        chars = std::move (xs);
+        chars = std::move(xs);
     }
 
-    void updateBounds (int childIdx);
+    void updateBounds(int childIdx);
 
-    TextChars&       as_chars ()       { return std::get< TextChars > (xs); }
-    TextChars const& as_chars () const { return std::get< TextChars > (xs); }
+    TextChars &      as_chars() { return std::get< TextChars >(xs); }
+    TextChars const &as_chars() const { return std::get< TextChars >(xs); }
 
-    TextBlocks&       as_blocks ()       { return std::get< TextBlocks > (xs); }
-    TextBlocks const& as_blocks () const { return std::get< TextBlocks > (xs); }
+    TextBlocks &      as_blocks() { return std::get< TextBlocks >(xs); }
+    TextBlocks const &as_blocks() const { return std::get< TextBlocks >(xs); }
 
     std::variant< TextChars, TextBlocks > xs;
 
@@ -72,19 +71,20 @@ struct TextBlock {
     // children are sequences of TextBlock:
     //
     TextBlockType type;
-    TextBlockTag tag;
+    TextBlockTag  tag;
 
     unsigned char rot : 2;
     unsigned char smallSplit : 1; // true for small gaps blk{Horiz,Vert}Split
 
 private:
-    static decltype(xs) make_variant (TextBlockType type) {
+    static decltype(xs) make_variant(TextBlockType type)
+    {
         switch (type) {
         case blkLeaf:
-            return decltype(xs){ TextChars{ } };
+            return decltype(xs){ TextChars{} };
 
         default:
-            return decltype(xs){ TextBlocks{ } };
+            return decltype(xs){ TextBlocks{} };
         }
     }
 };

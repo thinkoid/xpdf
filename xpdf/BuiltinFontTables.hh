@@ -9,10 +9,10 @@
 #define nBuiltinFonts 14
 #define nBuiltinFontSubsts 12
 
-extern BuiltinFont builtinFonts[nBuiltinFonts];
-extern BuiltinFont* builtinFontSubst[nBuiltinFontSubsts];
+extern BuiltinFont  builtinFonts[nBuiltinFonts];
+extern BuiltinFont *builtinFontSubst[nBuiltinFontSubsts];
 
-extern void initBuiltinFontTables ();
-extern void freeBuiltinFontTables ();
+extern void initBuiltinFontTables();
+extern void freeBuiltinFontTables();
 
 #endif // XPDF_XPDF_BUILTINFONTTABLES_HH

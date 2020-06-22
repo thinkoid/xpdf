@@ -33,8 +33,8 @@ static UnicodeMapRange latin1UnicodeMapRanges[] = {
     { 0xfb03, 0xfb03, 0x666669, 3 }, { 0xfb04, 0xfb04, 0x66666c, 3 },
     { 0xfb05, 0xfb05, 0x7374, 2 },   { 0xfb06, 0xfb06, 0x7374, 2 }
 };
-#define latin1UnicodeMapLen \
-    (sizeof (latin1UnicodeMapRanges) / sizeof (UnicodeMapRange))
+#define latin1UnicodeMapLen                                                      \
+    (sizeof(latin1UnicodeMapRanges) / sizeof(UnicodeMapRange))
 
 static UnicodeMapRange ascii7UnicodeMapRanges[] = {
     { 0x000a, 0x000a, 0x0a, 1 },     { 0x000c, 0x000d, 0x0c, 1 },
@@ -104,8 +104,8 @@ static UnicodeMapRange ascii7UnicodeMapRanges[] = {
     { 0xfb04, 0xfb04, 0x66666c, 3 }, { 0xfb05, 0xfb05, 0x7374, 2 },
     { 0xfb06, 0xfb06, 0x7374, 2 }
 };
-#define ascii7UnicodeMapLen \
-    (sizeof (ascii7UnicodeMapRanges) / sizeof (UnicodeMapRange))
+#define ascii7UnicodeMapLen                                                      \
+    (sizeof(ascii7UnicodeMapRanges) / sizeof(UnicodeMapRange))
 
 static UnicodeMapRange symbolUnicodeMapRanges[] = {
     { 0x0020, 0x0021, 0x20, 1 }, { 0x0023, 0x0023, 0x23, 1 },
@@ -170,8 +170,8 @@ static UnicodeMapRange symbolUnicodeMapRanges[] = {
     { 0xf8eb, 0xf8f4, 0xe6, 1 }, { 0xf8f5, 0xf8f5, 0xf4, 1 },
     { 0xf8f6, 0xf8fe, 0xf6, 1 }
 };
-#define symbolUnicodeMapLen \
-    (sizeof (symbolUnicodeMapRanges) / sizeof (UnicodeMapRange))
+#define symbolUnicodeMapLen                                                      \
+    (sizeof(symbolUnicodeMapRanges) / sizeof(UnicodeMapRange))
 
 static UnicodeMapRange zapfDingbatsUnicodeMapRanges[] = {
     { 0x0020, 0x0020, 0x20, 1 }, { 0x2192, 0x2192, 0xd5, 1 },
@@ -190,5 +190,5 @@ static UnicodeMapRange zapfDingbatsUnicodeMapRanges[] = {
     { 0x2761, 0x2767, 0xa1, 1 }, { 0x2776, 0x2794, 0xb6, 1 },
     { 0x2798, 0x27af, 0xd8, 1 }, { 0x27b1, 0x27be, 0xf1, 1 }
 };
-#define zapfDingbatsUnicodeMapLen \
-    (sizeof (zapfDingbatsUnicodeMapRanges) / sizeof (UnicodeMapRange))
+#define zapfDingbatsUnicodeMapLen                                                \
+    (sizeof(zapfDingbatsUnicodeMapRanges) / sizeof(UnicodeMapRange))

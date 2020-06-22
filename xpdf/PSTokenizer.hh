@@ -8,21 +8,22 @@
 
 //------------------------------------------------------------------------
 
-class PSTokenizer {
+class PSTokenizer
+{
 public:
-    PSTokenizer (int (*getCharFuncA) (void*), void* dataA);
-    ~PSTokenizer ();
+    PSTokenizer(int (*getCharFuncA)(void *), void *dataA);
+    ~PSTokenizer();
 
     // Get the next PostScript token.  Returns false at end-of-stream.
-    bool getToken (char* buf, int size, int* length);
+    bool getToken(char *buf, int size, int *length);
 
 private:
-    int peek ();
-    int get ();
+    int peek();
+    int get();
 
-    int (*getCharFunc) (void*);
-    void* data;
-    int charBuf;
+    int (*getCharFunc)(void *);
+    void *data;
+    int   charBuf;
 };
 
 #endif // XPDF_XPDF_PSTOKENIZER_HH

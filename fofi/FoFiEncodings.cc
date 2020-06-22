@@ -10,7 +10,7 @@
 // Type 1 and 1C font data
 //------------------------------------------------------------------------
 
-const char* fofiType1StandardEncoding[256] = { NULL,
+const char *fofiType1StandardEncoding[256] = { NULL,
                                                NULL,
                                                NULL,
                                                NULL,
@@ -267,7 +267,7 @@ const char* fofiType1StandardEncoding[256] = { NULL,
                                                NULL,
                                                NULL };
 
-const char* fofiType1ExpertEncoding[256] = { NULL,
+const char *fofiType1ExpertEncoding[256] = { NULL,
                                              NULL,
                                              NULL,
                                              NULL,
@@ -528,7 +528,7 @@ const char* fofiType1ExpertEncoding[256] = { NULL,
 // Type 1C font data
 //------------------------------------------------------------------------
 
-const char* fofiType1CStdStrings[391] = { ".notdef",
+const char *fofiType1CStdStrings[391] = { ".notdef",
                                           "space",
                                           "exclam",
                                           "quotedbl",
