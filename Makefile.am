@@ -1,4 +1,4 @@
 ## -*- mode: makefile -*-
 
 ACLOCAL_AMFLAGS = -I etc/m4
-SUBDIRS = fofi utils splash xpdf test
+SUBDIRS = fofi utils splash iostreams xpdf test
