@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 2020- Thinkoid, LLC
 
-#ifndef XPDF_IOSTREAMS_ARRAY_SOURCE_HH
-#define XPDF_IOSTREAMS_ARRAY_SOURCE_HH
+#ifndef XPDF_IOSTREAMS_CONTAINER_SOURCE_HH
+#define XPDF_IOSTREAMS_CONTAINER_SOURCE_HH
 
 #include <vector>
 #include <boost/iostreams/concepts.hpp>
@@ -10,17 +10,14 @@
 namespace xpdf {
 namespace iostreams {
 
-template< typename T >
-struct array_source_t : public boost::iostreams::source
+template< typename Container >
+struct container_source_t : public boost::iostreams::source
 {
-    using char_type = T;
+    using container_type = Container;
+    using pos_type = typename Container::size_type;
 
-    using container_type = std::vector< char_type >;
-    using pos_type = std::streampos;
-
-    template< typename Iterator >
-    explicit array_source_t(Iterator first, Iterator last)
-        : container_(first, last), pos_()
+    explicit container_source_t(const container_type &container)
+        : container_(container), pos_()
     { }
 
     std::streamsize read(char* s, std::streamsize n) {
@@ -39,11 +36,11 @@ struct array_source_t : public boost::iostreams::source
     }
 
 private:
-    container_type container_;
+    const container_type &container_;
     pos_type pos_;
 };
 
 } // namespace iostreams
 } // namespace xpdf
 
-#endif // XPDF_IOSTREAMS_ARRAY_SOURCE_HH
+#endif // XPDF_IOSTREAMS_CONTAINER_SOURCE_HH
