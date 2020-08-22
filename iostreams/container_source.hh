@@ -22,7 +22,7 @@ struct container_source_t : public boost::iostreams::source
     { }
 
     std::streamsize read(char* s, std::streamsize n) {
-        assert(n >= 0);
+        ASSERT(n >= 0);
         std::streamsize dist = container_.size() - pos_;
 
         if (0 == (n = (std::min)(n, dist)))

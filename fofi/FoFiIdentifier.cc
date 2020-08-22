@@ -88,7 +88,7 @@ typename std::enable_if_t< is_input_iterator< Iterator > ||
                            is_forward_iterator< Iterator > >
 advance(Iterator &iter, Iterator last, T dist)
 {
-    assert(dist >= 0);
+    ASSERT(dist >= 0);
     for (; dist && iter != last; --dist, ++iter)
         ;
 }
@@ -254,7 +254,7 @@ bool integral(Iterator &iter, Iterator last, T &attr)
 template< typename Iterator, typename T >
 bool sized_integral(Iterator &iter, Iterator last, T &attr, size_t n)
 {
-    assert(n <= sizeof attr);
+    ASSERT(n <= sizeof attr);
 
     ITERATOR_GUARD(iter);
 
@@ -467,7 +467,7 @@ font_identify_otf(Iterator &iter, Iterator last, font_type &result)
 
         if (integral(iter, last, n)) {
             endian::big_to_native_inplace(n);
-            assert(n >= 0);
+            ASSERT(n >= 0);
 
             if (!safe_advance(iter, last, 6))
                 return false;
