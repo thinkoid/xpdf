@@ -4,6 +4,8 @@
 #ifndef XPDF_IOSTREAMS_ASCIIHEX_INPUT_FILTER_HH
 #define XPDF_IOSTREAMS_ASCIIHEX_INPUT_FILTER_HH
 
+#include <defs.hh>
+
 #include <cctype>
 #include <boost/iostreams/concepts.hpp>
 

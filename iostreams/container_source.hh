@@ -4,7 +4,8 @@
 #ifndef XPDF_IOSTREAMS_CONTAINER_SOURCE_HH
 #define XPDF_IOSTREAMS_CONTAINER_SOURCE_HH
 
-#include <vector>
+#include <defs.hh>
+
 #include <boost/iostreams/concepts.hpp>
 
 namespace xpdf {
