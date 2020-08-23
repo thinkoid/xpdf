@@ -12,6 +12,8 @@
 #include <utils/gfile.hh>
 #include <xpdf/obj.hh>
 
+#include <boost/noncopyable.hpp>
+
 class BaseStream;
 
 //------------------------------------------------------------------------
@@ -47,18 +49,14 @@ enum CryptAlgorithm { cryptRC4, cryptAES, cryptAES256 };
 // Stream (base class)
 //------------------------------------------------------------------------
 
-class Stream
+class Stream : public boost::noncopyable
 {
 public:
     // Constructor.
-    Stream();
+    Stream() { }
 
     // Destructor.
     virtual ~Stream();
-
-    // Reference counting.
-    int incRef() { return ++ref; }
-    int decRef() { return --ref; }
 
     // Get kind of stream.
     virtual StreamKind getKind() = 0;
@@ -132,8 +130,6 @@ public:
 private:
     Stream *makeFilter(const char *name, Stream *str, Object *params,
                        int recursion);
-
-    int ref; // reference count
 };
 
 //------------------------------------------------------------------------

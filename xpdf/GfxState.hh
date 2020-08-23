@@ -10,6 +10,8 @@
 #include <xpdf/obj.hh>
 #include <xpdf/function.hh>
 
+#include <xpdf/Stream.hh>
+
 class GfxFont;
 class PDFRectangle;
 class GfxShading;

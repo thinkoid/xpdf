@@ -29,11 +29,6 @@
 // Stream (base class)
 //------------------------------------------------------------------------
 
-Stream::Stream()
-{
-    ref = 1;
-}
-
 Stream::~Stream() { }
 
 void Stream::close() { }
