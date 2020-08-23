@@ -74,7 +74,9 @@ public:
     DecryptStream(Stream *strA, unsigned char *fileKey, CryptAlgorithm algoA,
                   int keyLength, int objNum, int objGen);
     virtual ~DecryptStream();
-    virtual StreamKind getKind() { return strWeird; }
+
+    virtual const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get();
     virtual int        peek();

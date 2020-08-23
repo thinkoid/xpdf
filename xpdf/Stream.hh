@@ -58,8 +58,7 @@ public:
     // Destructor.
     virtual ~Stream();
 
-    // Get kind of stream.
-    virtual StreamKind getKind() = 0;
+    virtual const std::type_info &type() const  = 0;
 
     // Reset stream to beginning.
     virtual void reset() = 0;
@@ -291,7 +290,9 @@ public:
     virtual ~FileStream();
     virtual Stream *   makeSubStream(GFileOffset startA, bool limitedA,
                                      GFileOffset lengthA, Object *dictA);
-    virtual StreamKind getKind() { return strFile; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual void       close();
     virtual int        get()
@@ -334,7 +335,9 @@ public:
     virtual ~MemStream();
     virtual Stream *   makeSubStream(GFileOffset start, bool limited,
                                      GFileOffset lengthA, Object *dictA);
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual void       close();
     virtual int get() { return (bufPtr < bufEnd) ? (*bufPtr++ & 0xff) : EOF; }
@@ -370,7 +373,9 @@ public:
     virtual ~EmbedStream();
     virtual Stream *    makeSubStream(GFileOffset start, bool limitedA,
                                       GFileOffset lengthA, Object *dictA);
-    virtual StreamKind  getKind() { return str->getKind(); }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void        reset() { }
     virtual int         get();
     virtual int         peek();
@@ -395,7 +400,9 @@ class ASCIIHexStream : public FilterStream
 public:
     ASCIIHexStream(Stream *strA);
     virtual ~ASCIIHexStream();
-    virtual StreamKind getKind() { return strASCIIHex; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -421,7 +428,9 @@ class ASCII85Stream : public FilterStream
 public:
     ASCII85Stream(Stream *strA);
     virtual ~ASCII85Stream();
-    virtual StreamKind getKind() { return strASCII85; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -450,7 +459,9 @@ public:
     LZWStream(Stream *strA, int predictor, int columns, int colors, int bits,
               int earlyA);
     virtual ~LZWStream();
-    virtual StreamKind getKind() { return strLZW; }
+
+    virtual const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
@@ -494,7 +505,9 @@ class RunLengthStream : public FilterStream
 public:
     RunLengthStream(Stream *strA);
     virtual ~RunLengthStream();
-    virtual StreamKind getKind() { return strRunLength; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -529,7 +542,9 @@ public:
     CCITTFaxStream(Stream *strA, int encodingA, bool endOfLineA, bool byteAlignA,
                    int columnsA, int rowsA, bool endOfBlockA, bool blackA);
     virtual ~CCITTFaxStream();
-    virtual StreamKind getKind() { return strCCITTFax; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -612,7 +627,9 @@ class DCTStream : public FilterStream
 public:
     DCTStream(Stream *strA, bool colorXformA);
     virtual ~DCTStream();
-    virtual StreamKind getKind() { return strDCT; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual void       close();
     virtual int        get();
@@ -717,7 +734,9 @@ class FlateStream : public FilterStream
 public:
     FlateStream(Stream *strA, int predictor, int columns, int colors, int bits);
     virtual ~FlateStream();
-    virtual StreamKind getKind() { return strFlate; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
@@ -771,7 +790,9 @@ class EOFStream : public FilterStream
 public:
     EOFStream(Stream *strA);
     virtual ~EOFStream();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset() { }
     virtual int        get() { return EOF; }
     virtual int        peek() { return EOF; }
@@ -789,7 +810,9 @@ class BufStream : public FilterStream
 public:
     BufStream(Stream *strA, int bufSizeA);
     virtual ~BufStream();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
@@ -812,7 +835,9 @@ class FixedLengthEncoder : public FilterStream
 public:
     FixedLengthEncoder(Stream *strA, int lengthA);
     ~FixedLengthEncoder();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
@@ -834,7 +859,9 @@ class ASCIIHexEncoder : public FilterStream
 public:
     ASCIIHexEncoder(Stream *strA);
     virtual ~ASCIIHexEncoder();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -867,7 +894,9 @@ class ASCII85Encoder : public FilterStream
 public:
     ASCII85Encoder(Stream *strA);
     virtual ~ASCII85Encoder();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -900,7 +929,9 @@ class RunLengthEncoder : public FilterStream
 public:
     RunLengthEncoder(Stream *strA);
     virtual ~RunLengthEncoder();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {
@@ -940,7 +971,9 @@ class LZWEncoder : public FilterStream
 public:
     LZWEncoder(Stream *strA);
     virtual ~LZWEncoder();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
@@ -960,5 +993,12 @@ private:
 
     void fillBuf();
 };
+
+template< typename T >
+inline bool is_stream(Stream &s)
+{
+    using value_type = std::remove_const_t< std::remove_pointer_t< T > >;
+    return typeid(value_type) == s.type();
+}
 
 #endif // XPDF_XPDF_STREAM_HH

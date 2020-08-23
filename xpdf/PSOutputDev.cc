@@ -945,7 +945,9 @@ public:
     DeviceNRecoder(Stream *strA, int widthA, int heightA,
                    GfxImageColorMap *colorMapA);
     virtual ~DeviceNRecoder();
-    virtual StreamKind getKind() { return strWeird; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual int        get()
     {

@@ -25,7 +25,9 @@ class JBIG2Stream : public FilterStream
 public:
     JBIG2Stream(Stream *strA, Object *globalsStreamA);
     virtual ~JBIG2Stream();
-    virtual StreamKind getKind() { return strJBIG2; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual void       close();
     virtual int        get();

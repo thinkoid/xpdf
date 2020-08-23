@@ -3014,7 +3014,7 @@ void SplashOutputDev::reduceImageResolution(Stream *str, double *ctm, int *width
     double sw, sh;
     int    reduction;
 
-    if (str->getKind() == strJPX && *width * *height > 10000000) {
+    if (is_stream< JPXStream >(*str) && *width * *height > 10000000) {
         sw = (double)*width / (fabs(ctm[2]) + fabs(ctm[3]));
         sh = (double)*height / (fabs(ctm[0]) + fabs(ctm[1]));
         if (sw > 8 && sh > 8) {

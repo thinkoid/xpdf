@@ -282,7 +282,9 @@ class JPXStream : public FilterStream
 public:
     JPXStream(Stream *strA);
     virtual ~JPXStream();
-    virtual StreamKind getKind() { return strJPX; }
+
+    const std::type_info &type() const override { return typeid(*this); }
+
     virtual void       reset();
     virtual void       close();
     virtual int        get();
