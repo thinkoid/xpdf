@@ -14,26 +14,17 @@
 
 SplashFontFile *SplashFTFontFile::loadType1Font(SplashFTFontEngine *engineA,
                                                 SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                                GString *fontBufA,
-#else
-                                                const char *fileNameA,
-                                                bool        deleteFileA,
-#endif
-                                                const char **encA,
-                                                bool         useLightHintingA)
+                                                GString *           fontBufA,
+                                                const char **       encA,
+                                                bool useLightHintingA)
 {
     FT_Face     faceA;
     int *       codeToGIDA;
     const char *name;
     int         i;
 
-#if LOAD_FONTS_FROM_MEM
     if (FT_New_Memory_Face(engineA->lib, (FT_Byte *)fontBufA->c_str(),
                            fontBufA->getLength(), 0, &faceA)) {
-#else
-    if (FT_New_Face(engineA->lib, fileNameA, 0, &faceA)) {
-#endif
         return NULL;
     }
     codeToGIDA = (int *)calloc(256, sizeof(int));
@@ -44,92 +35,49 @@ SplashFontFile *SplashFTFontFile::loadType1Font(SplashFTFontEngine *engineA,
         }
     }
 
-    return new SplashFTFontFile(engineA, idA,
-#if LOAD_FONTS_FROM_MEM
-                                fontBufA,
-#else
-                                fileNameA, deleteFileA,
-#endif
-                                faceA, codeToGIDA, 256, false, useLightHintingA);
+    return new SplashFTFontFile(engineA, idA, fontBufA, faceA, codeToGIDA, 256,
+                                false, useLightHintingA);
 }
 
 SplashFontFile *SplashFTFontFile::loadCIDFont(SplashFTFontEngine *engineA,
                                               SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                              GString *fontBufA,
-#else
-                                              const char *fileNameA,
-                                              bool        deleteFileA,
-#endif
-                                              int *codeToGIDA, int codeToGIDLenA)
+                                              GString *fontBufA, int *codeToGIDA,
+                                              int codeToGIDLenA)
 {
     FT_Face faceA;
 
-#if LOAD_FONTS_FROM_MEM
     if (FT_New_Memory_Face(engineA->lib, (FT_Byte *)fontBufA->c_str(),
                            fontBufA->getLength(), 0, &faceA)) {
-#else
-    if (FT_New_Face(engineA->lib, fileNameA, 0, &faceA)) {
-#endif
         return NULL;
     }
 
-    return new SplashFTFontFile(engineA, idA,
-#if LOAD_FONTS_FROM_MEM
-                                fontBufA,
-#else
-                                fileNameA, deleteFileA,
-#endif
-                                faceA, codeToGIDA, codeToGIDLenA, false, false);
+    return new SplashFTFontFile(engineA, idA, fontBufA, faceA, codeToGIDA,
+                                codeToGIDLenA, false, false);
 }
 
 SplashFontFile *SplashFTFontFile::loadTrueTypeFont(SplashFTFontEngine *engineA,
                                                    SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                                   GString *fontBufA,
-#else
-                                                   const char *fileNameA,
-                                                   bool        deleteFileA,
-#endif
-                                                   int fontNum, int *codeToGIDA,
-                                                   int codeToGIDLenA)
+                                                   GString *fontBufA, int fontNum,
+                                                   int *codeToGIDA,
+                                                   int  codeToGIDLenA)
 {
     FT_Face faceA;
 
-#if LOAD_FONTS_FROM_MEM
     if (FT_New_Memory_Face(engineA->lib, (FT_Byte *)fontBufA->c_str(),
                            fontBufA->getLength(), fontNum, &faceA)) {
-#else
-    if (FT_New_Face(engineA->lib, fileNameA, fontNum, &faceA)) {
-#endif
         return NULL;
     }
 
-    return new SplashFTFontFile(engineA, idA,
-#if LOAD_FONTS_FROM_MEM
-                                fontBufA,
-#else
-                                fileNameA, deleteFileA,
-#endif
-                                faceA, codeToGIDA, codeToGIDLenA, true, false);
+    return new SplashFTFontFile(engineA, idA, fontBufA, faceA, codeToGIDA,
+                                codeToGIDLenA, true, false);
 }
 
 SplashFTFontFile::SplashFTFontFile(SplashFTFontEngine *engineA,
-                                   SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                   GString *fontBufA,
-#else
-                                   const char *fileNameA, bool deleteFileA,
-#endif
+                                   SplashFontFileID *idA, GString *fontBufA,
                                    FT_Face faceA, int *codeToGIDA,
                                    int codeToGIDLenA, bool trueTypeA,
                                    bool useLightHintingA)
-    :
-#if LOAD_FONTS_FROM_MEM
-    SplashFontFile(idA, fontBufA)
-#else
-    SplashFontFile(idA, fileNameA, deleteFileA)
-#endif
+    : SplashFontFile(idA, fontBufA)
 {
     engine = engineA;
     face = faceA;

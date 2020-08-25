@@ -21,32 +21,16 @@ class SplashFTFontFile : public SplashFontFile
 {
 public:
     static SplashFontFile *loadType1Font(SplashFTFontEngine *engineA,
-                                         SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                         GString *fontBufA,
-#else
-                                         const char *fileNameA, bool deleteFileA,
-#endif
+                                         SplashFontFileID *idA, GString *fontBufA,
                                          const char **encA,
                                          bool         useLightHintingA);
     static SplashFontFile *loadCIDFont(SplashFTFontEngine *engineA,
-                                       SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                       GString *fontBufA,
-#else
-                                       const char *fileNameA, bool deleteFileA,
-#endif
+                                       SplashFontFileID *idA, GString *fontBufA,
                                        int *codeToGIDA, int codeToGIDLenA);
     static SplashFontFile *loadTrueTypeFont(SplashFTFontEngine *engineA,
                                             SplashFontFileID *  idA,
-#if LOAD_FONTS_FROM_MEM
-                                            GString *fontBufA,
-#else
-                                            const char *fileNameA,
-                                            bool        deleteFileA,
-#endif
-                                            int fontNum, int *codeToGIDA,
-                                            int codeToGIDLenA);
+                                            GString *fontBufA, int fontNum,
+                                            int *codeToGIDA, int codeToGIDLenA);
 
     virtual ~SplashFTFontFile();
 
@@ -56,13 +40,8 @@ public:
 
 private:
     SplashFTFontFile(SplashFTFontEngine *engineA, SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                     GString *fontBufA,
-#else
-                     const char *fileNameA, bool deleteFileA,
-#endif
-                     FT_Face faceA, int *codeToGIDA, int codeToGIDLenA,
-                     bool trueTypeA, bool useLightHintingA);
+                     GString *fontBufA, FT_Face faceA, int *codeToGIDA,
+                     int codeToGIDLenA, bool trueTypeA, bool useLightHintingA);
 
     SplashFTFontEngine *engine;
     FT_Face             face;

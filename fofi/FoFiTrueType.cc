@@ -428,7 +428,7 @@ static const char *macGlyphNames[258] = { ".notdef",
 // FoFiTrueType
 //------------------------------------------------------------------------
 
-FoFiTrueType *FoFiTrueType::make(char *fileA, int lenA, int fontNum,
+FoFiTrueType *FoFiTrueType::make(const char *fileA, int lenA, int fontNum,
                                  bool allowHeadlessCFF)
 {
     FoFiTrueType *ff;
@@ -462,7 +462,7 @@ FoFiTrueType *FoFiTrueType::load(const char *fileName, int fontNum,
     return ff;
 }
 
-FoFiTrueType::FoFiTrueType(char *fileA, int lenA, bool freeFileDataA, int fontNum,
+FoFiTrueType::FoFiTrueType(const char *fileA, int lenA, bool freeFileDataA, int fontNum,
                            bool isDfontA, bool allowHeadlessCFF)
     : FoFiBase(fileA, lenA, freeFileDataA)
 {

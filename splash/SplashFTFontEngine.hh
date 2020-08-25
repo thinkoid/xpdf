@@ -24,47 +24,16 @@ public:
     ~SplashFTFontEngine();
 
     // Load fonts.
-    SplashFontFile *loadType1Font(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                  GString *fontBuf,
-#else
-                                  const char *fileName, bool deleteFile,
-#endif
+    SplashFontFile *loadType1Font(SplashFontFileID *idA, GString *fontBuf,
                                   const char **enc);
-    SplashFontFile *loadType1CFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                   GString *fontBuf,
-#else
-                                   const char *fileName, bool deleteFile,
-#endif
+    SplashFontFile *loadType1CFont(SplashFontFileID *idA, GString *fontBuf,
                                    const char **enc);
-    SplashFontFile *loadOpenTypeT1CFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                        GString *fontBuf,
-#else
-                                        const char *fileName, bool deleteFile,
-#endif
+    SplashFontFile *loadOpenTypeT1CFont(SplashFontFileID *idA, GString *fontBuf,
                                         const char **enc);
-    SplashFontFile *loadCIDFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                GString *fontBuf
-#else
-                                const char *fileName, bool deleteFile
-#endif
-    );
-    SplashFontFile *loadOpenTypeCFFFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                        GString *fontBuf,
-#else
-                                        const char *fileName, bool deleteFile,
-#endif
+    SplashFontFile *loadCIDFont(SplashFontFileID *idA, GString *fontBuf);
+    SplashFontFile *loadOpenTypeCFFFont(SplashFontFileID *idA, GString *fontBuf,
                                         int *codeToGID, int codeToGIDLen);
-    SplashFontFile *loadTrueTypeFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                     GString *fontBuf,
-#else
-                                     const char *fileName, bool deleteFile,
-#endif
+    SplashFontFile *loadTrueTypeFont(SplashFontFileID *idA, GString *fontBuf,
                                      int fontNum, int *codeToGID,
                                      int codeToGIDLen);
 

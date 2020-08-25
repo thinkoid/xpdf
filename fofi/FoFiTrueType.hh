@@ -27,7 +27,7 @@ public:
     // <allowHeadlessCFF> is true, OpenType CFF fonts without the 'head'
     // table are permitted -- this is useful when calling the convert*
     // functions.
-    static FoFiTrueType *make(char *fileA, int lenA, int fontNum,
+    static FoFiTrueType *make(const char *fileA, int lenA, int fontNum,
                               bool allowHeadlessCFF = false);
 
     // Create a FoFiTrueType object from a file on disk.  If
@@ -153,7 +153,7 @@ public:
     bool getCFFBlock(char **start, int *length);
 
 private:
-    FoFiTrueType(char *fileA, int lenA, bool freeFileDataA, int fontNum,
+    FoFiTrueType(const char *fileA, int lenA, bool freeFileDataA, int fontNum,
                  bool isDfont, bool allowHeadlessCFF);
     void cvtEncoding(char **encoding, FoFiOutputFunc outputFunc,
                      void *outputStream);

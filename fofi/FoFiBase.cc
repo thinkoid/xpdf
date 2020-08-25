@@ -13,7 +13,7 @@
 // FoFiBase
 //------------------------------------------------------------------------
 
-FoFiBase::FoFiBase(char *fileA, int lenA, bool freeFileDataA)
+FoFiBase::FoFiBase(const char *fileA, int lenA, bool freeFileDataA)
 {
     fileData = file = (unsigned char *)fileA;
     len = lenA;

@@ -130,7 +130,7 @@ class FoFiType1C : public FoFiBase
 {
 public:
     // Create a FoFiType1C object from a memory buffer.
-    static FoFiType1C *make(char *fileA, int lenA);
+    static FoFiType1C *make(const char *fileA, int lenA);
 
     // Create a FoFiType1C object from a file on disk.
     static FoFiType1C *load(const char *fileName);
@@ -188,7 +188,7 @@ public:
                         FoFiOutputFunc outputFunc, void *outputStream);
 
 private:
-    FoFiType1C(char *fileA, int lenA, bool freeFileDataA);
+    FoFiType1C(const char *fileA, int lenA, bool freeFileDataA);
     void  eexecCvtGlyph(Type1CEexecBuf *eb, const char *glyphName, int offset,
                         int nBytes, Type1CIndex *subrIdx,
                         Type1CPrivateDict *pDict);

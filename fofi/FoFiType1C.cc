@@ -18,7 +18,7 @@ static char hexChars[17] = "0123456789ABCDEF";
 // FoFiType1C
 //------------------------------------------------------------------------
 
-FoFiType1C *FoFiType1C::make(char *fileA, int lenA)
+FoFiType1C *FoFiType1C::make(const char *fileA, int lenA)
 {
     FoFiType1C *ff;
 
@@ -47,7 +47,7 @@ FoFiType1C *FoFiType1C::load(const char *fileName)
     return ff;
 }
 
-FoFiType1C::FoFiType1C(char *fileA, int lenA, bool freeFileDataA)
+FoFiType1C::FoFiType1C(const char *fileA, int lenA, bool freeFileDataA)
     : FoFiBase(fileA, lenA, freeFileDataA)
 {
     name = NULL;

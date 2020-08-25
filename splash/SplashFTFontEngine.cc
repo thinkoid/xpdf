@@ -22,19 +22,10 @@
 #include FT_CFF_DRIVER_H
 #endif
 
-//------------------------------------------------------------------------
-
-static void fileWrite(void *stream, const char *data, int len)
-{
-    fwrite(data, 1, len, (FILE *)stream);
-}
-
-#if LOAD_FONTS_FROM_MEM
 static void gstringWrite(void *stream, const char *data, int len)
 {
     ((GString *)stream)->append(data, len);
 }
-#endif
 
 //------------------------------------------------------------------------
 // SplashFTFontEngine
@@ -70,68 +61,32 @@ SplashFTFontEngine::~SplashFTFontEngine()
 }
 
 SplashFontFile *SplashFTFontEngine::loadType1Font(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                                  GString *fontBuf,
-#else
-                                                  const char *fileName,
-                                                  bool        deleteFile,
-#endif
-                                                  const char **enc)
+                                                  GString *         fontBuf,
+                                                  const char **     enc)
 {
-    return SplashFTFontFile::loadType1Font(this, idA,
-#if LOAD_FONTS_FROM_MEM
-                                           fontBuf,
-#else
-                                           fileName, deleteFile,
-#endif
-                                           enc, true);
+    return SplashFTFontFile::loadType1Font(this, idA, fontBuf, enc, true);
 }
 
 SplashFontFile *SplashFTFontEngine::loadType1CFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                                   GString *fontBuf,
-#else
-                                                   const char *fileName,
-                                                   bool        deleteFile,
-#endif
-                                                   const char **enc)
+                                                   GString *         fontBuf,
+                                                   const char **     enc)
 {
-    return SplashFTFontFile::loadType1Font(this, idA,
-#if LOAD_FONTS_FROM_MEM
-                                           fontBuf,
-#else
-                                           fileName, deleteFile,
-#endif
-                                           enc, false);
+    return SplashFTFontFile::loadType1Font(this, idA, fontBuf, enc, false);
 }
 
 SplashFontFile *SplashFTFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                                        GString *fontBuf,
-#else
-                                                        const char *fileName,
-                                                        bool        deleteFile,
-#endif
-                                                        const char **enc)
+                                                        GString *         fontBuf,
+                                                        const char **     enc)
 {
-    FoFiTrueType *ff;
-#if LOAD_FONTS_FROM_MEM
-    GString *fontBuf2;
-#else
-    FILE *   tmpFile = 0;
-#endif
+    FoFiTrueType *  ff;
+    GString *       fontBuf2;
     SplashFontFile *ret;
 
-#if LOAD_FONTS_FROM_MEM
     if (!(ff = FoFiTrueType::make(fontBuf->c_str(), fontBuf->getLength(), 0,
                                   true))) {
-#else
-    if (!(ff = FoFiTrueType::load(fileName, 0, true))) {
-#endif
         return NULL;
     }
     if (ff->isHeadlessCFF()) {
-#if LOAD_FONTS_FROM_MEM
         fontBuf2 = new GString();
         ff->convertToType1(NULL, enc, false, &gstringWrite, fontBuf2);
         delete ff;
@@ -141,51 +96,15 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
         } else {
             delete fontBuf2;
         }
-#else
-        // TODO: this was and continues to not be secure:
-        auto tmp = xpdf::make_temp_path();
-
-        if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
-            delete ff;
-            return 0;
-        }
-
-        ff->convertToType1(NULL, enc, false, &fileWrite, tmpFile);
-        delete ff;
-
-        fclose(tmpFile);
-
-        ret = SplashFTFontFile::loadType1Font(
-            this, idA, tmp.c_str(), true, enc, false);
-
-        if (ret) {
-            if (deleteFile)
-                unlink(fileName);
-        } else {
-            unlink(tmp.c_str());
-        }
-#endif
     } else {
         delete ff;
-        ret = SplashFTFontFile::loadType1Font(this, idA,
-#if LOAD_FONTS_FROM_MEM
-                                              fontBuf,
-#else
-                                              fileName, deleteFile,
-#endif
-                                              enc, false);
+        ret = SplashFTFontFile::loadType1Font(this, idA, fontBuf, enc, false);
     }
     return ret;
 }
 
 SplashFontFile *SplashFTFontEngine::loadCIDFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                                GString *fontBuf
-#else
-                                                const char *fileName,
-                                                bool        deleteFile
-#endif
-)
+                                                GString *         fontBuf)
 {
     FoFiType1C *    ff;
     int *           cidToGIDMap;
@@ -196,24 +115,14 @@ SplashFontFile *SplashFTFontEngine::loadCIDFont(SplashFontFileID *idA,
     if (useCIDs) {
         cidToGIDMap = NULL;
         nCIDs = 0;
-#if LOAD_FONTS_FROM_MEM
     } else if ((ff = FoFiType1C::make(fontBuf->c_str(), fontBuf->getLength()))) {
-#else
-    } else if ((ff = FoFiType1C::load(fileName))) {
-#endif
         cidToGIDMap = ff->getCIDToGIDMap(&nCIDs);
         delete ff;
     } else {
         cidToGIDMap = NULL;
         nCIDs = 0;
     }
-    ret = SplashFTFontFile::loadCIDFont(this, idA,
-#if LOAD_FONTS_FROM_MEM
-                                        fontBuf,
-#else
-                                        fileName, deleteFile,
-#endif
-                                        cidToGIDMap, nCIDs);
+    ret = SplashFTFontFile::loadCIDFont(this, idA, fontBuf, cidToGIDMap, nCIDs);
     if (!ret) {
         free(cidToGIDMap);
     }
@@ -221,33 +130,20 @@ SplashFontFile *SplashFTFontEngine::loadCIDFont(SplashFontFileID *idA,
 }
 
 SplashFontFile *SplashFTFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                                        GString *fontBuf,
-#else
-                                                        const char *fileName,
-                                                        bool        deleteFile,
-#endif
+                                                        GString *         fontBuf,
                                                         int *codeToGID,
                                                         int  codeToGIDLen)
 {
-    FoFiTrueType *ff;
-#if LOAD_FONTS_FROM_MEM
-    GString *fontBuf2;
-#else
-    FILE *   tmpFile = 0;
-#endif
+    FoFiTrueType *  ff;
+    GString *       fontBuf2;
     char *          cffStart;
     int             cffLength;
     int *           cidToGIDMap;
     int             nCIDs;
     SplashFontFile *ret;
 
-#if LOAD_FONTS_FROM_MEM
     if (!(ff = FoFiTrueType::make(fontBuf->c_str(), fontBuf->getLength(), 0,
                                   true))) {
-#else
-    if (!(ff = FoFiTrueType::load(fileName, 0, true))) {
-#endif
         return NULL;
     }
     cidToGIDMap = NULL;
@@ -256,7 +152,6 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
         if (!ff->getCFFBlock(&cffStart, &cffLength)) {
             return NULL;
         }
-#if LOAD_FONTS_FROM_MEM
         fontBuf2 = new GString(cffStart, cffLength);
         if (!useCIDs) {
             cidToGIDMap = ff->getCIDToGIDMap(&nCIDs);
@@ -268,42 +163,11 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
         } else {
             delete fontBuf2;
         }
-#else
-        // TODO: this was and continues to not be secure:
-        auto tmp = xpdf::make_temp_path();
-
-        if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
-            delete ff;
-            return 0;
-        }
-
-        fwrite(cffStart, 1, cffLength, tmpFile);
-        fclose(tmpFile);
-
-        if (!useCIDs) {
-            cidToGIDMap = ff->getCIDToGIDMap(&nCIDs);
-        }
-
-        ret = SplashFTFontFile::loadCIDFont(
-            this, idA, tmp.c_str(), true, cidToGIDMap, nCIDs);
-
-        if (ret) {
-            if (deleteFile)
-                unlink(fileName);
-        } else {
-            unlink(tmp.c_str());
-        }
-#endif
     } else {
         if (!codeToGID && !useCIDs && ff->isOpenTypeCFF()) {
             cidToGIDMap = ff->getCIDToGIDMap(&nCIDs);
         }
-        ret = SplashFTFontFile::loadCIDFont(this, idA,
-#if LOAD_FONTS_FROM_MEM
-                                            fontBuf,
-#else
-                                            fileName, deleteFile,
-#endif
+        ret = SplashFTFontFile::loadCIDFont(this, idA, fontBuf,
                                             codeToGID ? codeToGID : cidToGIDMap,
                                             codeToGID ? codeToGIDLen : nCIDs);
     }
@@ -315,69 +179,28 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
 }
 
 SplashFontFile *SplashFTFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                                                     GString *fontBuf,
-#else
-                                                     const char *fileName,
-                                                     bool        deleteFile,
-#endif
+                                                     GString *         fontBuf,
                                                      int fontNum, int *codeToGID,
                                                      int codeToGIDLen)
 {
-    FoFiTrueType *ff;
-#if LOAD_FONTS_FROM_MEM
-    GString *fontBuf2;
-#else
-    FILE *   tmpFile = 0;
-#endif
+    FoFiTrueType *  ff;
+    GString *       fontBuf2;
     SplashFontFile *ret;
 
-#if LOAD_FONTS_FROM_MEM
     if (!(ff = FoFiTrueType::make(fontBuf->c_str(), fontBuf->getLength(),
                                   fontNum))) {
-#else
-    if (!(ff = FoFiTrueType::load(fileName, fontNum))) {
-#endif
         return NULL;
     }
-#if LOAD_FONTS_FROM_MEM
     fontBuf2 = new GString;
     ff->writeTTF(&gstringWrite, fontBuf2);
-#else
-    // TODO: this was and continues to not be secure:
-    auto tmp = xpdf::make_temp_path();
-
-    if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
-        delete ff;
-        return 0;
-    }
-
-    ff->writeTTF(&fileWrite, tmpFile);
-    fclose(tmpFile);
-
-#endif
     delete ff;
-    ret = SplashFTFontFile::loadTrueTypeFont(this, idA,
-#if LOAD_FONTS_FROM_MEM
-                                             fontBuf2,
-#else
-                                             tmp.c_str(), true,
-#endif
-                                             0, codeToGID, codeToGIDLen);
-#if LOAD_FONTS_FROM_MEM
+    ret = SplashFTFontFile::loadTrueTypeFont(this, idA, fontBuf2, 0, codeToGID,
+                                             codeToGIDLen);
     if (ret) {
         delete fontBuf;
     } else {
         delete fontBuf2;
     }
-#else
-    if (ret) {
-        if (deleteFile)
-            unlink(fileName);
-    } else {
-        unlink(tmp.c_str());
-    }
-#endif
 
     return ret;
 }

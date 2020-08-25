@@ -20,7 +20,7 @@ public:
     virtual ~FoFiBase();
 
 protected:
-    FoFiBase(char *fileA, int lenA, bool freeFileDataA);
+    FoFiBase(const char *fileA, int lenA, bool freeFileDataA);
     // TODO: std buffer
     static char *readFile(const char *fileName, int *fileLen);
 

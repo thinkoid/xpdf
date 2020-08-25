@@ -14,12 +14,12 @@
 // FoFiType1
 //------------------------------------------------------------------------
 
-FoFiType1 *FoFiType1::make(char *fileA, int lenA)
+FoFiType1 *FoFiType1::make(const char *fileA, int lenA)
 {
     return new FoFiType1(fileA, lenA, false);
 }
 
-FoFiType1 *FoFiType1::load(char *fileName)
+FoFiType1 *FoFiType1::load(const char *fileName)
 {
     char *fileA;
     int   lenA;
@@ -30,7 +30,7 @@ FoFiType1 *FoFiType1::load(char *fileName)
     return new FoFiType1(fileA, lenA, true);
 }
 
-FoFiType1::FoFiType1(char *fileA, int lenA, bool freeFileDataA)
+FoFiType1::FoFiType1(const char *fileA, int lenA, bool freeFileDataA)
     : FoFiBase(fileA, lenA, freeFileDataA)
 {
     name = NULL;

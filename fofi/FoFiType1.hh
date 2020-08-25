@@ -16,10 +16,10 @@ class FoFiType1 : public FoFiBase
 {
 public:
     // Create a FoFiType1 object from a memory buffer.
-    static FoFiType1 *make(char *fileA, int lenA);
+    static FoFiType1 *make(const char *fileA, int lenA);
 
     // Create a FoFiType1 object from a file on disk.
-    static FoFiType1 *load(char *fileName);
+    static FoFiType1 *load(const char *fileName);
 
     virtual ~FoFiType1();
 
@@ -38,7 +38,7 @@ public:
                       void *outputStream);
 
 private:
-    FoFiType1(char *fileA, int lenA, bool freeFileDataA);
+    FoFiType1(const char *fileA, int lenA, bool freeFileDataA);
 
     char *getNextLine(char *line);
     void  parse();

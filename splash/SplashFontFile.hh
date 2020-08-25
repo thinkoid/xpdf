@@ -38,22 +38,11 @@ public:
     void decRefCnt();
 
 protected:
-    SplashFontFile(SplashFontFileID *idA,
-#if LOAD_FONTS_FROM_MEM
-                   GString *fontBufA
-#else
-                   const char *fileNameA, bool deleteFileA
-#endif
-    );
+    SplashFontFile(SplashFontFileID *idA, GString *fontBufA);
 
     SplashFontFileID *id;
-#if LOAD_FONTS_FROM_MEM
-    GString *fontBuf;
-#else
-    GString *fileName;
-    bool deleteFile;
-#endif
-    int refCnt;
+    GString *         fontBuf;
+    int               refCnt;
 
     friend class SplashFontEngine;
 };
