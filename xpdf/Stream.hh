@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <vector>
 
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 #include <xpdf/obj.hh>
 
 #include <boost/noncopyable.hpp>

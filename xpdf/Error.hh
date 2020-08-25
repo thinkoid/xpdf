@@ -8,7 +8,7 @@
 
 #include <cstdio>
 #include <defs.hh>
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 enum ErrorCategory {
     errSyntaxWarning, // PDF syntax error which can be worked around;

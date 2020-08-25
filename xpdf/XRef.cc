@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include <utils/memory.hh>
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 #include <xpdf/obj.hh>
 #include <xpdf/Stream.hh>

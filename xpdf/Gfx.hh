@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 #include <xpdf/array_fwd.hh>
 #include <xpdf/function.hh>

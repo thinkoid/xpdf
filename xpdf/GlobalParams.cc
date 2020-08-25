@@ -7,12 +7,15 @@
 #include <cstdio>
 #include <cctype>
 
+#include <list>
+#include <string>
+
 #include <paper.h>
 
 #include <utils/string.hh>
 #include <utils/GList.hh>
 #include <utils/GHash.hh>
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 #include <fofi/FoFiIdentifier.hh>
 
@@ -338,9 +341,7 @@ KeyBinding::~KeyBinding()
 GlobalParams::GlobalParams(const char *cfgFileName)
 {
     UnicodeMap *map;
-    GString *   fileName;
-    FILE *      f;
-    int         i;
+    int i;
 
     initBuiltinFontTables();
 
@@ -353,7 +354,8 @@ GlobalParams::GlobalParams(const char *cfgFileName)
         }
     }
 
-    baseDir = appendToPath(getHomeDir(), ".xpdf");
+    baseDir = xpdf::home_path() / ".xpdf";
+
     nameToUnicode = new NameToCharCode();
     cidToUnicodes = new GHash(true);
     unicodeToUnicodes = new GHash(true);
@@ -472,36 +474,35 @@ GlobalParams::GlobalParams(const char *cfgFileName)
     residentUnicodeMaps->add(map->getEncodingName(), map);
 
     // look for a user config file, then a system-wide config file
-    f = NULL;
-    fileName = NULL;
+    std::unique_ptr< ::FILE, int(*)(::FILE*) > pf(0, ::fclose);
+
+    fs::path p;
 
     if (cfgFileName && cfgFileName[0]) {
-        fileName = new GString(cfgFileName);
-        if (!(f = fopen(fileName->c_str(), "r"))) {
-            delete fileName;
-        }
+        p = fs::path(cfgFileName);
+
+        if (fs::exists(p) && fs::is_regular_file(p))
+            pf.reset(fopen(p.c_str(), "r"));
     }
 
-    if (!f) {
-        fileName = appendToPath(getHomeDir(), XPDF_XPDFRC);
+    if (!pf) {
+        p = fs::path(xpdf::home_path() / XPDF_XPDFRC);
 
-        if (!(f = fopen(fileName->c_str(), "r"))) {
-            delete fileName;
-        }
+        if (fs::exists(p) && fs::is_regular_file(p))
+            pf.reset(fopen(p.c_str(), "r"));
     }
 
-    if (!f) {
-        fileName = new GString(XPDF_SYSTEM_XPDFRC);
+    if (0 == pf) {
+        p = fs::path(XPDF_SYSTEM_XPDFRC);
 
-        if (!(f = fopen(fileName->c_str(), "r"))) {
-            delete fileName;
-        }
+        if (fs::exists(p) && fs::is_regular_file(p))
+            pf.reset(fopen(p.c_str(), "r"));
     }
 
-    if (f) {
-        parseFile(fileName, f);
-        delete fileName;
-        fclose(f);
+    if (pf) {
+        // TODO
+        GString fname(p.c_str());
+        parseFile(&fname, pf.get());
     }
 }
 
@@ -1500,7 +1501,6 @@ GlobalParams::~GlobalParams()
 
     delete macRomanReverseMap;
 
-    delete baseDir;
     delete nameToUnicode;
     deleteGHash(cidToUnicodes, GString);
     deleteGHash(unicodeToUnicodes, GString);
@@ -1545,10 +1545,9 @@ GlobalParams::~GlobalParams()
 
 //------------------------------------------------------------------------
 
-void GlobalParams::setBaseDir(char *dir)
+void GlobalParams::setBaseDir(const char *dir)
 {
-    delete baseDir;
-    baseDir = new GString(dir);
+    baseDir = fs::path(dir);
 }
 
 void GlobalParams::setupBaseFonts(char *dir)
@@ -1631,10 +1630,7 @@ CharCode GlobalParams::getMacRomanCharCode(char *charName)
 
 GString *GlobalParams::getBaseDir()
 {
-    GString *s;
-
-    s = baseDir->copy();
-    return s;
+    return new GString(baseDir.c_str());
 }
 
 Unicode GlobalParams::mapNameToUnicode(const char *charName)

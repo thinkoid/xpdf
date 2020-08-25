@@ -7,6 +7,10 @@
 #include <defs.hh>
 
 #include <cstdio>
+
+#include <filesystem>
+namespace fs = std::filesystem;
+
 #include <xpdf/CharTypes.hh>
 
 class GString;
@@ -157,7 +161,7 @@ public:
 
     ~GlobalParams();
 
-    void setBaseDir(char *dir);
+    void setBaseDir(const char *dir);
     void setupBaseFonts(char *dir);
 
     void parseLine(char *buf, GString *fileName, int line);
@@ -336,7 +340,8 @@ private:
 
     //----- user-modifiable settings
 
-    GString *baseDir; // base directory - for plugins, etc.
+    fs::path baseDir; // base directory - for plugins, etc.
+
     NameToCharCode * // mapping from char name to Unicode
            nameToUnicode;
     GHash *cidToUnicodes; // files for mappings from char collections

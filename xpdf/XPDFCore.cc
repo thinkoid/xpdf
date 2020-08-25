@@ -506,7 +506,7 @@ void XPDFCore::doAction(LinkAction *action)
             }
             s = ((LinkGoToR *)action)->getFileName()->c_str();
             //~ translate path name for VMS (deal with '/')
-            if (isAbsolutePath(s) || !doc->getFileName()) {
+            if (xpdf::is_absolute_path(fs::path(s)) || !doc->getFileName()) {
                 fileName = new GString(s);
             } else {
                 fileName = appendToPath(grabPath(doc->getFileName()->c_str()), s);
@@ -544,7 +544,7 @@ void XPDFCore::doAction(LinkAction *action)
         if (!strcmp(s + fileName->getLength() - 4, ".pdf") ||
             !strcmp(s + fileName->getLength() - 4, ".PDF")) {
             //~ translate path name for VMS (deal with '/')
-            if (isAbsolutePath(s) || !doc->getFileName()) {
+            if (xpdf::is_absolute_path(fs::path(s)) || !doc->getFileName()) {
                 fileName = fileName->copy();
             } else {
                 fileName = appendToPath(grabPath(doc->getFileName()->c_str()), s);
@@ -644,8 +644,7 @@ void XPDFCore::doAction(LinkAction *action)
             if ((obj1 = resolve(movieAnnot.as_dict()["Movie"])).is_dict()) {
                 if (!(obj2 = resolve(obj1.as_dict()["F"])).is_null()) {
                     if ((fileName = LinkAction::getFileSpecName(&obj2))) {
-                        if (!isAbsolutePath(fileName->c_str()) &&
-                            doc->getFileName()) {
+                        if (!xpdf::is_absolute_path(fs::path(fileName->c_str())) && doc->getFileName()) {
                             fileName2 = appendToPath(
                                 grabPath(doc->getFileName()->c_str()),
                                 fileName->c_str());

@@ -7,7 +7,7 @@ include $(top_srcdir)/Makefile.common
 noinst_LIBRARIES = libutils.a
 
 libutils_a_SOURCES =                            \
-	gfile.cc                                    \
+	path.cc                                     \
 	memory.cc                                   \
 	parseargs.cc                                \
 	GHash.cc                                    \

@@ -8,7 +8,7 @@
 #include <cstring>
 #include <cctype>
 
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 #include <utils/string.hh>
 
 #include <xpdf/CMap.hh>

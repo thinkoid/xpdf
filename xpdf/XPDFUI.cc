@@ -14,7 +14,7 @@
 #undef True
 
 #include <utils/memory.hh>
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 #include <utils/string.hh>
 #include <utils/GList.hh>
 
@@ -2992,7 +2992,6 @@ void XPDFUI::initOpenDialog()
     Arg      args[20];
     int      n;
     XmString s1, s2, s3;
-    GString *dir;
 
     n = 0;
     s1 = XmStringCreateLocalized("Open");
@@ -3016,11 +3015,14 @@ void XPDFUI::initOpenDialog()
     XtAddCallback(openDialog, XmNokCallback, &openOkCbk, (XtPointer)this);
 
     if (core->getDoc() && core->getDoc()->getFileName()) {
-        dir = makePathAbsolute(grabPath(core->getDoc()->getFileName()->c_str()));
+        auto expanded_path = xpdf::expand_path(
+            core->getDoc()->getFileName()->c_str());
+
+        auto dir = std::make_unique< GString >(expanded_path.c_str());
+
         s1 = XmStringCreateLocalized((char *)dir->c_str());
         XtVaSetValues(openDialog, XmNdirectory, s1, NULL);
         XmStringFree(s1);
-        delete dir;
     }
 }
 
@@ -3314,7 +3316,6 @@ void XPDFUI::initSaveAsDialog()
     Arg      args[20];
     int      n;
     XmString s1, s2, s3;
-    GString *dir;
 
     n = 0;
     s1 = XmStringCreateLocalized("Save");
@@ -3339,11 +3340,14 @@ void XPDFUI::initSaveAsDialog()
     XtAddCallback(saveAsDialog, XmNokCallback, &saveAsOkCbk, (XtPointer)this);
 
     if (core->getDoc() && core->getDoc()->getFileName()) {
-        dir = makePathAbsolute(grabPath(core->getDoc()->getFileName()->c_str()));
+        auto expanded_path = xpdf::expand_path(
+            core->getDoc()->getFileName()->c_str());
+
+        auto dir = std::make_unique< GString >(expanded_path.c_str());
+
         s1 = XmStringCreateLocalized((char *)dir->c_str());
         XtVaSetValues(saveAsDialog, XmNdirectory, s1, NULL);
         XmStringFree(s1);
-        delete dir;
     }
 }
 

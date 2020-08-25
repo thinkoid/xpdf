@@ -13,7 +13,7 @@
 #include <memory>
 #include <variant>
 
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 #include <utils/string.hh>
 
 #include <xpdf/array_fwd.hh>

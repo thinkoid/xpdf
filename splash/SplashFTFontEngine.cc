@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include <utils/string.hh>
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 #include <fofi/FoFiTrueType.hh>
 #include <fofi/FoFiType1C.hh>
@@ -118,7 +118,6 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
 #if LOAD_FONTS_FROM_MEM
     GString *fontBuf2;
 #else
-    GString *tmpFileName = 0;
     FILE *   tmpFile = 0;
 #endif
     SplashFontFile *ret;
@@ -143,23 +142,28 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeT1CFont(SplashFontFileID *idA,
             delete fontBuf2;
         }
 #else
-        if (!openTempFile(&tmpFileName, &tmpFile, "wb")) {
+        // TODO: this was and continues to not be secure:
+        auto tmp = xpdf::make_temp_path();
+
+        if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
             delete ff;
-            return NULL;
+            return 0;
         }
+
         ff->convertToType1(NULL, enc, false, &fileWrite, tmpFile);
         delete ff;
+
         fclose(tmpFile);
-        ret = SplashFTFontFile::loadType1Font(this, idA, tmpFileName->c_str(),
-                                              true, enc, false);
+
+        ret = SplashFTFontFile::loadType1Font(
+            this, idA, tmp.c_str(), true, enc, false);
+
         if (ret) {
-            if (deleteFile) {
+            if (deleteFile)
                 unlink(fileName);
-            }
         } else {
-            unlink(tmpFileName->c_str());
+            unlink(tmp.c_str());
         }
-        delete tmpFileName;
 #endif
     } else {
         delete ff;
@@ -230,7 +234,6 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
 #if LOAD_FONTS_FROM_MEM
     GString *fontBuf2;
 #else
-    GString *tmpFileName = 0;
     FILE *   tmpFile = 0;
 #endif
     char *          cffStart;
@@ -266,25 +269,30 @@ SplashFontFile *SplashFTFontEngine::loadOpenTypeCFFFont(SplashFontFileID *idA,
             delete fontBuf2;
         }
 #else
-        if (!openTempFile(&tmpFileName, &tmpFile, "wb")) {
+        // TODO: this was and continues to not be secure:
+        auto tmp = xpdf::make_temp_path();
+
+        if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
             delete ff;
-            return NULL;
+            return 0;
         }
+
         fwrite(cffStart, 1, cffLength, tmpFile);
         fclose(tmpFile);
+
         if (!useCIDs) {
             cidToGIDMap = ff->getCIDToGIDMap(&nCIDs);
         }
-        ret = SplashFTFontFile::loadCIDFont(this, idA, tmpFileName->c_str(), true,
-                                            cidToGIDMap, nCIDs);
+
+        ret = SplashFTFontFile::loadCIDFont(
+            this, idA, tmp.c_str(), true, cidToGIDMap, nCIDs);
+
         if (ret) {
-            if (deleteFile) {
+            if (deleteFile)
                 unlink(fileName);
-            }
         } else {
-            unlink(tmpFileName->c_str());
+            unlink(tmp.c_str());
         }
-        delete tmpFileName;
 #endif
     } else {
         if (!codeToGID && !useCIDs && ff->isOpenTypeCFF()) {
@@ -320,7 +328,6 @@ SplashFontFile *SplashFTFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
 #if LOAD_FONTS_FROM_MEM
     GString *fontBuf2;
 #else
-    GString *tmpFileName = 0;
     FILE *   tmpFile = 0;
 #endif
     SplashFontFile *ret;
@@ -337,19 +344,24 @@ SplashFontFile *SplashFTFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
     fontBuf2 = new GString;
     ff->writeTTF(&gstringWrite, fontBuf2);
 #else
-    if (!openTempFile(&tmpFileName, &tmpFile, "wb")) {
+    // TODO: this was and continues to not be secure:
+    auto tmp = xpdf::make_temp_path();
+
+    if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
         delete ff;
-        return NULL;
+        return 0;
     }
+
     ff->writeTTF(&fileWrite, tmpFile);
     fclose(tmpFile);
+
 #endif
     delete ff;
     ret = SplashFTFontFile::loadTrueTypeFont(this, idA,
 #if LOAD_FONTS_FROM_MEM
                                              fontBuf2,
 #else
-                                             tmpFileName->c_str(), true,
+                                             tmp.c_str(), true,
 #endif
                                              0, codeToGID, codeToGIDLen);
 #if LOAD_FONTS_FROM_MEM
@@ -360,13 +372,12 @@ SplashFontFile *SplashFTFontEngine::loadTrueTypeFont(SplashFontFileID *idA,
     }
 #else
     if (ret) {
-        if (deleteFile) {
+        if (deleteFile)
             unlink(fileName);
-        }
     } else {
-        unlink(tmpFileName->c_str());
+        unlink(tmp.c_str());
     }
-    delete tmpFileName;
 #endif
+
     return ret;
 }

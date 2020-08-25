@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 #include <xpdf/dict.hh>
 #include <xpdf/Error.hh>

@@ -9,7 +9,7 @@
 #define Object XtObject
 #include <Xm/XmAll.h>
 #undef Object
-#include <utils/gfile.hh> // for time_t
+#include <utils/path.hh> // for time_t
 #include <splash/SplashTypes.hh>
 #include <xpdf/PDFCore.hh>
 

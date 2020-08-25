@@ -8,7 +8,7 @@
 #include <climits>
 
 #include <utils/memory.hh>
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 #include <utils/GList.hh>
 
 #include <xpdf/obj.hh>
@@ -135,7 +135,11 @@ Catalog::Catalog(PDFDoc *docA)
             delete baseURI;
         }
         if (doc->getFileName()) {
-            baseURI = makePathAbsolute(grabPath(doc->getFileName()->c_str()));
+            auto expanded_path = xpdf::expand_path(
+                fs::path(doc->getFileName()->c_str()));
+
+            baseURI = new GString(expanded_path.c_str());
+
             if (baseURI->front() == '/') {
                 baseURI->insert(0, "file://localhost");
             } else {

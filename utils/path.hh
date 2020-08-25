@@ -1,8 +1,8 @@
 // -*- mode: c++; -*-
 // Copyright 1996-2003 Glyph & Cog, LLC
 
-#ifndef XPDF_UTILS_GFILE_HH
-#define XPDF_UTILS_GFILE_HH
+#ifndef XPDF_UTILS_PATH_HH
+#define XPDF_UTILS_PATH_HH
 
 #include <cstdio>
 #include <cstdlib>
@@ -14,12 +14,25 @@
 #include <dirent.h>
 #define NAMLEN(d) strlen((d)->d_name)
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
 class GString;
 
-//------------------------------------------------------------------------
-
 // Get home directory path.
-extern GString *getHomeDir();
+namespace xpdf {
+
+fs::path home_path();
+fs::path expand_path(const fs::path &);
+
+inline bool is_absolute_path(const fs::path &path)
+{
+    return path.is_absolute();
+}
+
+fs::path make_temp_path();
+
+} // namespace xpdf
 
 // Get current directory.
 extern GString *getCurrentDir();
@@ -32,24 +45,9 @@ extern GString *appendToPath(GString *path, const char *fileName);
 // directory component in <fileName>, returns an empty string.
 extern GString *grabPath(const char *fileName);
 
-// Is this an absolute path or file name?
-extern bool isAbsolutePath(const char *path);
-
-// Make this path absolute by prepending current directory (if path is
-// relative) or prepending user's directory (if path starts with '~').
-extern GString *makePathAbsolute(GString *path);
-
 // Get the modification time for <fileName>.  Returns 0 if there is an
 // error.
 extern time_t getModTime(const char *fileName);
-
-// Create a temporary file and open it for writing.  If <ext> is not
-// NULL, it will be used as the file name extension.  Returns both the
-// name and the file pointer.  For security reasons, all writing
-// should be done to the returned file pointer; the file may be
-// reopened later for reading, but not for writing.  The <mode> string
-// should be "w" or "wb".  Returns true on success.
-extern bool openTempFile(GString **name, FILE **f, const char *mode);
 
 // Create a directory.  Returns true on success.
 extern bool createDir(char *path, int mode);
@@ -79,31 +77,31 @@ extern GFileOffset gftell(FILE *f);
 // GDir and GDirEntry
 //------------------------------------------------------------------------
 
-class GDirEntry
-{
-public:
-    GDirEntry(const char *dirPath, char *nameA, bool doStat);
-    ~GDirEntry();
-    GString *getName() { return name; }
-    bool     isDir() { return dir; }
+// class GDirEntry
+// {
+// public:
+//     GDirEntry(const char *dirPath, char *nameA, bool doStat);
+//     ~GDirEntry();
+//     GString *getName() { return name; }
+//     bool     isDir() { return dir; }
 
-private:
-    GString *name; // dir/file name
-    bool     dir; // is it a directory?
-};
+// private:
+//     GString *name; // dir/file name
+//     bool     dir; // is it a directory?
+// };
 
-class GDir
-{
-public:
-    GDir(char *name, bool doStatA = true);
-    ~GDir();
-    GDirEntry *getNextEntry();
-    void       rewind();
+// class GDir
+// {
+// public:
+//     GDir(char *name, bool doStatA = true);
+//     ~GDir();
+//     GDirEntry *getNextEntry();
+//     void       rewind();
 
-private:
-    GString *path; // directory path
-    bool     doStat; // call stat() for each entry?
-    DIR *    dir; // the DIR structure from opendir()
-};
+// private:
+//     GString *path; // directory path
+//     bool     doStat; // call stat() for each entry?
+//     DIR *    dir; // the DIR structure from opendir()
+// };
 
-#endif // XPDF_UTILS_GFILE_HH
+#endif // XPDF_UTILS_PATH_HH

@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <utils/gfile.hh>
+#include <utils/path.hh>
 
 #include <fofi/FoFiTrueType.hh>
 
@@ -1224,11 +1224,15 @@ void SplashOutputDev::doUpdateFont(GfxState *state)
             }
             strObj.streamClose();
 #else
-            if (!openTempFile(&tmpFileName, &tmpFile, "wb")) {
+            // TODO: this was and continues to not be secure:
+            auto tmp = xpdf::make_temp_path();
+
+            if (0 == (tmpFile = fopen(tmp.c_str(), "wb"))) {
                 error(errIO, -1, "Couldn't create temporary font file");
                 delete fontLoc;
                 goto err2;
             }
+
             refObj = xpdf::make_ref_obj(embRef.num, embRef.gen, xref);
             strObj = resolve(refObj);
             if (!strObj.is_stream()) {
@@ -1243,7 +1247,7 @@ void SplashOutputDev::doUpdateFont(GfxState *state)
             }
             strObj.streamClose();
             fclose(tmpFile);
-            fileName = tmpFileName;
+            fileName = new GString(tmp.c_str());
 #endif
 
             // external font
