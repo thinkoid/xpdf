@@ -89,12 +89,12 @@ public:
     virtual unsigned discardChars(unsigned n);
 
     // Get current position in file.
-    virtual GFileOffset getPos() = 0;
+    virtual off_t getPos() = 0;
 
     // Go to a position in the stream.  If <dir> is negative, the
     // position is from the end of the file; otherwise the position is
     // from the start of the file.
-    virtual void setPos(GFileOffset pos, int dir = 0) = 0;
+    virtual void setPos(off_t pos, int dir = 0) = 0;
 
     // Get PostScript command for the filter(s).
     virtual GString *getPSFilter(int psLevel, const char *indent);
@@ -142,9 +142,9 @@ class BaseStream : public Stream
 public:
     BaseStream(Object *dictA);
     virtual ~BaseStream();
-    virtual Stream *    makeSubStream(GFileOffset start, bool limited,
-                                      GFileOffset length, Object *dict) = 0;
-    virtual void        setPos(GFileOffset pos, int dir = 0) = 0;
+    virtual Stream *    makeSubStream(off_t start, bool limited,
+                                      off_t length, Object *dict) = 0;
+    virtual void        setPos(off_t pos, int dir = 0) = 0;
     virtual bool        isBinary(bool last = true) { return last; }
     virtual BaseStream *getBaseStream() { return this; }
     virtual Stream *    getUndecodedStream() { return this; }
@@ -159,7 +159,7 @@ public:
     virtual GString *getFileName() { return NULL; }
 
     // Get/set position of first byte of stream within the file.
-    virtual GFileOffset getStart() = 0;
+    virtual off_t getStart() = 0;
     virtual void        moveStart(int delta) = 0;
 
 private:
@@ -178,8 +178,8 @@ public:
     FilterStream(Stream *strA);
     virtual ~FilterStream();
     virtual void        close();
-    virtual GFileOffset getPos() { return str->getPos(); }
-    virtual void        setPos(GFileOffset pos, int dir = 0);
+    virtual off_t getPos() { return str->getPos(); }
+    virtual void        setPos(off_t pos, int dir = 0);
     virtual BaseStream *getBaseStream() { return str->getBaseStream(); }
     virtual Stream *    getUndecodedStream() { return str->getUndecodedStream(); }
 
@@ -285,11 +285,11 @@ private:
 class FileStream : public BaseStream
 {
 public:
-    FileStream(FILE *fA, GFileOffset startA, bool limitedA, GFileOffset lengthA,
+    FileStream(FILE *fA, off_t startA, bool limitedA, off_t lengthA,
                Object *dictA);
     virtual ~FileStream();
-    virtual Stream *   makeSubStream(GFileOffset startA, bool limitedA,
-                                     GFileOffset lengthA, Object *dictA);
+    virtual Stream *   makeSubStream(off_t startA, bool limitedA,
+                                     off_t lengthA, Object *dictA);
 
     const std::type_info &type() const override { return typeid(*this); }
 
@@ -304,23 +304,23 @@ public:
         return (bufPtr >= bufEnd && !fillBuf()) ? EOF : (*bufPtr & 0xff);
     }
     virtual int         getBlock(char *blk, int size);
-    virtual GFileOffset getPos() { return bufPos + (int)(bufPtr - buf); }
-    virtual void        setPos(GFileOffset pos, int dir = 0);
-    virtual GFileOffset getStart() { return start; }
+    virtual off_t getPos() { return bufPos + (int)(bufPtr - buf); }
+    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t getStart() { return start; }
     virtual void        moveStart(int delta);
 
 private:
     bool fillBuf();
 
     FILE *      f;
-    GFileOffset start;
+    off_t start;
     bool        limited;
-    GFileOffset length;
+    off_t length;
     char        buf[fileStreamBufSize];
     char *      bufPtr;
     char *      bufEnd;
-    GFileOffset bufPos;
-    GFileOffset savePos;
+    off_t bufPos;
+    off_t savePos;
     bool        saved;
 };
 
@@ -333,8 +333,8 @@ class MemStream : public BaseStream
 public:
     MemStream(const char *bufA, unsigned startA, unsigned lengthA, Object *dictA);
     virtual ~MemStream();
-    virtual Stream *   makeSubStream(GFileOffset start, bool limited,
-                                     GFileOffset lengthA, Object *dictA);
+    virtual Stream *   makeSubStream(off_t start, bool limited,
+                                     off_t lengthA, Object *dictA);
 
     const std::type_info &type() const override { return typeid(*this); }
 
@@ -343,9 +343,9 @@ public:
     virtual int get() { return (bufPtr < bufEnd) ? (*bufPtr++ & 0xff) : EOF; }
     virtual int peek() { return (bufPtr < bufEnd) ? (*bufPtr & 0xff) : EOF; }
     virtual int getBlock(char *blk, int size);
-    virtual GFileOffset getPos() { return (GFileOffset)(bufPtr - buf); }
-    virtual void        setPos(GFileOffset pos, int dir = 0);
-    virtual GFileOffset getStart() { return start; }
+    virtual off_t getPos() { return (off_t)(bufPtr - buf); }
+    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t getStart() { return start; }
     virtual void        moveStart(int delta);
 
 private:
@@ -369,10 +369,10 @@ private:
 class EmbedStream : public BaseStream
 {
 public:
-    EmbedStream(Stream *strA, Object *dictA, bool limitedA, GFileOffset lengthA);
+    EmbedStream(Stream *strA, Object *dictA, bool limitedA, off_t lengthA);
     virtual ~EmbedStream();
-    virtual Stream *    makeSubStream(GFileOffset start, bool limitedA,
-                                      GFileOffset lengthA, Object *dictA);
+    virtual Stream *    makeSubStream(off_t start, bool limitedA,
+                                      off_t lengthA, Object *dictA);
 
     const std::type_info &type() const override { return typeid(*this); }
 
@@ -380,15 +380,15 @@ public:
     virtual int         get();
     virtual int         peek();
     virtual int         getBlock(char *blk, int size);
-    virtual GFileOffset getPos() { return str->getPos(); }
-    virtual void        setPos(GFileOffset pos, int dir = 0);
-    virtual GFileOffset getStart();
+    virtual off_t getPos() { return str->getPos(); }
+    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t getStart();
     virtual void        moveStart(int delta);
 
 private:
     Stream *    str;
     bool        limited;
-    GFileOffset length;
+    off_t length;
 };
 
 //------------------------------------------------------------------------

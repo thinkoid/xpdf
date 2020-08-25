@@ -4,6 +4,7 @@
 #include <defs.hh>
 
 #include <cstring>
+#include <chrono>
 
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
@@ -177,28 +178,28 @@ void XPDFCore::segment()
 int XPDFCore::loadFile(GString *fileName, GString *ownerPassword,
                        GString *userPassword)
 {
-    int err;
+    int err = PDFCore::loadFile(fileName, ownerPassword, userPassword);
 
-    err = PDFCore::loadFile(fileName, ownerPassword, userPassword);
     if (err == errNone) {
-        // save the modification time
-        modTime = getModTime(doc->getFileName()->c_str());
+        //
+        // Save the modification time:
+        //
+        modTime = xpdf::last_write_time(fs::path(doc->getFileName()->c_str()));
 
         // update the parent window
-        if (updateCbk) {
+        if (updateCbk)
             (*updateCbk)(updateCbkData, doc->getFileName(), -1,
                          doc->getNumPages(), NULL);
-        }
     }
+
     return err;
 }
 
 int XPDFCore::loadFile(BaseStream *stream, GString *ownerPassword,
                        GString *userPassword)
 {
-    int err;
+    int err = PDFCore::loadFile(stream, ownerPassword, userPassword);
 
-    err = PDFCore::loadFile(stream, ownerPassword, userPassword);
     if (err == errNone) {
         // no file
         modTime = 0;
@@ -217,9 +218,8 @@ void XPDFCore::loadDoc(PDFDoc *docA)
     PDFCore::loadDoc(docA);
 
     // save the modification time
-    if (doc->getFileName()) {
-        modTime = getModTime(doc->getFileName()->c_str());
-    }
+    if (const auto p = doc->getFileName())
+        modTime = xpdf::last_write_time(fs::path(p->c_str()));
 
     // update the parent window
     if (updateCbk) {
@@ -299,15 +299,15 @@ void XPDFCore::update(int topPageA, int scrollXA, int scrollYA, double zoomA,
 
 bool XPDFCore::checkForNewFile()
 {
-    time_t newModTime;
+    if (const auto p = doc->getFileName()) {
+        const auto newModTime = xpdf::last_write_time(fs::path(p->c_str()));
 
-    if (doc->getFileName()) {
-        newModTime = getModTime(doc->getFileName()->c_str());
         if (newModTime != modTime) {
             modTime = newModTime;
             return true;
         }
     }
+
     return false;
 }
 
@@ -477,7 +477,7 @@ void XPDFCore::doAction(LinkAction *action)
     LinkDest *     dest;
     GString *      namedDest;
     const char *   s;
-    GString *      fileName, *fileName2;
+    GString *      fileName;
     GString *      cmd;
     GString *      actionName;
     Object         movieAnnot, obj1, obj2;
@@ -499,18 +499,23 @@ void XPDFCore::doAction(LinkAction *action)
         } else {
             dest = NULL;
             namedDest = NULL;
+
             if ((dest = ((LinkGoToR *)action)->getDest())) {
                 dest = dest->copy();
             } else if ((namedDest = ((LinkGoToR *)action)->getNamedDest())) {
                 namedDest = namedDest->copy();
             }
+
             s = ((LinkGoToR *)action)->getFileName()->c_str();
+
             //~ translate path name for VMS (deal with '/')
-            if (xpdf::is_absolute_path(fs::path(s)) || !doc->getFileName()) {
+            if (fs::path(s).is_absolute() || !doc->getFileName()) {
                 fileName = new GString(s);
             } else {
-                fileName = appendToPath(grabPath(doc->getFileName()->c_str()), s);
+                auto path = fs::path(doc->getFileName()->c_str()) / s;
+                fileName = new GString(path.c_str());
             }
+
             if (loadFile(fileName) != errNone) {
                 if (dest) {
                     delete dest;
@@ -523,6 +528,7 @@ void XPDFCore::doAction(LinkAction *action)
             }
             delete fileName;
         }
+
         if (namedDest) {
             dest = doc->findDest(namedDest);
             delete namedDest;
@@ -544,10 +550,11 @@ void XPDFCore::doAction(LinkAction *action)
         if (!strcmp(s + fileName->getLength() - 4, ".pdf") ||
             !strcmp(s + fileName->getLength() - 4, ".PDF")) {
             //~ translate path name for VMS (deal with '/')
-            if (xpdf::is_absolute_path(fs::path(s)) || !doc->getFileName()) {
+            if (fs::path(s).is_absolute() || !doc->getFileName()) {
                 fileName = fileName->copy();
             } else {
-                fileName = appendToPath(grabPath(doc->getFileName()->c_str()), s);
+                auto path = fs::path(doc->getFileName()->c_str()) / s;
+                fileName = new GString(path.c_str());
             }
             if (loadFile(fileName) != errNone) {
                 delete fileName;
@@ -644,12 +651,9 @@ void XPDFCore::doAction(LinkAction *action)
             if ((obj1 = resolve(movieAnnot.as_dict()["Movie"])).is_dict()) {
                 if (!(obj2 = resolve(obj1.as_dict()["F"])).is_null()) {
                     if ((fileName = LinkAction::getFileSpecName(&obj2))) {
-                        if (!xpdf::is_absolute_path(fs::path(fileName->c_str())) && doc->getFileName()) {
-                            fileName2 = appendToPath(
-                                grabPath(doc->getFileName()->c_str()),
-                                fileName->c_str());
-                            delete fileName;
-                            fileName = fileName2;
+                        if (!fs::path(fileName->c_str()).is_absolute() && doc->getFileName()) {
+                            auto path = fs::path(doc->getFileName()->c_str()) / fileName->c_str();
+                            fileName = new GString(path.c_str());
                         }
                         runCommand(cmd, fileName);
                         delete fileName;

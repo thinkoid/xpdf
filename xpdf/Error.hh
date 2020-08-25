@@ -29,6 +29,6 @@ extern void setErrorCallback(void (*cbk)(void *data, ErrorCategory category,
                                          int pos, char *msg),
                              void *data);
 
-extern void error(ErrorCategory category, GFileOffset pos, const char *msg, ...);
+extern void error(ErrorCategory category, off_t pos, const char *msg, ...);
 
 #endif // XPDF_XPDF_ERROR_HH

@@ -6,6 +6,9 @@
 #include <cstdio>
 #include <cstring>
 
+#include <fstream>
+#include <vector>
+
 #include <utils/memory.hh>
 #include <utils/path.hh>
 #include <utils/string.hh>
@@ -30,20 +33,19 @@ struct UnicodeMapExt
 
 UnicodeMap *UnicodeMap::parse(GString *encodingNameA)
 {
-    FILE *           f;
     UnicodeMap *     map;
     UnicodeMapRange *range;
     UnicodeMapExt *  eMap;
-    int              size, eMapsSize;
-    char             buf[256];
-    int              line, nBytes, i, x;
-    char *           tok1, *tok2, *tok3;
 
-    if (!(f = globalParams->getUnicodeMapFile(encodingNameA))) {
+    int size, eMapsSize, nBytes, i, x;
+
+    GString *fileName = globalParams->getUnicodeMapFile(encodingNameA);
+
+    if (0 == fileName) {
         error(errSyntaxError, -1,
               "Couldn't find unicodeMap file for the '{0:t}' encoding",
               encodingNameA);
-        return NULL;
+        return 0;
     }
 
     map = new UnicodeMap(encodingNameA->copy());
@@ -52,55 +54,72 @@ UnicodeMap *UnicodeMap::parse(GString *encodingNameA)
     map->ranges = (UnicodeMapRange *)calloc(size, sizeof(UnicodeMapRange));
     eMapsSize = 0;
 
-    line = 1;
-    while (getLine(buf, sizeof(buf), f)) {
-        if ((tok1 = strtok(buf, " \t\r\n")) && (tok2 = strtok(NULL, " \t\r\n"))) {
-            if (!(tok3 = strtok(NULL, " \t\r\n"))) {
-                tok3 = tok2;
-                tok2 = tok1;
-            }
-            nBytes = (int)strlen(tok3) / 2;
-            if (nBytes <= 4) {
-                if (map->len == size) {
-                    size *= 2;
-                    map->ranges = (UnicodeMapRange *)reallocarray(
-                        map->ranges, size, sizeof(UnicodeMapRange));
-                }
-                range = &map->ranges[map->len];
-                sscanf(tok1, "%x", &range->start);
-                sscanf(tok2, "%x", &range->end);
-                sscanf(tok3, "%x", &range->code);
-                range->nBytes = nBytes;
-                ++map->len;
-            } else if (tok2 == tok1) {
-                if (map->eMapsLen == eMapsSize) {
-                    eMapsSize += 16;
-                    map->eMaps = (UnicodeMapExt *)reallocarray(
-                        map->eMaps, eMapsSize, sizeof(UnicodeMapExt));
-                }
-                eMap = &map->eMaps[map->eMapsLen];
-                sscanf(tok1, "%x", &eMap->u);
-                for (i = 0; i < nBytes; ++i) {
-                    sscanf(tok3 + i * 2, "%2x", &x);
-                    eMap->code[i] = (char)x;
-                }
-                eMap->nBytes = nBytes;
-                ++map->eMapsLen;
-            } else {
-                error(errSyntaxError, -1,
-                      "Bad line ({0:d}) in unicodeMap file for the '{1:t}' "
-                      "encoding",
-                      line, encodingNameA);
-            }
-        } else {
+    std::ifstream stream(fileName->c_str());
+
+    int lineno = 1;
+    for (std::string line; std::getline(stream, line); ++lineno) {
+        auto tokens = xpdf::split(line);
+        const char *tok1, *tok2, *tok3;
+
+        switch(tokens.size()) {
+        case 2:
+            tok1 = tok2 = tokens[0].c_str();
+            tok3 = tokens[1].c_str();
+            break;
+
+        case 3:
+            tok1 = tokens[0].c_str();
+            tok2 = tokens[1].c_str();
+            tok3 = tokens[2].c_str();
+            break;
+
+        default:
             error(errSyntaxError, -1,
                   "Bad line ({0:d}) in unicodeMap file for the '{1:t}' encoding",
+                  lineno, encodingNameA);
+            continue;
+        }
+
+        if (4 >= (nBytes = strlen(tok3) / 2)) {
+            if (map->len == size) {
+                size *= 2;
+                map->ranges = (UnicodeMapRange *)reallocarray(
+                    map->ranges, size, sizeof(UnicodeMapRange));
+            }
+
+            range = &map->ranges[map->len];
+
+            sscanf(tok1, "%x", &range->start);
+            sscanf(tok2, "%x", &range->end);
+            sscanf(tok3, "%x", &range->code);
+
+            range->nBytes = nBytes;
+            ++map->len;
+        } else if (tok2 == tok1) {
+            if (map->eMapsLen == eMapsSize) {
+                eMapsSize += 16;
+                map->eMaps = (UnicodeMapExt *)reallocarray(
+                    map->eMaps, eMapsSize, sizeof(UnicodeMapExt));
+            }
+
+            eMap = &map->eMaps[map->eMapsLen];
+
+            sscanf(tok1, "%x", &eMap->u);
+
+            for (i = 0; i < nBytes; ++i) {
+                sscanf(tok3 + i * 2, "%2x", &x);
+                eMap->code[i] = (char)x;
+            }
+
+            eMap->nBytes = nBytes;
+            ++map->eMapsLen;
+        } else {
+            error(errSyntaxError, -1,
+                  "Bad line ({0:d}) in unicodeMap file for the '{1:t}' "
+                  "encoding",
                   line, encodingNameA);
         }
-        ++line;
     }
-
-    fclose(f);
 
     return map;
 }

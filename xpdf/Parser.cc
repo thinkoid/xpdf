@@ -234,7 +234,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
     Object      obj;
     BaseStream *baseStr;
     Stream *    str;
-    GFileOffset pos, endPos, length;
+    off_t pos, endPos, length;
 
     // get stream start position
     lexer->skipToNextLine();
@@ -251,7 +251,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
     } else {
         obj = resolve(dict->as_dict()["Length"], recursion);
         if (obj.is_int()) {
-            length = (GFileOffset)(unsigned)obj.as_int();
+            length = (off_t)(unsigned)obj.as_int();
         } else {
             error(errSyntaxError, getPos(), "Bad 'Length' attribute in stream");
             return NULL;

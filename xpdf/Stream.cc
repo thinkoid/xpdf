@@ -291,7 +291,7 @@ void FilterStream::close()
     str->close();
 }
 
-void FilterStream::setPos(GFileOffset pos, int dir)
+void FilterStream::setPos(off_t pos, int dir)
 {
     error(errInternal, -1, "Called setPos() on FilterStream");
 }
@@ -684,8 +684,8 @@ bool StreamPredictor::getNextLine()
 // FileStream
 //------------------------------------------------------------------------
 
-FileStream::FileStream(FILE *fA, GFileOffset startA, bool limitedA,
-                       GFileOffset lengthA, Object *dictA)
+FileStream::FileStream(FILE *fA, off_t startA, bool limitedA,
+                       off_t lengthA, Object *dictA)
     : BaseStream(dictA)
 {
     f = fA;
@@ -703,16 +703,16 @@ FileStream::~FileStream()
     close();
 }
 
-Stream *FileStream::makeSubStream(GFileOffset startA, bool limitedA,
-                                  GFileOffset lengthA, Object *dictA)
+Stream *FileStream::makeSubStream(off_t startA, bool limitedA,
+                                  off_t lengthA, Object *dictA)
 {
     return new FileStream(f, startA, limitedA, lengthA, dictA);
 }
 
 void FileStream::reset()
 {
-    savePos = gftell(f);
-    gfseek(f, start, SEEK_SET);
+    savePos = ftell(f);
+    fseek(f, start, SEEK_SET);
     saved = true;
     bufPtr = bufEnd = buf;
     bufPos = start;
@@ -721,7 +721,7 @@ void FileStream::reset()
 void FileStream::close()
 {
     if (saved) {
-        gfseek(f, savePos, SEEK_SET);
+        fseek(f, savePos, SEEK_SET);
         saved = false;
     }
 }
@@ -770,21 +770,21 @@ bool FileStream::fillBuf()
     return true;
 }
 
-void FileStream::setPos(GFileOffset pos, int dir)
+void FileStream::setPos(off_t pos, int dir)
 {
-    GFileOffset size;
+    off_t size;
 
     if (dir >= 0) {
-        gfseek(f, pos, SEEK_SET);
+        fseek(f, pos, SEEK_SET);
         bufPos = pos;
     } else {
-        gfseek(f, 0, SEEK_END);
-        size = gftell(f);
+        fseek(f, 0, SEEK_END);
+        size = ftell(f);
         if (pos > size) {
             pos = size;
         }
-        gfseek(f, -pos, SEEK_END);
-        bufPos = gftell(f);
+        fseek(f, -pos, SEEK_END);
+        bufPos = ftell(f);
     }
     bufPtr = bufEnd = buf;
 }
@@ -813,8 +813,8 @@ MemStream::MemStream(const char *bufA, unsigned startA, unsigned lengthA,
 
 /* virtual */ MemStream::~MemStream() { }
 
-Stream *MemStream::makeSubStream(GFileOffset startA, bool limited,
-                                 GFileOffset lengthA, Object *dictA)
+Stream *MemStream::makeSubStream(off_t startA, bool limited,
+                                 off_t lengthA, Object *dictA)
 {
     MemStream *subStr;
     unsigned   newStart, newLength;
@@ -859,7 +859,7 @@ int MemStream::getBlock(char *blk, int size)
     return n;
 }
 
-void MemStream::setPos(GFileOffset pos, int dir)
+void MemStream::setPos(off_t pos, int dir)
 {
     unsigned i;
 
@@ -888,7 +888,7 @@ void MemStream::moveStart(int delta)
 //------------------------------------------------------------------------
 
 EmbedStream::EmbedStream(Stream *strA, Object *dictA, bool limitedA,
-                         GFileOffset lengthA)
+                         off_t lengthA)
     : BaseStream(dictA)
 {
     str = strA;
@@ -898,8 +898,8 @@ EmbedStream::EmbedStream(Stream *strA, Object *dictA, bool limitedA,
 
 EmbedStream::~EmbedStream() { }
 
-Stream *EmbedStream::makeSubStream(GFileOffset start, bool limitedA,
-                                   GFileOffset lengthA, Object *dictA)
+Stream *EmbedStream::makeSubStream(off_t start, bool limitedA,
+                                   off_t lengthA, Object *dictA)
 {
     error(errInternal, -1, "Called makeSubStream() on EmbedStream");
     return NULL;
@@ -933,12 +933,12 @@ int EmbedStream::getBlock(char *blk, int size)
     return str->getBlock(blk, size);
 }
 
-void EmbedStream::setPos(GFileOffset pos, int dir)
+void EmbedStream::setPos(off_t pos, int dir)
 {
     error(errInternal, -1, "Called setPos() on EmbedStream");
 }
 
-GFileOffset EmbedStream::getStart()
+off_t EmbedStream::getStart()
 {
     error(errInternal, -1, "Called getStart() on EmbedStream");
     return 0;

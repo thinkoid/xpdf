@@ -3,10 +3,16 @@
 
 #include <defs.hh>
 
+#include <pwd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <cstring>
 #include <cstdio>
 #include <cctype>
 
+#include <fstream>
 #include <list>
 #include <string>
 
@@ -39,6 +45,22 @@
 #define unicodeToUnicodeCacheSize 4
 
 //------------------------------------------------------------------------
+
+static fs::path home_path()
+{
+    if (const char *s = getenv("HOME")) {
+        return fs::path(s);
+    } else {
+        struct passwd *p = 0;
+
+        if (const char *s = getenv("USER"))
+            p = getpwnam(s);
+        else
+            p = getpwuid(getuid());
+
+        return p ? fs::path(p->pw_dir) : fs::path(".");
+    }
+}
 
 static struct
 {
@@ -93,7 +115,9 @@ struct Base14FontInfo
         fontNum = fontNumA;
         oblique = obliqueA;
     }
+
     ~Base14FontInfo() { delete fileName; }
+
     GString *fileName;
     int      fontNum;
     double   oblique;
@@ -354,7 +378,7 @@ GlobalParams::GlobalParams(const char *cfgFileName)
         }
     }
 
-    baseDir = xpdf::home_path() / ".xpdf";
+    baseDir = home_path() / ".xpdf";
 
     nameToUnicode = new NameToCharCode();
     cidToUnicodes = new GHash(true);
@@ -486,14 +510,14 @@ GlobalParams::GlobalParams(const char *cfgFileName)
     }
 
     if (!pf) {
-        p = fs::path(xpdf::home_path() / XPDF_XPDFRC);
+        p = home_path() / ".xpdfrc";
 
         if (fs::exists(p) && fs::is_regular_file(p))
             pf.reset(fopen(p.c_str(), "r"));
     }
 
     if (0 == pf) {
-        p = fs::path(XPDF_SYSTEM_XPDFRC);
+        p = "/etc/xpdfrc";
 
         if (fs::exists(p) && fs::is_regular_file(p))
             pf.reset(fopen(p.c_str(), "r"));
@@ -579,40 +603,37 @@ void GlobalParams::createDefaultKeyBindings()
 
 void GlobalParams::parseFile(GString *fileName, FILE *f)
 {
-    int  line;
-    char buf[512];
+    size_t lineno = 1;
 
-    line = 1;
-    while (getLine(buf, sizeof(buf) - 1, f)) {
-        parseLine(buf, fileName, line);
-        ++line;
-    }
+    std::ifstream stream(fileName->c_str());
+
+    for (std::string line; std::getline(stream, line); ++lineno)
+        parseLine(line, fileName, lineno);
 }
 
-void GlobalParams::parseLine(char *buf, GString *fileName, int line)
+void GlobalParams::parseLine(const std::string &line, GString *fileName, int lineno)
 {
     GList *  tokens;
     GString *cmd, *incFile;
-    char *   p1, *p2;
     FILE *   f2;
 
     // break the line into tokens
     tokens = new GList();
-    p1 = buf;
+    const char *p1 = line.c_str(), *p2;
+
     while (*p1) {
-        for (; *p1 && isspace(*p1); ++p1)
-            ;
-        if (!*p1) {
+        for (; *p1 && isspace(*p1); ++p1) ;
+
+        if (!*p1)
             break;
-        }
+
         if (*p1 == '"' || *p1 == '\'') {
-            for (p2 = p1 + 1; *p2 && *p2 != *p1; ++p2)
-                ;
+            for (p2 = p1 + 1; *p2 && *p2 != *p1; ++p2) ;
             ++p1;
         } else {
-            for (p2 = p1 + 1; *p2 && !isspace(*p2); ++p2)
-                ;
+            for (p2 = p1 + 1; *p2 && !isspace(*p2); ++p2) ;
         }
+
         tokens->append(new GString(p1, (int)(p2 - p1)));
         p1 = *p2 ? p2 + 1 : p2;
     }
@@ -623,181 +644,181 @@ void GlobalParams::parseLine(char *buf, GString *fileName, int line)
         if (!cmd->cmp("include")) {
             if (tokens->getLength() == 2) {
                 incFile = (GString *)tokens->get(1);
-                if ((f2 = openFile(incFile->c_str(), "r"))) {
+                if (f2 = fopen(incFile->c_str(), "r")) {
                     parseFile(incFile, f2);
                     fclose(f2);
                 } else {
                     error(errConfig, -1,
                           "Couldn't find included config file: '{0:t}' "
                           "({1:t}:{2:d})",
-                          incFile, fileName, line);
+                          incFile, fileName, lineno);
                 }
             } else {
                 error(errConfig, -1,
                       "Bad 'include' config file command ({0:t}:{1:d})", fileName,
-                      line);
+                      lineno);
             }
         } else if (!cmd->cmp("nameToUnicode")) {
-            parseNameToUnicode(tokens, fileName, line);
+            parseNameToUnicode(tokens, fileName, lineno);
         } else if (!cmd->cmp("cidToUnicode")) {
-            parseCIDToUnicode(tokens, fileName, line);
+            parseCIDToUnicode(tokens, fileName, lineno);
         } else if (!cmd->cmp("unicodeToUnicode")) {
-            parseUnicodeToUnicode(tokens, fileName, line);
+            parseUnicodeToUnicode(tokens, fileName, lineno);
         } else if (!cmd->cmp("unicodeMap")) {
-            parseUnicodeMap(tokens, fileName, line);
+            parseUnicodeMap(tokens, fileName, lineno);
         } else if (!cmd->cmp("cMapDir")) {
-            parseCMapDir(tokens, fileName, line);
+            parseCMapDir(tokens, fileName, lineno);
         } else if (!cmd->cmp("toUnicodeDir")) {
-            parseToUnicodeDir(tokens, fileName, line);
+            parseToUnicodeDir(tokens, fileName, lineno);
         } else if (!cmd->cmp("fontFile")) {
-            parseFontFile(tokens, fileName, line);
+            parseFontFile(tokens, fileName, lineno);
         } else if (!cmd->cmp("fontDir")) {
-            parseFontDir(tokens, fileName, line);
+            parseFontDir(tokens, fileName, lineno);
         } else if (!cmd->cmp("fontFileCC")) {
-            parseFontFileCC(tokens, fileName, line);
+            parseFontFileCC(tokens, fileName, lineno);
         } else if (!cmd->cmp("psFile")) {
-            parsePSFile(tokens, fileName, line);
+            parsePSFile(tokens, fileName, lineno);
         } else if (!cmd->cmp("psPaperSize")) {
-            parsePSPaperSize(tokens, fileName, line);
+            parsePSPaperSize(tokens, fileName, lineno);
         } else if (!cmd->cmp("psImageableArea")) {
-            parsePSImageableArea(tokens, fileName, line);
+            parsePSImageableArea(tokens, fileName, lineno);
         } else if (!cmd->cmp("psCrop")) {
-            parseYesNo("psCrop", &psCrop, tokens, fileName, line);
+            parseYesNo("psCrop", &psCrop, tokens, fileName, lineno);
         } else if (!cmd->cmp("psUseCropBoxAsPage")) {
             parseYesNo("psUseCropBoxAsPage", &psUseCropBoxAsPage, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("psExpandSmaller")) {
             parseYesNo("psExpandSmaller", &psExpandSmaller, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("psShrinkLarger")) {
-            parseYesNo("psShrinkLarger", &psShrinkLarger, tokens, fileName, line);
+            parseYesNo("psShrinkLarger", &psShrinkLarger, tokens, fileName, lineno);
         } else if (!cmd->cmp("psCenter")) {
-            parseYesNo("psCenter", &psCenter, tokens, fileName, line);
+            parseYesNo("psCenter", &psCenter, tokens, fileName, lineno);
         } else if (!cmd->cmp("psDuplex")) {
-            parseYesNo("psDuplex", &psDuplex, tokens, fileName, line);
+            parseYesNo("psDuplex", &psDuplex, tokens, fileName, lineno);
         } else if (!cmd->cmp("psLevel")) {
-            parsePSLevel(tokens, fileName, line);
+            parsePSLevel(tokens, fileName, lineno);
         } else if (!cmd->cmp("psResidentFont")) {
-            parsePSResidentFont(tokens, fileName, line);
+            parsePSResidentFont(tokens, fileName, lineno);
         } else if (!cmd->cmp("psResidentFont16")) {
-            parsePSResidentFont16(tokens, fileName, line);
+            parsePSResidentFont16(tokens, fileName, lineno);
         } else if (!cmd->cmp("psResidentFontCC")) {
-            parsePSResidentFontCC(tokens, fileName, line);
+            parsePSResidentFontCC(tokens, fileName, lineno);
         } else if (!cmd->cmp("psEmbedType1Fonts")) {
-            parseYesNo("psEmbedType1", &psEmbedType1, tokens, fileName, line);
+            parseYesNo("psEmbedType1", &psEmbedType1, tokens, fileName, lineno);
         } else if (!cmd->cmp("psEmbedTrueTypeFonts")) {
             parseYesNo("psEmbedTrueType", &psEmbedTrueType, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("psEmbedCIDPostScriptFonts")) {
             parseYesNo("psEmbedCIDPostScript", &psEmbedCIDPostScript, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("psEmbedCIDTrueTypeFonts")) {
             parseYesNo("psEmbedCIDTrueType", &psEmbedCIDTrueType, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("psFontPassthrough")) {
             parseYesNo("psFontPassthrough", &psFontPassthrough, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("psPreload")) {
-            parseYesNo("psPreload", &psPreload, tokens, fileName, line);
+            parseYesNo("psPreload", &psPreload, tokens, fileName, lineno);
         } else if (!cmd->cmp("psOPI")) {
-            parseYesNo("psOPI", &psOPI, tokens, fileName, line);
+            parseYesNo("psOPI", &psOPI, tokens, fileName, lineno);
         } else if (!cmd->cmp("psASCIIHex")) {
-            parseYesNo("psASCIIHex", &psASCIIHex, tokens, fileName, line);
+            parseYesNo("psASCIIHex", &psASCIIHex, tokens, fileName, lineno);
         } else if (!cmd->cmp("psLZW")) {
-            parseYesNo("psLZW", &psLZW, tokens, fileName, line);
+            parseYesNo("psLZW", &psLZW, tokens, fileName, lineno);
         } else if (!cmd->cmp("psUncompressPreloadedImages")) {
             parseYesNo("psUncompressPreloadedImages",
-                       &psUncompressPreloadedImages, tokens, fileName, line);
-        } else if (!cmd->cmp("psMinLineWidth")) {
-            parseFloat("psMinLineWidth", &psMinLineWidth, tokens, fileName, line);
+                       &psUncompressPreloadedImages, tokens, fileName, lineno);
+        } else if (!cmd->cmp("psMinLinenoWidth")) {
+            parseFloat("psMinLineWidth", &psMinLineWidth, tokens, fileName, lineno);
         } else if (!cmd->cmp("psRasterResolution")) {
             parseFloat("psRasterResolution", &psRasterResolution, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("psRasterMono")) {
-            parseYesNo("psRasterMono", &psRasterMono, tokens, fileName, line);
+            parseYesNo("psRasterMono", &psRasterMono, tokens, fileName, lineno);
         } else if (!cmd->cmp("psRasterSliceSize")) {
             parseInteger("psRasterSliceSize", &psRasterSliceSize, tokens,
-                         fileName, line);
+                         fileName, lineno);
         } else if (!cmd->cmp("textEncoding")) {
-            parseTextEncoding(tokens, fileName, line);
+            parseTextEncoding(tokens, fileName, lineno);
         } else if (!cmd->cmp("textEOL")) {
-            parseTextEOL(tokens, fileName, line);
+            parseTextEOL(tokens, fileName, lineno);
         } else if (!cmd->cmp("textPageBreaks")) {
-            parseYesNo("textPageBreaks", &textPageBreaks, tokens, fileName, line);
+            parseYesNo("textPageBreaks", &textPageBreaks, tokens, fileName, lineno);
         } else if (!cmd->cmp("textKeepTinyChars")) {
             parseYesNo("textKeepTinyChars", &textKeepTinyChars, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("initialZoom")) {
-            parseInitialZoom(tokens, fileName, line);
+            parseInitialZoom(tokens, fileName, lineno);
         } else if (!cmd->cmp("continuousView")) {
-            parseYesNo("continuousView", &continuousView, tokens, fileName, line);
+            parseYesNo("continuousView", &continuousView, tokens, fileName, lineno);
         } else if (!cmd->cmp("enableFreeType")) {
-            parseYesNo("enableFreeType", &enableFreeType, tokens, fileName, line);
+            parseYesNo("enableFreeType", &enableFreeType, tokens, fileName, lineno);
         } else if (!cmd->cmp("disableFreeTypeHinting")) {
             parseYesNo("disableFreeTypeHinting", &disableFreeTypeHinting, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("antialias")) {
-            parseYesNo("antialias", &antialias, tokens, fileName, line);
+            parseYesNo("antialias", &antialias, tokens, fileName, lineno);
         } else if (!cmd->cmp("vectorAntialias")) {
             parseYesNo("vectorAntialias", &vectorAntialias, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("antialiasPrinting")) {
             parseYesNo("antialiasPrinting", &antialiasPrinting, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("strokeAdjust")) {
-            parseYesNo("strokeAdjust", &strokeAdjust, tokens, fileName, line);
+            parseYesNo("strokeAdjust", &strokeAdjust, tokens, fileName, lineno);
         } else if (!cmd->cmp("screenType")) {
-            parseScreenType(tokens, fileName, line);
+            parseScreenType(tokens, fileName, lineno);
         } else if (!cmd->cmp("screenSize")) {
-            parseInteger("screenSize", &screenSize, tokens, fileName, line);
+            parseInteger("screenSize", &screenSize, tokens, fileName, lineno);
         } else if (!cmd->cmp("screenDotRadius")) {
             parseInteger("screenDotRadius", &screenDotRadius, tokens, fileName,
-                         line);
+                         lineno);
         } else if (!cmd->cmp("screenGamma")) {
-            parseFloat("screenGamma", &screenGamma, tokens, fileName, line);
+            parseFloat("screenGamma", &screenGamma, tokens, fileName, lineno);
         } else if (!cmd->cmp("screenBlackThreshold")) {
             parseFloat("screenBlackThreshold", &screenBlackThreshold, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("screenWhiteThreshold")) {
             parseFloat("screenWhiteThreshold", &screenWhiteThreshold, tokens,
-                       fileName, line);
-        } else if (!cmd->cmp("minLineWidth")) {
-            parseFloat("minLineWidth", &minLineWidth, tokens, fileName, line);
+                       fileName, lineno);
+        } else if (!cmd->cmp("minLinenoWidth")) {
+            parseFloat("minLineWidth", &minLineWidth, tokens, fileName, lineno);
         } else if (!cmd->cmp("drawAnnotations")) {
             parseYesNo("drawAnnotations", &drawAnnotations, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("overprintPreview")) {
             parseYesNo("overprintPreview", &overprintPreview, tokens, fileName,
-                       line);
+                       lineno);
         } else if (!cmd->cmp("launchCommand")) {
-            parseCommand("launchCommand", &launchCommand, tokens, fileName, line);
+            parseCommand("launchCommand", &launchCommand, tokens, fileName, lineno);
         } else if (!cmd->cmp("urlCommand")) {
-            parseCommand("urlCommand", &urlCommand, tokens, fileName, line);
+            parseCommand("urlCommand", &urlCommand, tokens, fileName, lineno);
         } else if (!cmd->cmp("movieCommand")) {
-            parseCommand("movieCommand", &movieCommand, tokens, fileName, line);
+            parseCommand("movieCommand", &movieCommand, tokens, fileName, lineno);
         } else if (!cmd->cmp("mapNumericCharNames")) {
             parseYesNo("mapNumericCharNames", &mapNumericCharNames, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("mapUnknownCharNames")) {
             parseYesNo("mapUnknownCharNames", &mapUnknownCharNames, tokens,
-                       fileName, line);
+                       fileName, lineno);
         } else if (!cmd->cmp("mapExtTrueTypeFontsViaUnicode")) {
             parseYesNo("mapExtTrueTypeFontsViaUnicode",
-                       &mapExtTrueTypeFontsViaUnicode, tokens, fileName, line);
+                       &mapExtTrueTypeFontsViaUnicode, tokens, fileName, lineno);
         } else if (!cmd->cmp("enableXFA")) {
-            parseYesNo("enableXFA", &enableXFA, tokens, fileName, line);
+            parseYesNo("enableXFA", &enableXFA, tokens, fileName, lineno);
         } else if (!cmd->cmp("bind")) {
-            parseBind(tokens, fileName, line);
+            parseBind(tokens, fileName, lineno);
         } else if (!cmd->cmp("unbind")) {
-            parseUnbind(tokens, fileName, line);
+            parseUnbind(tokens, fileName, lineno);
         } else if (!cmd->cmp("printCommands")) {
-            parseYesNo("printCommands", &printCommands, tokens, fileName, line);
+            parseYesNo("printCommands", &printCommands, tokens, fileName, lineno);
         } else if (!cmd->cmp("errQuiet")) {
-            parseYesNo("errQuiet", &errQuiet, tokens, fileName, line);
+            parseYesNo("errQuiet", &errQuiet, tokens, fileName, lineno);
         } else {
             error(errConfig, -1,
                   "Unknown config file command '{0:t}' ({1:t}:{2:d})", cmd,
-                  fileName, line);
+                  fileName, lineno);
             if (!cmd->cmp("displayFontX") || !cmd->cmp("displayNamedCIDFontX") ||
                 !cmd->cmp("displayCIDFontX")) {
                 error(errConfig, -1, "Xpdf no longer supports X fonts");
@@ -819,40 +840,43 @@ void GlobalParams::parseLine(char *buf, GString *fileName, int line)
     deleteGList(tokens, GString);
 }
 
-void GlobalParams::parseNameToUnicode(GList *tokens, GString *fileName, int line)
+void GlobalParams::parseNameToUnicode(GList *tokens, GString *fileName, int lineno)
 {
     GString *name;
-    char *   tok1, *tok2;
-    FILE *   f;
-    char     buf[256];
-    int      line2;
-    Unicode  u;
 
     if (tokens->getLength() != 2) {
         error(errConfig, -1,
               "Bad 'nameToUnicode' config file command ({0:t}:{1:d})", fileName,
-              line);
+              lineno);
         return;
     }
+
     name = (GString *)tokens->get(1);
-    if (!(f = openFile(name->c_str(), "r"))) {
+
+    std::ifstream stream(name->c_str());
+
+    if (!stream.is_open()) {
         error(errConfig, -1, "Couldn't open 'nameToUnicode' file '{0:t}'", name);
         return;
     }
-    line2 = 1;
-    while (getLine(buf, sizeof(buf), f)) {
-        tok1 = strtok(buf, " \t\r\n");
-        tok2 = strtok(NULL, " \t\r\n");
-        if (tok1 && tok2) {
-            sscanf(tok1, "%x", &u);
-            nameToUnicode->add(tok2, u);
-        } else {
+
+    lineno = 1;
+    for (std::string line; std::getline(stream, line); ++lineno) {
+        auto tokens = xpdf::split(line);
+
+        if (2 != tokens.size()) {
             error(errConfig, -1, "Bad line in 'nameToUnicode' file ({0:t}:{1:d})",
-                  name, line2);
+                  name, lineno);
+            continue;
         }
-        ++line2;
+
+        const char *tok1 = tokens[0].c_str(), *tok2 = tokens[1].c_str();
+
+        Unicode  u;
+        sscanf(tok1, "%x", &u);
+
+        nameToUnicode->add(tok2, u);
     }
-    fclose(f);
 }
 
 void GlobalParams::parseCIDToUnicode(GList *tokens, GString *fileName, int line)
@@ -1552,54 +1576,44 @@ void GlobalParams::setBaseDir(const char *dir)
 
 void GlobalParams::setupBaseFonts(char *dir)
 {
-    GString *       fontName;
-    GString *       fileName;
-    int             fontNum;
     const char *    s;
     Base14FontInfo *base14;
-    FILE *          f;
     int             i, j;
 
     for (i = 0; displayFontTab[i].name; ++i) {
-        if (fontFiles->lookup(displayFontTab[i].name)) {
+        if (fontFiles->lookup(displayFontTab[i].name))
             continue;
-        }
-        fontName = new GString(displayFontTab[i].name);
-        fileName = NULL;
-        fontNum = 0;
-        if (dir) {
-            fileName =
-                appendToPath(new GString(dir), displayFontTab[i].t1FileName);
-            if ((f = fopen(fileName->c_str(), "rb"))) {
-                fclose(f);
+
+        if (dir && dir[0]) {
+            auto path = fs::path(dir) / displayFontTab[i].t1FileName;
+
+            if (fs::exists(path)) {
+                // TODO : base14SysFonts management
+                base14SysFonts->add(
+                    new GString(displayFontTab[i].name),
+                    new Base14FontInfo(new GString(path.c_str()), 0, 0));
             } else {
-                delete fileName;
-                fileName = NULL;
-            }
-        }
-        // On Linux, this checks the "standard" ghostscript font
-        // directories.  On Windows, it checks the "standard" system font
-        // directories (because SHGetSpecialFolderPath(CSIDL_FONTS)
-        // doesn't work on Win 2k Server or Win2003 Server, or with older
-        // versions of shell32.dll).
-        s = displayFontTab[i].t1FileName;
-        if (!fileName && s) {
-            for (j = 0; !fileName && displayFontDirs[j]; ++j) {
-                fileName = appendToPath(new GString(displayFontDirs[j]), s);
-                if ((f = fopen(fileName->c_str(), "rb"))) {
-                    fclose(f);
-                } else {
-                    delete fileName;
-                    fileName = NULL;
+                // Checks the "standard" ghostscript font directories(Linux):
+                s = displayFontTab[i].t1FileName;
+
+                if (s && s[0]) {
+                    for (size_t i = 0; displayFontDirs[i]; ++i) {
+                        auto path = fs::path(displayFontDirs[j]) / s;
+
+                        if (fs::exists(path)) {
+                            // TODO : base14SysFonts management
+                            base14SysFonts->add(
+                                new GString(displayFontTab[i].name),
+                                new Base14FontInfo(new GString(path.c_str()), 0, 0));
+
+                            break;
+                        }
+                    }
                 }
             }
         }
-        if (!fileName) {
-            delete fontName;
-            continue;
-        }
-        base14SysFonts->add(fontName, new Base14FontInfo(fileName, fontNum, 0));
     }
+
     for (i = 0; displayFontTab[i].name; ++i) {
         if (!base14SysFonts->lookup(displayFontTab[i].name) &&
             !fontFiles->lookup(displayFontTab[i].name)) {
@@ -1650,86 +1664,66 @@ UnicodeMap *GlobalParams::getResidentUnicodeMap(GString *encodingName)
     return map;
 }
 
-FILE *GlobalParams::getUnicodeMapFile(GString *encodingName)
+GString *GlobalParams::getUnicodeMapFile(GString *encodingName)
 {
-    GString *fileName;
-    FILE *   f;
-
-    if ((fileName = (GString *)unicodeMaps->lookup(encodingName))) {
-        f = openFile(fileName->c_str(), "r");
-    } else {
-        f = NULL;
-    }
-    return f;
+    return (GString *)unicodeMaps->lookup(encodingName);
 }
 
 FILE *GlobalParams::findCMapFile(GString *collection, GString *cMapName)
 {
     GList *  list;
-    GString *dir;
-    GString *fileName;
-    FILE *   f;
-    int      i;
 
-    if (!(list = (GList *)cMapDirs->lookup(collection))) {
-        return NULL;
+    if (!(list = (GList *)cMapDirs->lookup(collection)))
+        return 0;
+
+    for (int i = 0; i < list->getLength(); ++i) {
+        GString *dir = (GString *)list->get(i);
+
+        auto path = fs::path(dir->c_str(), cMapName->c_str());
+
+        if (FILE *pf = fopen(path.c_str(), "r"))
+            return pf;
     }
-    for (i = 0; i < list->getLength(); ++i) {
-        dir = (GString *)list->get(i);
-        fileName = appendToPath(dir->copy(), cMapName->c_str());
-        f = openFile(fileName->c_str(), "r");
-        delete fileName;
-        if (f) {
-            return f;
-        }
-    }
-    return NULL;
+
+    return 0;
 }
 
 FILE *GlobalParams::findToUnicodeFile(GString *name)
 {
-    GString *dir, *fileName;
-    FILE *   f;
-    int      i;
+    for (int i = 0; i < toUnicodeDirs->getLength(); ++i) {
+        GString *dir = (GString *)toUnicodeDirs->get(i);
 
-    for (i = 0; i < toUnicodeDirs->getLength(); ++i) {
-        dir = (GString *)toUnicodeDirs->get(i);
-        fileName = appendToPath(dir->copy(), name->c_str());
-        f = openFile(fileName->c_str(), "r");
-        delete fileName;
-        if (f) {
-            return f;
-        }
+        auto path = fs::path(dir->c_str(), name->c_str());
+
+        if (FILE *pf = fopen(path.c_str(), "r"))
+            return pf;
     }
-    return NULL;
+
+    return 0;
 }
 
 GString *GlobalParams::findFontFile(GString *fontName)
 {
-    static const char *exts[] = { ".pfa", ".pfb", ".ttf", ".ttc" };
-    GString *          path, *dir;
-    const char *       ext;
-    FILE *             f;
-    int                i, j;
+    static const char *exts[] = { ".pfa", ".pfb", ".ttf", ".ttc", 0 };
 
-    if ((path = (GString *)fontFiles->lookup(fontName))) {
-        path = path->copy();
-        return path;
-    }
-    for (i = 0; i < fontDirs->getLength(); ++i) {
-        dir = (GString *)fontDirs->get(i);
-        for (j = 0; j < (int)(sizeof(exts) / sizeof(exts[0])); ++j) {
-            ext = exts[j];
-            path = appendToPath(dir->copy(), fontName->c_str());
-            path->append(ext);
-            if ((f = openFile(path->c_str(), "rb"))) {
-                fclose(f);
-                return path;
-            }
-            delete path;
+    if (GString *path = (GString *)fontFiles->lookup(fontName))
+        return path->copy();
+
+    for (int i = 0; i < fontDirs->getLength(); ++i) {
+        GString *dir = (GString *)fontDirs->get(i);
+
+        for (size_t j = 0; j < sizeof exts / sizeof *exts; ++j) {
+            const char *ext = exts[j];
+
+            auto path = fs::path(dir->c_str()) / fontName->c_str();
+            path += ext;
+
+            if (fs::exists(path))
+                return new GString(path.c_str());
         }
     }
-    return NULL;
+
+    return 0;
 }
 
 GString *GlobalParams::findBase14FontFile(GString *fontName, int *fontNum,

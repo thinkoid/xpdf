@@ -375,8 +375,8 @@ struct obj_t
     int         streamLookChar();
     int         streamGetBlock(char *blk, int size);
     char *      streamGetLine(char *buf, int size);
-    GFileOffset streamGetPos();
-    void        streamSetPos(GFileOffset pos, int dir = 0);
+    off_t streamGetPos();
+    void        streamSetPos(off_t pos, int dir = 0);
     Dict *      streamGetDict();
 
     //

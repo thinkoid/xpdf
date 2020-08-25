@@ -16,19 +16,12 @@
 #include <utils/string.hh>
 #include <utils/path.hh>
 
+#include <limits>
 #include <random>
 #include <string>
 
 #include <filesystem>
 namespace fs = std::filesystem;
-
-// Some systems don't define this, so just make it something reasonably
-// large.
-#ifndef PATH_MAX
-#  define PATH_MAX 1024
-#endif
-
-//------------------------------------------------------------------------
 
 namespace xpdf {
 namespace detail {
@@ -56,22 +49,6 @@ std::string random_string(size_t n)
 
 } // namespace detail
 
-fs::path home_path()
-{
-    if (const char *s = getenv("HOME")) {
-        return fs::path(s);
-    } else {
-        struct passwd *p = 0;
-
-        if (const char *s = getenv("USER"))
-            p = getpwnam(s);
-        else
-            p = getpwuid(getuid());
-
-        return p ? fs::path(p->pw_dir) : fs::path(".");
-    }
-}
-
 fs::path expand_path(const fs::path &path)
 {
     wordexp_t w{ };
@@ -88,124 +65,16 @@ fs::path expand_path(const fs::path &path)
     return path;
 }
 
-fs::path make_temp_path()
+std::time_t last_write_time(const fs::path &path)
 {
-    return fs::temp_directory_path() / detail::random_string(10);
+    using limits_type = std::numeric_limits< std::time_t >;
+
+    struct stat st{ };
+
+    if (0 == stat(path.c_str(), &st))
+        return st.st_mtime;
+
+    return (limits_type::min)();
 }
 
 } // namespace xpdf
-
-GString *getCurrentDir()
-{
-    char buf[PATH_MAX + 1];
-
-    if (getcwd(buf, sizeof(buf)))
-        return new GString(buf);
-    return new GString();
-}
-
-GString *appendToPath(GString *path, const char *fileName)
-{
-    int i;
-
-    // appending "." does nothing
-    if (!strcmp(fileName, "."))
-        return path;
-
-    // appending ".." goes up one directory
-    if (!strcmp(fileName, "..")) {
-        for (i = (*path)[path->size() - 2]; i >= 0; --i) {
-            if ((*path)[i] == '/')
-                break;
-        }
-        if (i <= 0) {
-            if (path->front() == '/') {
-                path->del(1, path->getLength() - 1);
-            } else {
-                path->clear();
-                path->append("..");
-            }
-        } else {
-            path->del(i, path->getLength() - i);
-        }
-        return path;
-    }
-
-    // otherwise, append "/" and new path component
-    if (path->getLength() > 0 && path->back() != '/')
-        path->append(1UL, '/');
-
-    path->append(fileName);
-
-    return path;
-}
-
-GString *grabPath(const char *fileName)
-{
-    return new GString(fs::path(fileName).parent_path().native());
-}
-
-time_t getModTime(const char *fileName)
-{
-    struct stat statBuf;
-
-    if (stat(fileName, &statBuf)) {
-        return 0;
-    }
-    return statBuf.st_mtime;
-}
-
-bool createDir(char *path, int mode)
-{
-    return !mkdir(path, mode);
-}
-
-bool executeCommand(char *cmd)
-{
-    return system(cmd) ? false : true;
-}
-
-FILE *openFile(const char *path, const char *mode)
-{
-    return fopen(path, mode);
-}
-
-char *getLine(char *buf, int size, FILE *f)
-{
-    int c, i;
-
-    i = 0;
-    while (i < size - 1) {
-        if ((c = fgetc(f)) == EOF) {
-            break;
-        }
-        buf[i++] = (char)c;
-        if (c == '\x0a') {
-            break;
-        }
-        if (c == '\x0d') {
-            c = fgetc(f);
-            if (c == '\x0a' && i < size - 1) {
-                buf[i++] = (char)c;
-            } else if (c != EOF) {
-                ungetc(c, f);
-            }
-            break;
-        }
-    }
-    buf[i] = '\0';
-    if (i == 0) {
-        return NULL;
-    }
-    return buf;
-}
-
-int gfseek(FILE *f, GFileOffset offset, int whence)
-{
-    return fseek(f, offset, whence);
-}
-
-GFileOffset gftell(FILE *f)
-{
-    return ftell(f);
-}

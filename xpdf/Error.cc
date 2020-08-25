@@ -29,7 +29,7 @@ void setErrorCallback(void (*cbk)(void *data, ErrorCategory category, int pos,
     errorCbkData = data;
 }
 
-void error(ErrorCategory category, GFileOffset pos, const char *msg, ...)
+void error(ErrorCategory category, off_t pos, const char *msg, ...)
 {
     va_list  args;
     GString *s, *sanitized;

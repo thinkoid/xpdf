@@ -134,12 +134,12 @@ char *obj_t::streamGetLine(char *buf, int size)
     return as_stream()->getLine(buf, size);
 }
 
-GFileOffset obj_t::streamGetPos()
+off_t obj_t::streamGetPos()
 {
     return as_stream()->getPos();
 }
 
-void obj_t::streamSetPos(GFileOffset pos, int dir)
+void obj_t::streamSetPos(off_t pos, int dir)
 {
     as_stream()->setPos(pos, dir);
 }

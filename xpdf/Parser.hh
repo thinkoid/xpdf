@@ -33,7 +33,7 @@ public:
     Stream *as_stream() { return lexer->as_stream(); }
 
     // Get current position in file.
-    GFileOffset getPos() { return lexer->getPos(); }
+    off_t getPos() { return lexer->getPos(); }
 
 private:
     XRef *xref; // the xref table for this PDF file

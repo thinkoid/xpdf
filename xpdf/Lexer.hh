@@ -62,10 +62,10 @@ struct Lexer
     }
 
     // Get current position in file.
-    GFileOffset getPos() { return curStr.is_none() ? -1 : curStr.streamGetPos(); }
+    off_t getPos() { return curStr.is_none() ? -1 : curStr.streamGetPos(); }
 
     // Set position in file.
-    void setPos(GFileOffset pos, int dir = 0)
+    void setPos(off_t pos, int dir = 0)
     {
         if (!curStr.is_none())
             curStr.streamSetPos(pos, dir);

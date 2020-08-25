@@ -211,7 +211,7 @@ private:
     bool        execOp(Object *cmd, Object args[], int numArgs);
     Operator *  findOp(const char *name);
     bool        checkArg(Object *arg, typeCheckType type);
-    GFileOffset getPos();
+    off_t getPos();
 
     // graphics state operators
     void opSave(Object args[], int numArgs);

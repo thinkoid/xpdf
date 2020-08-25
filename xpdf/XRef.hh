@@ -23,7 +23,7 @@ enum XRefEntryType { xrefEntryFree, xrefEntryUncompressed, xrefEntryCompressed }
 
 struct XRefEntry
 {
-    GFileOffset   offset;
+    off_t   offset;
     int           gen;
     XRefEntryType type;
 };
@@ -100,7 +100,7 @@ public:
     int getNumObjects() { return last + 1; }
 
     // Return the offset of the last xref table.
-    GFileOffset getLastXRefPos() { return lastXRefPos; }
+    off_t getLastXRefPos() { return lastXRefPos; }
 
     // Return the catalog object reference.
     int getRootNum() { return rootNum; }
@@ -108,7 +108,7 @@ public:
 
     // Get end position for a stream in a damaged file.
     // Returns false if unknown or file is not damaged.
-    bool getStreamEnd(GFileOffset streamStart, GFileOffset *streamEnd);
+    bool getStreamEnd(off_t streamStart, off_t *streamEnd);
 
     // Direct access.
     int getSize() { return size; }
@@ -117,7 +117,7 @@ public:
 
 private:
     BaseStream *str; // input stream
-    GFileOffset start; // offset in file (to allow for garbage
+    off_t start; // offset in file (to allow for garbage
         //   at beginning of file)
     XRefEntry *  entries; // xref entries
     int          size; // size of <entries> array
@@ -126,8 +126,8 @@ private:
     bool         ok; // true if xref table is valid
     int          errCode; // error code (if <ok> is false)
     Object       trailerDict; // trailer dictionary
-    GFileOffset  lastXRefPos; // offset of last xref table
-    GFileOffset *streamEnds; // 'endstream' positions - only used in
+    off_t  lastXRefPos; // offset of last xref table
+    off_t *streamEnds; // 'endstream' positions - only used in
         //   damaged files
     int streamEndsLen; // number of valid entries in streamEnds
     ObjectStream * // cached object streams
@@ -140,14 +140,14 @@ private:
     int            encVersion; // encryption version
     CryptAlgorithm encAlgorithm; // encryption algorithm
 
-    GFileOffset getStartXref();
-    bool        readXRef(GFileOffset *pos, XRefPosSet *posSet);
-    bool        readXRefTable(GFileOffset *pos, int offset, XRefPosSet *posSet);
+    off_t getStartXref();
+    bool        readXRef(off_t *pos, XRefPosSet *posSet);
+    bool        readXRefTable(off_t *pos, int offset, XRefPosSet *posSet);
     bool        readXRefStreamSection(Stream *xrefStr, int *w, int first, int n);
-    bool        readXRefStream(Stream *xrefStr, GFileOffset *pos);
+    bool        readXRefStream(Stream *xrefStr, off_t *pos);
     bool        constructXRef();
     ObjectStream *getObjectStream(int objStrNum);
-    GFileOffset   strToFileOffset(char *s);
+    off_t   strToFileOffset(char *s);
 };
 
 #endif // XPDF_XPDF_XREF_HH

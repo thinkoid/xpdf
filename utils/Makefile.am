@@ -10,6 +10,7 @@ libutils_a_SOURCES =                            \
 	path.cc                                     \
 	memory.cc                                   \
 	parseargs.cc                                \
+	string.cc                                   \
 	GHash.cc                                    \
 	GList.cc                                    \
 	GString.cc

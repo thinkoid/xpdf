@@ -6,6 +6,9 @@
 #include <cstdio>
 #include <cstring>
 
+#include <fstream>
+#include <vector>
+
 #include <utils/memory.hh>
 #include <utils/path.hh>
 #include <utils/string.hh>
@@ -71,18 +74,19 @@ static int hexCharVals[256] = {
 
 // Parse a <len>-byte hex string <s> into *<val>.  Returns false on
 // error.
-static bool parseHex(char *s, int len, unsigned *val)
+static bool parseHex(const char *s, size_t len, unsigned *val)
 {
-    int i, x;
-
     *val = 0;
-    for (i = 0; i < len; ++i) {
-        x = hexCharVals[s[i] & 0xff];
-        if (x < 0) {
+
+    for (size_t i = 0; i < len; ++i) {
+        int x = hexCharVals[s[i] & 0xff];
+
+        if (0 > x)
             return false;
-        }
+
         *val = (*val << 4) + x;
     }
+
     return true;
 }
 
@@ -96,135 +100,119 @@ CharCodeToUnicode *CharCodeToUnicode::makeIdentityMapping()
 CharCodeToUnicode *CharCodeToUnicode::parseCIDToUnicode(GString *fileName,
                                                         GString *collection)
 {
-    FILE *             f;
-    Unicode *          mapA;
-    CharCode           size, mapLenA;
-    char               buf[64];
-    Unicode            u;
-    CharCodeToUnicode *ctu;
+    std::vector< Unicode > mapA;
 
-    if (!(f = openFile(fileName->c_str(), "r"))) {
+    std::ifstream stream(fileName->c_str());
+
+    if (!stream.is_open()) {
         error(errSyntaxError, -1, "Couldn't open cidToUnicode file '{0:t}'",
               fileName);
-        return NULL;
+        return 0;
     }
 
-    size = 32768;
-    mapA = (Unicode *)calloc(size, sizeof(Unicode));
-    mapLenA = 0;
+    for (int n; stream >> std::hex >> n; )
+        mapA.push_back(n);
 
-    while (getLine(buf, sizeof(buf), f)) {
-        if (mapLenA == size) {
-            size *= 2;
-            mapA = (Unicode *)reallocarray(mapA, size, sizeof(Unicode));
-        }
-        if (sscanf(buf, "%x", &u) == 1) {
-            mapA[mapLenA] = u;
-        } else {
-            error(errSyntaxWarning, -1,
-                  "Bad line ({0:d}) in cidToUnicode file '{1:t}'",
-                  (int)(mapLenA + 1), fileName);
-            mapA[mapLenA] = 0;
-        }
-        ++mapLenA;
-    }
-    fclose(f);
-
-    ctu = new CharCodeToUnicode(collection->copy(), mapA, mapLenA, true, NULL, 0,
-                                0);
-    free(mapA);
-    return ctu;
+    return new CharCodeToUnicode(
+        collection->copy(), mapA.data(), mapA.size(), true, 0, 0, 0);
 }
 
 CharCodeToUnicode *CharCodeToUnicode::parseUnicodeToUnicode(GString *fileName)
 {
-    FILE *                   f;
     Unicode *                mapA;
     CharCodeToUnicodeString *sMapA;
     CharCode                 size, oldSize, len, sMapSizeA, sMapLenA;
-    char                     buf[256];
-    char *                   tok;
     Unicode                  u0;
     Unicode                  uBuf[maxUnicodeString];
-    CharCodeToUnicode *      ctu;
-    int                      line, n, i;
 
-    if (!(f = openFile(fileName->c_str(), "r"))) {
+    std::ifstream stream(fileName->c_str());
+
+    if (!stream.is_open()) {
         error(errSyntaxError, -1, "Couldn't open unicodeToUnicode file '{0:t}'",
               fileName);
-        return NULL;
+        return 0;
     }
 
     size = 4096;
     mapA = (Unicode *)calloc(size, sizeof(Unicode));
     memset(mapA, 0, size * sizeof(Unicode));
+
     len = 0;
     sMapA = NULL;
     sMapSizeA = sMapLenA = 0;
 
-    line = 0;
-    while (getLine(buf, sizeof(buf), f)) {
-        ++line;
-        if (!(tok = strtok(buf, " \t\r\n")) ||
-            !parseHex(tok, (int)strlen(tok), &u0)) {
+    int lineno = 1;
+    for (std::string line; std::getline(stream, line); ++lineno) {
+        auto tokens = xpdf::split(line);
+        auto iter = tokens.begin(), last = tokens.end();
+
+        if (iter == last || !parseHex(iter->c_str(), iter->size(), &u0)) {
             error(errSyntaxWarning, -1,
-                  "Bad line ({0:d}) in unicodeToUnicode file '{1:t}'", line,
+                  "Bad line ({0:d}) in unicodeToUnicode file '{1:t}'", lineno,
                   fileName);
             continue;
         }
-        n = 0;
-        while (n < maxUnicodeString) {
-            if (!(tok = strtok(NULL, " \t\r\n"))) {
-                break;
-            }
-            if (!parseHex(tok, (int)strlen(tok), &uBuf[n])) {
+
+        size_t n = 0;
+
+        for (++iter; n < maxUnicodeString && iter != last; ++n, ++iter) {
+            auto &tok = *iter;
+
+            if (!parseHex(tok.c_str(), tok.size(), &uBuf[n])) {
                 error(errSyntaxWarning, -1,
-                      "Bad line ({0:d}) in unicodeToUnicode file '{1:t}'", line,
+                      "Bad line ({0:d}) in unicodeToUnicode file '{1:t}'", lineno,
                       fileName);
                 break;
             }
-            ++n;
         }
+
         if (n < 1) {
             error(errSyntaxWarning, -1,
-                  "Bad line ({0:d}) in unicodeToUnicode file '{1:t}'", line,
+                  "Bad line ({0:d}) in unicodeToUnicode file '{1:t}'", lineno,
                   fileName);
             continue;
         }
+
         if (u0 >= size) {
             oldSize = size;
-            while (u0 >= size) {
+
+            while (u0 >= size)
                 size *= 2;
-            }
+
             mapA = (Unicode *)reallocarray(mapA, size, sizeof(Unicode));
             memset(mapA + oldSize, 0, (size - oldSize) * sizeof(Unicode));
         }
+
         if (n == 1) {
             mapA[u0] = uBuf[0];
         } else {
             mapA[u0] = 0;
+
             if (sMapLenA == sMapSizeA) {
                 sMapSizeA += 16;
                 sMapA = (CharCodeToUnicodeString *)reallocarray(
                     sMapA, sMapSizeA, sizeof(CharCodeToUnicodeString));
             }
+
             sMapA[sMapLenA].c = u0;
-            for (i = 0; i < n; ++i) {
+
+            for (size_t i = 0; i < n; ++i)
                 sMapA[sMapLenA].u[i] = uBuf[i];
-            }
+
             sMapA[sMapLenA].len = n;
             ++sMapLenA;
         }
-        if (u0 >= len) {
-            len = u0 + 1;
-        }
-    }
-    fclose(f);
 
-    ctu = new CharCodeToUnicode(fileName->copy(), mapA, len, true, sMapA,
-                                sMapLenA, sMapSizeA);
+        if (u0 >= len)
+            len = u0 + 1;
+    }
+
+    CharCodeToUnicode *tmp = new CharCodeToUnicode(
+        fileName->copy(), mapA, len, true, sMapA, sMapLenA, sMapSizeA);
+
     free(mapA);
-    return ctu;
+
+    return tmp;
 }
 
 CharCodeToUnicode *CharCodeToUnicode::make8BitToUnicode(Unicode *toUnicode)

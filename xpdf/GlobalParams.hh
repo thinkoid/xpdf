@@ -164,7 +164,7 @@ public:
     void setBaseDir(const char *dir);
     void setupBaseFonts(char *dir);
 
-    void parseLine(char *buf, GString *fileName, int line);
+    void parseLine(const std::string &, GString *fileName, int line);
 
     //----- accessors
 
@@ -173,7 +173,9 @@ public:
     GString *   getBaseDir();
     Unicode     mapNameToUnicode(const char *charName);
     UnicodeMap *getResidentUnicodeMap(GString *encodingName);
-    FILE *      getUnicodeMapFile(GString *encodingName);
+
+    GString *getUnicodeMapFile(GString *encodingName);
+
     FILE *      findCMapFile(GString *collection, GString *cMapName);
     FILE *      findToUnicodeFile(GString *name);
     GString *   findFontFile(GString *fontName);

@@ -842,7 +842,7 @@ bool Gfx::checkArg(Object *arg, typeCheckType type)
     return false;
 }
 
-GFileOffset Gfx::getPos()
+off_t Gfx::getPos()
 {
     return parser ? parser->getPos() : -1;
 }
