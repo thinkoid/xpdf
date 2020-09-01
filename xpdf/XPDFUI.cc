@@ -24,7 +24,7 @@
 #include <xpdf/Link.hh>
 #include <xpdf/ErrorCodes.hh>
 #include <xpdf/Outline.hh>
-#include <xpdf/UnicodeMap.hh>
+#include <xpdf/unicode_map.hh>
 
 #define Object XtObject
 #include <xpdf/XPDFTree.hh>
@@ -2729,11 +2729,6 @@ void XPDFUI::updateCbk(void *data, GString *fileName, int pageNum, int numPages,
 
 void XPDFUI::setupOutline()
 {
-    GList *     items;
-    UnicodeMap *uMap;
-    GString *   enc;
-    int         i;
-
     if (outlineScroll == None) {
         return;
     }
@@ -2741,7 +2736,7 @@ void XPDFUI::setupOutline()
     // unmanage and destroy the old labels
     if (outlineLabels) {
         XtUnmanageChildren(outlineLabels, outlineLabelsLength);
-        for (i = 0; i < outlineLabelsLength; ++i) {
+        for (int i = 0; i < outlineLabelsLength; ++i) {
             XtDestroyWidget(outlineLabels[i]);
         }
         free(outlineLabels);
@@ -2751,13 +2746,11 @@ void XPDFUI::setupOutline()
 
     if (core->getDoc()) {
         // create the new labels
-        items = core->getDoc()->getOutline()->getItems();
+        GList *items = core->getDoc()->getOutline()->getItems();
+
         if (items && items->getLength() > 0) {
-            enc = new GString("Latin1");
-            uMap = globalParams->getUnicodeMap(enc);
-            delete enc;
-            setupOutlineItems(items, NULL, uMap);
-            uMap->decRefCnt();
+            if (const auto &uMap = globalParams->getUnicodeMap("Latin1"))
+                setupOutlineItems(items, NULL, uMap);
         }
 
         // manage the new labels
@@ -2765,7 +2758,7 @@ void XPDFUI::setupOutline()
     }
 }
 
-void XPDFUI::setupOutlineItems(GList *items, Widget parent, UnicodeMap *uMap)
+void XPDFUI::setupOutlineItems(GList *items, Widget parent, const xpdf::unicode_map_t &uMap)
 {
     OutlineItem *item;
     GList *      kids;
@@ -2780,7 +2773,7 @@ void XPDFUI::setupOutlineItems(GList *items, Widget parent, UnicodeMap *uMap)
         item = (OutlineItem *)items->get(i);
         title = new GString();
         for (j = 0; j < item->getTitleLength(); ++j) {
-            n = uMap->mapUnicode(item->getTitle()[j], buf, sizeof(buf));
+            n = uMap(item->getTitle()[j], buf, sizeof(buf));
             title->append(buf, n);
         }
         n = 0;

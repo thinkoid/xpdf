@@ -25,26 +25,20 @@
 
 #include <fofi/FoFiIdentifier.hh>
 
-#include <xpdf/Error.hh>
-#include <xpdf/NameToCharCode.hh>
-#include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/UnicodeMap.hh>
-#include <xpdf/CMap.hh>
 #include <xpdf/BuiltinFontTables.hh>
+#include <xpdf/CMap.hh>
+#include <xpdf/CharCodeToUnicode.hh>
+#include <xpdf/Error.hh>
 #include <xpdf/FontEncodingTables.hh>
-
 #include <xpdf/GlobalParams.hh>
-
-#include "NameToUnicodeTable.cc"
-#include "UnicodeMapTables.cc"
-#include "UTF8.cc"
-
-//------------------------------------------------------------------------
+#include <xpdf/NameToCharCode.hh>
+#include <xpdf/NameToUnicodeTable.cc>
+#include <xpdf/unicode_map.hh>
 
 #define cidToUnicodeCacheSize 4
 #define unicodeToUnicodeCacheSize 4
 
-//------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////
 
 static fs::path home_path()
 {
@@ -61,6 +55,8 @@ static fs::path home_path()
         return p ? fs::path(p->pw_dir) : fs::path(".");
     }
 }
+
+////////////////////////////////////////////////////////////////////////
 
 static struct
 {
@@ -364,7 +360,6 @@ KeyBinding::~KeyBinding()
 
 GlobalParams::GlobalParams(const char *cfgFileName)
 {
-    UnicodeMap *map;
     int i;
 
     initBuiltinFontTables();
@@ -383,7 +378,6 @@ GlobalParams::GlobalParams(const char *cfgFileName)
     nameToUnicode = new NameToCharCode();
     cidToUnicodes = new GHash(true);
     unicodeToUnicodes = new GHash(true);
-    residentUnicodeMaps = new GHash();
     unicodeMaps = new GHash(true);
     cMapDirs = new GHash(true);
     toUnicodeDirs = new GList();
@@ -471,7 +465,6 @@ GlobalParams::GlobalParams(const char *cfgFileName)
     cidToUnicodeCache = new CharCodeToUnicodeCache(cidToUnicodeCacheSize);
     unicodeToUnicodeCache = new CharCodeToUnicodeCache(unicodeToUnicodeCacheSize);
 
-    unicodeMapCache = new UnicodeMapCache();
     cMapCache = new CMapCache();
 
     // set up the initial nameToUnicode table
@@ -479,23 +472,17 @@ GlobalParams::GlobalParams(const char *cfgFileName)
         nameToUnicode->add(nameToUnicodeTab[i].name, nameToUnicodeTab[i].u);
     }
 
-    // set up the residentUnicodeMaps table
-    map = new UnicodeMap("Latin1", false, latin1UnicodeMapRanges,
-                         latin1UnicodeMapLen);
-    residentUnicodeMaps->add(map->getEncodingName(), map);
-    map = new UnicodeMap("ASCII7", false, ascii7UnicodeMapRanges,
-                         ascii7UnicodeMapLen);
-    residentUnicodeMaps->add(map->getEncodingName(), map);
-    map = new UnicodeMap("Symbol", false, symbolUnicodeMapRanges,
-                         symbolUnicodeMapLen);
-    residentUnicodeMaps->add(map->getEncodingName(), map);
-    map = new UnicodeMap("ZapfDingbats", false, zapfDingbatsUnicodeMapRanges,
-                         zapfDingbatsUnicodeMapLen);
-    residentUnicodeMaps->add(map->getEncodingName(), map);
-    map = new UnicodeMap("UTF-8", true, &mapUTF8);
-    residentUnicodeMaps->add(map->getEncodingName(), map);
-    map = new UnicodeMap("UCS-2", true, &mapUCS2);
-    residentUnicodeMaps->add(map->getEncodingName(), map);
+#define ADD_MAP(name, type) \
+    residentUnicodeMaps.emplace(name, xpdf::unicode_map_t(type()))
+
+    ADD_MAP(      "Latin1", xpdf::unicode_latin1_map_t);
+    ADD_MAP(      "ASCII7", xpdf::unicode_ascii7_map_t);
+    ADD_MAP(      "Symbol", xpdf::unicode_symbol_map_t);
+    ADD_MAP("ZapfDingbats", xpdf::unicode_dingbats_map_t);
+    ADD_MAP(       "UTF-8", xpdf::unicode_utf8_map_t);
+    ADD_MAP(       "UCS-2", xpdf::unicode_ucs2_map_t);
+
+#undef ADD_MAP
 
     // look for a user config file, then a system-wide config file
     std::unique_ptr< ::FILE, int(*)(::FILE*) > pf(0, ::fclose);
@@ -1528,7 +1515,6 @@ GlobalParams::~GlobalParams()
     delete nameToUnicode;
     deleteGHash(cidToUnicodes, GString);
     deleteGHash(unicodeToUnicodes, GString);
-    deleteGHash(residentUnicodeMaps, UnicodeMap);
     deleteGHash(unicodeMaps, GString);
     deleteGList(toUnicodeDirs, GString);
     deleteGHash(fontFiles, GString);
@@ -1563,7 +1549,6 @@ GlobalParams::~GlobalParams()
 
     delete cidToUnicodeCache;
     delete unicodeToUnicodeCache;
-    delete unicodeMapCache;
     delete cMapCache;
 }
 
@@ -1653,15 +1638,20 @@ Unicode GlobalParams::mapNameToUnicode(const char *charName)
     return nameToUnicode->lookup(charName);
 }
 
-UnicodeMap *GlobalParams::getResidentUnicodeMap(GString *encodingName)
+bool
+GlobalParams::hasResidentUnicodeMap(const char *encoding) const
 {
-    UnicodeMap *map;
+    return residentUnicodeMaps.contains(encoding);
+}
 
-    map = (UnicodeMap *)residentUnicodeMaps->lookup(encodingName);
-    if (map) {
-        map->incRefCnt();
+xpdf::unicode_map_t
+GlobalParams::getResidentUnicodeMap(const char *encoding) const
+{
+    try {
+        return residentUnicodeMaps.at(encoding);
+    } catch(...) {
+        return xpdf::unicode_map_t{ };
     }
-    return map;
 }
 
 GString *GlobalParams::getUnicodeMapFile(GString *encodingName)
@@ -2290,19 +2280,26 @@ CharCodeToUnicode *GlobalParams::getUnicodeToUnicode(GString *fontName)
     return ctu;
 }
 
-UnicodeMap *GlobalParams::getUnicodeMap(GString *encodingName)
+bool
+GlobalParams::hasUnicodeMap(const char *encoding) const
 {
-    return getUnicodeMap2(encodingName);
+    return unicodeMapCache.contains(encoding);
 }
 
-UnicodeMap *GlobalParams::getUnicodeMap2(GString *encodingName)
+xpdf::unicode_map_t
+GlobalParams::getUnicodeMap(const char *encoding) const
 {
-    UnicodeMap *map;
+    return getUnicodeMap2(encoding);
+}
 
-    if (!(map = getResidentUnicodeMap(encodingName))) {
-        map = unicodeMapCache->getUnicodeMap(encodingName);
+xpdf::unicode_map_t
+GlobalParams::getUnicodeMap2(const char *encoding) const
+{
+    try {
+        return unicodeMapCache.at(encoding);
+    } catch(...) {
+        return xpdf::unicode_map_t{ };
     }
-    return map;
 }
 
 CMap *GlobalParams::getCMap(GString *collection, GString *cMapName)
@@ -2313,9 +2310,10 @@ CMap *GlobalParams::getCMap(GString *collection, GString *cMapName)
     return cMap;
 }
 
-UnicodeMap *GlobalParams::getTextEncoding()
+xpdf::unicode_map_t
+GlobalParams::getTextEncoding() const
 {
-    return getUnicodeMap2(textEncoding);
+    return getUnicodeMap2(textEncoding->c_str());
 }
 
 //------------------------------------------------------------------------

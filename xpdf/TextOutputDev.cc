@@ -18,7 +18,6 @@
 #include <utils/string.hh>
 #include <utils/GList.hh>
 
-#include <xpdf/bbox.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>
@@ -27,8 +26,9 @@
 #include <xpdf/TextOutputControl.hh>
 #include <xpdf/TextOutputDev.hh>
 #include <xpdf/TextPage.hh>
-#include <xpdf/UnicodeMap.hh>
 #include <xpdf/UnicodeTypeTable.hh>
+#include <xpdf/bbox.hh>
+#include <xpdf/unicode_map.hh>
 
 #include <range/v3/all.hpp>
 using namespace ranges;

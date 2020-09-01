@@ -51,7 +51,6 @@ libxpdf_a_SOURCES =                             \
 	TextString.cc                               \
 	TextString.cc                               \
 	TextWord.cc                                 \
-	UnicodeMap.cc                               \
 	UnicodeTypeTable.cc                         \
 	XFAForm.cc                                  \
 	XRef.cc                                     \
@@ -59,7 +58,8 @@ libxpdf_a_SOURCES =                             \
 	bitpack.cc                                  \
 	dict.cc                                     \
 	function.cc                                 \
-	obj.cc
+	obj.cc 	                                    \
+	unicode_map.cc
 
 bin_PROGRAMS = xpdf
 

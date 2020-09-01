@@ -8,10 +8,14 @@
 
 #include <cstdio>
 
+#include <map>
+#include <string>
+
 #include <filesystem>
 namespace fs = std::filesystem;
 
 #include <xpdf/CharTypes.hh>
+#include <xpdf/unicode_map.hh>
 
 class GString;
 class GList;
@@ -172,7 +176,11 @@ public:
 
     GString *   getBaseDir();
     Unicode     mapNameToUnicode(const char *charName);
-    UnicodeMap *getResidentUnicodeMap(GString *encodingName);
+
+    xpdf::unicode_map_t
+    getResidentUnicodeMap(const char *) const;
+
+    bool hasResidentUnicodeMap(const char *) const;
 
     GString *getUnicodeMapFile(GString *encodingName);
 
@@ -247,9 +255,13 @@ public:
 
     CharCodeToUnicode *getCIDToUnicode(GString *collection);
     CharCodeToUnicode *getUnicodeToUnicode(GString *fontName);
-    UnicodeMap *       getUnicodeMap(GString *encodingName);
-    CMap *             getCMap(GString *collection, GString *cMapName);
-    UnicodeMap *       getTextEncoding();
+
+    bool hasUnicodeMap(const char *) const;
+    xpdf::unicode_map_t getUnicodeMap(const char *) const;
+
+    CMap *getCMap(GString *collection, GString *cMapName);
+
+    xpdf::unicode_map_t getTextEncoding() const;
 
     //----- functions to set parameters
 
@@ -333,7 +345,8 @@ private:
                       GString *fileName, int line);
     void parseFloat(const char *cmdName, double *val, GList *tokens,
                     GString *fileName, int line);
-    UnicodeMap *getUnicodeMap2(GString *encodingName);
+
+    xpdf::unicode_map_t getUnicodeMap2(const char *) const;
 
     //----- static tables
 
@@ -351,8 +364,9 @@ private:
         //   [GString]
     GHash *unicodeToUnicodes; // files for Unicode-to-Unicode mappings,
         //   indexed by font name pattern [GString]
-    GHash *residentUnicodeMaps; // mappings from Unicode to char codes,
-        //   indexed by encoding name [UnicodeMap]
+
+    std::map< std::string, xpdf::unicode_map_t > residentUnicodeMaps;
+
     GHash *unicodeMaps; // files for mappings from Unicode to char
         //   codes, indexed by encoding name [GString]
     GHash *cMapDirs; // list of CMap dirs, indexed by collection
@@ -443,8 +457,10 @@ private:
 
     CharCodeToUnicodeCache *cidToUnicodeCache;
     CharCodeToUnicodeCache *unicodeToUnicodeCache;
-    UnicodeMapCache *       unicodeMapCache;
-    CMapCache *             cMapCache;
+
+    std::map< std::string, xpdf::unicode_map_t > unicodeMapCache;
+
+    CMapCache *cMapCache;
 };
 
 #endif // XPDF_XPDF_GLOBALPARAMS_HH

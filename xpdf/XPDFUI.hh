@@ -11,11 +11,12 @@
 #undef Object
 
 #include <xpdf/XPDFCore.hh>
+#include <xpdf/unicode_map.hh>
 
 #if (XmVERSION >= 2 && !defined(LESSTIF_VERSION))
-#define USE_COMBO_BOX 1
+#  define USE_COMBO_BOX 1
 #else
-#undef USE_COMBO_BOX
+#  undef USE_COMBO_BOX
 #endif
 
 class GList;
@@ -212,7 +213,7 @@ private:
     //----- GUI code: outline
 #if !defined(DISABLE_OUTLINE)
     void        setupOutline();
-    void        setupOutlineItems(GList *items, Widget parent, UnicodeMap *uMap);
+    void        setupOutlineItems(GList *items, Widget parent, const xpdf::unicode_map_t &uMap);
     static void outlineSelectCbk(Widget widget, XtPointer ptr,
                                  XtPointer callData);
 #endif

@@ -1,7 +1,10 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2009 Glyph & Cog, LLC
+// Copyright 2020- Thinkoid, LLC
 
-static UnicodeMapRange latin1UnicodeMapRanges[] = {
+namespace xpdf {
+
+const unicode_range_t latin1_unicode_range_data[] = {
     { 0x000a, 0x000a, 0x0a, 1 },     { 0x000c, 0x000d, 0x0c, 1 },
     { 0x0020, 0x007e, 0x20, 1 },     { 0x00a0, 0x00a0, 0x20, 1 },
     { 0x00a1, 0x00ac, 0xa1, 1 },     { 0x00ae, 0x00ff, 0xae, 1 },
@@ -33,10 +36,8 @@ static UnicodeMapRange latin1UnicodeMapRanges[] = {
     { 0xfb03, 0xfb03, 0x666669, 3 }, { 0xfb04, 0xfb04, 0x66666c, 3 },
     { 0xfb05, 0xfb05, 0x7374, 2 },   { 0xfb06, 0xfb06, 0x7374, 2 }
 };
-#define latin1UnicodeMapLen                                                      \
-    (sizeof(latin1UnicodeMapRanges) / sizeof(UnicodeMapRange))
 
-static UnicodeMapRange ascii7UnicodeMapRanges[] = {
+const unicode_range_t ascii7_unicode_range_data[] = {
     { 0x000a, 0x000a, 0x0a, 1 },     { 0x000c, 0x000d, 0x0c, 1 },
     { 0x0020, 0x005f, 0x20, 1 },     { 0x0061, 0x007e, 0x61, 1 },
     { 0x00a6, 0x00a6, 0x7c, 1 },     { 0x00a9, 0x00a9, 0x286329, 3 },
@@ -104,10 +105,8 @@ static UnicodeMapRange ascii7UnicodeMapRanges[] = {
     { 0xfb04, 0xfb04, 0x66666c, 3 }, { 0xfb05, 0xfb05, 0x7374, 2 },
     { 0xfb06, 0xfb06, 0x7374, 2 }
 };
-#define ascii7UnicodeMapLen                                                      \
-    (sizeof(ascii7UnicodeMapRanges) / sizeof(UnicodeMapRange))
 
-static UnicodeMapRange symbolUnicodeMapRanges[] = {
+const unicode_range_t symbol_unicode_range_data[] = {
     { 0x0020, 0x0021, 0x20, 1 }, { 0x0023, 0x0023, 0x23, 1 },
     { 0x0025, 0x0026, 0x25, 1 }, { 0x0028, 0x0029, 0x28, 1 },
     { 0x002b, 0x002c, 0x2b, 1 }, { 0x002e, 0x003f, 0x2e, 1 },
@@ -170,10 +169,8 @@ static UnicodeMapRange symbolUnicodeMapRanges[] = {
     { 0xf8eb, 0xf8f4, 0xe6, 1 }, { 0xf8f5, 0xf8f5, 0xf4, 1 },
     { 0xf8f6, 0xf8fe, 0xf6, 1 }
 };
-#define symbolUnicodeMapLen                                                      \
-    (sizeof(symbolUnicodeMapRanges) / sizeof(UnicodeMapRange))
 
-static UnicodeMapRange zapfDingbatsUnicodeMapRanges[] = {
+const unicode_range_t dingbats_unicode_range_data[] = {
     { 0x0020, 0x0020, 0x20, 1 }, { 0x2192, 0x2192, 0xd5, 1 },
     { 0x2194, 0x2195, 0xd6, 1 }, { 0x2460, 0x2469, 0xac, 1 },
     { 0x25a0, 0x25a0, 0x6e, 1 }, { 0x25b2, 0x25b2, 0x73, 1 },
@@ -190,5 +187,5 @@ static UnicodeMapRange zapfDingbatsUnicodeMapRanges[] = {
     { 0x2761, 0x2767, 0xa1, 1 }, { 0x2776, 0x2794, 0xb6, 1 },
     { 0x2798, 0x27af, 0xd8, 1 }, { 0x27b1, 0x27be, 0xf1, 1 }
 };
-#define zapfDingbatsUnicodeMapLen                                                \
-    (sizeof(zapfDingbatsUnicodeMapRanges) / sizeof(UnicodeMapRange))
+
+} // namespace xpdf

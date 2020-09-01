@@ -15,7 +15,7 @@
 #include <xpdf/TextOutputFunc.hh>
 #include <xpdf/TextOutputControl.hh>
 #include <xpdf/TextUnderline.hh>
-#include <xpdf/UnicodeMap.hh>
+#include <xpdf/unicode_map.hh>
 
 struct TextPage
 {
@@ -64,7 +64,7 @@ private:
     void addLink(double, double, double, double, Link *);
 
     // output
-    void encodeFragment(Unicode *, int, UnicodeMap *, bool, GString *);
+    void encodeFragment(Unicode *, int, xpdf::unicode_map_t &, bool, GString *);
 
     // analysis
     int  rotateChars(TextChars &charsA);
@@ -119,7 +119,7 @@ private:
     double computeWordSpacingThreshold(TextChars &charsA, int rot);
     int    assignPhysLayoutPositions(TextColumns &);
     void   assignLinePhysPositions(TextColumns &);
-    void   computeLinePhysWidth(TextLine &line, UnicodeMap *uMap);
+    void   computeLinePhysWidth(TextLine &line, xpdf::unicode_map_t &uMap);
     int    assignColumnPhysPositions(TextColumns &);
     void   generateUnderlinesAndLinks(TextColumns &);
 

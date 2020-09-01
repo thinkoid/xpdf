@@ -20,27 +20,27 @@
 #include <splash/Splash.hh>
 #include <splash/SplashBitmap.hh>
 
-#include <xpdf/array.hh>
 #include <xpdf/Annot.hh>
 #include <xpdf/Catalog.hh>
 #include <xpdf/CharCodeToUnicode.hh>
-#include <xpdf/dict.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/Form.hh>
-#include <xpdf/function.hh>
 #include <xpdf/Gfx.hh>
 #include <xpdf/GfxFont.hh>
 #include <xpdf/GfxState.hh>
 #include <xpdf/GlobalParams.hh>
-#include <xpdf/obj.hh>
 #include <xpdf/PDFDoc.hh>
 #include <xpdf/PSOutputDev.hh>
 #include <xpdf/Page.hh>
 #include <xpdf/SplashOutputDev.hh>
 #include <xpdf/Stream.hh>
 #include <xpdf/TextString.hh>
-#include <xpdf/UnicodeMap.hh>
 #include <xpdf/XRef.hh>
+#include <xpdf/array.hh>
+#include <xpdf/dict.hh>
+#include <xpdf/function.hh>
+#include <xpdf/obj.hh>
+#include <xpdf/unicode_map.hh>
 
 #include <range/v3/algorithm/find_if.hpp>
 using namespace ranges;
@@ -1772,7 +1772,6 @@ void PSOutputDev::setupFont(GfxFont *font, Dict *parentResDict)
     GfxFontLoc *fontLoc;
     bool        subst;
     char        buf[16];
-    UnicodeMap *uMap;
     char *      charName;
     double      xs, ys;
     int         code;
@@ -1907,15 +1906,9 @@ void PSOutputDev::setupFont(GfxFont *font, Dict *parentResDict)
         if (fontLoc->locType == gfxFontLocResident &&
             fontLoc->fontType >= fontCIDType0) {
             subst = true;
-            if ((uMap = globalParams->getUnicodeMap(fontLoc->encoding))) {
+
+            if (globalParams->hasUnicodeMap(fontLoc->encoding->c_str()))
                 fi.ff->encoding = fontLoc->encoding->copy();
-                uMap->decRefCnt();
-            } else {
-                error(errSyntaxError, -1,
-                      "Couldn't find Unicode map for 16-bit font encoding "
-                      "'{0:t}'",
-                      fontLoc->encoding);
-            }
         }
 
         delete fontLoc;
@@ -4631,11 +4624,9 @@ void PSOutputDev::drawString(GfxState *state, GString *s)
 {
     GfxFont *font;
     int      wMode;
-    int *    codeToGID;
     GString *s2;
     double   dx, dy, originX, originY, originX0, originY0, tOriginX0, tOriginY0;
     const char *p;
-    UnicodeMap *uMap;
     CharCode    code;
     Unicode     u[8];
     char        buf[8];
@@ -4643,14 +4634,11 @@ void PSOutputDev::drawString(GfxState *state, GString *s)
     int         dxdySize, len, nChars, uLen, n, m, i, j;
 
     // check for invisible text -- this is used by Acrobat Capture
-    if (3 == state->getRender()) {
+    if (3 == state->getRender())
         return;
-    }
 
-    // ignore empty strings
-    if (0 == s->getLength()) {
+    if (0 == s || s->empty())
         return;
-    }
 
     // get the font
     if (0 == (font = state->getFont())) {
@@ -4659,36 +4647,33 @@ void PSOutputDev::drawString(GfxState *state, GString *s)
 
     wMode = font->getWMode();
 
-    auto iter =
-        find_if(fontInfo, [&](auto fi) { return fi.fontID == *font->getID(); });
-
     //
     // Check for a subtitute 16-bit font:
     //
-    uMap = NULL;
-    codeToGID = NULL;
+    xpdf::unicode_map_t uMap;
+
+    int *codeToGID = 0;
+
+    auto iter = find_if(fontInfo, [&](auto &fi) {
+        return fi.fontID == *font->getID(); });
 
     if (iter == fontInfo.end()) {
-        if (font->isCIDFont()) {
+        if (font->isCIDFont())
             return;
-        }
     } else {
         auto &fi = *iter;
 
         if (font->isCIDFont()) {
-            if (0 == fi.ff) {
+            if (0 == fi.ff)
                 return;
-            }
 
-            if (fi.ff->encoding) {
-                uMap = globalParams->getUnicodeMap(fi.ff->encoding);
-            }
+            if (fi.ff->encoding)
+                uMap = globalParams->getUnicodeMap(fi.ff->encoding->c_str());
 
             // check for an 8-bit code-to-GID map
         } else {
-            if (fi.ff) {
+            if (fi.ff)
                 codeToGID = fi.ff->codeToGID;
-            }
         }
     }
 
@@ -4735,7 +4720,7 @@ void PSOutputDev::drawString(GfxState *state, GString *s)
                                                   sizeof(double));
                 }
                 for (i = 0; i < uLen; ++i) {
-                    m = uMap->mapUnicode(u[i], buf, (int)sizeof(buf));
+                    m = uMap(u[i], buf, (int)sizeof(buf));
                     for (j = 0; j < m; ++j) {
                         s2->append(1UL, buf[j]);
                     }
@@ -4769,11 +4754,10 @@ void PSOutputDev::drawString(GfxState *state, GString *s)
         p += n;
         len -= n;
     }
-    if (uMap) {
-        uMap->decRefCnt();
-    }
+
     originX0 *= state->getFontSize();
     originY0 *= state->getFontSize();
+
     state->textTransformDelta(originX0, originY0, &tOriginX0, &tOriginY0);
 
     if (nChars > 0) {

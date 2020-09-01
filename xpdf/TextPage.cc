@@ -417,17 +417,18 @@ void TextPage::addLink(double xMin, double yMin, double xMax, double yMax,
     }
 }
 
-void TextPage::encodeFragment(Unicode *text, int len, UnicodeMap *uMap,
+void TextPage::encodeFragment(Unicode *text, int len,
+                              xpdf::unicode_map_t &uMap,
                               bool primaryLR, GString *s)
 {
     char lre[8], rle[8], popdf[8], buf[8];
     int  lreLen, rleLen, popdfLen, n;
     int  i, j, k;
 
-    if (uMap->isUnicode()) {
-        lreLen = uMap->mapUnicode(0x202a, lre, sizeof(lre));
-        rleLen = uMap->mapUnicode(0x202b, rle, sizeof(rle));
-        popdfLen = uMap->mapUnicode(0x202c, popdf, sizeof(popdf));
+    if (uMap.is_unicode()) {
+        lreLen = uMap(0x202a, lre, sizeof(lre));
+        rleLen = uMap(0x202b, rle, sizeof(rle));
+        popdfLen = uMap(0x202c, popdf, sizeof(popdf));
 
         if (primaryLR) {
             i = 0;
@@ -436,7 +437,7 @@ void TextPage::encodeFragment(Unicode *text, int len, UnicodeMap *uMap,
                 for (j = i; j < len && !unicodeTypeR(text[j]); ++j)
                     ;
                 for (k = i; k < j; ++k) {
-                    n = uMap->mapUnicode(text[k], buf, sizeof(buf));
+                    n = uMap(text[k], buf, sizeof(buf));
                     s->append(buf, n);
                 }
                 i = j;
@@ -448,7 +449,7 @@ void TextPage::encodeFragment(Unicode *text, int len, UnicodeMap *uMap,
                 if (j > i) {
                     s->append(rle, rleLen);
                     for (k = j - 1; k >= i; --k) {
-                        n = uMap->mapUnicode(text[k], buf, sizeof(buf));
+                        n = uMap(text[k], buf, sizeof(buf));
                         s->append(buf, n);
                     }
                     s->append(popdf, popdfLen);
@@ -469,7 +470,7 @@ void TextPage::encodeFragment(Unicode *text, int len, UnicodeMap *uMap,
                      --j)
                     ;
                 for (k = i; k > j; --k) {
-                    n = uMap->mapUnicode(text[k], buf, sizeof(buf));
+                    n = uMap(text[k], buf, sizeof(buf));
                     s->append(buf, n);
                 }
                 i = j;
@@ -479,7 +480,7 @@ void TextPage::encodeFragment(Unicode *text, int len, UnicodeMap *uMap,
                 if (j < i) {
                     s->append(lre, lreLen);
                     for (k = j + 1; k <= i; ++k) {
-                        n = uMap->mapUnicode(text[k], buf, sizeof(buf));
+                        n = uMap(text[k], buf, sizeof(buf));
                         s->append(buf, n);
                     }
                     s->append(popdf, popdfLen);
@@ -490,7 +491,7 @@ void TextPage::encodeFragment(Unicode *text, int len, UnicodeMap *uMap,
         }
     } else {
         for (i = 0; i < len; ++i) {
-            n = uMap->mapUnicode(text[i], buf, sizeof(buf));
+            n = uMap(text[i], buf, sizeof(buf));
             s->append(buf, n);
         }
     }
@@ -2247,11 +2248,10 @@ int TextPage::assignPhysLayoutPositions(TextColumns &columns)
 // height.
 void TextPage::assignLinePhysPositions(TextColumns &columns)
 {
-    UnicodeMap *uMap;
+    auto uMap = globalParams->getTextEncoding();
 
-    if (!(uMap = globalParams->getTextEncoding())) {
+    if (!uMap)
         return;
-    }
 
     for (auto &col : columns) {
         col->pw = col->ph = 0;
@@ -2280,21 +2280,19 @@ void TextPage::assignLinePhysPositions(TextColumns &columns)
 
         col->ph += col->paragraphs.size() - 1;
     }
-
-    uMap->decRefCnt();
 }
 
-void TextPage::computeLinePhysWidth(TextLine &line, UnicodeMap *uMap)
+void TextPage::computeLinePhysWidth(TextLine &line, xpdf::unicode_map_t &uMap)
 {
     char buf[8];
     int  n, i;
 
-    if (uMap->isUnicode()) {
+    if (uMap.is_unicode()) {
         line.pw = line.len;
     } else {
         line.pw = 0;
         for (i = 0; i < line.len; ++i) {
-            n = uMap->mapUnicode(line.text[i], buf, sizeof(buf));
+            n = uMap(line.text[i], buf, sizeof(buf));
             line.pw += n;
         }
     }
@@ -2608,7 +2606,6 @@ bool TextPage::findText(Unicode *p, int len, bool startAtTop, bool stopAtBottom,
 
 GString *TextPage::getText(const xpdf::bbox_t &box)
 {
-    UnicodeMap *uMap;
     char        space[8], eol[16];
     int         spaceLen, eolLen;
     GString **  out;
@@ -2619,21 +2616,23 @@ GString *TextPage::getText(const xpdf::bbox_t &box)
     int         rot, colIdx, parIdx, lineIdx, ph, y, i;
 
     // get the output encoding
-    if (!(uMap = globalParams->getTextEncoding())) {
-        return NULL;
-    }
-    spaceLen = uMap->mapUnicode(0x20, space, sizeof(space));
+    auto uMap = globalParams->getTextEncoding();
+
+    spaceLen = uMap(0x20, space, sizeof(space));
     eolLen = 0; // make gcc happy
+
     switch (globalParams->getTextEOL()) {
     case eolUnix:
-        eolLen = uMap->mapUnicode(0x0a, eol, sizeof(eol));
+        eolLen = uMap(0x0a, eol, sizeof(eol));
         break;
+
     case eolDOS:
-        eolLen = uMap->mapUnicode(0x0d, eol, sizeof(eol));
-        eolLen += uMap->mapUnicode(0x0a, eol + eolLen, sizeof(eol) - eolLen);
+        eolLen = uMap(0x0d, eol, sizeof(eol));
+        eolLen += uMap(0x0a, eol + eolLen, sizeof(eol) - eolLen);
         break;
+
     case eolMac:
-        eolLen = uMap->mapUnicode(0x0d, eol, sizeof(eol));
+        eolLen = uMap(0x0d, eol, sizeof(eol));
         break;
     }
 
@@ -2726,8 +2725,6 @@ GString *TextPage::getText(const xpdf::bbox_t &box)
 
     free(out);
     free(outLen);
-
-    uMap->decRefCnt();
 
     return ret;
 }
