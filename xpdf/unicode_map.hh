@@ -35,7 +35,7 @@ XPDF_UNICODE_MAP_STRUCT_DEF(ucs2);
 
 #undef XPDF_UNICODE_MAP_STRUCT_DEF
 
-struct unicode_range_t
+struct unicode_mapping_t
 {
     //
     // A range of input codes [beg, end] maps to a contiguous sequence of
@@ -45,16 +45,16 @@ struct unicode_range_t
     size_t len;
 };
 
-struct unicode_range_map_t
+struct unicode_map_base_t
 {
-    using iterator = const unicode_range_t *;
+    using iterator = const unicode_mapping_t *;
     using range_type = std::ranges::subrange< iterator >;
 
-    unicode_range_map_t(iterator first, iterator last)
+    unicode_map_base_t(iterator first, iterator last)
         : map_(first, last)
     { }
 
-    unicode_range_map_t(range_type rng)
+    unicode_map_base_t(range_type rng)
         : map_(std::move(rng))
     { }
 
@@ -65,7 +65,7 @@ protected:
 };
 
 #define XPDF_UNICODE_MAP_STRUCT_DEF(x)                                  \
-    struct XPDF_CAT(unicode_, XPDF_CAT(x, _map_t)) : unicode_range_map_t \
+    struct XPDF_CAT(unicode_, XPDF_CAT(x, _map_t)) : unicode_map_base_t \
     {                                                                   \
         using tag = unicode_map_tag;                                    \
                                                                         \
@@ -93,7 +93,7 @@ struct unicode_custom_map_t
 
 private:
     std::string name_;
-    std::vector< unicode_range_t > map_;
+    std::vector< unicode_mapping_t > map_;
 };
 
 template< typename T, typename = boost::hana::when< true > >

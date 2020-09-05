@@ -24,14 +24,14 @@
 namespace xpdf {
 namespace detail {
 
-unicode_range_t
+unicode_mapping_t
 unicode_range_from(const std::string &in, const std::string &out)
 {
     auto x = std::stoi(in, 0, 16);
     return { x, x, std::stoi(out, 0, 16), (out.size() + 1) / 2 };
 }
 
-unicode_range_t
+unicode_mapping_t
 unicode_range_from(const std::string &beg, const std::string &end,
                    const std::string &out)
 {
@@ -41,7 +41,7 @@ unicode_range_from(const std::string &beg, const std::string &end,
     };
 }
 
-unicode_range_t
+unicode_mapping_t
 unicode_range_from(const std::string &line)
 {
     auto tokens = split(line);
@@ -58,12 +58,12 @@ unicode_range_from(const std::string &line)
     }
 }
 
-std::vector< unicode_range_t >
+std::vector< unicode_mapping_t >
 parse_unicode_map(const std::string &name, std::istream &stream)
 {
     int lineno = 1;
 
-    std::vector< unicode_range_t > xs;
+    std::vector< unicode_mapping_t > xs;
 
     for (std::string line; std::getline(stream, line); ++lineno) {
         try {
@@ -77,7 +77,7 @@ parse_unicode_map(const std::string &name, std::istream &stream)
     return xs;
 }
 
-std::vector< unicode_range_t >
+std::vector< unicode_mapping_t >
 parse_unicode_map(const std::string &name, const fs::path &path)
 {
     std::ifstream stream(path.c_str());
@@ -93,22 +93,22 @@ inline auto range_from(const T (&arr)[N])
 } // namespace detail
 
 unicode_latin1_map_t::unicode_latin1_map_t()
-    : unicode_range_map_t(detail::range_from(latin1_unicode_range_data))
+    : unicode_map_base_t(detail::range_from(latin1_unicode_range_data))
 {
 }
 
 unicode_ascii7_map_t::unicode_ascii7_map_t()
-    : unicode_range_map_t(detail::range_from(ascii7_unicode_range_data))
+    : unicode_map_base_t(detail::range_from(ascii7_unicode_range_data))
 {
 }
 
 unicode_symbol_map_t::unicode_symbol_map_t()
-    : unicode_range_map_t(detail::range_from(symbol_unicode_range_data))
+    : unicode_map_base_t(detail::range_from(symbol_unicode_range_data))
 {
 }
 
 unicode_dingbats_map_t::unicode_dingbats_map_t()
-    : unicode_range_map_t(detail::range_from(dingbats_unicode_range_data))
+    : unicode_map_base_t(detail::range_from(dingbats_unicode_range_data))
 {
 }
 
@@ -186,7 +186,7 @@ int unicode_ucs2_map_t::operator()(wchar_t c, char *buf, size_t len) const
     }
 }
 
-int unicode_range_map_t::operator()(wchar_t c, char *buf, size_t len) const
+int unicode_map_base_t::operator()(wchar_t c, char *buf, size_t len) const
 {
     for (auto &rng : map_) {
         if (rng.beg <= c && c <= rng.end) {
