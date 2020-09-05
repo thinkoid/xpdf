@@ -14,6 +14,9 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+#include <utils/GHash.hh>
+#include <utils/GList.hh>
+
 #include <xpdf/CharTypes.hh>
 #include <xpdf/unicode_map.hh>
 
@@ -28,7 +31,6 @@ class UnicodeMapCache;
 class CMap;
 class CMapCache;
 class GlobalParams;
-class SysFontList;
 
 //------------------------------------------------------------------------
 
@@ -38,6 +40,20 @@ extern GlobalParams *globalParams;
 //------------------------------------------------------------------------
 
 enum SysFontType { sysFontPFA, sysFontPFB, sysFontTTF, sysFontTTC };
+
+class SysFontInfo;
+
+class SysFontList
+{
+public:
+    SysFontList();
+    ~SysFontList();
+
+    SysFontInfo *find(GString *name);
+
+private:
+    GList *fonts; // [SysFontInfo]
+};
 
 //------------------------------------------------------------------------
 
@@ -162,7 +178,6 @@ public:
     // Initialize the global parameters by attempting to read a config
     // file.
     GlobalParams(const char *cfgFileName);
-
     ~GlobalParams();
 
     void setBaseDir(const char *dir);
@@ -309,6 +324,11 @@ public:
     void setErrQuiet(bool errQuietA);
 
 private:
+    void init_paper();
+    void init_resident_unicode_maps();
+    void init_mac_roman_map();
+    void init_unicode_map();
+
     void createDefaultKeyBindings();
     void parseFile(GString *fileName, FILE *f);
     void parseNameToUnicode(GList *tokens, GString *fileName, int line);
@@ -350,65 +370,77 @@ private:
 
     //----- static tables
 
-    NameToCharCode * // mapping from char name to
-        macRomanReverseMap; //   MacRomanEncoding index
+    //
+    // Mapping from char name to MacRomanEncoding index:
+    //
+    std::map< std::string, CharCode > macRomanReverseMap, nameToUnicode;
 
-    //----- user-modifiable settings
+    //
+    // Files for mappings from char collections to Unicode, indexed by
+    // collection name [GString]
+    //
+    GHash cidToUnicodes;
 
-    fs::path baseDir; // base directory - for plugins, etc.
-
-    NameToCharCode * // mapping from char name to Unicode
-           nameToUnicode;
-    GHash *cidToUnicodes; // files for mappings from char collections
-        //   to Unicode, indexed by collection name
-        //   [GString]
-    GHash *unicodeToUnicodes; // files for Unicode-to-Unicode mappings,
-        //   indexed by font name pattern [GString]
+    //
+    // Files for Unicode-to-Unicode mappings, indexed by font name pattern
+    // [GString]
+    //
+    GHash unicodeToUnicodes;
 
     std::map< std::string, xpdf::unicode_map_t > residentUnicodeMaps;
 
-    GHash *unicodeMaps; // files for mappings from Unicode to char
-        //   codes, indexed by encoding name [GString]
-    GHash *cMapDirs; // list of CMap dirs, indexed by collection
-        //   name [GList[GString]]
-    GList *toUnicodeDirs; // list of ToUnicode CMap dirs [GString]
-    GHash *fontFiles; // font files: font name mapped to path
-        //   [GString]
-    GList *fontDirs; // list of font dirs [GString]
-    GHash *ccFontFiles; // character collection font files:
-        //   collection name  mapped to path [GString]
-    GHash *base14SysFonts; // Base-14 system font files: font name
-        //   mapped to path [Base14FontInfo]
-    SysFontList *sysFonts; // system fonts
-    GString *    psFile; // PostScript file or command (for xpdf)
-    int          psPaperWidth; // paper size, in PostScript points, for
-    int          psPaperHeight; //   PostScript output
-    int          psImageableLLX, // imageable area, in PostScript points,
-        psImageableLLY, //   for PostScript output
-        psImageableURX, psImageableURY;
-    bool    psCrop; // crop PS output to CropBox
+    //
+    // Files for mappings from Unicode to character codes, indexed by encoding
+    // name [GString]:
+    //
+    GHash unicodeMaps;
+
+    //
+    // List of CMap dirs, indexed by collection name [GList[GString]]:
+    //
+    GHash cMapDirs;
+    GList toUnicodeDirs;   // list of ToUnicode CMap dirs [GString]
+    GHash fontFiles;       // font files: font name mapped to path
+                            //   [GString]
+    GList fontDirs;        // list of font dirs [GString]
+    GHash ccFontFiles;     // character collection font files:
+                            //   collection name  mapped to path [GString]
+    GHash base14SysFonts;  // Base-14 system font files: font name
+                            //   mapped to path [Base14FontInfo]
+    SysFontList sysFonts;  // system fonts
+    GString *psFile;    // PostScript file or command (for xpdf)
+
+    int psPaperWidth, psPaperHeight;
+
+    int psImageableLLX, // imageable area, in PostScript points,
+        psImageableLLY, // for PostScript output
+        psImageableURX,
+        psImageableURY;
+
+    bool    psCrop;             // crop PS output to CropBox
     bool    psUseCropBoxAsPage; // use CropBox as page size
-    bool    psExpandSmaller; // expand smaller pages to fill paper
-    bool    psShrinkLarger; // shrink larger pages to fit paper
-    bool    psCenter; // center pages on the paper
-    bool    psDuplex; // enable duplexing in PostScript?
-    PSLevel psLevel; // PostScript level to generate
-    GHash * psResidentFonts; // 8-bit fonts resident in printer:
-        //   PDF font name mapped to PS font name
-        //   [GString]
-    GList *psResidentFonts16; // 16-bit fonts resident in printer:
-        //   PDF font name mapped to font info
-        //   [PSFontParam16]
-    GList *psResidentFontsCC; // 16-bit character collection fonts
-        //   resident in printer: collection name
-        //   mapped to font info [PSFontParam16]
-    bool psEmbedType1; // embed Type 1 fonts?
-    bool psEmbedTrueType; // embed TrueType fonts?
+    bool    psExpandSmaller;    // expand smaller pages to fill paper
+    bool    psShrinkLarger;     // shrink larger pages to fit paper
+    bool    psCenter;           // center pages on the paper
+    bool    psDuplex;           // enable duplexing in PostScript?
+
+    PSLevel psLevel;           // PostScript level to generate
+    GHash * psResidentFonts;   // 8-bit fonts resident in printer:
+                               //   PDF font name mapped to PS font name
+                               //   [GString]
+    GList *psResidentFonts16;  // 16-bit fonts resident in printer:
+                               //   PDF font name mapped to font info
+                               //   [PSFontParam16]
+    GList *psResidentFontsCC;  // 16-bit character collection fonts
+                               //   resident in printer: collection name
+                               //   mapped to font info [PSFontParam16]
+    bool psEmbedType1;         // embed Type 1 fonts?
+    bool psEmbedTrueType;      // embed TrueType fonts?
     bool psEmbedCIDPostScript; // embed CID PostScript fonts?
-    bool psEmbedCIDTrueType; // embed CID TrueType fonts?
-    bool psFontPassthrough; // pass all fonts through as-is?
-    bool psPreload; // preload PostScript images and forms into
-        //   memory
+    bool psEmbedCIDTrueType;   // embed CID TrueType fonts?
+    bool psFontPassthrough;    // pass all fonts through as-is?
+    bool psPreload;            // preload PostScript images and forms into
+                               //   memory
     bool   psOPI; // generate PostScript OPI comments?
     bool   psASCIIHex; // use ASCIIHex instead of ASCII85?
     bool   psLZW; // false to use RLE instead of LZW

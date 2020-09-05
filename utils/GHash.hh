@@ -6,6 +6,8 @@
 
 #include <defs.hh>
 
+class GString;
+
 struct GHashBucket;
 struct GHashIter;
 

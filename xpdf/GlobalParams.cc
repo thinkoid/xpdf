@@ -184,29 +184,18 @@ SysFontInfo::~SysFontInfo()
 bool SysFontInfo::match(SysFontInfo *fi)
 {
     return !strcasecmp(name->c_str(), fi->name->c_str()) && bold == fi->bold &&
-           italic == fi->italic;
+        italic == fi->italic;
 }
 
 bool SysFontInfo::match(GString *nameA, bool boldA, bool italicA)
 {
     return !strcasecmp(name->c_str(), nameA->c_str()) && bold == boldA &&
-           italic == italicA;
+        italic == italicA;
 }
 
 //------------------------------------------------------------------------
 // SysFontList
 //------------------------------------------------------------------------
-
-class SysFontList
-{
-public:
-    SysFontList();
-    ~SysFontList();
-    SysFontInfo *find(GString *name);
-
-private:
-    GList *fonts; // [SysFontInfo]
-};
 
 SysFontList::SysFontList()
 {
@@ -360,47 +349,9 @@ KeyBinding::~KeyBinding()
 
 GlobalParams::GlobalParams(const char *cfgFileName)
 {
-    int i;
+    init_paper();
 
     initBuiltinFontTables();
-
-    // scan the encoding in reverse because we want the lowest-numbered
-    // index for each char name ('space' is encoded twice)
-    macRomanReverseMap = new NameToCharCode();
-    for (i = 255; i >= 0; --i) {
-        if (macRomanEncoding[i]) {
-            macRomanReverseMap->add(macRomanEncoding[i], (CharCode)i);
-        }
-    }
-
-    baseDir = home_path() / ".xpdf";
-
-    nameToUnicode = new NameToCharCode();
-    cidToUnicodes = new GHash(true);
-    unicodeToUnicodes = new GHash(true);
-    unicodeMaps = new GHash(true);
-    cMapDirs = new GHash(true);
-    toUnicodeDirs = new GList();
-    fontFiles = new GHash(true);
-    fontDirs = new GList();
-    ccFontFiles = new GHash(true);
-    base14SysFonts = new GHash(true);
-    sysFonts = new SysFontList();
-
-    char *              paperName;
-    const struct paper *paperType;
-    paperinit();
-    if ((paperName = systempapername())) {
-        paperType = paperinfo(paperName);
-        psPaperWidth = (int)paperpswidth(paperType);
-        psPaperHeight = (int)paperpsheight(paperType);
-    } else {
-        error(errConfig, -1, "No paper information available - using defaults");
-
-        psPaperWidth = XPDF_PAPER_WIDTH;
-        psPaperHeight = XPDF_PAPER_HEIGHT;
-    }
-    paperdone();
 
     psImageableLLX = psImageableLLY = 0;
     psImageableURX = psPaperWidth;
@@ -467,22 +418,9 @@ GlobalParams::GlobalParams(const char *cfgFileName)
 
     cMapCache = new CMapCache();
 
-    // set up the initial nameToUnicode table
-    for (i = 0; nameToUnicodeTab[i].name; ++i) {
-        nameToUnicode->add(nameToUnicodeTab[i].name, nameToUnicodeTab[i].u);
-    }
-
-#define ADD_MAP(name, type) \
-    residentUnicodeMaps.emplace(name, xpdf::unicode_map_t(type()))
-
-    ADD_MAP(      "Latin1", xpdf::unicode_latin1_map_t);
-    ADD_MAP(      "ASCII7", xpdf::unicode_ascii7_map_t);
-    ADD_MAP(      "Symbol", xpdf::unicode_symbol_map_t);
-    ADD_MAP("ZapfDingbats", xpdf::unicode_dingbats_map_t);
-    ADD_MAP(       "UTF-8", xpdf::unicode_utf8_map_t);
-    ADD_MAP(       "UCS-2", xpdf::unicode_ucs2_map_t);
-
-#undef ADD_MAP
+    init_mac_roman_map();
+    init_unicode_map();
+    init_resident_unicode_maps();
 
     // look for a user config file, then a system-wide config file
     std::unique_ptr< ::FILE, int(*)(::FILE*) > pf(0, ::fclose);
@@ -517,13 +455,64 @@ GlobalParams::GlobalParams(const char *cfgFileName)
     }
 }
 
+void GlobalParams::init_paper()
+{
+    paperinit();
+
+    if (const char *paperName = systempapername()) {
+        const struct paper *paperType = paperinfo(paperName);
+        psPaperWidth = (int)paperpswidth(paperType);
+        psPaperHeight = (int)paperpsheight(paperType);
+    } else {
+        error(errConfig, -1, "No paper information available - using defaults");
+        psPaperWidth = XPDF_PAPER_WIDTH;
+        psPaperHeight = XPDF_PAPER_HEIGHT;
+    }
+
+    paperdone();
+}
+
+void GlobalParams::init_mac_roman_map()
+{
+    macRomanReverseMap.clear();
+
+    //
+    // Scan the encoding in reverse because we want the lowest-numbered
+    // index for each char name ('space' is encoded twice):
+    //
+    for (int i = 255; i >= 0; --i)
+        if (macRomanEncoding[i])
+            macRomanReverseMap.emplace(macRomanEncoding[i], (CharCode)i);
+}
+
+void GlobalParams::init_unicode_map()
+{
+    for (int i = 0; nameToUnicodeTab[i].name; ++i)
+        nameToUnicode.emplace(nameToUnicodeTab[i].name, nameToUnicodeTab[i].u);
+}
+
+void GlobalParams::init_resident_unicode_maps()
+{
+#define ADD_MAP(name, type)                                         \
+    residentUnicodeMaps.emplace(name, xpdf::unicode_map_t(type()))
+
+    ADD_MAP(      "Latin1", xpdf::unicode_latin1_map_t);
+    ADD_MAP(      "ASCII7", xpdf::unicode_ascii7_map_t);
+    ADD_MAP(      "Symbol", xpdf::unicode_symbol_map_t);
+    ADD_MAP("ZapfDingbats", xpdf::unicode_dingbats_map_t);
+    ADD_MAP(       "UTF-8", xpdf::unicode_utf8_map_t);
+    ADD_MAP(       "UCS-2", xpdf::unicode_ucs2_map_t);
+
+#undef ADD_MAP
+}
+
 void GlobalParams::createDefaultKeyBindings()
 {
     keyBindings = new GList();
 
-#define XPDF_BIND_DEF(a, b, c, ...)                                              \
-    keyBindings->append(new KeyBinding(                                          \
-        a, XPDF_CAT(xpdfKeyMod, b), XPDF_CAT(xpdfKeyContext, c), __VA_ARGS__))
+#define XPDF_BIND_DEF(a, b, c, ...)                                     \
+    keyBindings->append(new KeyBinding(                                 \
+                            a, XPDF_CAT(xpdfKeyMod, b), XPDF_CAT(xpdfKeyContext, c), __VA_ARGS__))
 
     //----- mouse buttons
     XPDF_BIND_DEF(xpdfKeyCodeMousePress1, None, Any, "startSelection");
@@ -862,7 +851,7 @@ void GlobalParams::parseNameToUnicode(GList *tokens, GString *fileName, int line
         Unicode  u;
         sscanf(tok1, "%x", &u);
 
-        nameToUnicode->add(tok2, u);
+        nameToUnicode.emplace(tok2, u);
     }
 }
 
@@ -878,10 +867,10 @@ void GlobalParams::parseCIDToUnicode(GList *tokens, GString *fileName, int line)
     }
     collection = (GString *)tokens->get(1);
     name = (GString *)tokens->get(2);
-    if ((old = (GString *)cidToUnicodes->remove(collection))) {
+    if ((old = (GString *)cidToUnicodes.remove(collection))) {
         delete old;
     }
-    cidToUnicodes->add(collection->copy(), name->copy());
+    cidToUnicodes.add(collection->copy(), name->copy());
 }
 
 void GlobalParams::parseUnicodeToUnicode(GList *tokens, GString *fileName,
@@ -897,10 +886,10 @@ void GlobalParams::parseUnicodeToUnicode(GList *tokens, GString *fileName,
     }
     font = (GString *)tokens->get(1);
     file = (GString *)tokens->get(2);
-    if ((old = (GString *)unicodeToUnicodes->remove(font))) {
+    if ((old = (GString *)unicodeToUnicodes.remove(font))) {
         delete old;
     }
-    unicodeToUnicodes->add(font->copy(), file->copy());
+    unicodeToUnicodes.add(font->copy(), file->copy());
 }
 
 void GlobalParams::parseUnicodeMap(GList *tokens, GString *fileName, int line)
@@ -914,10 +903,10 @@ void GlobalParams::parseUnicodeMap(GList *tokens, GString *fileName, int line)
     }
     encodingName = (GString *)tokens->get(1);
     name = (GString *)tokens->get(2);
-    if ((old = (GString *)unicodeMaps->remove(encodingName))) {
+    if ((old = (GString *)unicodeMaps.remove(encodingName))) {
         delete old;
     }
-    unicodeMaps->add(encodingName->copy(), name->copy());
+    unicodeMaps.add(encodingName->copy(), name->copy());
 }
 
 void GlobalParams::parseCMapDir(GList *tokens, GString *fileName, int line)
@@ -932,9 +921,9 @@ void GlobalParams::parseCMapDir(GList *tokens, GString *fileName, int line)
     }
     collection = (GString *)tokens->get(1);
     dir = (GString *)tokens->get(2);
-    if (!(list = (GList *)cMapDirs->lookup(collection))) {
+    if (!(list = (GList *)cMapDirs.lookup(collection))) {
         list = new GList();
-        cMapDirs->add(collection->copy(), list);
+        cMapDirs.add(collection->copy(), list);
     }
     list->append(dir->copy());
 }
@@ -947,7 +936,7 @@ void GlobalParams::parseToUnicodeDir(GList *tokens, GString *fileName, int line)
               line);
         return;
     }
-    toUnicodeDirs->append(((GString *)tokens->get(1))->copy());
+    toUnicodeDirs.append(((GString *)tokens->get(1))->copy());
 }
 
 void GlobalParams::parseFontFile(GList *tokens, GString *fileName, int line)
@@ -957,8 +946,8 @@ void GlobalParams::parseFontFile(GList *tokens, GString *fileName, int line)
               fileName, line);
         return;
     }
-    fontFiles->add(((GString *)tokens->get(1))->copy(),
-                   ((GString *)tokens->get(2))->copy());
+    fontFiles.add(((GString *)tokens->get(1))->copy(),
+                  ((GString *)tokens->get(2))->copy());
 }
 
 void GlobalParams::parseFontDir(GList *tokens, GString *fileName, int line)
@@ -968,7 +957,7 @@ void GlobalParams::parseFontDir(GList *tokens, GString *fileName, int line)
               fileName, line);
         return;
     }
-    fontDirs->append(((GString *)tokens->get(1))->copy());
+    fontDirs.append(((GString *)tokens->get(1))->copy());
 }
 
 void GlobalParams::parseFontFileCC(GList *tokens, GString *fileName, int line)
@@ -978,8 +967,8 @@ void GlobalParams::parseFontFileCC(GList *tokens, GString *fileName, int line)
               fileName, line);
         return;
     }
-    ccFontFiles->add(((GString *)tokens->get(1))->copy(),
-                     ((GString *)tokens->get(2))->copy());
+    ccFontFiles.add(((GString *)tokens->get(1))->copy(),
+                    ((GString *)tokens->get(2))->copy());
 }
 
 void GlobalParams::parsePSFile(GList *tokens, GString *fileName, int line)
@@ -1510,26 +1499,16 @@ GlobalParams::~GlobalParams()
 
     freeBuiltinFontTables();
 
-    delete macRomanReverseMap;
-
-    delete nameToUnicode;
-    deleteGHash(cidToUnicodes, GString);
-    deleteGHash(unicodeToUnicodes, GString);
-    deleteGHash(unicodeMaps, GString);
-    deleteGList(toUnicodeDirs, GString);
-    deleteGHash(fontFiles, GString);
-    deleteGList(fontDirs, GString);
-    deleteGHash(ccFontFiles, GString);
-    deleteGHash(base14SysFonts, Base14FontInfo);
-    delete sysFonts;
-    if (psFile) {
+    if (psFile)
         delete psFile;
-    }
+
     deleteGHash(psResidentFonts, GString);
     deleteGList(psResidentFonts16, PSFontParam16);
     deleteGList(psResidentFontsCC, PSFontParam16);
+
     delete textEncoding;
     delete initialZoom;
+
     if (launchCommand) {
         delete launchCommand;
     }
@@ -1541,11 +1520,10 @@ GlobalParams::~GlobalParams()
     }
     deleteGList(keyBindings, KeyBinding);
 
-    cMapDirs->startIter(&iter);
-    while (cMapDirs->getNext(&iter, &key, (void **)&list)) {
+    cMapDirs.startIter(&iter);
+    while (cMapDirs.getNext(&iter, &key, (void **)&list)) {
         deleteGList(list, GString);
     }
-    delete cMapDirs;
 
     delete cidToUnicodeCache;
     delete unicodeToUnicodeCache;
@@ -1554,19 +1532,13 @@ GlobalParams::~GlobalParams()
 
 //------------------------------------------------------------------------
 
-void GlobalParams::setBaseDir(const char *dir)
-{
-    baseDir = fs::path(dir);
-}
-
 void GlobalParams::setupBaseFonts(char *dir)
 {
     const char *    s;
     Base14FontInfo *base14;
-    int             i, j;
 
-    for (i = 0; displayFontTab[i].name; ++i) {
-        if (fontFiles->lookup(displayFontTab[i].name))
+    for (size_t i = 0; displayFontTab[i].name; ++i) {
+        if (fontFiles.lookup(displayFontTab[i].name))
             continue;
 
         if (dir && dir[0]) {
@@ -1574,7 +1546,7 @@ void GlobalParams::setupBaseFonts(char *dir)
 
             if (fs::exists(path)) {
                 // TODO : base14SysFonts management
-                base14SysFonts->add(
+                base14SysFonts.add(
                     new GString(displayFontTab[i].name),
                     new Base14FontInfo(new GString(path.c_str()), 0, 0));
             } else {
@@ -1582,12 +1554,12 @@ void GlobalParams::setupBaseFonts(char *dir)
                 s = displayFontTab[i].t1FileName;
 
                 if (s && s[0]) {
-                    for (size_t i = 0; displayFontDirs[i]; ++i) {
+                    for (size_t j = 0; displayFontDirs[j]; ++j) {
                         auto path = fs::path(displayFontDirs[j]) / s;
 
                         if (fs::exists(path)) {
                             // TODO : base14SysFonts management
-                            base14SysFonts->add(
+                            base14SysFonts.add(
                                 new GString(displayFontTab[i].name),
                                 new Base14FontInfo(new GString(path.c_str()), 0, 0));
 
@@ -1599,13 +1571,13 @@ void GlobalParams::setupBaseFonts(char *dir)
         }
     }
 
-    for (i = 0; displayFontTab[i].name; ++i) {
-        if (!base14SysFonts->lookup(displayFontTab[i].name) &&
-            !fontFiles->lookup(displayFontTab[i].name)) {
+    for (size_t i = 0; displayFontTab[i].name; ++i) {
+        if (!base14SysFonts.lookup(displayFontTab[i].name) &&
+            !fontFiles.lookup(displayFontTab[i].name)) {
             if (displayFontTab[i].obliqueFont &&
-                ((base14 = (Base14FontInfo *)base14SysFonts->lookup(
+                ((base14 = (Base14FontInfo *)base14SysFonts.lookup(
                       displayFontTab[i].obliqueFont)))) {
-                base14SysFonts->add(
+                base14SysFonts.add(
                     new GString(displayFontTab[i].name),
                     new Base14FontInfo(base14->fileName->copy(), base14->fontNum,
                                        displayFontTab[i].obliqueFactor));
@@ -1624,18 +1596,21 @@ void GlobalParams::setupBaseFonts(char *dir)
 CharCode GlobalParams::getMacRomanCharCode(char *charName)
 {
     // no need to lock - macRomanReverseMap is constant
-    return macRomanReverseMap->lookup(charName);
-}
-
-GString *GlobalParams::getBaseDir()
-{
-    return new GString(baseDir.c_str());
+    try {
+        return macRomanReverseMap.at(charName);
+    } catch(...) {
+        return 0;
+    }
 }
 
 Unicode GlobalParams::mapNameToUnicode(const char *charName)
 {
     // no need to lock - nameToUnicode is constant
-    return nameToUnicode->lookup(charName);
+    try {
+        return nameToUnicode.at(charName);
+    } catch(...) {
+        return 0;
+    }
 }
 
 bool
@@ -1656,14 +1631,14 @@ GlobalParams::getResidentUnicodeMap(const char *encoding) const
 
 GString *GlobalParams::getUnicodeMapFile(GString *encodingName)
 {
-    return (GString *)unicodeMaps->lookup(encodingName);
+    return (GString *)unicodeMaps.lookup(encodingName);
 }
 
 FILE *GlobalParams::findCMapFile(GString *collection, GString *cMapName)
 {
     GList *  list;
 
-    if (!(list = (GList *)cMapDirs->lookup(collection)))
+    if (!(list = (GList *)cMapDirs.lookup(collection)))
         return 0;
 
     for (int i = 0; i < list->getLength(); ++i) {
@@ -1680,8 +1655,8 @@ FILE *GlobalParams::findCMapFile(GString *collection, GString *cMapName)
 
 FILE *GlobalParams::findToUnicodeFile(GString *name)
 {
-    for (int i = 0; i < toUnicodeDirs->getLength(); ++i) {
-        GString *dir = (GString *)toUnicodeDirs->get(i);
+    for (int i = 0; i < toUnicodeDirs.getLength(); ++i) {
+        GString *dir = (GString *)toUnicodeDirs.get(i);
 
         auto path = fs::path(dir->c_str(), name->c_str());
 
@@ -1696,11 +1671,11 @@ GString *GlobalParams::findFontFile(GString *fontName)
 {
     static const char *exts[] = { ".pfa", ".pfb", ".ttf", ".ttc", 0 };
 
-    if (GString *path = (GString *)fontFiles->lookup(fontName))
+    if (GString *path = (GString *)fontFiles.lookup(fontName))
         return path->copy();
 
-    for (int i = 0; i < fontDirs->getLength(); ++i) {
-        GString *dir = (GString *)fontDirs->get(i);
+    for (int i = 0; i < fontDirs.getLength(); ++i) {
+        GString *dir = (GString *)fontDirs.get(i);
 
         for (size_t j = 0; j < sizeof exts / sizeof *exts; ++j) {
             const char *ext = exts[j];
@@ -1722,7 +1697,7 @@ GString *GlobalParams::findBase14FontFile(GString *fontName, int *fontNum,
     Base14FontInfo *fi;
     GString *       path;
 
-    if ((fi = (Base14FontInfo *)base14SysFonts->lookup(fontName))) {
+    if ((fi = (Base14FontInfo *)base14SysFonts.lookup(fontName))) {
         path = fi->fileName->copy();
         *fontNum = fi->fontNum;
         *oblique = fi->oblique;
@@ -1740,7 +1715,7 @@ GString *GlobalParams::findSystemFontFile(GString *fontName, SysFontType *type,
     GString *    path;
 
     path = NULL;
-    if ((fi = sysFonts->find(fontName))) {
+    if ((fi = sysFonts.find(fontName))) {
         path = fi->path->copy();
         *type = fi->type;
         *fontNum = fi->fontNum;
@@ -1752,7 +1727,7 @@ GString *GlobalParams::findCCFontFile(GString *collection)
 {
     GString *path;
 
-    if ((path = (GString *)ccFontFiles->lookup(collection))) {
+    if ((path = (GString *)ccFontFiles.lookup(collection))) {
         path = path->copy();
     }
     return path;
@@ -2245,7 +2220,7 @@ CharCodeToUnicode *GlobalParams::getCIDToUnicode(GString *collection)
     CharCodeToUnicode *ctu;
 
     if (!(ctu = cidToUnicodeCache->getCharCodeToUnicode(collection))) {
-        if ((fileName = (GString *)cidToUnicodes->lookup(collection)) &&
+        if ((fileName = (GString *)cidToUnicodes.lookup(collection)) &&
             (ctu = CharCodeToUnicode::parseCIDToUnicode(fileName, collection))) {
             cidToUnicodeCache->add(ctu);
         }
@@ -2260,10 +2235,10 @@ CharCodeToUnicode *GlobalParams::getUnicodeToUnicode(GString *fontName)
     GString *          fontPattern, *fileName;
 
     fileName = NULL;
-    unicodeToUnicodes->startIter(&iter);
-    while (unicodeToUnicodes->getNext(&iter, &fontPattern, (void **)&fileName)) {
+    unicodeToUnicodes.startIter(&iter);
+    while (unicodeToUnicodes.getNext(&iter, &fontPattern, (void **)&fileName)) {
         if (strstr(fontName->c_str(), fontPattern->c_str())) {
-            unicodeToUnicodes->killIter(&iter);
+            unicodeToUnicodes.killIter(&iter);
             break;
         }
         fileName = NULL;
@@ -2322,7 +2297,7 @@ GlobalParams::getTextEncoding() const
 
 void GlobalParams::addFontFile(GString *fontName, GString *path)
 {
-    fontFiles->add(fontName, path);
+    fontFiles.add(fontName, path);
 }
 
 void GlobalParams::setPSFile(char *file)

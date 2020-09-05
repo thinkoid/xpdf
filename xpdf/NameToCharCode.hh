@@ -8,11 +8,11 @@
 
 #include <xpdf/CharTypes.hh>
 
+#include <boost/noncopyable.hpp>
+
 struct NameToCharCodeEntry;
 
-//------------------------------------------------------------------------
-
-class NameToCharCode
+class NameToCharCode : boost::noncopyable
 {
 public:
     NameToCharCode();
