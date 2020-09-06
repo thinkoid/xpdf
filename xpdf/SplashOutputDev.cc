@@ -26,7 +26,6 @@
 
 #include <xpdf/array.hh>
 #include <xpdf/BuiltinFont.hh>
-#include <xpdf/BuiltinFontTables.hh>
 #include <xpdf/CharCodeToUnicode.hh>
 #include <xpdf/Error.hh>
 #include <xpdf/FontEncodingTables.hh>
@@ -1155,7 +1154,6 @@ void SplashOutputDev::doUpdateFont(GfxState *state)
     double *             textMat;
     double               m11, m12, m21, m22, fontSize, oblique;
     double               fsx, fsy, w, fontScaleMin, fontScaleAvg, fontScale;
-    unsigned short       ww;
     SplashCoord          mat[4];
     char *               name;
     Unicode              uBuf[8];
@@ -1423,9 +1421,11 @@ void SplashOutputDev::doUpdateFont(GfxState *state)
     // widths of letters and digits (A-Z, a-z, 0-9) in the original font
     // and the substituted font
     substIdx = ((SplashOutFontFileID *)fontFile->getID())->getSubstIdx();
+
     if (substIdx >= 0 && substIdx < 12) {
         fontScaleMin = 1;
         fontScaleAvg = 0;
+
         n = 0;
         for (code = 0; code < 256; ++code) {
             if ((name = ((Gfx8BitFont *)gfxFont)->getCharName(code)) && name[0] &&
@@ -1434,14 +1434,23 @@ void SplashOutputDev::doUpdateFont(GfxState *state)
                  (name[0] >= 'a' && name[0] <= 'z') ||
                  (name[0] >= '0' && name[0] <= '9'))) {
                 w = ((Gfx8BitFont *)gfxFont)->getWidth(code);
-                builtinFontSubst[substIdx]->widths->getWidth(name, &ww);
-                if (w > 0.01 && ww > 10) {
-                    w /= ww * 0.001;
-                    if (w < fontScaleMin) {
-                        fontScaleMin = w;
+
+                if (auto p = xpdf::builtin_substitute_font(substIdx)) {
+                    int width = 0;
+
+                    try {
+                        width = p->widths.at(name);
+                    } catch(...) { }
+
+                    if (w > 0.01 && width > 10) {
+                        w /= width * .001;
+
+                        if (w < fontScaleMin)
+                            fontScaleMin = w;
+
+                        fontScaleAvg += w;
+                        ++n;
                     }
-                    fontScaleAvg += w;
-                    ++n;
                 }
             }
         }
@@ -3445,16 +3454,14 @@ SplashFont *SplashOutputDev::getFont(GString *name, SplashCoord *textMatA)
     SplashCoord          oblique;
     int                  cmap, i;
 
-    for (i = 0; i < nBuiltinFonts; ++i) {
-        if (!name->cmp(builtinFonts[i].name)) {
-            break;
-        }
-    }
-    if (i == nBuiltinFonts) {
-        return NULL;
-    }
-    ref.num = i;
+    const auto p = xpdf::builtin_font(name->c_str());
+
+    if (0 == p)
+        return 0;
+
+    ref.num =  i;
     ref.gen = -1;
+
     id = new SplashOutFontFileID(&ref);
 
     // check the font file cache

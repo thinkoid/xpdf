@@ -9,7 +9,6 @@ libxpdf_a_SOURCES =                             \
 	AcroForm.cc                                 \
 	Annot.cc                                    \
 	BuiltinFont.cc                              \
-	BuiltinFontTables.cc                        \
 	CMap.cc                                     \
 	Catalog.cc                                  \
 	CharCodeToUnicode.cc                        \

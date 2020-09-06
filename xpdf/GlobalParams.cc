@@ -25,7 +25,6 @@
 
 #include <fofi/FoFiIdentifier.hh>
 
-#include <xpdf/BuiltinFontTables.hh>
 #include <xpdf/CMap.hh>
 #include <xpdf/CharCodeToUnicode.hh>
 #include <xpdf/Error.hh>
@@ -350,8 +349,6 @@ KeyBinding::~KeyBinding()
 GlobalParams::GlobalParams(const char *cfgFileName)
 {
     init_paper();
-
-    initBuiltinFontTables();
 
     psImageableLLX = psImageableLLY = 0;
     psImageableURX = psPaperWidth;
@@ -1496,8 +1493,6 @@ GlobalParams::~GlobalParams()
     GHashIter *iter;
     GString *  key;
     GList *    list;
-
-    freeBuiltinFontTables();
 
     if (psFile)
         delete psFile;

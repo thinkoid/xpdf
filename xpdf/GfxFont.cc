@@ -20,7 +20,7 @@
 #include <fofi/FoFiType1C.hh>
 
 #include <xpdf/array.hh>
-#include <xpdf/BuiltinFontTables.hh>
+#include <xpdf/BuiltinFont.hh>
 #include <xpdf/CMap.hh>
 #include <xpdf/CharCodeToUnicode.hh>
 #include <xpdf/dict.hh>
@@ -837,7 +837,6 @@ Gfx8BitFont::Gfx8BitFont(XRef *xref, const char *tagA, Ref idA, GString *nameA,
     : GfxFont(tagA, idA, nameA, typeA, embFontIDA)
 {
     GString *          name2;
-    BuiltinFont *      builtinFont;
     const char **      baseEnc;
     bool               baseEncFromFontFile;
     char *             buf;
@@ -852,7 +851,6 @@ Gfx8BitFont::Gfx8BitFont(XRef *xref, const char *tagA, Ref idA, GString *nameA,
     Unicode            uBuf[8];
     double             mul;
     int                firstChar, lastChar;
-    unsigned short     w;
     Object             obj1, obj2, obj3;
     int                n, i, a, b, m;
 
@@ -889,24 +887,19 @@ Gfx8BitFont::Gfx8BitFont(XRef *xref, const char *tagA, Ref idA, GString *nameA,
     }
 
     // is it a built-in font?
-    builtinFont = NULL;
-    if (base14) {
-        for (i = 0; i < nBuiltinFonts; ++i) {
-            if (!strcmp(base14->base14Name, builtinFonts[i].name)) {
-                builtinFont = &builtinFonts[i];
-                break;
-            }
-        }
-    }
+    const xpdf::builtin_font_t *builtin_font = 0;
+
+    if (base14)
+        builtin_font = xpdf::builtin_font(base14->base14Name);
 
     // default ascent/descent values
-    if (builtinFont) {
-        ascent = 0.001 * builtinFont->ascent;
-        descent = 0.001 * builtinFont->descent;
-        fontBBox[0] = 0.001 * builtinFont->bbox[0];
-        fontBBox[1] = 0.001 * builtinFont->bbox[1];
-        fontBBox[2] = 0.001 * builtinFont->bbox[2];
-        fontBBox[3] = 0.001 * builtinFont->bbox[3];
+    if (builtin_font) {
+        ascent      = 0.001 * builtin_font->metric.ascent;
+        descent     = 0.001 * builtin_font->metric.descent;
+        fontBBox[0] = 0.001 * builtin_font->metric.bbox.arr[0];
+        fontBBox[1] = 0.001 * builtin_font->metric.bbox.arr[1];
+        fontBBox[2] = 0.001 * builtin_font->metric.bbox.arr[2];
+        fontBBox[3] = 0.001 * builtin_font->metric.bbox.arr[3];
     } else {
         ascent = 0.75;
         descent = -0.25;
@@ -918,13 +911,13 @@ Gfx8BitFont::Gfx8BitFont(XRef *xref, const char *tagA, Ref idA, GString *nameA,
 
     // for non-embedded fonts, don't trust the ascent/descent/bbox
     // values from the font descriptor
-    if (builtinFont && embFontID.num < 0) {
-        ascent = 0.001 * builtinFont->ascent;
-        descent = 0.001 * builtinFont->descent;
-        fontBBox[0] = 0.001 * builtinFont->bbox[0];
-        fontBBox[1] = 0.001 * builtinFont->bbox[1];
-        fontBBox[2] = 0.001 * builtinFont->bbox[2];
-        fontBBox[3] = 0.001 * builtinFont->bbox[3];
+    if (builtin_font && embFontID.num < 0) {
+        ascent      = 0.001 * builtin_font->metric.ascent;
+        descent     = 0.001 * builtin_font->metric.descent;
+        fontBBox[0] = 0.001 * builtin_font->metric.bbox.arr[0];
+        fontBBox[1] = 0.001 * builtin_font->metric.bbox.arr[1];
+        fontBBox[2] = 0.001 * builtin_font->metric.bbox.arr[2];
+        fontBBox[3] = 0.001 * builtin_font->metric.bbox.arr[3];
     }
 
     // get font matrix
@@ -1042,8 +1035,8 @@ Gfx8BitFont::Gfx8BitFont(XRef *xref, const char *tagA, Ref idA, GString *nameA,
 
     // get default base encoding
     if (!baseEnc) {
-        if (builtinFont && embFontID.num < 0) {
-            baseEnc = builtinFont->defaultBaseEnc;
+        if (builtin_font && embFontID.num < 0) {
+            baseEnc = builtin_font->base_encoding;
             hasEncoding = true;
         } else if (type == fontTrueType) {
             baseEnc = winAnsiEncoding;
@@ -1259,46 +1252,65 @@ Gfx8BitFont::Gfx8BitFont(XRef *xref, const char *tagA, Ref idA, GString *nameA,
         }
 
         // use widths from built-in font
-    } else if (builtinFont) {
-        // this is a kludge for broken PDF files that encode char 32
-        // as .notdef
-        if (builtinFont->widths->getWidth("space", &w)) {
-            widths[32] = 0.001 * w;
-        }
-        for (code = 0; code < 256; ++code) {
-            if (enc[code] && builtinFont->widths->getWidth(enc[code], &w)) {
-                widths[code] = 0.001 * w;
-            }
-        }
+    } else if (builtin_font) {
+        //
+        // This is a kludge for broken PDF files that encode character 32
+        // as .notdef:
+        //
+        try {
+            auto width = builtin_font->widths.at("space");
+            widths[32] = 0.001 * width;
+        } catch(...) { }
 
-        // couldn't find widths -- use defaults
-    } else {
-        // this is technically an error -- the Widths entry is required
-        // for all but the Base-14 fonts -- but certain PDF generators
-        // apparently don't include widths for Arial and TimesNewRoman
-        if (isFixedWidth()) {
-            i = 0;
-        } else if (isSerif()) {
-            i = 8;
-        } else {
-            i = 4;
-        }
-        if (isBold()) {
-            i += 2;
-        }
-        if (isItalic()) {
-            i += 1;
-        }
-        builtinFont = builtinFontSubst[i];
-        // this is a kludge for broken PDF files that encode char 32
-        // as .notdef
-        if (builtinFont->widths->getWidth("space", &w)) {
-            widths[32] = 0.001 * w;
-        }
         for (code = 0; code < 256; ++code) {
-            if (enc[code] && builtinFont->widths->getWidth(enc[code], &w)) {
-                widths[code] = 0.001 * w;
-            }
+            if (0 == enc[code])
+                continue;
+
+            try {
+                auto width = builtin_font->widths.at(enc[code]);
+                widths[code] = 0.001 * width;
+            } catch(...) { }
+        }
+    } else {
+        //
+        // Couldn't find widths -- use defaults:
+        //
+        // This is technically an error -- the Widths entry is required
+        // for all but the Base-14 fonts -- but certain PDF generators
+        // apparently don't include widths for Arial and TimesNewRoman:
+        //
+        if (isFixedWidth())
+            i = 0;
+        else if (isSerif())
+            i = 8;
+        else
+            i = 4;
+
+        if (isBold())
+            i += 2;
+
+        if (isItalic())
+            i += 1;
+
+        builtin_font = xpdf::builtin_substitute_font(i);
+
+        //
+        // This is a kludge for broken PDF files that encode char 32
+        // as .notdef:
+        //
+        try {
+            auto width = builtin_font->widths.at("space");
+            widths[32] = 0.001 * width;
+        } catch(...) { }
+
+        for (code = 0; code < 256; ++code) {
+            if (0 == enc[code])
+                continue;
+
+            try {
+                auto width = builtin_font->widths.at(enc[code]);
+                widths[code] = 0.001 * width;
+            } catch(...) { }
         }
     }
 

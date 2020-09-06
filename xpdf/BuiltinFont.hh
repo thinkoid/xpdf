@@ -1,47 +1,37 @@
 // -*- mode: c++; -*-
 // Copyright 2001-2003 Glyph & Cog, LLC
+// Copyright 2020- Thinkoid, LLC
 
 #ifndef XPDF_XPDF_BUILTINFONT_HH
 #define XPDF_XPDF_BUILTINFONT_HH
 
 #include <defs.hh>
 
-struct BuiltinFont;
-class BuiltinFontWidths;
+#include <map>
+#include <string>
+#include <vector>
 
-//------------------------------------------------------------------------
+#include <xpdf/bbox.hh>
 
-struct BuiltinFont
+namespace xpdf {
+
+struct builtin_font_t
 {
-    const char *       name;
-    const char **      defaultBaseEnc;
-    short              ascent;
-    short              descent;
-    short              bbox[4];
-    BuiltinFontWidths *widths;
+    std::string name;
+
+    const char **base_encoding;
+
+    struct {
+        int ascent, descent;
+        bbox_t bbox;
+    } metric;
+
+    std::map< std::string_view, int > widths;
 };
 
-//------------------------------------------------------------------------
+const builtin_font_t *builtin_font(const char *);
+const builtin_font_t *builtin_substitute_font(size_t);
 
-struct BuiltinFontWidth
-{
-    const char *      name;
-    unsigned short    width;
-    BuiltinFontWidth *next;
-};
-
-class BuiltinFontWidths
-{
-public:
-    BuiltinFontWidths(BuiltinFontWidth *widths, int sizeA);
-    ~BuiltinFontWidths();
-    bool getWidth(const char *name, unsigned short *width);
-
-private:
-    int hash(const char *name);
-
-    BuiltinFontWidth **tab;
-    int                size;
-};
+} // namespace xpdf
 
 #endif // XPDF_XPDF_BUILTINFONT_HH
