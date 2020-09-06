@@ -3438,8 +3438,6 @@ void SplashOutputDev::setFillColor(int r, int g, int b)
 
 SplashFont *SplashOutputDev::getFont(GString *name, SplashCoord *textMatA)
 {
-    Ref                  ref;
-    SplashOutFontFileID *id;
     GfxFontLoc *         fontLoc;
     GString *            fontBuf;
     FILE *               extFontFile;
@@ -3452,49 +3450,51 @@ SplashFont *SplashOutputDev::getFont(GString *name, SplashCoord *textMatA)
     Unicode              u;
     SplashCoord          textMat[4];
     SplashCoord          oblique;
-    int                  cmap, i;
+    int                  cmap;
 
     const auto p = xpdf::builtin_font(name->c_str());
 
     if (0 == p)
         return 0;
 
-    ref.num =  i;
-    ref.gen = -1;
-
-    id = new SplashOutFontFileID(&ref);
+    Ref ref = p->ref;
+    SplashOutFontFileID *id = new SplashOutFontFileID(&ref);
 
     // check the font file cache
     if ((fontFile = fontEngine->getFontFile(id))) {
         delete id;
-
         // load the font file
     } else {
-        if (!(fontLoc = GfxFont::locateBase14Font(name))) {
-            return NULL;
-        }
-        fontBuf = NULL;
+        if (!(fontLoc = GfxFont::locateBase14Font(name)))
+            return 0;
+
+        fontBuf = 0;
+
         if (fontLoc->fontType == fontType1 || fontLoc->fontType == fontTrueType) {
             if (!(extFontFile = fopen(fontLoc->path->c_str(), "rb"))) {
                 delete fontLoc;
                 delete id;
-                return NULL;
+                return 0;
             }
+
             fontBuf = new GString();
-            while ((n = fread(blk, 1, sizeof(blk), extFontFile)) > 0) {
+
+            while ((n = fread(blk, 1, sizeof(blk), extFontFile)) > 0)
                 fontBuf->append(blk, n);
-            }
+
             fclose(extFontFile);
         }
+
         if (fontLoc->fontType == fontType1) {
             fontFile = fontEngine->loadType1Font(id, fontBuf, winAnsiEncoding);
         } else if (fontLoc->fontType == fontTrueType) {
-            if (!(ff = FoFiTrueType::make(fontBuf->c_str(), fontBuf->getLength(),
-                                          fontLoc->fontNum))) {
+            if (!(ff = FoFiTrueType::make(
+                      fontBuf->c_str(), fontBuf->getLength(), fontLoc->fontNum))) {
                 delete fontLoc;
                 delete id;
-                return NULL;
+                return 0;
             }
+
             for (cmap = 0; cmap < ff->getNumCmaps(); ++cmap) {
                 if ((ff->getCmapPlatform(cmap) == 3 &&
                      ff->getCmapEncoding(cmap) == 1) ||
@@ -3502,44 +3502,51 @@ SplashFont *SplashOutputDev::getFont(GString *name, SplashCoord *textMatA)
                     break;
                 }
             }
+
             if (cmap == ff->getNumCmaps()) {
                 delete ff;
                 delete fontLoc;
                 delete id;
-                return NULL;
+                return 0;
             }
+
             codeToGID = (int *)calloc(256, sizeof(int));
-            for (i = 0; i < 256; ++i) {
+
+            for (size_t i = 0; i < 256; ++i) {
                 codeToGID[i] = 0;
+
                 if (winAnsiEncoding[i] &&
                     (u = globalParams->mapNameToUnicode(winAnsiEncoding[i]))) {
                     codeToGID[i] = ff->mapCodeToGID(cmap, u);
                 }
             }
+
             delete ff;
-            fontFile = fontEngine->loadTrueTypeFont(id, fontBuf, fontLoc->fontNum,
-                                                    codeToGID, 256, NULL);
+
+            fontFile = fontEngine->loadTrueTypeFont(
+                id, fontBuf, fontLoc->fontNum, codeToGID, 256, 0);
         } else {
             delete fontLoc;
             delete id;
-            return NULL;
+            return 0;
         }
+
         delete fontLoc;
     }
-    if (!fontFile) {
-        return NULL;
-    }
+
+    if (0 == fontFile)
+        return 0;
 
     // create the scaled font
-    oblique =
-        (SplashCoord)((SplashOutFontFileID *)fontFile->getID())->getOblique();
+    oblique = (SplashCoord)((SplashOutFontFileID *)fontFile->getID())->getOblique();
+
     textMat[0] = (SplashCoord)textMatA[0];
     textMat[1] = (SplashCoord)textMatA[1];
     textMat[2] = oblique * textMatA[0] + textMatA[2];
     textMat[3] = oblique * textMatA[1] + textMatA[3];
-    fontObj = fontEngine->getFont(fontFile, textMat, splash->getMatrix());
 
-    return fontObj;
+    return fontObj = fontEngine->getFont(
+        fontFile, textMat, splash->getMatrix());
 }
 
 #if 1 //~tmp: turn off anti-aliasing temporarily

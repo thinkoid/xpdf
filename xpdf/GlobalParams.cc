@@ -471,8 +471,6 @@ void GlobalParams::init_paper()
 
 void GlobalParams::init_mac_roman_map()
 {
-    macRomanReverseMap.clear();
-
     //
     // Scan the encoding in reverse because we want the lowest-numbered
     // index for each char name ('space' is encoded twice):

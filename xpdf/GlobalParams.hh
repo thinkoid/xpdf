@@ -20,6 +20,8 @@ namespace fs = std::filesystem;
 #include <xpdf/CharTypes.hh>
 #include <xpdf/unicode_map.hh>
 
+#include <boost/noncopyable.hpp>
+
 class GString;
 class GList;
 class GHash;
@@ -172,7 +174,7 @@ public:
 
 //------------------------------------------------------------------------
 
-class GlobalParams
+class GlobalParams : boost::noncopyable
 {
 public:
     // Initialize the global parameters by attempting to read a config

@@ -12,12 +12,14 @@
 #include <vector>
 
 #include <xpdf/bbox.hh>
+#include <xpdf/obj.hh>
 
 namespace xpdf {
 
 struct builtin_font_t
 {
     std::string name;
+    xpdf::ref_t ref;
 
     const char **base_encoding;
 

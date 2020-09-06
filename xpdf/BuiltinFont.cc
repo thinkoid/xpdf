@@ -4106,20 +4106,20 @@ inline auto map_from(const T (&arr)[N]) {
 
 const builtin_font_t builtin_fonts[] = {
 #define MAP(xs) map_from(xs)
-    {  "Courier",                   standardEncoding, { 629,  -157, {  -23, -250,  715,  805 } }, MAP(courier)                },
-    {  "Courier-Bold",              standardEncoding, { 629,  -157, { -113, -250,  749,  801 } }, MAP(courier_bold)           },
-    {  "Courier-BoldOblique",       standardEncoding, { 629,  -157, {  -57, -250,  869,  801 } }, MAP(courier_bold_oblique)   },
-    {  "Courier-Oblique",           standardEncoding, { 629,  -157, {  -27, -250,  849,  805 } }, MAP(courier_oblique)        },
-    {  "Helvetica",                 standardEncoding, { 718,  -207, { -166, -225, 1000,  931 } }, MAP(helvetica)              },
-    {  "Helvetica-Bold",            standardEncoding, { 718,  -207, { -170, -228, 1003,  962 } }, MAP(helvetica_bold)         },
-    {  "Helvetica-BoldOblique",     standardEncoding, { 718,  -207, { -174, -228, 1114,  962 } }, MAP(helvetica_bold_oblique) },
-    {  "Helvetica-Oblique",         standardEncoding, { 718,  -207, { -170, -225, 1116,  931 } }, MAP(helvetica_oblique)      },
-    {  "Symbol",                      symbolEncoding, { 1010, -293, { -180, -293, 1090, 1010 } }, MAP(symbol)                 },
-    {  "Times-Bold",                standardEncoding, { 683,  -217, { -168, -218, 1000,  935 } }, MAP(times_bold)             },
-    {  "Times-BoldItalic",          standardEncoding, { 683,  -217, { -200, -218,  996,  921 } }, MAP(times_bold_italic)      },
-    {  "Times-Italic",              standardEncoding, { 683,  -217, { -169, -217, 1010,  883 } }, MAP(times_italic)           },
-    {  "Times-Roman",               standardEncoding, { 683,  -217, { -168, -218, 1000,  898 } }, MAP(times_roman)            },
-    {  "ZapfDingbats",          zapfDingbatsEncoding, { 820,  -143, {   -1, -143,  981,  820 } }, MAP(zapf_dingbats)          }
+    {  "Courier",               { 0,  0, -1 },     standardEncoding, { 629,  -157, {  -23, -250,  715,  805 } }, MAP(courier)                },
+    {  "Courier-Bold",          { 0,  1, -1 },     standardEncoding, { 629,  -157, { -113, -250,  749,  801 } }, MAP(courier_bold)           },
+    {  "Courier-BoldOblique",   { 0,  2, -1 },     standardEncoding, { 629,  -157, {  -57, -250,  869,  801 } }, MAP(courier_bold_oblique)   },
+    {  "Courier-Oblique",       { 0,  3, -1 },     standardEncoding, { 629,  -157, {  -27, -250,  849,  805 } }, MAP(courier_oblique)        },
+    {  "Helvetica",             { 0,  4, -1 },     standardEncoding, { 718,  -207, { -166, -225, 1000,  931 } }, MAP(helvetica)              },
+    {  "Helvetica-Bold",        { 0,  5, -1 },     standardEncoding, { 718,  -207, { -170, -228, 1003,  962 } }, MAP(helvetica_bold)         },
+    {  "Helvetica-BoldOblique", { 0,  6, -1 },     standardEncoding, { 718,  -207, { -174, -228, 1114,  962 } }, MAP(helvetica_bold_oblique) },
+    {  "Helvetica-Oblique",     { 0,  7, -1 },     standardEncoding, { 718,  -207, { -170, -225, 1116,  931 } }, MAP(helvetica_oblique)      },
+    {  "Symbol",                { 0,  8, -1 },       symbolEncoding, { 1010, -293, { -180, -293, 1090, 1010 } }, MAP(symbol)                 },
+    {  "Times-Bold",            { 0,  9, -1 },     standardEncoding, { 683,  -217, { -168, -218, 1000,  935 } }, MAP(times_bold)             },
+    {  "Times-BoldItalic",      { 0, 10, -1 },     standardEncoding, { 683,  -217, { -200, -218,  996,  921 } }, MAP(times_bold_italic)      },
+    {  "Times-Italic",          { 0, 11, -1 },     standardEncoding, { 683,  -217, { -169, -217, 1010,  883 } }, MAP(times_italic)           },
+    {  "Times-Roman",           { 0, 12, -1 },     standardEncoding, { 683,  -217, { -168, -218, 1000,  898 } }, MAP(times_roman)            },
+    {  "ZapfDingbats",          { 0, 13, -1 }, zapfDingbatsEncoding, { 820,  -143, {   -1, -143,  981,  820 } }, MAP(zapf_dingbats)          }
 
 #undef MAP
 };
