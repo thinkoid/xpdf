@@ -2264,9 +2264,9 @@ xpdf::unicode_map_t
 GlobalParams::getUnicodeMap2(const char *encoding) const
 {
     try {
-        return unicodeMapCache.at(encoding);
+        return residentUnicodeMaps.at(encoding);
     } catch(...) {
-        return xpdf::unicode_map_t{ };
+        return unicodeMapCache.at(encoding);
     }
 }
 

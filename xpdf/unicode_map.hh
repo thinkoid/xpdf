@@ -158,6 +158,7 @@ public:
     bool is_unicode() const { return self_->is_unicode(); }
 
     int operator()(wchar_t c, char *buf, size_t len) const {
+        ASSERT(self_);
         return self_->operator()(c, buf, len);
     }
 };
