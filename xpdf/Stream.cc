@@ -130,12 +130,12 @@ Stream *Stream::addFilters(Object *dict, int recursion)
             if (obj2.is_name()) {
                 str = makeFilter(obj2.as_name(), str, &params2, recursion);
             } else {
-                error(errSyntaxError, getPos(), "Bad filter name");
+                error(errSyntaxError, tellg(), "Bad filter name");
                 str = new EOFStream(str);
             }
         }
     } else if (!obj.is_null()) {
-        error(errSyntaxError, getPos(), "Bad 'Filter' attribute in stream");
+        error(errSyntaxError, tellg(), "Bad 'Filter' attribute in stream");
     }
 
     return str;
@@ -261,7 +261,7 @@ Stream *Stream::makeFilter(const char *name, Stream *str, Object *params,
     } else if (!strcmp(name, "JPXDecode")) {
         str = new JPXStream(str);
     } else {
-        error(errSyntaxError, getPos(), "Unknown filter '{0:s}'", name);
+        error(errSyntaxError, tellg(), "Unknown filter '{0:s}'", name);
         str = new EOFStream(str);
     }
     return str;
@@ -294,9 +294,9 @@ void FilterStream::close()
     str->close();
 }
 
-void FilterStream::setPos(off_t pos, int dir)
+void FilterStream::seekg(off_t pos, int dir)
 {
-    error(errInternal, -1, "Called setPos() on FilterStream");
+    error(errInternal, -1, "Called seekg() on FilterStream");
 }
 
 //------------------------------------------------------------------------
@@ -773,7 +773,7 @@ bool FileStream::fillBuf()
     return true;
 }
 
-void FileStream::setPos(off_t pos, int dir)
+void FileStream::seekg(off_t pos, int dir)
 {
     off_t size;
 
@@ -862,7 +862,7 @@ int MemStream::readblock(char *blk, int size)
     return n;
 }
 
-void MemStream::setPos(off_t pos, int dir)
+void MemStream::seekg(off_t pos, int dir)
 {
     unsigned i;
 
@@ -936,9 +936,9 @@ int EmbedStream::readblock(char *blk, int size)
     return str->readblock(blk, size);
 }
 
-void EmbedStream::setPos(off_t pos, int dir)
+void EmbedStream::seekg(off_t pos, int dir)
 {
-    error(errInternal, -1, "Called setPos() on EmbedStream");
+    error(errInternal, -1, "Called seekg() on EmbedStream");
 }
 
 off_t EmbedStream::getStart()
@@ -1010,7 +1010,7 @@ int ASCIIHexStream::peek()
         eof = true;
         x = 0;
     } else {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Illegal character <{0:02x}> in ASCIIHex stream", c1);
         x = 0;
     }
@@ -1024,7 +1024,7 @@ int ASCIIHexStream::peek()
         eof = true;
         x = 0;
     } else {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Illegal character <{0:02x}> in ASCIIHex stream", c2);
     }
     buf = x & 0xff;
@@ -1280,7 +1280,7 @@ start:
         goto start;
     }
     if (nextCode >= 4097) {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Bad LZW stream - expected clear-table code");
         clearTable();
     }
@@ -1301,7 +1301,7 @@ start:
         seqBuf[seqLength] = newChar;
         ++seqLength;
     } else {
-        error(errSyntaxError, getPos(), "Bad LZW stream - unexpected code");
+        error(errSyntaxError, tellg(), "Bad LZW stream - unexpected code");
         eof = true;
         return false;
     }
@@ -1547,7 +1547,7 @@ inline void CCITTFaxStream::addPixels(int a1, int blackPixels)
 {
     if (a1 > codingLine[a0i]) {
         if (a1 > columns) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "CCITTFax row is wrong length ({0:d})", a1);
             err = true;
             a1 = columns;
@@ -1563,7 +1563,7 @@ inline void CCITTFaxStream::addPixelsNeg(int a1, int blackPixels)
 {
     if (a1 > codingLine[a0i]) {
         if (a1 > columns) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "CCITTFax row is wrong length ({0:d})", a1);
             err = true;
             a1 = columns;
@@ -1574,7 +1574,7 @@ inline void CCITTFaxStream::addPixelsNeg(int a1, int blackPixels)
         codingLine[a0i] = a1;
     } else if (a1 < codingLine[a0i]) {
         if (a1 < 0) {
-            error(errSyntaxError, getPos(), "Invalid CCITTFax code");
+            error(errSyntaxError, tellg(), "Invalid CCITTFax code");
             err = true;
             a1 = 0;
         }
@@ -1751,7 +1751,7 @@ int CCITTFaxStream::peek()
                     eof = true;
                     break;
                 default:
-                    error(errSyntaxError, getPos(),
+                    error(errSyntaxError, tellg(),
                           "Bad 2D code {0:04x} in CCITTFax stream", code1);
                     addPixels(columns, 0);
                     err = true;
@@ -1853,7 +1853,7 @@ int CCITTFaxStream::peek()
                     for (i = 0; i < 4; ++i) {
                         code1 = lookBits(12);
                         if (code1 != 0x001) {
-                            error(errSyntaxError, getPos(),
+                            error(errSyntaxError, tellg(),
                                   "Bad RTC code in CCITTFax stream");
                         }
                         eatBits(12);
@@ -1970,7 +1970,7 @@ short CCITTFaxStream::getTwoDimCode()
             }
         }
     }
-    error(errSyntaxError, getPos(),
+    error(errSyntaxError, tellg(),
           "Bad two dim code ({0:04x}) in CCITTFax stream", code);
     return EOF;
 }
@@ -2026,7 +2026,7 @@ short CCITTFaxStream::getWhiteCode()
             }
         }
     }
-    error(errSyntaxError, getPos(), "Bad white code ({0:04x}) in CCITTFax stream",
+    error(errSyntaxError, tellg(), "Bad white code ({0:04x}) in CCITTFax stream",
           code);
     // eat a bit and return a positive number so that the caller doesn't
     // go into an infinite loop
@@ -2103,7 +2103,7 @@ short CCITTFaxStream::getBlackCode()
             }
         }
     }
-    error(errSyntaxError, getPos(), "Bad black code ({0:04x}) in CCITTFax stream",
+    error(errSyntaxError, tellg(), "Bad black code ({0:04x}) in CCITTFax stream",
           code);
     // eat a bit and return a positive number so that the caller doesn't
     // go into an infinite loop
@@ -2339,7 +2339,7 @@ void DCTStream::reset()
         bufHeight = ((height + mcuHeight - 1) / mcuHeight) * mcuHeight;
         if (bufWidth <= 0 || bufHeight <= 0 ||
             bufWidth > INT_MAX / bufWidth / (int)sizeof(int)) {
-            error(errSyntaxError, getPos(), "Invalid image size in DCT stream");
+            error(errSyntaxError, tellg(), "Invalid image size in DCT stream");
             y = height;
             return;
         }
@@ -2470,7 +2470,7 @@ bool DCTStream::readMCURow()
         if (restartInterval > 0 && restartCtr == 0) {
             c = readMarker();
             if (c != restartMarker) {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Bad DCT data: incorrect restart marker");
                 return false;
             }
@@ -2632,7 +2632,7 @@ void DCTStream::readScan()
             if (restartInterval > 0 && restartCtr == 0) {
                 c = readMarker();
                 if (c != restartMarker) {
-                    error(errSyntaxError, getPos(),
+                    error(errSyntaxError, tellg(),
                           "Bad DCT data: incorrect restart marker");
                     return;
                 }
@@ -3248,7 +3248,7 @@ int DCTStream::readHuffSym(DCTHuffTable *table)
         }
     } while (codeBits < 16);
 
-    error(errSyntaxError, getPos(), "Bad Huffman code in DCT stream");
+    error(errSyntaxError, tellg(), "Bad Huffman code in DCT stream");
     return 9999;
 }
 
@@ -3281,7 +3281,7 @@ int DCTStream::readBit()
                 c2 = str->get();
             } while (c2 == 0xff);
             if (c2 != 0x00) {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Bad DCT data: missing 00 after ff");
                 return EOF;
             }
@@ -3352,7 +3352,7 @@ bool DCTStream::readHeader()
             }
             break;
         case EOF:
-            error(errSyntaxError, getPos(), "Bad DCT header");
+            error(errSyntaxError, tellg(), "Bad DCT header");
             return false;
         default:
             // skip APPn / COM / etc.
@@ -3360,7 +3360,7 @@ bool DCTStream::readHeader()
                 n = read16() - 2;
                 str->skip(n);
             } else {
-                error(errSyntaxError, getPos(), "Unknown DCT marker <{0:02x}>",
+                error(errSyntaxError, tellg(), "Unknown DCT marker <{0:02x}>",
                       c);
                 return false;
             }
@@ -3383,12 +3383,12 @@ bool DCTStream::readBaselineSOF()
     width = read16();
     numComps = str->get();
     if (numComps <= 0 || numComps > 4) {
-        error(errSyntaxError, getPos(), "Bad number of components in DCT stream");
+        error(errSyntaxError, tellg(), "Bad number of components in DCT stream");
         numComps = 0;
         return false;
     }
     if (prec != 8) {
-        error(errSyntaxError, getPos(), "Bad DCT precision {0:d}", prec);
+        error(errSyntaxError, tellg(), "Bad DCT precision {0:d}", prec);
         return false;
     }
     for (i = 0; i < numComps; ++i) {
@@ -3399,11 +3399,11 @@ bool DCTStream::readBaselineSOF()
         compInfo[i].quantTable = str->get();
         if (compInfo[i].hSample < 1 || compInfo[i].hSample > 4 ||
             compInfo[i].vSample < 1 || compInfo[i].vSample > 4) {
-            error(errSyntaxError, getPos(), "Bad DCT sampling factor");
+            error(errSyntaxError, tellg(), "Bad DCT sampling factor");
             return false;
         }
         if (compInfo[i].quantTable < 0 || compInfo[i].quantTable > 3) {
-            error(errSyntaxError, getPos(), "Bad DCT quant table selector");
+            error(errSyntaxError, tellg(), "Bad DCT quant table selector");
             return false;
         }
     }
@@ -3423,12 +3423,12 @@ bool DCTStream::readProgressiveSOF()
     width = read16();
     numComps = str->get();
     if (numComps <= 0 || numComps > 4) {
-        error(errSyntaxError, getPos(), "Bad number of components in DCT stream");
+        error(errSyntaxError, tellg(), "Bad number of components in DCT stream");
         numComps = 0;
         return false;
     }
     if (prec != 8) {
-        error(errSyntaxError, getPos(), "Bad DCT precision {0:d}", prec);
+        error(errSyntaxError, tellg(), "Bad DCT precision {0:d}", prec);
         return false;
     }
     for (i = 0; i < numComps; ++i) {
@@ -3439,11 +3439,11 @@ bool DCTStream::readProgressiveSOF()
         compInfo[i].quantTable = str->get();
         if (compInfo[i].hSample < 1 || compInfo[i].hSample > 4 ||
             compInfo[i].vSample < 1 || compInfo[i].vSample > 4) {
-            error(errSyntaxError, getPos(), "Bad DCT sampling factor");
+            error(errSyntaxError, tellg(), "Bad DCT sampling factor");
             return false;
         }
         if (compInfo[i].quantTable < 0 || compInfo[i].quantTable > 3) {
-            error(errSyntaxError, getPos(), "Bad DCT quant table selector");
+            error(errSyntaxError, tellg(), "Bad DCT quant table selector");
             return false;
         }
     }
@@ -3460,13 +3460,13 @@ bool DCTStream::readScanInfo()
     length = read16() - 2;
     scanInfo.numComps = str->get();
     if (scanInfo.numComps <= 0 || scanInfo.numComps > 4) {
-        error(errSyntaxError, getPos(), "Bad number of components in DCT stream");
+        error(errSyntaxError, tellg(), "Bad number of components in DCT stream");
         scanInfo.numComps = 0;
         return false;
     }
     --length;
     if (length != 2 * scanInfo.numComps + 3) {
-        error(errSyntaxError, getPos(), "Bad DCT scan info block");
+        error(errSyntaxError, tellg(), "Bad DCT scan info block");
         return false;
     }
     interleaved = scanInfo.numComps == numComps;
@@ -3487,7 +3487,7 @@ bool DCTStream::readScanInfo()
                 }
             }
             if (j == numComps) {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Bad DCT component ID in scan info block");
                 return false;
             }
@@ -3501,7 +3501,7 @@ bool DCTStream::readScanInfo()
     scanInfo.lastCoeff = str->get();
     if (scanInfo.firstCoeff < 0 || scanInfo.lastCoeff > 63 ||
         scanInfo.firstCoeff > scanInfo.lastCoeff) {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Bad DCT coefficient numbers in scan info block");
         return false;
     }
@@ -3521,7 +3521,7 @@ bool DCTStream::readQuantTables()
         prec = (index >> 4) & 0x0f;
         index &= 0x0f;
         if (prec > 1 || index >= 4) {
-            error(errSyntaxError, getPos(), "Bad DCT quantization table");
+            error(errSyntaxError, tellg(), "Bad DCT quantization table");
             return false;
         }
         if (index == numQuantTables) {
@@ -3558,7 +3558,7 @@ bool DCTStream::readHuffmanTables()
         index = str->get();
         --length;
         if ((index & 0x0f) >= 4) {
-            error(errSyntaxError, getPos(), "Bad DCT Huffman table");
+            error(errSyntaxError, tellg(), "Bad DCT Huffman table");
             return false;
         }
         if (index & 0x10) {
@@ -3596,7 +3596,7 @@ bool DCTStream::readRestartInterval()
 
     length = read16();
     if (length != 4) {
-        error(errSyntaxError, getPos(), "Bad DCT restart interval");
+        error(errSyntaxError, tellg(), "Bad DCT restart interval");
         return false;
     }
     restartInterval = read16();
@@ -3614,7 +3614,7 @@ bool DCTStream::readJFIFMarker()
     if (length >= 5) {
         for (i = 0; i < 5; ++i) {
             if ((c = str->get()) == EOF) {
-                error(errSyntaxError, getPos(), "Bad DCT APP0 marker");
+                error(errSyntaxError, tellg(), "Bad DCT APP0 marker");
                 return false;
             }
             buf[i] = c;
@@ -3626,7 +3626,7 @@ bool DCTStream::readJFIFMarker()
     }
     while (length > 0) {
         if (str->get() == EOF) {
-            error(errSyntaxError, getPos(), "Bad DCT APP0 marker");
+            error(errSyntaxError, tellg(), "Bad DCT APP0 marker");
             return false;
         }
         --length;
@@ -3663,7 +3663,7 @@ bool DCTStream::readAdobeMarker()
     return true;
 
 err:
-    error(errSyntaxError, getPos(), "Bad DCT Adobe APP14 marker");
+    error(errSyntaxError, tellg(), "Bad DCT Adobe APP14 marker");
     return false;
 }
 
@@ -3673,7 +3673,7 @@ bool DCTStream::readTrailer()
 
     c = readMarker();
     if (c != 0xd9) { // EOI
-        error(errSyntaxError, getPos(), "Bad DCT trailer");
+        error(errSyntaxError, tellg(), "Bad DCT trailer");
         return false;
     }
     return true;
@@ -3929,16 +3929,16 @@ void FlateStream::reset()
     if (cmf == EOF || flg == EOF)
         return;
     if ((cmf & 0x0f) != 0x08) {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Unknown compression method in flate stream");
         return;
     }
     if ((((cmf << 8) + flg) % 31) != 0) {
-        error(errSyntaxError, getPos(), "Bad FCHECK in flate stream");
+        error(errSyntaxError, tellg(), "Bad FCHECK in flate stream");
         return;
     }
     if (flg & 0x20) {
-        error(errSyntaxError, getPos(), "FDICT bit set in flate stream");
+        error(errSyntaxError, tellg(), "FDICT bit set in flate stream");
         return;
     }
 
@@ -4099,7 +4099,7 @@ void FlateStream::readSome()
     return;
 
 err:
-    error(errSyntaxError, getPos(), "Unexpected end of file in flate stream");
+    error(errSyntaxError, tellg(), "Unexpected end of file in flate stream");
     endOfBlock = eof = true;
     remain = 0;
 }
@@ -4142,7 +4142,7 @@ bool FlateStream::startBlock()
             goto err;
         check |= (c & 0xff) << 8;
         if (check != (~blockLen & 0xffff))
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Bad uncompressed block length in flate stream");
         codeBuf = 0;
         codeSize = 0;
@@ -4168,7 +4168,7 @@ bool FlateStream::startBlock()
     return true;
 
 err:
-    error(errSyntaxError, getPos(), "Bad block header in flate stream");
+    error(errSyntaxError, tellg(), "Bad block header in flate stream");
     endOfBlock = eof = true;
     return false;
 }
@@ -4276,7 +4276,7 @@ bool FlateStream::readDynamicCodes()
     return true;
 
 err:
-    error(errSyntaxError, getPos(), "Bad dynamic code table in flate stream");
+    error(errSyntaxError, tellg(), "Bad dynamic code table in flate stream");
     free(codeLenCodeTab.codes);
     return false;
 }

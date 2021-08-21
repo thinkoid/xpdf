@@ -703,7 +703,7 @@ void Gfx::go(bool topLevel)
 
             // too many arguments - something is wrong
         } else {
-            error(errSyntaxError, getPos(), "Too many args in content stream");
+            error(errSyntaxError, tellg(), "Too many args in content stream");
             if (printCommands) {
                 printf("throwing away arg: ");
                 obj.print(stdout);
@@ -718,7 +718,7 @@ void Gfx::go(bool topLevel)
 
     // args at end with no command
     if (numArgs > 0) {
-        error(errSyntaxError, getPos(), "Leftover args in content stream");
+        error(errSyntaxError, tellg(), "Leftover args in content stream");
         if (printCommands) {
             printf("%d leftovers:", numArgs);
             for (i = 0; i < numArgs; ++i) {
@@ -752,7 +752,7 @@ bool Gfx::execOp(Object *cmd, Object args[], int numArgs)
         if (ignoreUndef > 0) {
             return true;
         }
-        error(errSyntaxError, getPos(), "Unknown operator '{0:s}'", name);
+        error(errSyntaxError, tellg(), "Unknown operator '{0:s}'", name);
         return false;
     }
 
@@ -760,13 +760,13 @@ bool Gfx::execOp(Object *cmd, Object args[], int numArgs)
     argPtr = args;
     if (op->numArgs >= 0) {
         if (numArgs < op->numArgs) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Too few ({0:d}) args to '{1:s}' operator", numArgs, name);
             return false;
         }
         if (numArgs > op->numArgs) {
 #if 0
-      error(errSyntaxWarning, getPos(),
+      error(errSyntaxWarning, tellg(),
         "Too many ({0:d}) args to '{1:s}' operator", numArgs, name);
 #endif
             argPtr += numArgs - op->numArgs;
@@ -774,14 +774,14 @@ bool Gfx::execOp(Object *cmd, Object args[], int numArgs)
         }
     } else {
         if (numArgs > -op->numArgs) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Too many ({0:d}) args to '{1:s}' operator", numArgs, name);
             return false;
         }
     }
     for (i = 0; i < numArgs; ++i) {
         if (!checkArg(&argPtr[i], op->tchk[i])) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Arg #{0:d} to '{1:s}' operator is wrong type ({2:s})", i, name,
                   argPtr[i].getTypeName());
             return false;
@@ -842,9 +842,9 @@ bool Gfx::checkArg(Object *arg, typeCheckType type)
     return false;
 }
 
-off_t Gfx::getPos()
+off_t Gfx::tellg()
 {
-    return parser ? parser->getPos() : -1;
+    return parser ? parser->tellg() : -1;
 }
 
 //------------------------------------------------------------------------
@@ -942,7 +942,7 @@ void Gfx::opSetExtGState(Object args[], int numArgs)
         return;
     }
     if (!obj1.is_dict()) {
-        error(errSyntaxError, getPos(), "ExtGState '{0:s}' is wrong type",
+        error(errSyntaxError, tellg(), "ExtGState '{0:s}' is wrong type",
               args[0].as_name());
         return;
     }
@@ -999,7 +999,7 @@ void Gfx::opSetExtGState(Object args[], int numArgs)
             state->setBlendMode(mode);
             out->updateBlendMode(state);
         } else {
-            error(errSyntaxError, getPos(), "Invalid blend mode in ExtGState");
+            error(errSyntaxError, tellg(), "Invalid blend mode in ExtGState");
         }
     }
     if ((obj2 = resolve(obj1.as_dict()["ca"])).is_num()) {
@@ -1062,7 +1062,7 @@ void Gfx::opSetExtGState(Object args[], int numArgs)
             out->updateTransfer(state);
         }
     } else if (!obj2.is_null()) {
-        error(errSyntaxError, getPos(), "Invalid transfer function in ExtGState");
+        error(errSyntaxError, tellg(), "Invalid transfer function in ExtGState");
     }
 
     // soft mask
@@ -1087,7 +1087,7 @@ void Gfx::opSetExtGState(Object args[], int numArgs)
                     funcs[0] = xpdf::make_function(obj3);
 
                     if (!is_unary(funcs[0])) {
-                        error(errSyntaxError, getPos(),
+                        error(errSyntaxError, tellg(),
                               "Invalid transfer function in soft mask in "
                               "ExtGState");
                         funcs[0] = {};
@@ -1136,15 +1136,15 @@ void Gfx::opSetExtGState(Object args[], int numArgs)
 
                     funcs[0] = {};
                 } else {
-                    error(errSyntaxError, getPos(),
+                    error(errSyntaxError, tellg(),
                           "Invalid soft mask in ExtGState - missing group");
                 }
             } else {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Invalid soft mask in ExtGState - missing group");
             }
         } else if (!obj2.is_null()) {
-            error(errSyntaxError, getPos(), "Invalid soft mask in ExtGState");
+            error(errSyntaxError, tellg(), "Invalid soft mask in ExtGState");
         }
     }
 }
@@ -1170,13 +1170,13 @@ void Gfx::doSoftMask(Object *str, Object *strRef, bool alpha,
     // check form type
     obj1 = resolve((*dict)["FormType"]);
     if (!(obj1.is_null() || (obj1.is_int() && obj1.as_int() == 1))) {
-        error(errSyntaxError, getPos(), "Unknown form type");
+        error(errSyntaxError, tellg(), "Unknown form type");
     }
 
     // get bounding box
     obj1 = resolve((*dict)["BBox"]);
     if (!obj1.is_array()) {
-        error(errSyntaxError, getPos(), "Bad form bounding box");
+        error(errSyntaxError, tellg(), "Bad form bounding box");
         return;
     }
     for (i = 0; i < 4; ++i) {
@@ -1325,7 +1325,7 @@ void Gfx::opSetFillColorSpace(Object args[], int numArgs)
         state->setFillColor(&color);
         out->updateFillColor(state);
     } else {
-        error(errSyntaxError, getPos(), "Bad color space (fill)");
+        error(errSyntaxError, tellg(), "Bad color space (fill)");
     }
 }
 
@@ -1349,7 +1349,7 @@ void Gfx::opSetStrokeColorSpace(Object args[], int numArgs)
         state->setStrokeColor(&color);
         out->updateStrokeColor(state);
     } else {
-        error(errSyntaxError, getPos(), "Bad color space (stroke)");
+        error(errSyntaxError, tellg(), "Bad color space (stroke)");
     }
 }
 
@@ -1359,7 +1359,7 @@ void Gfx::opSetFillColor(Object args[], int numArgs)
     int      i;
 
     if (numArgs != state->getFillColorSpace()->getNComps()) {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Incorrect number of arguments in 'sc' command");
         return;
     }
@@ -1377,7 +1377,7 @@ void Gfx::opSetStrokeColor(Object args[], int numArgs)
     int      i;
 
     if (numArgs != state->getStrokeColorSpace()->getNComps()) {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Incorrect number of arguments in 'SC' command");
         return;
     }
@@ -1402,7 +1402,7 @@ void Gfx::opSetFillColorN(Object args[], int numArgs)
                     ((GfxPatternColorSpace *)state->getFillColorSpace())
                         ->getUnder()
                         ->getNComps()) {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Incorrect number of arguments in 'scn' command");
                 return;
             }
@@ -1420,7 +1420,7 @@ void Gfx::opSetFillColorN(Object args[], int numArgs)
         }
     } else {
         if (numArgs != state->getFillColorSpace()->getNComps()) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Incorrect number of arguments in 'scn' command");
             return;
         }
@@ -1449,7 +1449,7 @@ void Gfx::opSetStrokeColorN(Object args[], int numArgs)
                     ((GfxPatternColorSpace *)state->getStrokeColorSpace())
                         ->getUnder()
                         ->getNComps()) {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Incorrect number of arguments in 'SCN' command");
                 return;
             }
@@ -1467,7 +1467,7 @@ void Gfx::opSetStrokeColorN(Object args[], int numArgs)
         }
     } else {
         if (numArgs != state->getStrokeColorSpace()->getNComps()) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Incorrect number of arguments in 'SCN' command");
             return;
         }
@@ -1494,7 +1494,7 @@ void Gfx::opMoveTo(Object args[], int numArgs)
 void Gfx::opLineTo(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        error(errSyntaxError, getPos(), "No current point in lineto");
+        error(errSyntaxError, tellg(), "No current point in lineto");
         return;
     }
     state->lineTo(args[0].as_num(), args[1].as_num());
@@ -1505,7 +1505,7 @@ void Gfx::opCurveTo(Object args[], int numArgs)
     double x1, y1, x2, y2, x3, y3;
 
     if (!state->isCurPt()) {
-        error(errSyntaxError, getPos(), "No current point in curveto");
+        error(errSyntaxError, tellg(), "No current point in curveto");
         return;
     }
     x1 = args[0].as_num();
@@ -1522,7 +1522,7 @@ void Gfx::opCurveTo1(Object args[], int numArgs)
     double x1, y1, x2, y2, x3, y3;
 
     if (!state->isCurPt()) {
-        error(errSyntaxError, getPos(), "No current point in curveto1");
+        error(errSyntaxError, tellg(), "No current point in curveto1");
         return;
     }
     x1 = state->getCurX();
@@ -1539,7 +1539,7 @@ void Gfx::opCurveTo2(Object args[], int numArgs)
     double x1, y1, x2, y2, x3, y3;
 
     if (!state->isCurPt()) {
-        error(errSyntaxError, getPos(), "No current point in curveto2");
+        error(errSyntaxError, tellg(), "No current point in curveto2");
         return;
     }
     x1 = args[0].as_num();
@@ -1569,7 +1569,7 @@ void Gfx::opRectangle(Object args[], int numArgs)
 void Gfx::opClosePath(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        error(errSyntaxError, getPos(), "No current point in closepath");
+        error(errSyntaxError, tellg(), "No current point in closepath");
         return;
     }
     state->closePath();
@@ -1587,7 +1587,7 @@ void Gfx::opEndPath(Object args[], int numArgs)
 void Gfx::opStroke(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in stroke");
+        //error(errSyntaxError, tellg(), "No path in stroke");
         return;
     }
     if (state->isPath()) {
@@ -1605,7 +1605,7 @@ void Gfx::opStroke(Object args[], int numArgs)
 void Gfx::opCloseStroke(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in closepath/stroke");
+        //error(errSyntaxError, tellg(), "No path in closepath/stroke");
         return;
     }
     if (state->isPath()) {
@@ -1624,7 +1624,7 @@ void Gfx::opCloseStroke(Object args[], int numArgs)
 void Gfx::opFill(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in fill");
+        //error(errSyntaxError, tellg(), "No path in fill");
         return;
     }
     if (state->isPath()) {
@@ -1642,7 +1642,7 @@ void Gfx::opFill(Object args[], int numArgs)
 void Gfx::opEOFill(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in eofill");
+        //error(errSyntaxError, tellg(), "No path in eofill");
         return;
     }
     if (state->isPath()) {
@@ -1660,7 +1660,7 @@ void Gfx::opEOFill(Object args[], int numArgs)
 void Gfx::opFillStroke(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in fill/stroke");
+        //error(errSyntaxError, tellg(), "No path in fill/stroke");
         return;
     }
     if (state->isPath()) {
@@ -1683,7 +1683,7 @@ void Gfx::opFillStroke(Object args[], int numArgs)
 void Gfx::opCloseFillStroke(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in closepath/fill/stroke");
+        //error(errSyntaxError, tellg(), "No path in closepath/fill/stroke");
         return;
     }
     if (state->isPath()) {
@@ -1707,7 +1707,7 @@ void Gfx::opCloseFillStroke(Object args[], int numArgs)
 void Gfx::opEOFillStroke(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in eofill/stroke");
+        //error(errSyntaxError, tellg(), "No path in eofill/stroke");
         return;
     }
     if (state->isPath()) {
@@ -1730,7 +1730,7 @@ void Gfx::opEOFillStroke(Object args[], int numArgs)
 void Gfx::opCloseEOFillStroke(Object args[], int numArgs)
 {
     if (!state->isCurPt()) {
-        //error(errSyntaxError, getPos(), "No path in closepath/eofill/stroke");
+        //error(errSyntaxError, tellg(), "No path in closepath/eofill/stroke");
         return;
     }
     if (state->isPath()) {
@@ -1773,7 +1773,7 @@ void Gfx::doPatternFill(bool eoFill)
         doShadingPatternFill((GfxShadingPattern *)pattern, false, eoFill, false);
         break;
     default:
-        error(errSyntaxError, getPos(), "Unknown pattern type ({0:d}) in fill",
+        error(errSyntaxError, tellg(), "Unknown pattern type ({0:d}) in fill",
               pattern->getType());
         break;
     }
@@ -1801,7 +1801,7 @@ void Gfx::doPatternStroke()
         doShadingPatternFill((GfxShadingPattern *)pattern, true, false, false);
         break;
     default:
-        error(errSyntaxError, getPos(), "Unknown pattern type ({0:d}) in stroke",
+        error(errSyntaxError, tellg(), "Unknown pattern type ({0:d}) in stroke",
               pattern->getType());
         break;
     }
@@ -1829,7 +1829,7 @@ void Gfx::doPatternText()
         doShadingPatternFill((GfxShadingPattern *)pattern, false, false, true);
         break;
     default:
-        error(errSyntaxError, getPos(), "Unknown pattern type ({0:d}) in fill",
+        error(errSyntaxError, tellg(), "Unknown pattern type ({0:d}) in fill",
               pattern->getType());
         break;
     }
@@ -1880,7 +1880,7 @@ void Gfx::doTilingPatternFill(GfxTilingPattern *tPat, bool stroke, bool eoFill,
     // iCTM = invert CTM
     det = ctm[0] * ctm[3] - ctm[1] * ctm[2];
     if (fabs(det) < 0.000001) {
-        error(errSyntaxError, getPos(), "Singular matrix in tiling pattern fill");
+        error(errSyntaxError, tellg(), "Singular matrix in tiling pattern fill");
         return;
     }
     det = 1 / det;
@@ -1908,7 +1908,7 @@ void Gfx::doTilingPatternFill(GfxTilingPattern *tPat, bool stroke, bool eoFill,
     // construct a (device space) -> (pattern space) transform matrix
     det = m1[0] * m1[3] - m1[1] * m1[2];
     if (fabs(det) < 0.000001) {
-        error(errSyntaxError, getPos(), "Singular matrix in tiling pattern fill");
+        error(errSyntaxError, tellg(), "Singular matrix in tiling pattern fill");
         return;
     }
     det = 1 / det;
@@ -2092,7 +2092,7 @@ void Gfx::doShadingPatternFill(GfxShadingPattern *sPat, bool stroke, bool eoFill
     // iCTM = invert CTM
     det = ctm[0] * ctm[3] - ctm[1] * ctm[2];
     if (fabs(det) < 0.000001) {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "Singular matrix in shading pattern fill");
         return;
     }
@@ -3366,7 +3366,7 @@ void Gfx::opTextNextLine(Object args[], int numArgs)
 void Gfx::opShowText(Object args[], int numArgs)
 {
     if (!state->getFont()) {
-        error(errSyntaxError, getPos(), "No font in show");
+        error(errSyntaxError, tellg(), "No font in show");
         return;
     }
     if (fontChanged) {
@@ -3387,7 +3387,7 @@ void Gfx::opMoveShowText(Object args[], int numArgs)
     double tx, ty;
 
     if (!state->getFont()) {
-        error(errSyntaxError, getPos(), "No font in move/show");
+        error(errSyntaxError, tellg(), "No font in move/show");
         return;
     }
     if (fontChanged) {
@@ -3412,7 +3412,7 @@ void Gfx::opMoveSetShowText(Object args[], int numArgs)
     double tx, ty;
 
     if (!state->getFont()) {
-        error(errSyntaxError, getPos(), "No font in move/set/show");
+        error(errSyntaxError, tellg(), "No font in move/set/show");
         return;
     }
     if (fontChanged) {
@@ -3443,7 +3443,7 @@ void Gfx::opShowSpaceText(Object args[], int numArgs)
     int    i;
 
     if (!state->getFont()) {
-        error(errSyntaxError, getPos(), "No font in show/space");
+        error(errSyntaxError, tellg(), "No font in show/space");
         return;
     }
     if (fontChanged) {
@@ -3470,7 +3470,7 @@ void Gfx::opShowSpaceText(Object args[], int numArgs)
             } else if (obj.is_string()) {
                 doShowText(obj.as_string());
             } else {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Element of show/space array must be number or string");
             }
         }
@@ -3588,7 +3588,7 @@ void Gfx::doShowText(GString *s)
                 if (charProc.is_stream()) {
                     display(&charProcRef, false);
                 } else {
-                    error(errSyntaxError, getPos(),
+                    error(errSyntaxError, tellg(),
                           "Missing or bad Type3 CharProc entry");
                 }
                 out->endType3Char(state);
@@ -3744,7 +3744,7 @@ void Gfx::opXObject(Object args[], int numArgs)
         return;
     }
     if (!obj1.is_stream()) {
-        error(errSyntaxError, getPos(), "XObject '{0:s}' is wrong type", name);
+        error(errSyntaxError, tellg(), "XObject '{0:s}' is wrong type", name);
         return;
     }
 #if OPI_SUPPORT
@@ -3771,10 +3771,10 @@ void Gfx::opXObject(Object args[], int numArgs)
         out->psXObject(obj1.as_stream(),
                        obj3.is_stream() ? obj3.as_stream() : (Stream *)NULL);
     } else if (obj2.is_name()) {
-        error(errSyntaxError, getPos(), "Unknown XObject subtype '{0:s}'",
+        error(errSyntaxError, tellg(), "Unknown XObject subtype '{0:s}'",
               obj2.as_name());
     } else {
-        error(errSyntaxError, getPos(),
+        error(errSyntaxError, tellg(),
               "XObject subtype is missing or wrong type");
     }
 #if OPI_SUPPORT
@@ -4124,7 +4124,7 @@ void Gfx::doImage(Object *ref, Stream *str, bool inlineImg)
 
 err2:
 err1:
-    error(errSyntaxError, getPos(), "Bad image parameters");
+    error(errSyntaxError, tellg(), "Bad image parameters");
 }
 
 void Gfx::doForm(Object *strRef, Object *str)
@@ -4151,7 +4151,7 @@ void Gfx::doForm(Object *strRef, Object *str)
     // check form type
     obj1 = resolve((*dict)["FormType"]);
     if (!(obj1.is_null() || (obj1.is_int() && obj1.as_int() == 1))) {
-        error(errSyntaxError, getPos(), "Unknown form type");
+        error(errSyntaxError, tellg(), "Unknown form type");
     }
 
     // check for optional content key
@@ -4168,7 +4168,7 @@ void Gfx::doForm(Object *strRef, Object *str)
     // get bounding box
     bboxObj = resolve((*dict)["BBox"]);
     if (!bboxObj.is_array()) {
-        error(errSyntaxError, getPos(), "Bad form bounding box");
+        error(errSyntaxError, tellg(), "Bad form bounding box");
         ocState = ocSaved;
         return;
     }
@@ -4372,7 +4372,7 @@ Stream *Gfx::buildImageStream()
     parser->getObj(&obj);
     while (!obj.is_cmd("ID") && !obj.is_eof()) {
         if (!obj.is_name()) {
-            error(errSyntaxError, getPos(),
+            error(errSyntaxError, tellg(),
                   "Inline image dictionary key must be a name object");
         } else {
             std::string key(obj.as_name());
@@ -4389,13 +4389,13 @@ Stream *Gfx::buildImageStream()
         parser->getObj(&obj);
     }
     if (obj.is_eof()) {
-        error(errSyntaxError, getPos(), "End of file in inline image");
+        error(errSyntaxError, tellg(), "End of file in inline image");
         return NULL;
     }
 
     // make stream
     if (!(str = parser->as_stream())) {
-        error(errSyntaxError, getPos(), "Invalid inline image data");
+        error(errSyntaxError, tellg(), "Invalid inline image data");
         return NULL;
     }
     str = new EmbedStream(str, &dict, false, 0);
@@ -4406,12 +4406,12 @@ Stream *Gfx::buildImageStream()
 
 void Gfx::opImageData(Object args[], int numArgs)
 {
-    error(errInternal, getPos(), "Got 'ID' operator");
+    error(errInternal, tellg(), "Got 'ID' operator");
 }
 
 void Gfx::opEndImage(Object args[], int numArgs)
 {
-    error(errInternal, getPos(), "Got 'EI' operator");
+    error(errInternal, tellg(), "Got 'EI' operator");
 }
 
 //------------------------------------------------------------------------
@@ -4503,7 +4503,7 @@ void Gfx::opEndMarkedContent(Object args[], int numArgs)
             out->endActualText(state);
         }
     } else {
-        error(errSyntaxWarning, getPos(), "Mismatched EMC operator");
+        error(errSyntaxWarning, tellg(), "Mismatched EMC operator");
     }
 }
 
@@ -4553,7 +4553,7 @@ void Gfx::drawAnnot(Object *strRef, AnnotBorderStyle *borderStyle, double xMin,
         // get the form bounding box
         bboxObj = resolve((*dict)["BBox"]);
         if (!bboxObj.is_array()) {
-            error(errSyntaxError, getPos(), "Bad form bounding box");
+            error(errSyntaxError, tellg(), "Bad form bounding box");
             return;
         }
         for (i = 0; i < 4; ++i) {

@@ -371,7 +371,7 @@ off_t XRef::getStartXref()
     int   n, i;
 
     // read last xrefSearchSize bytes
-    str->setPos(xrefSearchSize, -1);
+    str->seekg(xrefSearchSize, -1);
     n = str->readblock(buf, xrefSearchSize);
     buf[n] = '\0';
 
@@ -403,7 +403,7 @@ bool XRef::readXRef(off_t *pos, XRefPosSet *posSet)
     // the xref data should either be "xref ..." (for an xref table) or
     // "nn gg obj << ... >> stream ..." (for an xref stream); possibly
     // preceded by whitespace
-    str->setPos(start + *pos);
+    str->seekg(start + *pos);
     n = str->readblock(buf, 100);
     for (i = 0; i < n && Lexer::isSpace(buf[i]); ++i)
         ;
@@ -461,7 +461,7 @@ bool XRef::readXRefTable(off_t *pos, int offset, XRefPosSet *posSet)
     }
     posSet->add(*pos);
 
-    str->setPos(start + *pos + offset);
+    str->seekg(start + *pos + offset);
 
     while (1) {
         do {
@@ -574,7 +574,7 @@ bool XRef::readXRefTable(off_t *pos, int offset, XRefPosSet *posSet)
     obj = {};
 
     Parser parser(
-        this, new Lexer(str->makeSubStream(str->getPos(), false, 0, &obj)), true);
+        this, new Lexer(str->makeSubStream(str->tellg(), false, 0, &obj)), true);
 
     parser.getObj(&obj);
 
@@ -795,7 +795,7 @@ bool XRef::constructXRef()
 
     str->reset();
     while (1) {
-        pos = str->getPos();
+        pos = str->tellg();
         if (!str->readline(buf, 256)) {
             break;
         }

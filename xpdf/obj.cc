@@ -136,12 +136,12 @@ char *obj_t::streamGetLine(char *buf, int size)
 
 off_t obj_t::streamGetPos()
 {
-    return as_stream()->getPos();
+    return as_stream()->tellg();
 }
 
 void obj_t::streamSetPos(off_t pos, int dir)
 {
-    as_stream()->setPos(pos, dir);
+    as_stream()->seekg(pos, dir);
 }
 
 Dict *obj_t::streamGetDict()

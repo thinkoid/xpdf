@@ -201,7 +201,7 @@ Lexer::token_t Lexer::next()
             case '\r': case '\n':
                 // This breaks some PDF files, e.g., ones from Photoshop.
 #endif
-                error(errSyntaxError, getPos(), "Unterminated string");
+                error(errSyntaxError, tellg(), "Unterminated string");
                 done = true;
                 break;
 
@@ -272,7 +272,7 @@ Lexer::token_t Lexer::next()
                     break;
 
                 case EOF:
-                    error(errSyntaxError, getPos(), "Unterminated string");
+                    error(errSyntaxError, tellg(), "Unterminated string");
                     done = true;
                     break;
 
@@ -330,7 +330,7 @@ Lexer::token_t Lexer::next()
                 } else if (c2 >= 'a' && c2 <= 'f') {
                     c += c2 - 'a' + 10;
                 } else {
-                    error(errSyntaxError, getPos(),
+                    error(errSyntaxError, tellg(),
                           "Illegal digit in hex char in name");
                 }
             }
@@ -372,7 +372,7 @@ Lexer::token_t Lexer::next()
                 if (c == '>') {
                     break;
                 } else if (c == EOF) {
-                    error(errSyntaxError, getPos(), "Unterminated hex string");
+                    error(errSyntaxError, tellg(), "Unterminated hex string");
                     break;
                 } else if (specialChars[c] != 1) {
                     c2 = c2 << 4;
@@ -384,7 +384,7 @@ Lexer::token_t Lexer::next()
                     else if (c >= 'a' && c <= 'f')
                         c2 += c - 'a' + 10;
                     else
-                        error(errSyntaxError, getPos(),
+                        error(errSyntaxError, tellg(),
                               "Illegal character <{0:02x}> in hex string", c);
 
                     if (++m == 2) {
@@ -410,7 +410,7 @@ Lexer::token_t Lexer::next()
             get();
             return { token_t::KEYWORD_, ">>" };
         } else {
-            error(errSyntaxError, getPos(), "Illegal character '>'");
+            error(errSyntaxError, tellg(), "Illegal character '>'");
             return { token_t::ERROR_, {} };
         }
 
@@ -420,7 +420,7 @@ Lexer::token_t Lexer::next()
         //
         // Assorted errors:
         //
-        error(errSyntaxError, getPos(), "Illegal character '{0:c}'", c);
+        error(errSyntaxError, tellg(), "Illegal character '{0:c}'", c);
         return { token_t::ERROR_, {} };
 
     default: {

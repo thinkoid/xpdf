@@ -89,12 +89,12 @@ public:
     virtual size_t skip(size_t n);
 
     // Get current position in file.
-    virtual off_t getPos() = 0;
+    virtual off_t tellg() = 0;
 
     // Go to a position in the stream.  If <dir> is negative, the
     // position is from the end of the file; otherwise the position is
     // from the start of the file.
-    virtual void setPos(off_t pos, int dir = 0) = 0;
+    virtual void seekg(off_t pos, int dir = 0) = 0;
 
     // Get PostScript command for the filter(s).
     virtual GString *getPSFilter(int psLevel, const char *indent);
@@ -144,7 +144,7 @@ public:
     virtual ~BaseStream();
     virtual Stream *    makeSubStream(off_t start, bool limited,
                                       off_t length, Object *dict) = 0;
-    virtual void        setPos(off_t pos, int dir = 0) = 0;
+    virtual void        seekg(off_t pos, int dir = 0) = 0;
     virtual bool        isBinary(bool last = true) { return last; }
     virtual BaseStream *getBaseStream() { return this; }
     virtual Stream *    getUndecodedStream() { return this; }
@@ -178,8 +178,8 @@ public:
     FilterStream(Stream *strA);
     virtual ~FilterStream();
     virtual void        close();
-    virtual off_t getPos() { return str->getPos(); }
-    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t tellg() { return str->tellg(); }
+    virtual void        seekg(off_t pos, int dir = 0);
     virtual BaseStream *getBaseStream() { return str->getBaseStream(); }
     virtual Stream *    getUndecodedStream() { return str->getUndecodedStream(); }
 
@@ -304,8 +304,8 @@ public:
         return (bufPtr >= bufEnd && !fillBuf()) ? EOF : (*bufPtr & 0xff);
     }
     virtual int         readblock(char *blk, int size);
-    virtual off_t getPos() { return bufPos + (int)(bufPtr - buf); }
-    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t tellg() { return bufPos + (int)(bufPtr - buf); }
+    virtual void        seekg(off_t pos, int dir = 0);
     virtual off_t getStart() { return start; }
     virtual void        moveStart(int delta);
 
@@ -343,8 +343,8 @@ public:
     virtual int get() { return (bufPtr < bufEnd) ? (*bufPtr++ & 0xff) : EOF; }
     virtual int peek() { return (bufPtr < bufEnd) ? (*bufPtr & 0xff) : EOF; }
     virtual int readblock(char *blk, int size);
-    virtual off_t getPos() { return (off_t)(bufPtr - buf); }
-    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t tellg() { return (off_t)(bufPtr - buf); }
+    virtual void        seekg(off_t pos, int dir = 0);
     virtual off_t getStart() { return start; }
     virtual void        moveStart(int delta);
 
@@ -380,8 +380,8 @@ public:
     virtual int         get();
     virtual int         peek();
     virtual int         readblock(char *blk, int size);
-    virtual off_t getPos() { return str->getPos(); }
-    virtual void        setPos(off_t pos, int dir = 0);
+    virtual off_t tellg() { return str->tellg(); }
+    virtual void        seekg(off_t pos, int dir = 0);
     virtual off_t getStart();
     virtual void        moveStart(int delta);
 

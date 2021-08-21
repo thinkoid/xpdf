@@ -130,7 +130,7 @@ Object *Parser::getObj(Object *obj, bool simpleOnly, unsigned char *fileKey,
         }
 
         if (is_eof(buf1)) {
-            error(errSyntaxError, getPos(), "End of file inside array");
+            error(errSyntaxError, tellg(), "End of file inside array");
         }
 
         shift();
@@ -145,7 +145,7 @@ Object *Parser::getObj(Object *obj, bool simpleOnly, unsigned char *fileKey,
 
         while (!is_keyword(buf1, ">>") && !is_eof(buf1)) {
             if (!is_name(buf1)) {
-                error(errSyntaxError, getPos(),
+                error(errSyntaxError, tellg(),
                       "Dictionary key must be a name object");
 
                 shift();
@@ -164,7 +164,7 @@ Object *Parser::getObj(Object *obj, bool simpleOnly, unsigned char *fileKey,
         }
 
         if (is_eof(buf1)) {
-            error(errSyntaxError, getPos(), "End of file inside dictionary");
+            error(errSyntaxError, tellg(), "End of file inside dictionary");
         }
 
         // stream objects are not allowed inside content streams or
@@ -241,7 +241,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
     if (!(str = lexer->as_stream())) {
         return NULL;
     }
-    pos = str->getPos();
+    pos = str->tellg();
 
     // check for length in damaged file
     if (xref && xref->getStreamEnd(pos, &endPos)) {
@@ -253,7 +253,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
         if (obj.is_int()) {
             length = (off_t)(unsigned)obj.as_int();
         } else {
-            error(errSyntaxError, getPos(), "Bad 'Length' attribute in stream");
+            error(errSyntaxError, tellg(), "Bad 'Length' attribute in stream");
             return NULL;
         }
     }
@@ -266,7 +266,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
     baseStr = lexer->as_stream()->getBaseStream();
 
     // skip over stream data
-    lexer->setPos(pos + length);
+    lexer->seekg(pos + length);
 
     // refill token buffers and check for 'endstream'
     shift(); // kill '>>'
@@ -274,7 +274,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
     if (is_keyword(buf1, "endstream")) {
         shift();
     } else {
-        error(errSyntaxError, getPos(), "Missing 'endstream'");
+        error(errSyntaxError, tellg(), "Missing 'endstream'");
         // kludge for broken PDF files: just add 5k to the length, and
         // hope its enough
         length += 5000;
