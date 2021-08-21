@@ -2151,7 +2151,7 @@ void JBIG2Stream::readTextRegionSeg(unsigned segNum, bool imm, bool lossless,
 codeTableError:
     error(errSyntaxError, getPos(), "Missing code table in JBIG2 text region");
     delete codeTables;
-    delete syms;
+    free(syms);
     return;
 
 eofError:
