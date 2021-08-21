@@ -553,7 +553,7 @@ void JBIG2MMRDecoder::skipTo(unsigned length)
 {
     int n;
 
-    n = str->discardChars(length - nBytesRead);
+    n = str->skip(length - nBytesRead);
     nBytesRead += n;
     byteCounter += n;
 }
@@ -1210,7 +1210,7 @@ int JBIG2Stream::peek()
     return EOF;
 }
 
-int JBIG2Stream::getBlock(char *blk, int size)
+int JBIG2Stream::readblock(char *blk, int size)
 {
     int n, i;
 
@@ -1266,7 +1266,7 @@ void JBIG2Stream::readSegments()
             refFlags = (refFlags << 24) | (c1 << 16) | (c2 << 8) | c3;
             nRefSegs = refFlags & 0x1fffffff;
             i = (nRefSegs + 9) >> 3;
-            if (curStr->discardChars(i) != i) {
+            if (curStr->skip(i) != i) {
                 goto eofError1;
             }
         }
@@ -1392,7 +1392,7 @@ void JBIG2Stream::readSegments()
         default:
             error(errSyntaxError, getPos(),
                   "Unknown segment type in JBIG2 stream");
-            if (curStr->discardChars(segLength) != segLength) {
+            if (curStr->skip(segLength) != segLength) {
                 goto eofError2;
             }
             break;
@@ -1413,7 +1413,7 @@ void JBIG2Stream::readSegments()
                 free(refSegs);
                 break;
             }
-            byteCounter += curStr->discardChars(segLength - byteCounter);
+            byteCounter += curStr->skip(segLength - byteCounter);
         }
 
         free(refSegs);
@@ -1756,7 +1756,7 @@ bool JBIG2Stream::readSymbolDictSeg(unsigned segNum, unsigned length,
             collBitmap = new JBIG2Bitmap(0, totalWidth, symHeight);
             bmSize = symHeight * ((totalWidth + 7) >> 3);
             byteCounter +=
-                curStr->getBlock((char *)collBitmap->getDataPtr(), bmSize);
+                curStr->readblock((char *)collBitmap->getDataPtr(), bmSize);
         } else {
             collBitmap = readGenericBitmap(true, totalWidth, symHeight, 0, false,
                                            false, NULL, NULL, NULL, bmSize);
@@ -3764,13 +3764,13 @@ eofError:
 void JBIG2Stream::readEndOfStripeSeg(unsigned length)
 {
     // skip the segment
-    byteCounter += curStr->discardChars(length);
+    byteCounter += curStr->skip(length);
 }
 
 void JBIG2Stream::readProfilesSeg(unsigned length)
 {
     // skip the segment
-    byteCounter += curStr->discardChars(length);
+    byteCounter += curStr->skip(length);
 }
 
 void JBIG2Stream::readCodeTableSeg(unsigned segNum, unsigned length)
@@ -3840,7 +3840,7 @@ eofError:
 void JBIG2Stream::readExtensionSeg(unsigned length)
 {
     // skip the segment
-    byteCounter += curStr->discardChars(length);
+    byteCounter += curStr->skip(length);
 }
 
 JBIG2Segment *JBIG2Stream::findSegment(unsigned segNum)

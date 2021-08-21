@@ -525,12 +525,12 @@ void JPXStream::getImageParams(int *                 bitsPerComponent,
                                 haveCSMode = true;
                             }
                             if (dataLen > 7) {
-                                bufStr->discardChars(dataLen - 7);
+                                bufStr->skip(dataLen - 7);
                             }
                         }
                     } else {
                         if (dataLen > 3) {
-                            bufStr->discardChars(dataLen - 3);
+                            bufStr->skip(dataLen - 3);
                         }
                     }
                 }
@@ -542,7 +542,7 @@ void JPXStream::getImageParams(int *                 bitsPerComponent,
                 break;
             } else {
                 cover(4);
-                bufStr->discardChars(dataLen);
+                bufStr->skip(dataLen);
             }
         }
     }
@@ -577,7 +577,7 @@ void JPXStream::getImageParams2(int *                 bitsPerComponent,
         } else {
             cover(6);
             if (segLen > 2) {
-                bufStr->discardChars(segLen - 2);
+                bufStr->skip(segLen - 2);
             }
         }
     }
@@ -758,7 +758,7 @@ JPXDecodeResult JPXStream::readBoxes()
             break;
         default:
             cover(16);
-            if (bufStr->discardChars(dataLen) != dataLen) {
+            if (bufStr->skip(dataLen) != dataLen) {
                 error(errSyntaxError, getPos(), "Unexpected EOF in JPX stream");
                 return jpxDecodeFatalError;
             }
@@ -872,7 +872,7 @@ bool JPXStream::readColorSpecBox(unsigned dataLen)
     case 3: // any ICC profile (JPX)
     case 4: // vendor color (JPX)
         cover(18);
-        if (dataLen > 3 && bufStr->discardChars(dataLen - 3) != dataLen - 3) {
+        if (dataLen > 3 && bufStr->skip(dataLen - 3) != dataLen - 3) {
             goto err;
         }
         break;
@@ -1368,7 +1368,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
             cover(25);
 #if 1 //~ ROI is unimplemented
             error(errUnimplemented, -1, "got a JPX RGN segment");
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX RGN marker segment");
                 return jpxDecodeFatalError;
@@ -1388,7 +1388,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
             cover(26);
 #if 1 //~ progression order changes are unimplemented
             error(errUnimplemented, -1, "got a JPX POC segment");
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX POC marker segment");
                 return jpxDecodeFatalError;
@@ -1416,7 +1416,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
             cover(27);
 #if 1 //~ packed packet headers are unimplemented
             error(errUnimplemented, -1, "Got a JPX PPM segment");
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX PPM marker segment");
                 return jpxDecodeFatalError;
@@ -1426,7 +1426,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
         case 0x55: // TLM - tile-part lengths
             // skipped
             cover(28);
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX TLM marker segment");
                 return jpxDecodeFatalError;
@@ -1435,7 +1435,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
         case 0x57: // PLM - packet length, main header
             // skipped
             cover(29);
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX PLM marker segment");
                 return jpxDecodeFatalError;
@@ -1444,7 +1444,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
         case 0x63: // CRG - component registration
             // skipped
             cover(30);
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX CRG marker segment");
                 return jpxDecodeFatalError;
@@ -1453,7 +1453,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
         case 0x64: // COM - comment
             // skipped
             cover(31);
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX COM marker segment");
                 return jpxDecodeFatalError;
@@ -1468,7 +1468,7 @@ JPXDecodeResult JPXStream::readCodestream(unsigned len)
             error(errSyntaxError, getPos(),
                   "Unknown marker segment {0:02x} in JPX stream", segType);
             if (segLen > 2) {
-                bufStr->discardChars(segLen - 2);
+                bufStr->skip(segLen - 2);
             }
             break;
         }
@@ -1885,7 +1885,7 @@ bool JPXStream::readTilePart()
             cover(38);
 #if 1 //~ ROI is unimplemented
             error(errUnimplemented, -1, "Got a JPX RGN segment");
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX RGN marker segment");
                 return false;
@@ -1905,7 +1905,7 @@ bool JPXStream::readTilePart()
             cover(39);
 #if 1 //~ progression order changes are unimplemented
             error(errUnimplemented, -1, "Got a JPX POC segment");
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX POC marker segment");
                 return false;
@@ -1933,7 +1933,7 @@ bool JPXStream::readTilePart()
             cover(40);
 #if 1 //~ packed packet headers are unimplemented
             error(errUnimplemented, -1, "Got a JPX PPT segment");
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX PPT marker segment");
                 return false;
@@ -1942,7 +1942,7 @@ bool JPXStream::readTilePart()
         case 0x58: // PLT - packet length, tile-part header
             // skipped
             cover(41);
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX PLT marker segment");
                 return false;
@@ -1951,7 +1951,7 @@ bool JPXStream::readTilePart()
         case 0x64: // COM - comment
             // skipped
             cover(42);
-            if (segLen > 2 && bufStr->discardChars(segLen - 2) != segLen - 2) {
+            if (segLen > 2 && bufStr->skip(segLen - 2) != segLen - 2) {
                 error(errSyntaxError, getPos(),
                       "Error in JPX COM marker segment");
                 return false;
@@ -1967,7 +1967,7 @@ bool JPXStream::readTilePart()
                   "Unknown marker segment {0:02x} in JPX tile-part stream",
                   segType);
             if (segLen > 2) {
-                bufStr->discardChars(segLen - 2);
+                bufStr->skip(segLen - 2);
             }
             break;
         }
@@ -2547,7 +2547,7 @@ bool JPXStream::readCodeBlockData(JPXTileComp *tileComp, JPXResLevel *resLevel,
         } else {
             n = cb->dataLen[0];
         }
-        bufStr->discardChars(n);
+        bufStr->skip(n);
         return true;
     }
 
@@ -3523,7 +3523,7 @@ void JPXStream::skipSOP()
     // SOP occurs at the start of the packet header, so we don't need to
     // worry about bit-stuff prior to it
     if (byteCount >= 6 && bufStr->peek(0) == 0xff && bufStr->peek(1) == 0x91) {
-        bufStr->discardChars(6);
+        bufStr->skip(6);
         byteCount -= 6;
         bitBufLen = 0;
         bitBufSkip = false;
@@ -3537,7 +3537,7 @@ void JPXStream::skipEPH()
     k = bitBufSkip ? 1 : 0;
     if (byteCount >= (unsigned)(k + 2) && bufStr->peek(k) == 0xff &&
         bufStr->peek(k + 1) == 0x92) {
-        bufStr->discardChars(k + 2);
+        bufStr->skip(k + 2);
         byteCount -= k + 2;
         bitBufLen = 0;
         bitBufSkip = false;

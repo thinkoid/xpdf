@@ -33,13 +33,13 @@ Stream::~Stream() { }
 
 void Stream::close() { }
 
-int Stream::getRawChar()
+int Stream::getraw()
 {
-    error(errInternal, -1, "Called getRawChar() on non-predictor stream");
+    error(errInternal, -1, "Called getraw() on non-predictor stream");
     return EOF;
 }
 
-int Stream::getBlock(char *buf, int size)
+int Stream::readblock(char *buf, int size)
 {
     int n, c;
 
@@ -53,7 +53,7 @@ int Stream::getBlock(char *buf, int size)
     return n;
 }
 
-char *Stream::getLine(char *buf, int size)
+char *Stream::readline(char *buf, int size)
 {
     int i;
     int c;
@@ -75,22 +75,25 @@ char *Stream::getLine(char *buf, int size)
     return buf;
 }
 
-unsigned Stream::discardChars(unsigned n)
+size_t Stream::skip(size_t n)
 {
-    char     buf[4096];
-    unsigned count, i, j;
+    char    buf[4096];
+    size_t  count, i, j;
 
     count = 0;
     while (count < n) {
         if ((i = n - count) > sizeof(buf)) {
-            i = (unsigned)sizeof(buf);
+            i = sizeof(buf);
         }
-        j = (unsigned)getBlock(buf, (int)i);
+
+        j = (unsigned)readblock(buf, (int)i);
         count += j;
+
         if (j != i) {
             break;
         }
     }
+
     return count;
 }
 
@@ -356,7 +359,7 @@ bool ImageStream::getPixel(unsigned char *pix)
     int i;
 
     if (imgIdx >= nVals) {
-        if (!getLine()) {
+        if (!readline()) {
             return false;
         }
         imgIdx = 0;
@@ -367,7 +370,7 @@ bool ImageStream::getPixel(unsigned char *pix)
     return true;
 }
 
-unsigned char *ImageStream::getLine()
+unsigned char *ImageStream::readline()
 {
     size_t buf, bitMask;
     int    bits;
@@ -375,7 +378,7 @@ unsigned char *ImageStream::getLine()
     int    i;
     char * p;
 
-    if (str->getBlock(inputLine, inputLineSize) != inputLineSize) {
+    if (str->readblock(inputLine, inputLineSize) != inputLineSize) {
         return NULL;
     }
     if (nBits == 1) {
@@ -416,7 +419,7 @@ unsigned char *ImageStream::getLine()
 
 void ImageStream::skipLine()
 {
-    str->getBlock(inputLine, inputLineSize);
+    str->readblock(inputLine, inputLineSize);
 }
 
 //------------------------------------------------------------------------
@@ -472,7 +475,7 @@ int StreamPredictor::peek()
 //
 // Read a block of `n' bytes:
 //
-int StreamPredictor::getBlock(char *blk, int size)
+int StreamPredictor::readblock(char *blk, int size)
 {
     int n = 0;
 
@@ -519,7 +522,7 @@ bool StreamPredictor::getNextLine()
         //
         // The predictor type is the next byte in the sequence:
         //
-        if (EOF == (current_predictor = str->getRawChar())) {
+        if (EOF == (current_predictor = str->getraw())) {
             return false;
         }
 
@@ -547,7 +550,7 @@ bool StreamPredictor::getNextLine()
         //
         upleftbuf[0] = buf[i];
 
-        if (EOF == (c = str->getRawChar())) {
+        if (EOF == (c = str->getraw())) {
             if (i > Bpp) {
                 //
                 // Fail graciously (mimicking Adobe) when the line is truncated:
@@ -726,7 +729,7 @@ void FileStream::close()
     }
 }
 
-int FileStream::getBlock(char *blk, int size)
+int FileStream::readblock(char *blk, int size)
 {
     int n, m;
 
@@ -842,7 +845,7 @@ void MemStream::reset()
 
 void MemStream::close() { }
 
-int MemStream::getBlock(char *blk, int size)
+int MemStream::readblock(char *blk, int size)
 {
     int n;
 
@@ -922,7 +925,7 @@ int EmbedStream::peek()
     return str->peek();
 }
 
-int EmbedStream::getBlock(char *blk, int size)
+int EmbedStream::readblock(char *blk, int size)
 {
     if (size <= 0) {
         return 0;
@@ -930,7 +933,7 @@ int EmbedStream::getBlock(char *blk, int size)
     if (limited && length < (unsigned)size) {
         size = (int)length;
     }
-    return str->getBlock(blk, size);
+    return str->readblock(blk, size);
 }
 
 void EmbedStream::setPos(off_t pos, int dir)
@@ -1202,7 +1205,7 @@ int LZWStream::peek()
     return seqBuf[seqIndex];
 }
 
-int LZWStream::getRawChar()
+int LZWStream::getraw()
 {
     if (eof) {
         return EOF;
@@ -1215,12 +1218,12 @@ int LZWStream::getRawChar()
     return seqBuf[seqIndex++];
 }
 
-int LZWStream::getBlock(char *blk, int size)
+int LZWStream::readblock(char *blk, int size)
 {
     int n, m;
 
     if (pred) {
-        return pred->getBlock(blk, size);
+        return pred->readblock(blk, size);
     }
     if (eof) {
         return 0;
@@ -1396,7 +1399,7 @@ void RunLengthStream::reset()
     eof = false;
 }
 
-int RunLengthStream::getBlock(char *blk, int size)
+int RunLengthStream::readblock(char *blk, int size)
 {
     int n, m;
 
@@ -3355,7 +3358,7 @@ bool DCTStream::readHeader()
             // skip APPn / COM / etc.
             if (c >= 0xe0) {
                 n = read16() - 2;
-                str->discardChars(n);
+                str->skip(n);
             } else {
                 error(errSyntaxError, getPos(), "Unknown DCT marker <{0:02x}>",
                       c);
@@ -3976,7 +3979,7 @@ int FlateStream::peek()
     return c;
 }
 
-int FlateStream::getRawChar()
+int FlateStream::getraw()
 {
     int c;
 
@@ -3991,12 +3994,12 @@ int FlateStream::getRawChar()
     return c;
 }
 
-int FlateStream::getBlock(char *blk, int size)
+int FlateStream::readblock(char *blk, int size)
 {
     int n;
 
     if (pred) {
-        return pred->getBlock(blk, size);
+        return pred->readblock(blk, size);
     }
 
     n = 0;
@@ -4765,7 +4768,7 @@ void LZWEncoder::reset()
     codeLen = 9;
 
     // initialize input buffer
-    inBufLen = str->getBlock((char *)inBuf, sizeof(inBuf));
+    inBufLen = str->readblock((char *)inBuf, sizeof(inBuf));
 
     // initialize output buffer with a clear-table code
     outBuf = 256;
@@ -4858,7 +4861,7 @@ void LZWEncoder::fillBuf()
     // update the input buffer
     memmove(inBuf, inBuf + seqLen, inBufLen - seqLen);
     inBufLen -= seqLen;
-    inBufLen += str->getBlock((char *)inBuf + inBufLen, sizeof(inBuf) - inBufLen);
+    inBufLen += str->readblock((char *)inBuf + inBufLen, sizeof(inBuf) - inBufLen);
 
     // increment codeLen; generate clear-table code
     if (nextSeq == (1 << codeLen)) {

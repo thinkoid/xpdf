@@ -3413,7 +3413,7 @@ bool PSOutputDev::checkPageSlice(Page *page, double hDPI, double vDPI,
                 str = new ASCII85Encoder(str);
             }
             str->reset();
-            while ((n = str->getBlock(buf, sizeof(buf))) > 0) {
+            while ((n = str->readblock(buf, sizeof(buf))) > 0) {
                 writePSBlock(buf, n);
             }
             str->close();
@@ -5081,7 +5081,7 @@ void PSOutputDev::doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert
         rectsOut =
             (PSOutImgClipRect *)calloc(rectsOutSize, sizeof(PSOutImgClipRect));
         for (y = 0; y < height; ++y) {
-            if (!(line = imgStr->getLine())) {
+            if (!(line = imgStr->readline())) {
                 break;
             }
             i = 0;
@@ -5222,7 +5222,7 @@ void PSOutputDev::doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert
             (PSOutImgClipRect *)calloc(rectsOutSize, sizeof(PSOutImgClipRect));
         maskXor = maskInvert ? 1 : 0;
         for (y = 0; y < maskHeight; ++y) {
-            if (!(line = imgStr->getLine())) {
+            if (!(line = imgStr->readline())) {
                 break;
             }
             i = 0;
@@ -5536,7 +5536,7 @@ void PSOutputDev::doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert
                 str->reset();
                 n = 0;
                 do {
-                    i = str->discardChars(4096);
+                    i = str->skip(4096);
                     n += i;
                 } while (i == 4096);
                 str->close();
@@ -5562,7 +5562,7 @@ void PSOutputDev::doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert
 
         // copy the stream data
         str->reset();
-        while ((n = str->getBlock(buf, sizeof(buf))) > 0) {
+        while ((n = str->readblock(buf, sizeof(buf))) > 0) {
             writePSBlock(buf, n);
         }
         str->close();
@@ -5683,7 +5683,7 @@ void PSOutputDev::doImageL3(Object *ref, GfxImageColorMap *colorMap, bool invert
 
             // copy the stream data
             maskStr->reset();
-            while ((n = maskStr->getBlock(buf, sizeof(buf))) > 0) {
+            while ((n = maskStr->readblock(buf, sizeof(buf))) > 0) {
                 writePSBlock(buf, n);
             }
             maskStr->close();
@@ -5965,7 +5965,7 @@ void PSOutputDev::doImageL3(Object *ref, GfxImageColorMap *colorMap, bool invert
 
         // copy the stream data
         str->reset();
-        while ((n = str->getBlock(buf, sizeof(buf))) > 0) {
+        while ((n = str->readblock(buf, sizeof(buf))) > 0) {
             writePSBlock(buf, n);
         }
         str->close();
@@ -6664,7 +6664,7 @@ void PSOutputDev::psXObject(Stream *psStream, Stream *level1Stream)
         str = psStream;
     }
     str->reset();
-    while ((n = str->getBlock(buf, sizeof(buf))) > 0) {
+    while ((n = str->readblock(buf, sizeof(buf))) > 0) {
         writePSBlock(buf, n);
     }
     str->close();

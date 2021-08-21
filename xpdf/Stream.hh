@@ -74,19 +74,19 @@ public:
 
     // Get next char from stream without using the predictor.
     // This is only used by StreamPredictor.
-    virtual int getRawChar();
+    virtual int getraw();
 
     // Get exactly <size> bytes from stream.  Returns the number of
     // bytes read -- the returned count will be less than <size> at EOF.
-    virtual int getBlock(char *blk, int size);
+    virtual int readblock(char *blk, int size);
 
     // Get next line from stream.
-    virtual char *getLine(char *buf, int size);
+    virtual char *readline(char *buf, int size);
 
     // Discard the next <n> bytes from stream.  Returns the number of
     // bytes discarded, which will be less than <n> only if EOF is
     // reached.
-    virtual unsigned discardChars(unsigned n);
+    virtual size_t skip(size_t n);
 
     // Get current position in file.
     virtual off_t getPos() = 0;
@@ -220,7 +220,7 @@ public:
 
     // Returns a pointer to the next line of pixels.  Returns NULL at
     // end of file.
-    unsigned char *getLine();
+    unsigned char *readline();
 
     // Skip an entire line from the image.
     void skipLine();
@@ -254,7 +254,7 @@ public:
     void reset();
     int  peek();
     int  get();
-    int  getBlock(char *blk, int size);
+    int  readblock(char *blk, int size);
 
 private:
     bool getNextLine();
@@ -303,7 +303,7 @@ public:
     {
         return (bufPtr >= bufEnd && !fillBuf()) ? EOF : (*bufPtr & 0xff);
     }
-    virtual int         getBlock(char *blk, int size);
+    virtual int         readblock(char *blk, int size);
     virtual off_t getPos() { return bufPos + (int)(bufPtr - buf); }
     virtual void        setPos(off_t pos, int dir = 0);
     virtual off_t getStart() { return start; }
@@ -342,7 +342,7 @@ public:
     virtual void       close();
     virtual int get() { return (bufPtr < bufEnd) ? (*bufPtr++ & 0xff) : EOF; }
     virtual int peek() { return (bufPtr < bufEnd) ? (*bufPtr & 0xff) : EOF; }
-    virtual int getBlock(char *blk, int size);
+    virtual int readblock(char *blk, int size);
     virtual off_t getPos() { return (off_t)(bufPtr - buf); }
     virtual void        setPos(off_t pos, int dir = 0);
     virtual off_t getStart() { return start; }
@@ -379,7 +379,7 @@ public:
     virtual void        reset() { }
     virtual int         get();
     virtual int         peek();
-    virtual int         getBlock(char *blk, int size);
+    virtual int         readblock(char *blk, int size);
     virtual off_t getPos() { return str->getPos(); }
     virtual void        setPos(off_t pos, int dir = 0);
     virtual off_t getStart();
@@ -465,8 +465,8 @@ public:
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
-    virtual int        getRawChar();
-    virtual int        getBlock(char *blk, int size);
+    virtual int        getraw();
+    virtual int        readblock(char *blk, int size);
     virtual GString *  getPSFilter(int psLevel, const char *indent);
     virtual bool       isBinary(bool last = true);
 
@@ -517,7 +517,7 @@ public:
     {
         return (bufPtr >= bufEnd && !fillBuf()) ? EOF : (*bufPtr & 0xff);
     }
-    virtual int      getBlock(char *blk, int size);
+    virtual int      readblock(char *blk, int size);
     virtual GString *getPSFilter(int psLevel, const char *indent);
     virtual bool     isBinary(bool last = true);
 
@@ -740,8 +740,8 @@ public:
     virtual void       reset();
     virtual int        get();
     virtual int        peek();
-    virtual int        getRawChar();
-    virtual int        getBlock(char *blk, int size);
+    virtual int        getraw();
+    virtual int        readblock(char *blk, int size);
     virtual GString *  getPSFilter(int psLevel, const char *indent);
     virtual bool       isBinary(bool last = true);
 
@@ -796,7 +796,7 @@ public:
     virtual void       reset() { }
     virtual int        get() { return EOF; }
     virtual int        peek() { return EOF; }
-    virtual int        getBlock(char *blk, int size) { return 0; }
+    virtual int        readblock(char *blk, int size) { return 0; }
     virtual GString *getPSFilter(int psLevel, const char *indent) { return NULL; }
     virtual bool     isBinary(bool last = true) { return false; }
 };

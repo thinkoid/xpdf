@@ -32,7 +32,7 @@ public:
     virtual void       close();
     virtual int        get();
     virtual int        peek();
-    virtual int        getBlock(char *blk, int size);
+    virtual int        readblock(char *blk, int size);
     virtual GString *  getPSFilter(int psLevel, const char *indent);
     virtual bool       isBinary(bool last = true);
 

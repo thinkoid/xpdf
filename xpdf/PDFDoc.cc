@@ -194,7 +194,7 @@ void PDFDoc::checkHeader()
 
     pdfVersion = 0;
     memset(hdrBuf, 0, headerSearchSize + 1);
-    str->getBlock(hdrBuf, headerSearchSize);
+    str->readblock(hdrBuf, headerSearchSize);
     for (i = 0; i < headerSearchSize - 5; ++i) {
         if (!strncmp(&hdrBuf[i], "%PDF-", 5)) {
             break;
@@ -343,7 +343,7 @@ bool PDFDoc::saveAs(GString *name)
         return false;
     }
     str->reset();
-    while ((n = str->getBlock(buf, sizeof(buf))) > 0) {
+    while ((n = str->readblock(buf, sizeof(buf))) > 0) {
         fwrite(buf, 1, n, f);
     }
     str->close();

@@ -598,7 +598,7 @@ LinkJavaScript::LinkJavaScript(Object *jsObj)
     } else if (jsObj->is_stream()) {
         js = new GString();
         jsObj->streamReset();
-        while ((n = jsObj->as_stream()->getBlock(buf, sizeof(buf))) > 0) {
+        while ((n = jsObj->as_stream()->readblock(buf, sizeof(buf))) > 0) {
             js->append(buf, n);
         }
         jsObj->streamClose();

@@ -126,12 +126,12 @@ int obj_t::streamLookChar()
 
 int obj_t::streamGetBlock(char *blk, int size)
 {
-    return as_stream()->getBlock(blk, size);
+    return as_stream()->readblock(blk, size);
 }
 
 char *obj_t::streamGetLine(char *buf, int size)
 {
-    return as_stream()->getLine(buf, size);
+    return as_stream()->readline(buf, size);
 }
 
 off_t obj_t::streamGetPos()

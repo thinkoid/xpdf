@@ -83,7 +83,7 @@ void OutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
 {
     if (inlineImg) {
         str->reset();
-        str->discardChars(height * ((width + 7) / 8));
+        str->skip(height * ((width + 7) / 8));
         str->close();
     }
 }
@@ -102,7 +102,7 @@ void OutputDev::drawImage(GfxState *state, Object *ref, Stream *str, int width,
 {
     if (inlineImg) {
         str->reset();
-        str->discardChars(
+        str->skip(
             height *
             ((width * colorMap->getNumPixelComps() * colorMap->getBits() + 7) /
              8));

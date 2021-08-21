@@ -2160,7 +2160,7 @@ bool SplashOutputDev::imageMaskSrc(void *data, SplashColorPtr line)
     int                     x;
 
     if (imgMaskData->y == imgMaskData->height ||
-        !(p = imgMaskData->imgStr->getLine())) {
+        !(p = imgMaskData->imgStr->readline())) {
         memset(line, 0, imgMaskData->width);
         return false;
     }
@@ -2206,7 +2206,7 @@ void SplashOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
                           t3GlyphStack != NULL, interpolate);
     if (inlineImg) {
         while (imgMaskData.y < height) {
-            imgMaskData.imgStr->getLine();
+            imgMaskData.imgStr->readline();
             ++imgMaskData.y;
         }
     }
@@ -2274,7 +2274,7 @@ bool SplashOutputDev::imageSrc(void *data, SplashColorPtr colorLine,
     SplashColorPtr      q, col;
     int                 x;
 
-    if (imgData->y == imgData->height || !(p = imgData->imgStr->getLine())) {
+    if (imgData->y == imgData->height || !(p = imgData->imgStr->readline())) {
         memset(colorLine, 0,
                imgData->width * splashColorModeNComps[imgData->colorMode]);
         return false;
@@ -2347,7 +2347,7 @@ bool SplashOutputDev::alphaImageSrc(void *data, SplashColorPtr colorLine,
     unsigned char alpha;
     int           nComps, x, i;
 
-    if (imgData->y == imgData->height || !(p = imgData->imgStr->getLine())) {
+    if (imgData->y == imgData->height || !(p = imgData->imgStr->readline())) {
         memset(colorLine, 0,
                imgData->width * splashColorModeNComps[imgData->colorMode]);
         memset(alphaLine, 0, imgData->width);
@@ -2516,7 +2516,7 @@ void SplashOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
                       height, mat, interpolate);
     if (inlineImg) {
         while (imgData.y < height) {
-            imgData.imgStr->getLine();
+            imgData.imgStr->readline();
             ++imgData.y;
         }
     }
@@ -2553,7 +2553,7 @@ bool SplashOutputDev::maskedImageSrc(void *data, SplashColorPtr colorLine,
     int                  maskShift;
     int                  nComps, x;
 
-    if (imgData->y == imgData->height || !(p = imgData->imgStr->getLine())) {
+    if (imgData->y == imgData->height || !(p = imgData->imgStr->readline())) {
         memset(colorLine, 0,
                imgData->width * splashColorModeNComps[imgData->colorMode]);
         memset(alphaLine, 0, imgData->width);

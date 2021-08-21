@@ -376,12 +376,12 @@ void DecryptStream::reset()
         break;
     case cryptAES:
         aesKeyExpansion(&state.aes, objKey, objKeyLength, true);
-        str->getBlock((char *)state.aes.cbc, 16);
+        str->readblock((char *)state.aes.cbc, 16);
         state.aes.bufIdx = 16;
         break;
     case cryptAES256:
         aes256KeyExpansion(&state.aes256, objKey, objKeyLength);
-        str->getBlock((char *)state.aes256.cbc, 16);
+        str->readblock((char *)state.aes256.cbc, 16);
         state.aes256.bufIdx = 16;
         break;
     }
@@ -407,7 +407,7 @@ int DecryptStream::get()
         break;
     case cryptAES:
         if (state.aes.bufIdx == 16) {
-            if (str->getBlock((char *)in, 16) != 16) {
+            if (str->readblock((char *)in, 16) != 16) {
                 return EOF;
             }
             aesDecryptBlock(&state.aes, in, str->peek() == EOF);
@@ -420,7 +420,7 @@ int DecryptStream::get()
         break;
     case cryptAES256:
         if (state.aes256.bufIdx == 16) {
-            if (str->getBlock((char *)in, 16) != 16) {
+            if (str->readblock((char *)in, 16) != 16) {
                 return EOF;
             }
             aes256DecryptBlock(&state.aes256, in, str->peek() == EOF);
@@ -454,7 +454,7 @@ int DecryptStream::peek()
         break;
     case cryptAES:
         if (state.aes.bufIdx == 16) {
-            if (str->getBlock((char *)in, 16) != 16) {
+            if (str->readblock((char *)in, 16) != 16) {
                 return EOF;
             }
             aesDecryptBlock(&state.aes, in, str->peek() == EOF);
@@ -467,7 +467,7 @@ int DecryptStream::peek()
         break;
     case cryptAES256:
         if (state.aes256.bufIdx == 16) {
-            if (str->getBlock((char *)in, 16) != 16) {
+            if (str->readblock((char *)in, 16) != 16) {
                 return EOF;
             }
             aes256DecryptBlock(&state.aes256, in, str->peek() == EOF);

@@ -236,7 +236,7 @@ ObjectStream::ObjectStream(XRef *xref, int objStrNumA)
     // the First key is supposed to be equal to offsets[0], but just in
     // case...
     if (i < offsets[0]) {
-        objStr.as_stream()->discardChars(offsets[0] - i);
+        objStr.as_stream()->skip(offsets[0] - i);
     }
 
     // parse the objects
@@ -372,7 +372,7 @@ off_t XRef::getStartXref()
 
     // read last xrefSearchSize bytes
     str->setPos(xrefSearchSize, -1);
-    n = str->getBlock(buf, xrefSearchSize);
+    n = str->readblock(buf, xrefSearchSize);
     buf[n] = '\0';
 
     // find startxref
@@ -404,7 +404,7 @@ bool XRef::readXRef(off_t *pos, XRefPosSet *posSet)
     // "nn gg obj << ... >> stream ..." (for an xref stream); possibly
     // preceded by whitespace
     str->setPos(start + *pos);
-    n = str->getBlock(buf, 100);
+    n = str->readblock(buf, 100);
     for (i = 0; i < n && Lexer::isSpace(buf[i]); ++i)
         ;
 
@@ -468,7 +468,7 @@ bool XRef::readXRefTable(off_t *pos, int offset, XRefPosSet *posSet)
             c = str->get();
         } while (Lexer::isSpace(c));
         if (c == 't') {
-            if (str->getBlock(buf, 6) != 6 || memcmp(buf, "railer", 6)) {
+            if (str->readblock(buf, 6) != 6 || memcmp(buf, "railer", 6)) {
                 return ok = false;
             }
             break;
@@ -796,7 +796,7 @@ bool XRef::constructXRef()
     str->reset();
     while (1) {
         pos = str->getPos();
-        if (!str->getLine(buf, 256)) {
+        if (!str->readline(buf, 256)) {
             break;
         }
         p = buf;

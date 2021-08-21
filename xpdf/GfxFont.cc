@@ -819,7 +819,7 @@ char *GfxFont::readEmbFontFile(XRef *xref, int *len)
             break;
         }
         buf = (char *)realloc(buf, size + 4096);
-        n = str->getBlock(buf + size, 4096);
+        n = str->readblock(buf + size, 4096);
         size += n;
     } while (n == 4096);
     *len = size;

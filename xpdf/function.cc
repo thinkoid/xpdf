@@ -224,7 +224,7 @@ std::vector< char > block_from(Object &obj, size_t n)
     std::vector< char > xs(n);
 
     str->reset();
-    str->getBlock(xs.data(), n);
+    str->readblock(xs.data(), n);
 
     return xs;
 }

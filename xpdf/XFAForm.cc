@@ -180,7 +180,7 @@ XFAForm *XFAForm::load(PDFDoc *docA, Object *acroFormObj, Object *xfaObj)
     if (xfaObj->is_stream()) {
         data = new GString();
         xfaObj->streamReset();
-        while ((n = xfaObj->as_stream()->getBlock(buf, sizeof(buf))) > 0) {
+        while ((n = xfaObj->as_stream()->readblock(buf, sizeof(buf))) > 0) {
             data->append(buf, n);
         }
     } else if (xfaObj->is_array()) {
@@ -192,7 +192,7 @@ XFAForm *XFAForm::load(PDFDoc *docA, Object *acroFormObj, Object *xfaObj)
                 return NULL;
             }
             obj1.streamReset();
-            while ((n = obj1.as_stream()->getBlock(buf, sizeof(buf))) > 0) {
+            while ((n = obj1.as_stream()->readblock(buf, sizeof(buf))) > 0) {
                 data->append(buf, n);
             }
         }
