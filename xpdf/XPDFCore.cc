@@ -195,7 +195,7 @@ int XPDFCore::loadFile(GString *fileName, GString *ownerPassword,
     return err;
 }
 
-int XPDFCore::loadFile(BaseStream *stream, GString *ownerPassword,
+int XPDFCore::loadFile(BasicStream *stream, GString *ownerPassword,
                        GString *userPassword)
 {
     int err = PDFCore::loadFile(stream, ownerPassword, userPassword);

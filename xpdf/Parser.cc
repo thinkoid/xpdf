@@ -232,7 +232,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
                            int objGen, int recursion)
 {
     Object      obj;
-    BaseStream *baseStr;
+    BasicStream *baseStr;
     Stream *    str;
     off_t pos, endPos, length;
 
@@ -263,7 +263,7 @@ Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
     if (!lexer->as_stream()) {
         return NULL;
     }
-    baseStr = lexer->as_stream()->getBaseStream();
+    baseStr = lexer->as_stream()->getBasicStream();
 
     // skip over stream data
     lexer->seekg(pos + length);

@@ -13,7 +13,7 @@
 #include <splash/SplashTypes.hh>
 #include <xpdf/PDFCore.hh>
 
-class BaseStream;
+class BasicStream;
 class PDFDoc;
 class LinkAction;
 
@@ -59,7 +59,7 @@ public:
 
     // Load a new file, via a Stream instead of a file name.  Returns
     // pdfOk or error code.
-    virtual int loadFile(BaseStream *stream, GString *ownerPassword = NULL,
+    virtual int loadFile(BasicStream *stream, GString *ownerPassword = NULL,
                          GString *userPassword = NULL);
 
     // Load an already-created PDFDoc object.

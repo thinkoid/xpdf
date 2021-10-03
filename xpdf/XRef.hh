@@ -41,7 +41,7 @@ class XRef
 {
 public:
     // Constructor.  Read xref table from stream.
-    XRef(BaseStream *strA, bool repair);
+    XRef(BasicStream *strA, bool repair);
 
     // Destructor.
     ~XRef();
@@ -116,7 +116,7 @@ public:
     Object *getTrailerDict() { return &trailerDict; }
 
 private:
-    BaseStream *str; // input stream
+    BasicStream *str; // input stream
     off_t start; // offset in file (to allow for garbage
         //   at beginning of file)
     XRefEntry *  entries; // xref entries

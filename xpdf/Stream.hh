@@ -14,7 +14,7 @@
 
 #include <boost/noncopyable.hpp>
 
-class BaseStream;
+class BasicStream;
 
 //------------------------------------------------------------------------
 
@@ -102,10 +102,10 @@ public:
     // Does this stream type potentially contain non-printable chars?
     virtual bool isBinary(bool last = true) = 0;
 
-    // Get the BaseStream of this stream.
-    virtual BaseStream *getBaseStream() = 0;
+    // Get the BasicStream of this stream.
+    virtual BasicStream *getBasicStream() = 0;
 
-    // Get the stream after the last decoder (this may be a BaseStream
+    // Get the stream after the last decoder (this may be a BasicStream
     // or a DecryptStream).
     virtual Stream *getUndecodedStream() = 0;
 
@@ -132,21 +132,21 @@ private:
 };
 
 //------------------------------------------------------------------------
-// BaseStream
+// BasicStream
 //
 // This is the base class for all streams that read directly from a file.
 //------------------------------------------------------------------------
 
-class BaseStream : public Stream
+class BasicStream : public Stream
 {
 public:
-    BaseStream(Object *dictA);
-    virtual ~BaseStream();
+    BasicStream(Object *dictA);
+    virtual ~BasicStream();
     virtual Stream *    makeSubStream(off_t start, bool limited,
                                       off_t length, Object *dict) = 0;
     virtual void        seekg(off_t pos, int dir = 0) = 0;
     virtual bool        isBinary(bool last = true) { return last; }
-    virtual BaseStream *getBaseStream() { return this; }
+    virtual BasicStream *getBasicStream() { return this; }
     virtual Stream *    getUndecodedStream() { return this; }
 
     virtual       Dict &as_dict()       { return dict.as_dict(); }
@@ -176,7 +176,7 @@ public:
     virtual void        close();
     virtual off_t tellg() { return str->tellg(); }
     virtual void        seekg(off_t pos, int dir = 0);
-    virtual BaseStream *getBaseStream() { return str->getBaseStream(); }
+    virtual BasicStream *getBasicStream() { return str->getBasicStream(); }
     virtual Stream *    getUndecodedStream() { return str->getUndecodedStream(); }
 
     virtual       Dict &as_dict()       { return str->as_dict(); }
@@ -274,7 +274,7 @@ private:
 
 #define fileStreamBufSize 256
 
-class FileStream : public BaseStream
+class FileStream : public BasicStream
 {
 public:
     FileStream(FILE *fA, off_t startA, bool limitedA, off_t lengthA,
@@ -320,7 +320,7 @@ private:
 // MemStream
 //------------------------------------------------------------------------
 
-class MemStream : public BaseStream
+class MemStream : public BasicStream
 {
 public:
     MemStream(const char *bufA, unsigned startA, unsigned lengthA, Object *dictA);
@@ -354,11 +354,11 @@ private:
 // This is a special stream type used for embedded streams (inline
 // images).  It reads directly from the base stream -- after the
 // EmbedStream is deleted, reads from the base stream will proceed where
-// the BaseStream left off.  Note that this is very different behavior
+// the BasicStream left off.  Note that this is very different behavior
 // that creating a new FileStream (using makeSubStream).
 //------------------------------------------------------------------------
 
-class EmbedStream : public BaseStream
+class EmbedStream : public BasicStream
 {
 public:
     EmbedStream(Stream *strA, Object *dictA, bool limitedA, off_t lengthA);

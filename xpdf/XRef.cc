@@ -282,7 +282,7 @@ Object *ObjectStream::getObject(int objIdx, int objNum, Object *obj)
 // XRef
 //------------------------------------------------------------------------
 
-XRef::XRef(BaseStream *strA, bool repair)
+XRef::XRef(BasicStream *strA, bool repair)
 {
     off_t pos;
     Object      obj;

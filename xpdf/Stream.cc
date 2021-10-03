@@ -268,15 +268,15 @@ Stream *Stream::makeFilter(const char *name, Stream *str, Object *params,
 }
 
 //------------------------------------------------------------------------
-// BaseStream
+// BasicStream
 //------------------------------------------------------------------------
 
-BaseStream::BaseStream(Object *dictA)
+BasicStream::BasicStream(Object *dictA)
 {
     dict = *dictA;
 }
 
-BaseStream::~BaseStream() { }
+BasicStream::~BasicStream() { }
 
 //------------------------------------------------------------------------
 // FilterStream
@@ -689,7 +689,7 @@ bool StreamPredictor::getNextLine()
 
 FileStream::FileStream(FILE *fA, off_t startA, bool limitedA,
                        off_t lengthA, Object *dictA)
-    : BaseStream(dictA)
+    : BasicStream(dictA)
 {
     f = fA;
     start = startA;
@@ -805,7 +805,7 @@ void FileStream::moveStart(int delta)
 
 MemStream::MemStream(const char *bufA, unsigned startA, unsigned lengthA,
                      Object *dictA)
-    : BaseStream(dictA)
+    : BasicStream(dictA)
 {
     buf = bufA;
     start = startA;
@@ -892,7 +892,7 @@ void MemStream::moveStart(int delta)
 
 EmbedStream::EmbedStream(Stream *strA, Object *dictA, bool limitedA,
                          off_t lengthA)
-    : BaseStream(dictA)
+    : BasicStream(dictA)
 {
     str = strA;
     limited = limitedA;

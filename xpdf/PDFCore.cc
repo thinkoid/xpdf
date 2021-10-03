@@ -169,7 +169,7 @@ int PDFCore::loadFile(GString *fileName, GString *ownerPassword,
     return err;
 }
 
-int PDFCore::loadFile(BaseStream *stream, GString *ownerPassword,
+int PDFCore::loadFile(BasicStream *stream, GString *ownerPassword,
                       GString *userPassword)
 {
     int err;

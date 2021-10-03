@@ -11,7 +11,7 @@
 #include <xpdf/Catalog.hh>
 #include <xpdf/Page.hh>
 
-class BaseStream;
+class BasicStream;
 class OutputDev;
 class Links;
 class LinkAction;
@@ -29,7 +29,7 @@ class PDFDoc
 public:
     PDFDoc(GString *fileNameA, GString *ownerPassword = NULL,
            GString *userPassword = NULL, PDFCore *coreA = NULL);
-    PDFDoc(BaseStream *strA, GString *ownerPassword = NULL,
+    PDFDoc(BasicStream *strA, GString *ownerPassword = NULL,
            GString *userPassword = NULL, PDFCore *coreA = NULL);
     ~PDFDoc();
 
@@ -49,7 +49,7 @@ public:
     Catalog *getCatalog() { return catalog; }
 
     // Get base stream.
-    BaseStream *getBaseStream() { return str; }
+    BasicStream *getBasicStream() { return str; }
 
     // Get page parameters.
     double getPageMediaWidth(int page)
@@ -180,7 +180,7 @@ private:
 
     GString *   fileName;
     FILE *      file;
-    BaseStream *str;
+    BasicStream *str;
     PDFCore *   core;
     double      pdfVersion;
     XRef *      xref;

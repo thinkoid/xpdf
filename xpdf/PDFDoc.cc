@@ -71,7 +71,7 @@ PDFDoc::PDFDoc(GString *fileNameA, GString *ownerPassword, GString *userPassword
     ok = setup(ownerPassword, userPassword);
 }
 
-PDFDoc::PDFDoc(BaseStream *strA, GString *ownerPassword, GString *userPassword,
+PDFDoc::PDFDoc(BasicStream *strA, GString *ownerPassword, GString *userPassword,
                PDFCore *coreA)
 {
     ok = false;

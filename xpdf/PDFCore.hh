@@ -16,7 +16,7 @@
 class GList;
 class SplashBitmap;
 class SplashPattern;
-class BaseStream;
+class BasicStream;
 class PDFDoc;
 class Links;
 class LinkDest;
@@ -118,7 +118,7 @@ public:
 
     // Load a new file, via a Stream instead of a file name.  Returns
     // pdfOk or error code.
-    virtual int loadFile(BaseStream *stream, GString *ownerPassword = NULL,
+    virtual int loadFile(BasicStream *stream, GString *ownerPassword = NULL,
                          GString *userPassword = NULL);
 
     // Load an already-created PDFDoc object.
