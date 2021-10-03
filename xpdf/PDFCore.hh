@@ -116,7 +116,7 @@ public:
     virtual int loadFile(GString *fileName, GString *ownerPassword = NULL,
                          GString *userPassword = NULL);
 
-    // Load a new file, via a Stream instead of a file name.  Returns
+    // Load a new file, via a StreamBase instead of a file name.  Returns
     // pdfOk or error code.
     virtual int loadFile(BasicStream *stream, GString *ownerPassword = NULL,
                          GString *userPassword = NULL);

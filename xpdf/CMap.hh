@@ -9,7 +9,7 @@
 #include <xpdf/CharTypes.hh>
 #include <xpdf/obj_fwd.hh>
 
-class Stream;
+class StreamBase;
 struct CMapVectorEntry;
 class CMapCache;
 
@@ -29,7 +29,7 @@ public:
 
     // Parse a CMap from <str>.  Sets the initial reference count to 1.
     // Returns NULL on failure.
-    static CMap *parse(CMapCache *cache, GString *collectionA, Stream *str);
+    static CMap *parse(CMapCache *cache, GString *collectionA, StreamBase *str);
 
     ~CMap();
 

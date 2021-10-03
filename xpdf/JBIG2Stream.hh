@@ -23,7 +23,7 @@ class JBIG2MMRDecoder;
 class JBIG2Stream : public FilterStream
 {
 public:
-    JBIG2Stream(Stream *strA, Object *globalsStreamA);
+    JBIG2Stream(StreamBase *strA, Object *globalsStreamA);
     virtual ~JBIG2Stream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -93,7 +93,7 @@ private:
     unsigned       defCombOp;
     GList *        segments; // [JBIG2Segment]
     GList *        globalSegments; // [JBIG2Segment]
-    Stream *       curStr;
+    StreamBase *       curStr;
     unsigned char *dataPtr;
     unsigned char *dataEnd;
     unsigned       byteCounter;

@@ -143,8 +143,8 @@ private:
     off_t getStartXref();
     bool        readXRef(off_t *pos, XRefPosSet *posSet);
     bool        readXRefTable(off_t *pos, int offset, XRefPosSet *posSet);
-    bool        readXRefStreamSection(Stream *xrefStr, int *w, int first, int n);
-    bool        readXRefStream(Stream *xrefStr, off_t *pos);
+    bool        readXRefStreamSection(StreamBase *xrefStr, int *w, int first, int n);
+    bool        readXRefStream(StreamBase *xrefStr, off_t *pos);
     bool        constructXRef();
     ObjectStream *getObjectStream(int objStrNum);
     off_t   strToFileOffset(char *s);

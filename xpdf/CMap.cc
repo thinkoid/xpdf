@@ -40,7 +40,7 @@ static int getCharFromFile(void *data)
 
 static int getCharFromStream(void *data)
 {
-    return ((Stream *)data)->get();
+    return ((StreamBase *)data)->get();
 }
 
 //------------------------------------------------------------------------
@@ -97,7 +97,7 @@ CMap *CMap::parse(CMapCache *cache, GString *collectionA, GString *cMapNameA)
     return cMap;
 }
 
-CMap *CMap::parse(CMapCache *cache, GString *collectionA, Stream *str)
+CMap *CMap::parse(CMapCache *cache, GString *collectionA, StreamBase *str)
 {
     Object obj1;
     CMap * cMap;

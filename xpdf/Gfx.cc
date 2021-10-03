@@ -1835,7 +1835,7 @@ void Gfx::doPatternText()
     }
 }
 
-void Gfx::doPatternImageMask(Object *ref, Stream *str, int width, int height,
+void Gfx::doPatternImageMask(Object *ref, StreamBase *str, int width, int height,
                              bool invert, bool inlineImg, bool interpolate)
 {
     saveState();
@@ -3769,7 +3769,7 @@ void Gfx::opXObject(Object args[], int numArgs)
     } else if (obj2.is_name("PS")) {
         obj3 = resolve((*obj1.streamGetDict())["Level1"]);
         out->psXObject(obj1.as_stream(),
-                       obj3.is_stream() ? obj3.as_stream() : (Stream *)NULL);
+                       obj3.is_stream() ? obj3.as_stream() : (StreamBase *)NULL);
     } else if (obj2.is_name()) {
         error(errSyntaxError, tellg(), "Unknown XObject subtype '{0:s}'",
               obj2.as_name());
@@ -3784,7 +3784,7 @@ void Gfx::opXObject(Object args[], int numArgs)
 #endif
 }
 
-void Gfx::doImage(Object *ref, Stream *str, bool inlineImg)
+void Gfx::doImage(Object *ref, StreamBase *str, bool inlineImg)
 {
     Dict *               dict, *maskDict;
     int                  width, height;
@@ -3799,7 +3799,7 @@ void Gfx::doImage(Object *ref, Stream *str, bool inlineImg)
     int                  maskColors[2 * gfxColorMaxComps];
     int                  maskWidth, maskHeight;
     bool                 maskInvert;
-    Stream *             maskStr;
+    StreamBase *             maskStr;
     bool                 interpolate;
     Object               obj1, obj2;
     int                  i, n;
@@ -4335,7 +4335,7 @@ void Gfx::takeContentStreamStack(Gfx *oldGfx)
 
 void Gfx::opBeginImage(Object args[], int numArgs)
 {
-    Stream *str;
+    StreamBase *str;
     int     c1, c2, c3;
 
     // NB: this function is run even if ocState is false -- doImage() is
@@ -4361,11 +4361,11 @@ void Gfx::opBeginImage(Object args[], int numArgs)
     }
 }
 
-Stream *Gfx::buildImageStream()
+StreamBase *Gfx::buildImageStream()
 {
     Object  dict;
     Object  obj;
-    Stream *str;
+    StreamBase *str;
 
     // build dictionary
     dict = xpdf::make_dict_obj();

@@ -819,7 +819,7 @@ public:
     GfxGouraudTriangleShading(GfxGouraudTriangleShading *shading);
     virtual ~GfxGouraudTriangleShading();
 
-    static GfxGouraudTriangleShading *parse(int typeA, Dict *dict, Stream *str);
+    static GfxGouraudTriangleShading *parse(int typeA, Dict *dict, StreamBase *str);
 
     virtual GfxShading *copy();
 
@@ -859,7 +859,7 @@ public:
     GfxPatchMeshShading(GfxPatchMeshShading *shading);
     virtual ~GfxPatchMeshShading();
 
-    static GfxPatchMeshShading *parse(int typeA, Dict *dict, Stream *str);
+    static GfxPatchMeshShading *parse(int typeA, Dict *dict, StreamBase *str);
 
     virtual GfxShading *copy();
 

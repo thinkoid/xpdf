@@ -2257,18 +2257,18 @@ void GfxRadialShading::getColor(double t, GfxColor *color)
 class GfxShadingBitBuf
 {
 public:
-    GfxShadingBitBuf(Stream *strA);
+    GfxShadingBitBuf(StreamBase *strA);
     ~GfxShadingBitBuf();
     bool getBits(int n, unsigned *val);
     void flushBits();
 
 private:
-    Stream *str;
+    StreamBase *str;
     int     bitBuf;
     int     nBits;
 };
 
-GfxShadingBitBuf::GfxShadingBitBuf(Stream *strA)
+GfxShadingBitBuf::GfxShadingBitBuf(StreamBase *strA)
 {
     str = strA;
     str->reset();
@@ -2366,7 +2366,7 @@ GfxGouraudTriangleShading::~GfxGouraudTriangleShading()
 }
 
 GfxGouraudTriangleShading *GfxGouraudTriangleShading::parse(int typeA, Dict *dict,
-                                                            Stream *str)
+                                                            StreamBase *str)
 {
     GfxGouraudTriangleShading *shading;
     Function                   funcsA[gfxColorMaxComps];
@@ -2646,7 +2646,7 @@ GfxPatchMeshShading::~GfxPatchMeshShading()
 }
 
 GfxPatchMeshShading *GfxPatchMeshShading::parse(int typeA, Dict *dict,
-                                                Stream *str)
+                                                StreamBase *str)
 {
     GfxPatchMeshShading *shading;
     Function             funcsA[gfxColorMaxComps];

@@ -118,24 +118,24 @@ public:
     virtual void endTextObject(GfxState *state);
 
     //----- image drawing
-    virtual void drawImageMask(GfxState *state, Object *ref, Stream *str,
+    virtual void drawImageMask(GfxState *state, Object *ref, StreamBase *str,
                                int width, int height, bool invert, bool inlineImg,
                                bool interpolate);
     virtual void setSoftMaskFromImageMask(GfxState *state, Object *ref,
-                                          Stream *str, int width, int height,
+                                          StreamBase *str, int width, int height,
                                           bool invert, bool inlineImg,
                                           bool interpolate);
-    virtual void drawImage(GfxState *state, Object *ref, Stream *str, int width,
+    virtual void drawImage(GfxState *state, Object *ref, StreamBase *str, int width,
                            int height, GfxImageColorMap *colorMap,
                            int *maskColors, bool inlineImg, bool interpolate);
-    virtual void drawMaskedImage(GfxState *state, Object *ref, Stream *str,
+    virtual void drawMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                  int width, int height,
-                                 GfxImageColorMap *colorMap, Stream *maskStr,
+                                 GfxImageColorMap *colorMap, StreamBase *maskStr,
                                  int maskWidth, int maskHeight, bool maskInvert,
                                  bool interpolate);
-    virtual void drawSoftMaskedImage(GfxState *state, Object *ref, Stream *str,
+    virtual void drawSoftMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                      int width, int height,
-                                     GfxImageColorMap *colorMap, Stream *maskStr,
+                                     GfxImageColorMap *colorMap, StreamBase *maskStr,
                                      int maskWidth, int maskHeight,
                                      GfxImageColorMap *maskColorMap,
                                      bool              interpolate);
@@ -236,7 +236,7 @@ private:
                               unsigned char *alphaLine);
     static bool maskedImageSrc(void *data, SplashColorPtr line,
                                unsigned char *alphaLine);
-    void reduceImageResolution(Stream *str, double *mat, int *width, int *height);
+    void reduceImageResolution(StreamBase *str, double *mat, int *width, int *height);
     void clearMaskRegion(GfxState *state, Splash *maskSplash, double xMin,
                          double yMin, double xMax, double yMax);
 

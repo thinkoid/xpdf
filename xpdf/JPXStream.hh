@@ -280,7 +280,7 @@ enum JPXDecodeResult { jpxDecodeOk, jpxDecodeNonFatalError, jpxDecodeFatalError 
 class JPXStream : public FilterStream
 {
 public:
-    JPXStream(Stream *strA);
+    JPXStream(StreamBase *strA);
     virtual ~JPXStream();
 
     const std::type_info &type() const override { return typeid(*this); }

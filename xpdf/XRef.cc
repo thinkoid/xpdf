@@ -155,7 +155,7 @@ private:
 
 ObjectStream::ObjectStream(XRef *xref, int objStrNumA)
 {
-    Stream *str;
+    StreamBase *str;
     int *   offsets;
     Object  objStr, obj1, obj2;
     int     first, i;
@@ -615,7 +615,7 @@ bool XRef::readXRefTable(off_t *pos, int offset, XRefPosSet *posSet)
     return more;
 }
 
-bool XRef::readXRefStream(Stream *xrefStr, off_t *pos)
+bool XRef::readXRefStream(StreamBase *xrefStr, off_t *pos)
 {
     int    w[3];
     bool   more;
@@ -699,7 +699,7 @@ err0:
     return false;
 }
 
-bool XRef::readXRefStreamSection(Stream *xrefStr, int *w, int first, int n)
+bool XRef::readXRefStreamSection(StreamBase *xrefStr, int *w, int first, int n)
 {
     off_t offset;
     int         type, gen, c, newSize, i, j;

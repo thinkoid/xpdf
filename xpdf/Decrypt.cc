@@ -314,7 +314,7 @@ bool Decrypt::makeFileKey2(int encVersion, int encRevision, int keyLength,
 // DecryptStream
 //------------------------------------------------------------------------
 
-DecryptStream::DecryptStream(Stream *strA, unsigned char *fileKey,
+DecryptStream::DecryptStream(StreamBase *strA, unsigned char *fileKey,
                              CryptAlgorithm algoA, int keyLength, int objNum,
                              int objGen)
     : FilterStream(strA)

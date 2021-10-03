@@ -22,7 +22,7 @@ class GfxState;
 class Link;
 class Links;
 class Page;
-class Stream;
+class StreamBase;
 
 //------------------------------------------------------------------------
 // OutputDev
@@ -198,24 +198,24 @@ public:
     virtual void endActualText(GfxState *state) { }
 
     //----- image drawing
-    virtual void drawImageMask(GfxState *state, Object *ref, Stream *str,
+    virtual void drawImageMask(GfxState *state, Object *ref, StreamBase *str,
                                int width, int height, bool invert, bool inlineImg,
                                bool interpolate);
     virtual void setSoftMaskFromImageMask(GfxState *state, Object *ref,
-                                          Stream *str, int width, int height,
+                                          StreamBase *str, int width, int height,
                                           bool invert, bool inlineImg,
                                           bool interpolate);
-    virtual void drawImage(GfxState *state, Object *ref, Stream *str, int width,
+    virtual void drawImage(GfxState *state, Object *ref, StreamBase *str, int width,
                            int height, GfxImageColorMap *colorMap,
                            int *maskColors, bool inlineImg, bool interpolate);
-    virtual void drawMaskedImage(GfxState *state, Object *ref, Stream *str,
+    virtual void drawMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                  int width, int height,
-                                 GfxImageColorMap *colorMap, Stream *maskStr,
+                                 GfxImageColorMap *colorMap, StreamBase *maskStr,
                                  int maskWidth, int maskHeight, bool maskInvert,
                                  bool interpolate);
-    virtual void drawSoftMaskedImage(GfxState *state, Object *ref, Stream *str,
+    virtual void drawSoftMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                      int width, int height,
-                                     GfxImageColorMap *colorMap, Stream *maskStr,
+                                     GfxImageColorMap *colorMap, StreamBase *maskStr,
                                      int maskWidth, int maskHeight,
                                      GfxImageColorMap *maskColorMap,
                                      bool              interpolate);
@@ -237,7 +237,7 @@ public:
     virtual void drawForm(Ref id) { }
 
     //----- PostScript XObjects
-    virtual void psXObject(Stream *psStream, Stream *level1Stream) { }
+    virtual void psXObject(StreamBase *psStream, StreamBase *level1Stream) { }
 
     //----- transparency groups and soft masks
     virtual void beginTransparencyGroup(GfxState *state, double *bbox,

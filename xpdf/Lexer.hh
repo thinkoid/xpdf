@@ -37,7 +37,7 @@ struct Lexer
 
     // Construct a lexer for a single stream.  Deletes the stream when
     // lexer is deleted.
-    Lexer(Stream *str);
+    Lexer(StreamBase *str);
 
     // Construct a lexer for a stream or array of streams (assumes obj
     // is either a stream or array of streams).
@@ -56,9 +56,9 @@ struct Lexer
     void skipChar() { get(); }
 
     // Get stream.
-    Stream *as_stream()
+    StreamBase *as_stream()
     {
-        return curStr.is_none() ? (Stream *)NULL : curStr.as_stream();
+        return curStr.is_none() ? (StreamBase *)NULL : curStr.as_stream();
     }
 
     // Get current position in file.

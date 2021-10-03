@@ -26,20 +26,20 @@
 #include <xpdf/Stream.hh>
 
 //------------------------------------------------------------------------
-// Stream (base class)
+// StreamBase (base class)
 //------------------------------------------------------------------------
 
-Stream::~Stream() { }
+StreamBase::~StreamBase() { }
 
-void Stream::close() { }
+void StreamBase::close() { }
 
-int Stream::getraw()
+int StreamBase::getraw()
 {
     error(errInternal, -1, "Called getraw() on non-predictor stream");
     return EOF;
 }
 
-int Stream::readblock(char *buf, int size)
+int StreamBase::readblock(char *buf, int size)
 {
     int n, c;
 
@@ -53,7 +53,7 @@ int Stream::readblock(char *buf, int size)
     return n;
 }
 
-char *Stream::readline(char *buf, int size)
+char *StreamBase::readline(char *buf, int size)
 {
     int i;
     int c;
@@ -75,7 +75,7 @@ char *Stream::readline(char *buf, int size)
     return buf;
 }
 
-size_t Stream::skip(size_t n)
+size_t StreamBase::skip(size_t n)
 {
     char    buf[4096];
     size_t  count, i, j;
@@ -97,16 +97,16 @@ size_t Stream::skip(size_t n)
     return count;
 }
 
-GString *Stream::getPSFilter(int psLevel, const char *indent)
+GString *StreamBase::getPSFilter(int psLevel, const char *indent)
 {
     return new GString();
 }
 
-Stream *Stream::addFilters(Object *dict, int recursion)
+StreamBase *StreamBase::addFilters(Object *dict, int recursion)
 {
     Object  obj, obj2;
     Object  params, params2;
-    Stream *str;
+    StreamBase *str;
     int     i;
 
     str = this;
@@ -141,7 +141,7 @@ Stream *Stream::addFilters(Object *dict, int recursion)
     return str;
 }
 
-Stream *Stream::makeFilter(const char *name, Stream *str, Object *params,
+StreamBase *StreamBase::makeFilter(const char *name, StreamBase *str, Object *params,
                            int recursion)
 {
     int    pred; // parameters
@@ -282,7 +282,7 @@ BasicStream::~BasicStream() { }
 // FilterStream
 //------------------------------------------------------------------------
 
-FilterStream::FilterStream(Stream *strA)
+FilterStream::FilterStream(StreamBase *strA)
 {
     str = strA;
 }
@@ -303,7 +303,7 @@ void FilterStream::seekg(off_t pos, int dir)
 // ImageStream
 //------------------------------------------------------------------------
 
-ImageStream::ImageStream(Stream *strA, int widthA, int nCompsA, int nBitsA)
+ImageStream::ImageStream(StreamBase *strA, int widthA, int nCompsA, int nBitsA)
 {
     int imgLineSize;
 
@@ -426,7 +426,7 @@ void ImageStream::skipLine()
 // StreamPredictor
 //------------------------------------------------------------------------
 
-StreamPredictor::StreamPredictor(Stream *strA, int predictorA, int pplA, int cppA,
+StreamPredictor::StreamPredictor(StreamBase *strA, int predictorA, int pplA, int cppA,
                                  int bpcA)
 {
     str = strA;
@@ -706,7 +706,7 @@ FileStream::~FileStream()
     close();
 }
 
-Stream *FileStream::makeSubStream(off_t startA, bool limitedA,
+StreamBase *FileStream::makeSubStream(off_t startA, bool limitedA,
                                   off_t lengthA, Object *dictA)
 {
     return new FileStream(f, startA, limitedA, lengthA, dictA);
@@ -816,7 +816,7 @@ MemStream::MemStream(const char *bufA, unsigned startA, unsigned lengthA,
 
 /* virtual */ MemStream::~MemStream() { }
 
-Stream *MemStream::makeSubStream(off_t startA, bool limited,
+StreamBase *MemStream::makeSubStream(off_t startA, bool limited,
                                  off_t lengthA, Object *dictA)
 {
     MemStream *subStr;
@@ -890,7 +890,7 @@ void MemStream::moveStart(int delta)
 // EmbedStream
 //------------------------------------------------------------------------
 
-EmbedStream::EmbedStream(Stream *strA, Object *dictA, bool limitedA,
+EmbedStream::EmbedStream(StreamBase *strA, Object *dictA, bool limitedA,
                          off_t lengthA)
     : BasicStream(dictA)
 {
@@ -901,7 +901,7 @@ EmbedStream::EmbedStream(Stream *strA, Object *dictA, bool limitedA,
 
 EmbedStream::~EmbedStream() { }
 
-Stream *EmbedStream::makeSubStream(off_t start, bool limitedA,
+StreamBase *EmbedStream::makeSubStream(off_t start, bool limitedA,
                                    off_t lengthA, Object *dictA)
 {
     error(errInternal, -1, "Called makeSubStream() on EmbedStream");
@@ -956,7 +956,7 @@ void EmbedStream::moveStart(int delta)
 // ASCIIHexStream
 //------------------------------------------------------------------------
 
-ASCIIHexStream::ASCIIHexStream(Stream *strA)
+ASCIIHexStream::ASCIIHexStream(StreamBase *strA)
     : FilterStream(strA)
 {
     buf = EOF;
@@ -1057,7 +1057,7 @@ bool ASCIIHexStream::isBinary(bool last)
 // ASCII85Stream
 //------------------------------------------------------------------------
 
-ASCII85Stream::ASCII85Stream(Stream *strA)
+ASCII85Stream::ASCII85Stream(StreamBase *strA)
     : FilterStream(strA)
 {
     index = n = 0;
@@ -1145,7 +1145,7 @@ bool ASCII85Stream::isBinary(bool last)
 // LZWStream
 //------------------------------------------------------------------------
 
-LZWStream::LZWStream(Stream *strA, int predictor, int columns, int colors,
+LZWStream::LZWStream(StreamBase *strA, int predictor, int columns, int colors,
                      int bits, int earlyA)
     : FilterStream(strA)
     , pred()
@@ -1380,7 +1380,7 @@ bool LZWStream::isBinary(bool last)
 // RunLengthStream
 //------------------------------------------------------------------------
 
-RunLengthStream::RunLengthStream(Stream *strA)
+RunLengthStream::RunLengthStream(StreamBase *strA)
     : FilterStream(strA)
 {
     bufPtr = bufEnd = buf;
@@ -1472,7 +1472,7 @@ bool RunLengthStream::fillBuf()
 // CCITTFaxStream
 //------------------------------------------------------------------------
 
-CCITTFaxStream::CCITTFaxStream(Stream *strA, int encodingA, bool endOfLineA,
+CCITTFaxStream::CCITTFaxStream(StreamBase *strA, int encodingA, bool endOfLineA,
                                bool byteAlignA, int columnsA, int rowsA,
                                bool endOfBlockA, bool blackA)
     : FilterStream(strA)
@@ -2249,7 +2249,7 @@ static int dctZigZag[64] = { 0,  1,  8,  16, 9,  2,  3,  10, 17, 24, 32, 25, 18,
                              36, 29, 22, 15, 23, 30, 37, 44, 51, 58, 59, 52, 45,
                              38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63 };
 
-DCTStream::DCTStream(Stream *strA, bool colorXformA)
+DCTStream::DCTStream(StreamBase *strA, bool colorXformA)
     : FilterStream(strA)
 {
     int i;
@@ -3871,7 +3871,7 @@ static FlateCode flateFixedDistCodeTabCodes[32] = {
 
 FlateHuffmanTab FlateStream::fixedDistCodeTab = { flateFixedDistCodeTabCodes, 5 };
 
-FlateStream::FlateStream(Stream *strA, int predictor, int columns, int colors,
+FlateStream::FlateStream(StreamBase *strA, int predictor, int columns, int colors,
                          int bits)
     : FilterStream(strA)
     , pred()
@@ -4371,7 +4371,7 @@ int FlateStream::getCodeWord(int bits)
 // EOFStream
 //------------------------------------------------------------------------
 
-EOFStream::EOFStream(Stream *strA)
+EOFStream::EOFStream(StreamBase *strA)
     : FilterStream(strA)
 {
 }
@@ -4385,7 +4385,7 @@ EOFStream::~EOFStream()
 // BufStream
 //------------------------------------------------------------------------
 
-BufStream::BufStream(Stream *strA, int bufSizeA)
+BufStream::BufStream(StreamBase *strA, int bufSizeA)
     : FilterStream(strA)
 {
     bufSize = bufSizeA;
@@ -4439,7 +4439,7 @@ bool BufStream::isBinary(bool last)
 // FixedLengthEncoder
 //------------------------------------------------------------------------
 
-FixedLengthEncoder::FixedLengthEncoder(Stream *strA, int lengthA)
+FixedLengthEncoder::FixedLengthEncoder(StreamBase *strA, int lengthA)
     : FilterStream(strA)
 {
     length = lengthA;
@@ -4482,7 +4482,7 @@ bool FixedLengthEncoder::isBinary(bool last)
 // ASCIIHexEncoder
 //------------------------------------------------------------------------
 
-ASCIIHexEncoder::ASCIIHexEncoder(Stream *strA)
+ASCIIHexEncoder::ASCIIHexEncoder(StreamBase *strA)
     : FilterStream(strA)
 {
     bufPtr = bufEnd = buf;
@@ -4533,7 +4533,7 @@ bool ASCIIHexEncoder::fillBuf()
 // ASCII85Encoder
 //------------------------------------------------------------------------
 
-ASCII85Encoder::ASCII85Encoder(Stream *strA)
+ASCII85Encoder::ASCII85Encoder(StreamBase *strA)
     : FilterStream(strA)
 {
     bufPtr = bufEnd = buf;
@@ -4629,7 +4629,7 @@ bool ASCII85Encoder::fillBuf()
 // RunLengthEncoder
 //------------------------------------------------------------------------
 
-RunLengthEncoder::RunLengthEncoder(Stream *strA)
+RunLengthEncoder::RunLengthEncoder(StreamBase *strA)
     : FilterStream(strA)
 {
     bufPtr = bufEnd = nextEnd = buf;
@@ -4738,7 +4738,7 @@ bool RunLengthEncoder::fillBuf()
 // LZWEncoder
 //------------------------------------------------------------------------
 
-LZWEncoder::LZWEncoder(Stream *strA)
+LZWEncoder::LZWEncoder(StreamBase *strA)
     : FilterStream(strA)
 {
     inBufLen = 0;

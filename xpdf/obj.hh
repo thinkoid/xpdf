@@ -20,7 +20,7 @@
 #include <xpdf/dict_fwd.hh>
 #include <xpdf/obj_fwd.hh>
 
-class Stream;
+class StreamBase;
 class XRef;
 
 ////////////////////////////////////////////////////////////////////////
@@ -170,7 +170,7 @@ struct obj_t
 
     obj_t(Array *) noexcept;
     obj_t(Dict *) noexcept;
-    obj_t(Stream *) noexcept;
+    obj_t(StreamBase *) noexcept;
 
     template< typename T > bool is() const
     {
@@ -214,7 +214,7 @@ struct obj_t
     bool is_array() const { return is< std::shared_ptr< Array > >(); }
     bool is_dict() const { return is< std::shared_ptr< Dict > >(); }
 
-    bool is_stream() const { return is< std::shared_ptr< Stream > >(); }
+    bool is_stream() const { return is< std::shared_ptr< StreamBase > >(); }
     bool is_stream(const char *) const;
 
     //
@@ -257,7 +257,7 @@ struct obj_t
         case 11:
             return CAST(std::shared_ptr< Dict >);
         case 12:
-            return CAST(std::shared_ptr< Stream >);
+            return CAST(std::shared_ptr< StreamBase >);
 #undef CAST
         default:
             ASSERT(0);
@@ -295,9 +295,9 @@ struct obj_t
         return *as< pointer >().get();
     }
 
-    Stream *as_stream() const
+    StreamBase *as_stream() const
     {
-        using pointer = std::shared_ptr< Stream >;
+        using pointer = std::shared_ptr< StreamBase >;
         return as< pointer >().get();
     }
 
@@ -366,7 +366,7 @@ struct obj_t
     }
 
     //
-    // Stream accessors:
+    // StreamBase accessors:
     //
     bool        streamIs(const char *dictType) const;
     void        streamReset();
@@ -398,7 +398,7 @@ private:
                   ref_t, //  9
                   std::shared_ptr< Array >, // 10
                   std::shared_ptr< Dict >, // 11
-                  std::shared_ptr< Stream > // 12
+                  std::shared_ptr< StreamBase > // 12
                   >
         var_;
 };
@@ -466,7 +466,7 @@ inline obj_t make_ref_obj(ref_t arg)
 obj_t make_arr_obj();
 obj_t make_dict_obj();
 obj_t make_dict_obj(Dict *);
-obj_t make_stream_obj(Stream *);
+obj_t make_stream_obj(StreamBase *);
 
 } // namespace xpdf
 

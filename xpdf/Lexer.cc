@@ -45,7 +45,7 @@ static inline Array make_array(Object *pobj = 0)
     }
 }
 
-Lexer::Lexer(Stream *pstr)
+Lexer::Lexer(StreamBase *pstr)
     : streams(make_array())
 {
     // TODO: array of streams and nested parsing need some std-ing.

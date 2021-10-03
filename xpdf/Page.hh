@@ -69,9 +69,9 @@ public:
         return boxColorInfo.is_dict() ? &boxColorInfo.as_dict() : (Dict *)NULL;
     }
     Dict *getGroup() { return group.is_dict() ? &group.as_dict() : (Dict *)NULL; }
-    Stream *getMetadata()
+    StreamBase *getMetadata()
     {
-        return metadata.is_stream() ? metadata.as_stream() : (Stream *)NULL;
+        return metadata.is_stream() ? metadata.as_stream() : (StreamBase *)NULL;
     }
     Dict *getPieceInfo()
     {
@@ -159,7 +159,7 @@ public:
     GString *     getLastModified() { return attrs->getLastModified(); }
     Dict *        getBoxColorInfo() { return attrs->getBoxColorInfo(); }
     Dict *        getGroup() { return attrs->getGroup(); }
-    Stream *      getMetadata() { return attrs->getMetadata(); }
+    StreamBase *      getMetadata() { return attrs->getMetadata(); }
     Dict *        getPieceInfo() { return attrs->getPieceInfo(); }
     Dict *        getSeparationInfo() { return attrs->getSeparationInfo(); }
     double        getUserUnit() { return attrs->getUserUnit(); }

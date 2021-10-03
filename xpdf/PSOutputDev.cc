@@ -942,7 +942,7 @@ struct PSOutPaperSize
 class DeviceNRecoder : public FilterStream
 {
 public:
-    DeviceNRecoder(Stream *strA, int widthA, int heightA,
+    DeviceNRecoder(StreamBase *strA, int widthA, int heightA,
                    GfxImageColorMap *colorMapA);
     virtual ~DeviceNRecoder();
 
@@ -974,7 +974,7 @@ private:
     int               bufSize;
 };
 
-DeviceNRecoder::DeviceNRecoder(Stream *strA, int widthA, int heightA,
+DeviceNRecoder::DeviceNRecoder(StreamBase *strA, int widthA, int heightA,
                                GfxImageColorMap *colorMapA)
     : FilterStream(strA)
 {
@@ -2961,7 +2961,7 @@ void PSOutputDev::setupImages(Dict *resDict)
     }
 }
 
-void PSOutputDev::setupImage(Ref id, Stream *str, bool mask)
+void PSOutputDev::setupImage(Ref id, StreamBase *str, bool mask)
 {
     bool     useLZW, useRLE, useCompressed, useASCIIHex;
     GString *s;
@@ -3224,7 +3224,7 @@ bool PSOutputDev::checkPageSlice(Page *page, double hDPI, double vDPI,
     PDFRectangle     box;
     GfxState *       state;
     SplashBitmap *   bitmap;
-    Stream *         str0, *str;
+    StreamBase *         str0, *str;
     Object           obj;
     unsigned char *  p;
     unsigned char    col[4];
@@ -4793,7 +4793,7 @@ void PSOutputDev::endTextObject(GfxState *state)
     }
 }
 
-void PSOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
+void PSOutputDev::drawImageMask(GfxState *state, Object *ref, StreamBase *str,
                                 int width, int height, bool invert,
                                 bool inlineImg, bool interpolate)
 {
@@ -4818,7 +4818,7 @@ void PSOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
     }
 }
 
-void PSOutputDev::drawImage(GfxState *state, Object *ref, Stream *str, int width,
+void PSOutputDev::drawImage(GfxState *state, Object *ref, StreamBase *str, int width,
                             int height, GfxImageColorMap *colorMap,
                             int *maskColors, bool inlineImg, bool interpolate)
 {
@@ -4848,9 +4848,9 @@ void PSOutputDev::drawImage(GfxState *state, Object *ref, Stream *str, int width
     t3Cacheable = false;
 }
 
-void PSOutputDev::drawMaskedImage(GfxState *state, Object *ref, Stream *str,
+void PSOutputDev::drawMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                   int width, int height,
-                                  GfxImageColorMap *colorMap, Stream *maskStr,
+                                  GfxImageColorMap *colorMap, StreamBase *maskStr,
                                   int maskWidth, int maskHeight, bool maskInvert,
                                   bool interpolate)
 {
@@ -4881,7 +4881,7 @@ void PSOutputDev::drawMaskedImage(GfxState *state, Object *ref, Stream *str,
 }
 
 void PSOutputDev::doImageL1(Object *ref, GfxImageColorMap *colorMap, bool invert,
-                            bool inlineImg, Stream *str, int width, int height,
+                            bool inlineImg, StreamBase *str, int width, int height,
                             int len)
 {
     ImageStream * imgStr;
@@ -4989,7 +4989,7 @@ void PSOutputDev::doImageL1(Object *ref, GfxImageColorMap *colorMap, bool invert
 }
 
 void PSOutputDev::doImageL1Sep(GfxImageColorMap *colorMap, bool invert,
-                               bool inlineImg, Stream *str, int width, int height,
+                               bool inlineImg, StreamBase *str, int width, int height,
                                int len)
 {
     ImageStream *  imgStr;
@@ -5047,11 +5047,11 @@ void PSOutputDev::doImageL1Sep(GfxImageColorMap *colorMap, bool invert,
 }
 
 void PSOutputDev::doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert,
-                            bool inlineImg, Stream *str, int width, int height,
-                            int len, int *maskColors, Stream *maskStr,
+                            bool inlineImg, StreamBase *str, int width, int height,
+                            int len, int *maskColors, StreamBase *maskStr,
                             int maskWidth, int maskHeight, bool maskInvert)
 {
-    Stream *          str2;
+    StreamBase *          str2;
     ImageStream *     imgStr;
     unsigned char *   line;
     PSOutImgClipRect *rects0, *rects1, *rectsTmp, *rectsOut;
@@ -5589,11 +5589,11 @@ void PSOutputDev::doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert
 
 //~ this doesn't currently support OPI
 void PSOutputDev::doImageL3(Object *ref, GfxImageColorMap *colorMap, bool invert,
-                            bool inlineImg, Stream *str, int width, int height,
-                            int len, int *maskColors, Stream *maskStr,
+                            bool inlineImg, StreamBase *str, int width, int height,
+                            int len, int *maskColors, StreamBase *maskStr,
                             int maskWidth, int maskHeight, bool maskInvert)
 {
-    Stream * str2;
+    StreamBase * str2;
     GString *s;
     int      n, numComps;
     bool     useLZW, useRLE, useASCII, useASCIIHex, useCompressed;
@@ -6652,9 +6652,9 @@ void PSOutputDev::drawForm(Ref id)
     writePSFmt("f_{0:d}_{1:d}\n", id.num, id.gen);
 }
 
-void PSOutputDev::psXObject(Stream *psStream, Stream *level1Stream)
+void PSOutputDev::psXObject(StreamBase *psStream, StreamBase *level1Stream)
 {
-    Stream *str;
+    StreamBase *str;
     char    buf[4096];
     int     n;
 

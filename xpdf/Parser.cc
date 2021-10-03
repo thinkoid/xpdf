@@ -101,7 +101,7 @@ Object *Parser::getObj(Object *obj, bool simpleOnly, unsigned char *fileKey,
                        CryptAlgorithm encAlgorithm, int keyLength, int objNum,
                        int objGen, int recursion)
 {
-    Stream *       str;
+    StreamBase *       str;
     Object         obj2;
     int            num;
     DecryptStream *decrypt;
@@ -227,13 +227,13 @@ Object *Parser::getObj(Object *obj, bool simpleOnly, unsigned char *fileKey,
     return obj;
 }
 
-Stream *Parser::makeStream(Object *dict, unsigned char *fileKey,
+StreamBase *Parser::makeStream(Object *dict, unsigned char *fileKey,
                            CryptAlgorithm encAlgorithm, int keyLength, int objNum,
                            int objGen, int recursion)
 {
     Object      obj;
     BasicStream *baseStr;
-    Stream *    str;
+    StreamBase *    str;
     off_t pos, endPos, length;
 
     // get stream start position

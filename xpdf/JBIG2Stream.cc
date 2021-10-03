@@ -213,7 +213,7 @@ class JBIG2HuffmanDecoder
 public:
     JBIG2HuffmanDecoder();
     ~JBIG2HuffmanDecoder();
-    void setStream(Stream *strA) { str = strA; }
+    void setStream(StreamBase *strA) { str = strA; }
 
     void reset();
 
@@ -230,7 +230,7 @@ public:
     unsigned getByteCounter() { return byteCounter; }
 
 private:
-    Stream * str;
+    StreamBase * str;
     unsigned buf;
     unsigned bufLen;
     unsigned byteCounter;
@@ -373,7 +373,7 @@ class JBIG2MMRDecoder
 public:
     JBIG2MMRDecoder();
     ~JBIG2MMRDecoder();
-    void     setStream(Stream *strA) { str = strA; }
+    void     setStream(StreamBase *strA) { str = strA; }
     void     reset();
     int      get2DCode();
     int      getBlackCode();
@@ -384,7 +384,7 @@ public:
     void     skipTo(unsigned length);
 
 private:
-    Stream * str;
+    StreamBase * str;
     unsigned buf;
     unsigned bufLen;
     unsigned nBytesRead;
@@ -1088,7 +1088,7 @@ JBIG2CodeTable::~JBIG2CodeTable()
 // JBIG2Stream
 //------------------------------------------------------------------------
 
-JBIG2Stream::JBIG2Stream(Stream *strA, Object *globalsStreamA)
+JBIG2Stream::JBIG2Stream(StreamBase *strA, Object *globalsStreamA)
     : FilterStream(strA)
 {
     pageBitmap = NULL;

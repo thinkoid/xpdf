@@ -71,7 +71,7 @@ struct DecryptAES256State
 class DecryptStream : public FilterStream
 {
 public:
-    DecryptStream(Stream *strA, unsigned char *fileKey, CryptAlgorithm algoA,
+    DecryptStream(StreamBase *strA, unsigned char *fileKey, CryptAlgorithm algoA,
                   int keyLength, int objNum, int objGen);
     virtual ~DecryptStream();
 
@@ -81,7 +81,7 @@ public:
     virtual int        get();
     virtual int        peek();
     virtual bool       isBinary(bool last);
-    virtual Stream *   getUndecodedStream() { return this; }
+    virtual StreamBase *   getUndecodedStream() { return this; }
 
 private:
     CryptAlgorithm algo;

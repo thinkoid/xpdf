@@ -30,7 +30,7 @@ public:
                    int objNum = 0, int objGen = 0, int recursion = 0);
 
     // Get stream.
-    Stream *as_stream() { return lexer->as_stream(); }
+    StreamBase *as_stream() { return lexer->as_stream(); }
 
     // Get current position in file.
     off_t tellg() { return lexer->tellg(); }
@@ -44,7 +44,7 @@ private:
     bool allowStreams; // parse stream objects?
     int  inlineImg; // set when inline image data is encountered
 
-    Stream *makeStream(Object *dict, unsigned char *fileKey,
+    StreamBase *makeStream(Object *dict, unsigned char *fileKey,
                        CryptAlgorithm encAlgorithm, int keyLength, int objNum,
                        int objGen, int recursion);
     void    shift();

@@ -196,15 +196,15 @@ public:
     virtual void endTextObject(GfxState *state);
 
     //----- image drawing
-    virtual void drawImageMask(GfxState *state, Object *ref, Stream *str,
+    virtual void drawImageMask(GfxState *state, Object *ref, StreamBase *str,
                                int width, int height, bool invert, bool inlineImg,
                                bool interpolate);
-    virtual void drawImage(GfxState *state, Object *ref, Stream *str, int width,
+    virtual void drawImage(GfxState *state, Object *ref, StreamBase *str, int width,
                            int height, GfxImageColorMap *colorMap,
                            int *maskColors, bool inlineImg, bool interpolate);
-    virtual void drawMaskedImage(GfxState *state, Object *ref, Stream *str,
+    virtual void drawMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                  int width, int height,
-                                 GfxImageColorMap *colorMap, Stream *maskStr,
+                                 GfxImageColorMap *colorMap, StreamBase *maskStr,
                                  int maskWidth, int maskHeight, bool maskInvert,
                                  bool interpolate);
 
@@ -223,7 +223,7 @@ public:
     virtual void drawForm(Ref ref);
 
     //----- PostScript XObjects
-    virtual void psXObject(Stream *psStream, Stream *level1Stream);
+    virtual void psXObject(StreamBase *psStream, StreamBase *level1Stream);
 
     //----- miscellaneous
     void setOffset(double x, double y)
@@ -288,23 +288,23 @@ private:
     PSFontFileInfo *setupType3Font(GfxFont *font, Dict *parentResDict);
     GString *       makePSFontName(GfxFont *font, Ref *id);
     void            setupImages(Dict *resDict);
-    void            setupImage(Ref id, Stream *str, bool mask);
+    void            setupImage(Ref id, StreamBase *str, bool mask);
     void            setupForms(Dict *resDict);
     void            setupForm(Object *strRef, Object *strObj);
     void            addProcessColor(double c, double m, double y, double k);
     void            addCustomColor(GfxSeparationColorSpace *sepCS);
     void            doPath(GfxPath *path);
     void doImageL1(Object *ref, GfxImageColorMap *colorMap, bool invert,
-                   bool inlineImg, Stream *str, int width, int height, int len);
+                   bool inlineImg, StreamBase *str, int width, int height, int len);
     void doImageL1Sep(GfxImageColorMap *colorMap, bool invert, bool inlineImg,
-                      Stream *str, int width, int height, int len);
+                      StreamBase *str, int width, int height, int len);
     void doImageL2(Object *ref, GfxImageColorMap *colorMap, bool invert,
-                   bool inlineImg, Stream *str, int width, int height, int len,
-                   int *maskColors, Stream *maskStr, int maskWidth,
+                   bool inlineImg, StreamBase *str, int width, int height, int len,
+                   int *maskColors, StreamBase *maskStr, int maskWidth,
                    int maskHeight, bool maskInvert);
     void doImageL3(Object *ref, GfxImageColorMap *colorMap, bool invert,
-                   bool inlineImg, Stream *str, int width, int height, int len,
-                   int *maskColors, Stream *maskStr, int maskWidth,
+                   bool inlineImg, StreamBase *str, int width, int height, int len,
+                   int *maskColors, StreamBase *maskStr, int maskWidth,
                    int maskHeight, bool maskInvert);
     void dumpColorSpaceL2(GfxColorSpace *colorSpace, bool genXform,
                           bool updateColors, bool map01);

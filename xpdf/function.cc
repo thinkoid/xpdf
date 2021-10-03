@@ -693,7 +693,7 @@ struct postscript_function_t : function_t::impl_t
     std::vector< double > exec(std::vector< double > stack) const;
 };
 
-static std::optional< std::string > next_token(Stream &str)
+static std::optional< std::string > next_token(StreamBase &str)
 {
     int c = 0;
 
@@ -746,7 +746,7 @@ static std::optional< std::string > next_token(Stream &str)
     return s;
 }
 
-static std::list< std::string > tokenize(Stream &str)
+static std::list< std::string > tokenize(StreamBase &str)
 {
     std::list< std::string > ss;
 

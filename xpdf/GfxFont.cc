@@ -121,7 +121,7 @@ static const char *base14SubstFonts[14] = {
 
 //------------------------------------------------------------------------
 
-static std::vector< char > stream_data(Stream *stream)
+static std::vector< char > stream_data(StreamBase *stream)
 {
     std::vector< char > cs;
 
@@ -798,7 +798,7 @@ char *GfxFont::readEmbFontFile(XRef *xref, int *len)
 {
     char *  buf;
     Object  obj1, obj2;
-    Stream *str;
+    StreamBase *str;
     int     size, n;
 
     obj1 = xpdf::make_ref_obj(embFontID.num, embFontID.gen, xref);

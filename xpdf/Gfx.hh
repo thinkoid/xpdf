@@ -34,7 +34,7 @@ class OutputDev;
 class PDFDoc;
 class PDFRectangle;
 class Parser;
-class Stream;
+class StreamBase;
 class XRef;
 
 struct GfxColor;
@@ -266,7 +266,7 @@ private:
     void doPatternFill(bool eoFill);
     void doPatternStroke();
     void doPatternText();
-    void doPatternImageMask(Object *ref, Stream *str, int width, int height,
+    void doPatternImageMask(Object *ref, StreamBase *str, int width, int height,
                             bool invert, bool inlineImg, bool interpolate);
     void doTilingPatternFill(GfxTilingPattern *tPat, bool stroke, bool eoFill,
                              bool text);
@@ -321,12 +321,12 @@ private:
 
     // XObject operators
     void opXObject(Object args[], int numArgs);
-    void doImage(Object *ref, Stream *str, bool inlineImg);
+    void doImage(Object *ref, StreamBase *str, bool inlineImg);
     void doForm(Object *strRef, Object *str);
 
     // in-line image operators
     void    opBeginImage(Object args[], int numArgs);
-    Stream *buildImageStream();
+    StreamBase *buildImageStream();
     void    opImageData(Object args[], int numArgs);
     void    opEndImage(Object args[], int numArgs);
 

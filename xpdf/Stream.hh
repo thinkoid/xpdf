@@ -41,22 +41,22 @@ enum StreamColorSpaceMode {
 
 //------------------------------------------------------------------------
 
-// This is in Stream.h instead of Decrypt.h to avoid really annoying
+// This is in StreamBase.h instead of Decrypt.h to avoid really annoying
 // include file dependency loops.
 enum CryptAlgorithm { cryptRC4, cryptAES, cryptAES256 };
 
 //------------------------------------------------------------------------
-// Stream (base class)
+// StreamBase (base class)
 //------------------------------------------------------------------------
 
-class Stream : public boost::noncopyable
+class StreamBase : public boost::noncopyable
 {
 public:
     // Constructor.
-    Stream() { }
+    StreamBase() { }
 
     // Destructor.
-    virtual ~Stream();
+    virtual ~StreamBase();
 
     virtual const std::type_info &type() const  = 0;
 
@@ -107,7 +107,7 @@ public:
 
     // Get the stream after the last decoder (this may be a BasicStream
     // or a DecryptStream).
-    virtual Stream *getUndecodedStream() = 0;
+    virtual StreamBase *getUndecodedStream() = 0;
 
     // Get the dictionary associated with this stream.
     virtual Dict &      as_dict() = 0;
@@ -124,10 +124,10 @@ public:
 
     // Add filters to this stream according to the parameters in <dict>.
     // Returns the new stream.
-    Stream *addFilters(Object *dict, int recursion = 0);
+    StreamBase *addFilters(Object *dict, int recursion = 0);
 
 private:
-    Stream *makeFilter(const char *name, Stream *str, Object *params,
+    StreamBase *makeFilter(const char *name, StreamBase *str, Object *params,
                        int recursion);
 };
 
@@ -137,17 +137,17 @@ private:
 // This is the base class for all streams that read directly from a file.
 //------------------------------------------------------------------------
 
-class BasicStream : public Stream
+class BasicStream : public StreamBase
 {
 public:
     BasicStream(Object *dictA);
     virtual ~BasicStream();
-    virtual Stream *    makeSubStream(off_t start, bool limited,
+    virtual StreamBase *    makeSubStream(off_t start, bool limited,
                                       off_t length, Object *dict) = 0;
     virtual void        seekg(off_t pos, int dir = 0) = 0;
     virtual bool        isBinary(bool last = true) { return last; }
     virtual BasicStream *getBasicStream() { return this; }
-    virtual Stream *    getUndecodedStream() { return this; }
+    virtual StreamBase *    getUndecodedStream() { return this; }
 
     virtual       Dict &as_dict()       { return dict.as_dict(); }
     virtual const Dict &as_dict() const { return dict.as_dict(); }
@@ -168,22 +168,22 @@ private:
 // This is the base class for all streams that filter another stream.
 //------------------------------------------------------------------------
 
-class FilterStream : public Stream
+class FilterStream : public StreamBase
 {
 public:
-    FilterStream(Stream *strA);
+    FilterStream(StreamBase *strA);
     virtual ~FilterStream();
     virtual void        close();
     virtual off_t tellg() { return str->tellg(); }
     virtual void        seekg(off_t pos, int dir = 0);
     virtual BasicStream *getBasicStream() { return str->getBasicStream(); }
-    virtual Stream *    getUndecodedStream() { return str->getUndecodedStream(); }
+    virtual StreamBase *    getUndecodedStream() { return str->getUndecodedStream(); }
 
     virtual       Dict &as_dict()       { return str->as_dict(); }
     virtual const Dict &as_dict() const { return str->as_dict(); }
 
 protected:
-    Stream *str;
+    StreamBase *str;
 };
 
 //------------------------------------------------------------------------
@@ -196,7 +196,7 @@ public:
     // Create an image stream object for an image with the specified
     // parameters.  Note that these are the actual image parameters,
     // which may be different from the predictor parameters.
-    ImageStream(Stream *strA, int widthA, int nCompsA, int nBitsA);
+    ImageStream(StreamBase *strA, int widthA, int nCompsA, int nBitsA);
 
     ~ImageStream();
 
@@ -218,7 +218,7 @@ public:
     void skipLine();
 
 private:
-    Stream *       str; // base stream
+    StreamBase *       str; // base stream
     int            width; // pixels per line
     int            nComps; // components per pixel
     int            nBits; // bits per component
@@ -238,7 +238,7 @@ class StreamPredictor
 public:
     // Create a predictor object.  Note that the parameters are for the
     // predictor, and may not match the actual image parameters.
-    StreamPredictor(Stream *, int, int, int, int);
+    StreamPredictor(StreamBase *, int, int, int, int);
     ~StreamPredictor();
 
     bool isOk() { return ok; }
@@ -252,7 +252,7 @@ private:
     bool getNextLine();
 
 private:
-    Stream *str; // base stream
+    StreamBase *str; // base stream
 
     int predictor; // predictor
     int ppl; // pixels per line
@@ -280,7 +280,7 @@ public:
     FileStream(FILE *fA, off_t startA, bool limitedA, off_t lengthA,
                Object *dictA);
     virtual ~FileStream();
-    virtual Stream *   makeSubStream(off_t startA, bool limitedA,
+    virtual StreamBase *   makeSubStream(off_t startA, bool limitedA,
                                      off_t lengthA, Object *dictA);
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -325,7 +325,7 @@ class MemStream : public BasicStream
 public:
     MemStream(const char *bufA, unsigned startA, unsigned lengthA, Object *dictA);
     virtual ~MemStream();
-    virtual Stream *   makeSubStream(off_t start, bool limited,
+    virtual StreamBase *   makeSubStream(off_t start, bool limited,
                                      off_t lengthA, Object *dictA);
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -361,9 +361,9 @@ private:
 class EmbedStream : public BasicStream
 {
 public:
-    EmbedStream(Stream *strA, Object *dictA, bool limitedA, off_t lengthA);
+    EmbedStream(StreamBase *strA, Object *dictA, bool limitedA, off_t lengthA);
     virtual ~EmbedStream();
-    virtual Stream *    makeSubStream(off_t start, bool limitedA,
+    virtual StreamBase *    makeSubStream(off_t start, bool limitedA,
                                       off_t lengthA, Object *dictA);
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -378,7 +378,7 @@ public:
     virtual void        moveStart(int delta);
 
 private:
-    Stream *    str;
+    StreamBase *    str;
     bool        limited;
     off_t length;
 };
@@ -390,7 +390,7 @@ private:
 class ASCIIHexStream : public FilterStream
 {
 public:
-    ASCIIHexStream(Stream *strA);
+    ASCIIHexStream(StreamBase *strA);
     virtual ~ASCIIHexStream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -418,7 +418,7 @@ private:
 class ASCII85Stream : public FilterStream
 {
 public:
-    ASCII85Stream(Stream *strA);
+    ASCII85Stream(StreamBase *strA);
     virtual ~ASCII85Stream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -448,7 +448,7 @@ private:
 class LZWStream : public FilterStream
 {
 public:
-    LZWStream(Stream *strA, int predictor, int columns, int colors, int bits,
+    LZWStream(StreamBase *strA, int predictor, int columns, int colors, int bits,
               int earlyA);
     virtual ~LZWStream();
 
@@ -495,7 +495,7 @@ private:
 class RunLengthStream : public FilterStream
 {
 public:
-    RunLengthStream(Stream *strA);
+    RunLengthStream(StreamBase *strA);
     virtual ~RunLengthStream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -531,7 +531,7 @@ struct CCITTCodeTable;
 class CCITTFaxStream : public FilterStream
 {
 public:
-    CCITTFaxStream(Stream *strA, int encodingA, bool endOfLineA, bool byteAlignA,
+    CCITTFaxStream(StreamBase *strA, int encodingA, bool endOfLineA, bool byteAlignA,
                    int columnsA, int rowsA, bool endOfBlockA, bool blackA);
     virtual ~CCITTFaxStream();
 
@@ -617,7 +617,7 @@ struct DCTHuffTable
 class DCTStream : public FilterStream
 {
 public:
-    DCTStream(Stream *strA, bool colorXformA);
+    DCTStream(StreamBase *strA, bool colorXformA);
     virtual ~DCTStream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -628,7 +628,7 @@ public:
     virtual int        peek();
     virtual GString *  getPSFilter(int psLevel, const char *indent);
     virtual bool       isBinary(bool last = true);
-    Stream *           getRawStream() { return str; }
+    StreamBase *           getRawStream() { return str; }
 
 private:
     bool        progressive; // set if in progressive mode
@@ -724,7 +724,7 @@ struct FlateDecode
 class FlateStream : public FilterStream
 {
 public:
-    FlateStream(Stream *strA, int predictor, int columns, int colors, int bits);
+    FlateStream(StreamBase *strA, int predictor, int columns, int colors, int bits);
     virtual ~FlateStream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -780,7 +780,7 @@ private:
 class EOFStream : public FilterStream
 {
 public:
-    EOFStream(Stream *strA);
+    EOFStream(StreamBase *strA);
     virtual ~EOFStream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -800,7 +800,7 @@ public:
 class BufStream : public FilterStream
 {
 public:
-    BufStream(Stream *strA, int bufSizeA);
+    BufStream(StreamBase *strA, int bufSizeA);
     virtual ~BufStream();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -825,7 +825,7 @@ private:
 class FixedLengthEncoder : public FilterStream
 {
 public:
-    FixedLengthEncoder(Stream *strA, int lengthA);
+    FixedLengthEncoder(StreamBase *strA, int lengthA);
     ~FixedLengthEncoder();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -849,7 +849,7 @@ private:
 class ASCIIHexEncoder : public FilterStream
 {
 public:
-    ASCIIHexEncoder(Stream *strA);
+    ASCIIHexEncoder(StreamBase *strA);
     virtual ~ASCIIHexEncoder();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -884,7 +884,7 @@ private:
 class ASCII85Encoder : public FilterStream
 {
 public:
-    ASCII85Encoder(Stream *strA);
+    ASCII85Encoder(StreamBase *strA);
     virtual ~ASCII85Encoder();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -919,7 +919,7 @@ private:
 class RunLengthEncoder : public FilterStream
 {
 public:
-    RunLengthEncoder(Stream *strA);
+    RunLengthEncoder(StreamBase *strA);
     virtual ~RunLengthEncoder();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -961,7 +961,7 @@ struct LZWEncoderNode
 class LZWEncoder : public FilterStream
 {
 public:
-    LZWEncoder(Stream *strA);
+    LZWEncoder(StreamBase *strA);
     virtual ~LZWEncoder();
 
     const std::type_info &type() const override { return typeid(*this); }
@@ -987,7 +987,7 @@ private:
 };
 
 template< typename T >
-inline bool is_stream(Stream &s)
+inline bool is_stream(StreamBase &s)
 {
     using value_type = std::remove_const_t< std::remove_pointer_t< T > >;
     return typeid(value_type) == s.type();

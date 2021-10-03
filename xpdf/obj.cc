@@ -41,8 +41,8 @@ obj_t::obj_t(Dict *p) noexcept
 {
 }
 
-obj_t::obj_t(Stream *p) noexcept
-    : var_(std::shared_ptr< Stream >(p))
+obj_t::obj_t(StreamBase *p) noexcept
+    : var_(std::shared_ptr< StreamBase >(p))
 {
 }
 
@@ -91,7 +91,7 @@ obj_t &obj_t::val_at(size_t n)
 }
 
 //------------------------------------------------------------------------
-// Stream accessors.
+// StreamBase accessors.
 //------------------------------------------------------------------------
 
 bool obj_t::streamIs(const char *dictType) const
@@ -179,7 +179,7 @@ obj_t make_dict_obj(Dict *p)
     return obj_t(p);
 }
 
-obj_t make_stream_obj(Stream *p)
+obj_t make_stream_obj(StreamBase *p)
 {
     return obj_t(p);
 }

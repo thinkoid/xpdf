@@ -221,7 +221,7 @@ JPXCover jpxCover(150);
 
 //------------------------------------------------------------------------
 
-JPXStream::JPXStream(Stream *strA)
+JPXStream::JPXStream(StreamBase *strA)
     : FilterStream(strA)
 {
     bufStr = new BufStream(str, 2);

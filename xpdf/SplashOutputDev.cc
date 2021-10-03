@@ -2171,7 +2171,7 @@ bool SplashOutputDev::imageMaskSrc(void *data, SplashColorPtr line)
     return true;
 }
 
-void SplashOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
+void SplashOutputDev::drawImageMask(GfxState *state, Object *ref, StreamBase *str,
                                     int width, int height, bool invert,
                                     bool inlineImg, bool interpolate)
 {
@@ -2216,7 +2216,7 @@ void SplashOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
 }
 
 void SplashOutputDev::setSoftMaskFromImageMask(GfxState *state, Object *ref,
-                                               Stream *str, int width, int height,
+                                               StreamBase *str, int width, int height,
                                                bool invert, bool inlineImg,
                                                bool interpolate)
 {
@@ -2422,7 +2422,7 @@ bool SplashOutputDev::alphaImageSrc(void *data, SplashColorPtr colorLine,
     return true;
 }
 
-void SplashOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
+void SplashOutputDev::drawImage(GfxState *state, Object *ref, StreamBase *str,
                                 int width, int height, GfxImageColorMap *colorMap,
                                 int *maskColors, bool inlineImg, bool interpolate)
 {
@@ -2626,9 +2626,9 @@ bool SplashOutputDev::maskedImageSrc(void *data, SplashColorPtr colorLine,
     return true;
 }
 
-void SplashOutputDev::drawMaskedImage(GfxState *state, Object *ref, Stream *str,
+void SplashOutputDev::drawMaskedImage(GfxState *state, Object *ref, StreamBase *str,
                                       int width, int height,
-                                      GfxImageColorMap *colorMap, Stream *maskStr,
+                                      GfxImageColorMap *colorMap, StreamBase *maskStr,
                                       int maskWidth, int maskHeight,
                                       bool maskInvert, bool interpolate)
 {
@@ -2782,8 +2782,8 @@ void SplashOutputDev::drawMaskedImage(GfxState *state, Object *ref, Stream *str,
 }
 
 void SplashOutputDev::drawSoftMaskedImage(
-    GfxState *state, Object *ref, Stream *str, int width, int height,
-    GfxImageColorMap *colorMap, Stream *maskStr, int maskWidth, int maskHeight,
+    GfxState *state, Object *ref, StreamBase *str, int width, int height,
+    GfxImageColorMap *colorMap, StreamBase *maskStr, int maskWidth, int maskHeight,
     GfxImageColorMap *maskColorMap, bool interpolate)
 {
     double *           ctm;
@@ -2917,7 +2917,7 @@ void SplashOutputDev::drawSoftMaskedImage(
     str->close();
 }
 
-void SplashOutputDev::reduceImageResolution(Stream *str, double *ctm, int *width,
+void SplashOutputDev::reduceImageResolution(StreamBase *str, double *ctm, int *width,
                                             int *height)
 {
     double sw, sh;

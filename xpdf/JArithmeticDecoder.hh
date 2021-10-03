@@ -6,7 +6,7 @@
 
 #include <defs.hh>
 
-class Stream;
+class StreamBase;
 
 //------------------------------------------------------------------------
 // JArithmeticDecoderStats
@@ -40,13 +40,13 @@ public:
     JArithmeticDecoder();
     ~JArithmeticDecoder();
 
-    void setStream(Stream *strA)
+    void setStream(StreamBase *strA)
     {
         str = strA;
         dataLen = 0;
         limitStream = false;
     }
-    void setStream(Stream *strA, int dataLenA)
+    void setStream(StreamBase *strA, int dataLenA)
     {
         str = strA;
         dataLen = dataLenA;
@@ -96,7 +96,7 @@ private:
 
     unsigned prev; // for the integer decoder
 
-    Stream * str;
+    StreamBase * str;
     unsigned nBytesRead;
     int      dataLen;
     bool     limitStream;
