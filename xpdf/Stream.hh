@@ -149,12 +149,8 @@ public:
     virtual BaseStream *getBaseStream() { return this; }
     virtual Stream *    getUndecodedStream() { return this; }
 
-    virtual Dict &as_dict() { return dict.as_dict(); }
-
-    virtual const Dict &as_dict() const
-    {
-        return const_cast< BaseStream * >(this)->as_dict();
-    }
+    virtual       Dict &as_dict()       { return dict.as_dict(); }
+    virtual const Dict &as_dict() const { return dict.as_dict(); }
 
     virtual GString *getFileName() { return NULL; }
 
@@ -183,12 +179,8 @@ public:
     virtual BaseStream *getBaseStream() { return str->getBaseStream(); }
     virtual Stream *    getUndecodedStream() { return str->getUndecodedStream(); }
 
-    virtual Dict &as_dict() { return str->as_dict(); }
-
-    virtual const Dict &as_dict() const
-    {
-        return const_cast< FilterStream * >(this)->as_dict();
-    }
+    virtual       Dict &as_dict()       { return str->as_dict(); }
+    virtual const Dict &as_dict() const { return str->as_dict(); }
 
 protected:
     Stream *str;
