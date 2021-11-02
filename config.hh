@@ -4,7 +4,14 @@
 #ifndef XPDF_CONFIG_HH
 #define XPDF_CONFIG_HH
 
-#include <_config.hh>
+// Autoconf-like macros
+#define PACKAGE "xpdf"
+#define PACKAGE_NAME "xpdf"
+#define PACKAGE_STRING "xpdf 3.0.4"
+#define PACKAGE_TARNAME "xpdf"
+#define PACKAGE_URL ""
+#define PACKAGE_VERSION "3.0.4"
+#define VERSION "3.0.4"
 
 #define XPDF_PDF_VERSION 1.7
 
