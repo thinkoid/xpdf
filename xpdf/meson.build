@@ -1,0 +1,97 @@
+libxpdf_SOURCES = [
+    'AcroForm.cc',
+    'Annot.cc',
+    'BuiltinFont.cc',
+    'CMap.cc',
+    'Catalog.cc',
+    'CharCodeToUnicode.cc',
+    'CoreOutputDev.cc',
+    'Decrypt.cc',
+    'Error.cc',
+    'FontEncodingTables.cc',
+    'Form.cc',
+    'Gfx.cc',
+    'GfxFont.cc',
+    'GfxState.cc',
+    'GlobalParams.cc',
+    'JArithmeticDecoder.cc',
+    'JBIG2Stream.cc',
+    'JPXStream.cc',
+    'Lexer.cc',
+    'Link.cc',
+    'NameToCharCode.cc',
+    'OptionalContent.cc',
+    'Outline.cc',
+    'OutputDev.cc',
+    'PDFCore.cc',
+    'PDFDoc.cc',
+    'PDFDocEncoding.cc',
+    'PSOutputDev.cc',
+    'PSTokenizer.cc',
+    'Page.cc',
+    'Parser.cc',
+    'SecurityHandler.cc',
+    'SplashOutputDev.cc',
+    'Stream.cc',
+    'TextBlock.cc',
+    'TextFontInfo.cc',
+    'TextLine.cc',
+    'TextOutputDev.cc',
+    'TextOutputDev.cc',
+    'TextPage.cc',
+    'TextPageSegment.cc',
+    'TextString.cc',
+    'TextString.cc',
+    'TextWord.cc',
+    'UnicodeTypeTable.cc',
+    'XFAForm.cc',
+    'XRef.cc',
+    'Zoox.cc',
+    'bitpack.cc',
+    'dict.cc',
+    'function.cc',
+    'obj.cc',
+    'unicode_map.cc']
+
+libxpdf = static_library(
+    'xpdf', libxpdf_SOURCES,
+    include_directories : [
+        top_INCLUDES,
+        fofi_INCLUDES,
+        utils_INCLUDES,
+        splash_INCLUDES,
+        xpdf_INCLUDES,
+    ],
+    dependencies : boost_dep, install : false)
+
+xpdf_SOURCES = [
+    'xpdf.cc',
+    'XPDFApp.cc',
+    'XPDFAppRes.cc',
+    'XPDFCore.cc',
+    'XPDFTree.cc',
+    'XPDFUI.cc']
+
+xpdf_LIBS = [ libfofi, libutils, libsplash, libxpdf ]
+
+xpdf = executable(
+    'xpdf', xpdf_SOURCES,
+    include_directories : [
+        top_INCLUDES,
+        fofi_INCLUDES,
+        utils_INCLUDES,
+        splash_INCLUDES,
+        xpdf_INCLUDES
+    ],
+    link_with : xpdf_LIBS,
+    dependencies : [
+        boost_dep,
+        fmt_dep,
+        X11_dep,
+        motif_dep,
+        Xt_dep,
+        Xpm_dep,
+        libpng_dep,
+        libpaper_dep,
+        freetype2_dep
+    ])
